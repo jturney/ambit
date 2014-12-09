@@ -1,14 +1,23 @@
+#if !defined(TENSOR_INCLUDE_TENSOR_H)
+#define TENSOR_INCLUDE_TENSOR_H
+
+#include <cstdio>
+#include <utility>
+#include <vector>
+#include <map>
+
+#include <boost/shared_ptr.hpp>
 
 namespace tensor {
 
-class TensorImpl;
 class LabeledTensor;
+class LabeledTensorProduct;
 
-enum TensorType { Core, Disk, Distributed, Agnostic }; 
+enum TensorType { Core, Disk, Distributed, Agnostic };
 enum EigenvalueOrder { Ascending, Descending };
 
 class Tensor {
-    
+
 public:
 
     // => Constructors <= //
@@ -19,23 +28,22 @@ public:
 
     // => Reflectors <= //
 
-    TensorType type() const { return tensor_->type(); }
-    std::string name() const { return tensor_->name(); }
-    const std::vector<size_t>& dims() const { return tensor_->dims(); }
-    size_t rank() const { return tensor_->dims().size(); }
+    TensorType type() const;
+    std::string name() const;
+    const std::vector<size_t>& dims() const;
+    size_t rank() const;
     size_t numel() const;
 
     /**
      * Print some tensor information to fh
-     * If level = 0, just print name and dimensions
-     * If level = 1, print the entire tensor
-     **/ 
+     * \param level If level = 0, just print name and dimensions.  If level = 1, print the entire tensor.
+     **/
     void print(FILE* fh, int level = 0) const;
 
-    // => Labelers <= // 
+    // => Labelers <= //
 
-    LabeledTensor<Tensor> operator()(const std::string& indices);
-    LabeledTensor<Tensor> operator[](const std::string& indices);
+    LabeledTensor operator()(const std::string& indices);
+    LabeledTensor operator[](const std::string& indices);
 
     // => Setters/Getters <= //
 
@@ -50,7 +58,7 @@ public:
     static Tensor slice(const Tensor& tensor, const std::vector<std::pair<size_t, size_t> >& ranges);
     static Tensor cat(const std::vector<Tensor>, int dim);
 
-    // => Simple Single Tensor Operations <= // 
+    // => Simple Single Tensor Operations <= //
 
     Tensor& zero();
     Tensor& scale(double a);
@@ -65,9 +73,9 @@ public:
 
     // => Order-2 Operations <= //
 
-    std::map<std::string, Tensor> syev(EigenValueOrder order);
-    std::map<std::string, Tensor> geev(EigenValueOrder order);
-    std::map<std::string, Tensor> svd();     
+    std::map<std::string, Tensor> syev(EigenvalueOrder order);
+    std::map<std::string, Tensor> geev(EigenvalueOrder order);
+    std::map<std::string, Tensor> svd();
 
     Tensor cholesky();
     std::map<std::string, Tensor> lu();
@@ -78,16 +86,15 @@ public:
     Tensor power(double power, double condition = 1.0E-12);
 
     Tensor& givens(int dim, int i, int j, double s, double c);
-    
+
 private:
 
+    class TensorImpl;
     boost::shared_ptr<TensorImpl> tensor_;
 
 protected:
 
     Tensor(boost::shared_ptr<TensorImpl> tensor);
-
-  
 
 };
 
@@ -96,13 +103,14 @@ class LabeledTensor {
 public:
     LabeledTensor(Tensor& T, const std::vector<std::string>& indices, double factor = 1.0) :
         T_(T), indices_(indices), factor_(factor)
-    
+    {}
+
     double factor() const { return factor_; }
     const std::vector<std::string>& indices() const { return indices_; }
     Tensor& T() const { return T_; }
 
     LabeledTensorProduct operator*(LabeledTensor& rhs);
-        
+
     void operator=(LabeledTensor& rhs);
     void operator+=(LabeledTensor& rhs);
     void operator-=(LabeledTensor& rhs);
@@ -112,7 +120,6 @@ public:
     void operator-=(LabeledTensorProduct& rhs);
 
     void operator*=(double scale);
-    
 
 private:
     Tensor& T_;
@@ -130,14 +137,17 @@ class LabeledTensorProduct {
 public:
     LabeledTensorProduct(LabeledTensor& A, LabeledTensor& B) :
         A_(A), B_(B)
+    {}
 
-    LabeledTensor& A() { const return A_; }
-    LabeledTensor& B() { const return B_; }
+    LabeledTensor& A() const { return A_; }
+    LabeledTensor& B() const { return B_; }
 
 private:
     LabeledTensor& A_;
     LabeledTensor& B_;
+};
 
 }
 
-}
+#endif
+
