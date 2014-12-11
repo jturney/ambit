@@ -123,6 +123,10 @@ def parse_input():
             action='store_true',
             default=True,
             help='enable OpenMP [default: %(default)s]')
+    group.add_argument('--ctf',
+            action='store',
+            default=None,
+            help="""Path to the location of Cyclops. This location should have include and lib in it.""")
 
     group = parser.add_argument_group('Math libraries')
     group.add_argument('--mkl',
@@ -305,6 +309,12 @@ def translate_cmake(s):
         return 'OFF'
 
 def gen_cmake_command(args):
+
+    # do some checks
+    if args.ctf and not args.mpi:
+        print("Error: CTF requested but MPI was not.")
+        sys.exit(1)
+
     # create cmake command from flags
 
     command = ''
@@ -322,6 +332,7 @@ def gen_cmake_command(args):
     command += ' -DENABLE_SGI_MPT=%s'        % translate_cmake(args.sgi_mpt)
     command += ' -DENABLE_OMP=%s'            % translate_cmake(args.omp)
     command += ' -DENABLE_VECTORIZATION=%s'  % translate_cmake(args.vectorization)
+    command += ' -DENABLE_CTF=%s'            % translate_cmake(args.ctf)
     #command += ' -DENABLE_CSR=%s'            % translate_cmake(args.csr)
     command += ' -DENABLE_SCALAPACK=%s'      % translate_cmake(args.scalapack)
     #command += ' -DENABLE_SCALASCA=%s'       % translate_cmake(args.scalasca)
@@ -392,6 +403,8 @@ def gen_cmake_command(args):
     if args.python:
         command += ' -DPYTHON_INTERPRETER={0}'.format(args.python)
 
+    if args.ctf:
+        command += ' -DCTF={0}'.format(args.ctf)
     if args.extra_cc_flags:
         command += ' -DEXTRA_C_FLAGS="%s"' % args.extra_cc_flags
     if args.extra_cxx_flags:
