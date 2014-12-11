@@ -1,0 +1,5 @@
+When importing into Psi4:
+
+   1. We don't need to compile blas.cc and lapack.cc as Psi4 already has these.
+   2. Need to modify math.h to use Psi4's wrappers if we are embedding in it.
+
