@@ -1,6 +1,9 @@
 #include <tensor/tensor.h>
 #include "tensorimpl.h"
 
+// include header files to specific tensor types supported.
+
+
 namespace tensor {
 
 TensorType Tensor::type() const

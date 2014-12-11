@@ -48,12 +48,12 @@ def parse_input():
             default=None,
             help='set the C++ compiler [default: pick automatically or based on CXX=...]',
             metavar='STRING')
-    # The Fortran compiler
-    group.add_argument('--fc',
-            action='store',
-            default=None,
-            help='set the Fortran compiler [default: pick automatically or based on FC=...]',
-            metavar='STRING')
+    ## The Fortran compiler
+    #group.add_argument('--fc',
+    #        action='store',
+    #        default=None,
+    #        help='set the Fortran compiler [default: pick automatically or based on FC=...]',
+    #        metavar='STRING')
     # Libint maximum angular momentum.
     parser.add_argument('--max-am-eri',
             metavar="= MAX_ANGULAR_MOMENTUM",
@@ -257,11 +257,11 @@ def parse_input():
             default=None,
             help='extra C++ flags [default: %(default)s]',
             metavar='STRING')
-    group.add_argument('--extra-fc-flags',
-            action='store',
-            default=None,
-            help='extra Fortran flags [default: %(default)s]',
-            metavar='STRING')
+    #group.add_argument('--extra-fc-flags',
+    #        action='store',
+    #        default=None,
+    #        help='extra Fortran flags [default: %(default)s]',
+    #        metavar='STRING')
 
     group = parser.add_argument_group('Bypass compiler flags')
     group.add_argument('--custom-cc-flags',
@@ -274,11 +274,11 @@ def parse_input():
             default=None,
             help='C++ flags [default: %(default)s]',
             metavar='STRING')
-    group.add_argument('--custom-fc-flags',
-            action='store',
-            default=None,
-            help='Fortran flags [default: %(default)s]',
-            metavar='STRING')
+    #group.add_argument('--custom-fc-flags',
+    #        action='store',
+    #        default=None,
+    #        help='Fortran flags [default: %(default)s]',
+    #        metavar='STRING')
 
     return parser.parse_args()
 
@@ -309,8 +309,8 @@ def gen_cmake_command(args):
 
     command = ''
 
-    if args.fc:
-        command += ' -DCMAKE_Fortran_COMPILER=%s'  % args.fc
+    #if args.fc:
+    #    command += ' -DCMAKE_Fortran_COMPILER=%s'  % args.fc
     if args.cc:
         command += ' -DCMAKE_C_COMPILER=%s'  % args.cc
     if args.cxx:
@@ -322,9 +322,9 @@ def gen_cmake_command(args):
     command += ' -DENABLE_SGI_MPT=%s'        % translate_cmake(args.sgi_mpt)
     command += ' -DENABLE_OMP=%s'            % translate_cmake(args.omp)
     command += ' -DENABLE_VECTORIZATION=%s'  % translate_cmake(args.vectorization)
-    command += ' -DENABLE_CSR=%s'            % translate_cmake(args.csr)
+    #command += ' -DENABLE_CSR=%s'            % translate_cmake(args.csr)
     command += ' -DENABLE_SCALAPACK=%s'      % translate_cmake(args.scalapack)
-    command += ' -DENABLE_SCALASCA=%s'       % translate_cmake(args.scalasca)
+    #command += ' -DENABLE_SCALASCA=%s'       % translate_cmake(args.scalasca)
     command += ' -DENABLE_UNIT_TESTS=%s'     % translate_cmake(args.unit_tests)
     command += ' -DENABLE_STATIC_LINKING=%s' % translate_cmake(args.static)
     command += ' -DENABLE_CXX11_SUPPORT=%s'  % translate_cmake(args.cxx11)
@@ -396,15 +396,15 @@ def gen_cmake_command(args):
         command += ' -DEXTRA_C_FLAGS="%s"' % args.extra_cc_flags
     if args.extra_cxx_flags:
         command += ' -DEXTRA_CXX_FLAGS="%s"' % args.extra_cxx_flags
-    if args.extra_fc_flags:
-        command += ' -DEXTRA_Fortran_FLAGS="%s"' % args.extra_fc_flags
+    #if args.extra_fc_flags:
+    #    command += ' -DEXTRA_Fortran_FLAGS="%s"' % args.extra_fc_flags
 
     if args.custom_cc_flags:
         command += ' -DCUSTOM_C_FLAGS="%s"' % args.custom_cc_flags
     if args.custom_cxx_flags:
         command += ' -DCUSTOM_CXX_FLAGS="%s"' % args.custom_cxx_flags
-    if args.custom_fc_flags:
-        command += ' -DCUSTOM_Fortran_FLAGS="%s"' % args.custom_fc_flags
+    #if args.custom_fc_flags:
+    #    command += ' -DCUSTOM_Fortran_FLAGS="%s"' % args.custom_fc_flags
 
     if args.check:
         command += ' -DENABLE_BOUNDS_CHECK=ON'
@@ -548,10 +548,9 @@ def configure_host(args):
 
 def configure_default_compilers(args):
 
-    if args.mpi and not args.fc and not args.cc and not args.cxx:
+    if args.mpi and not args.cc and not args.cxx:
         # only --mpi flag but no --fc, --cc, --cxx
-        # set --fc, --cc, --cxx to mpif90, mpicc, mpicxx
-        args.fc  = 'mpif90'
+        # set --cc, --cxx to mpicc, mpicxx
         args.cc  = 'mpicc'
         args.cxx = 'mpicxx'
 
@@ -559,18 +558,14 @@ def configure_default_compilers(args):
         # if compiler starts with 'mp' turn on mpi
         # it is possible to call compilers with long paths
         if  args.cc  and os.path.basename(args.cc).lower().startswith('mp')  or \
-            args.cxx and os.path.basename(args.cxx).lower().startswith('mp') or \
-            args.fc  and os.path.basename(args.fc).lower().startswith('mp'):
+            args.cxx and os.path.basename(args.cxx).lower().startswith('mp'):
             args.mpi = 'on'
         # if compiler starts with 'openmpi' turn on mpi
         # it is possible to call compilers with long paths
         if  args.cc  and os.path.basename(args.cc).lower().startswith('openmpi')  or \
-            args.cxx and os.path.basename(args.cxx).lower().startswith('openmpi') or \
-            args.fc  and os.path.basename(args.fc).lower().startswith('openmpi'):
+            args.cxx and os.path.basename(args.cxx).lower().startswith('openmpi'):
             args.mpi = 'on'
 
-    if not args.fc:
-        args.fc = 'gfortran'
     if not args.cc:
         args.cc = 'gcc'
     if not args.cxx:

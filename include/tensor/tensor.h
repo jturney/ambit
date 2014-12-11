@@ -7,14 +7,29 @@
 #include <map>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/tuple/tuple.hpp>
 
 namespace tensor {
 
+class TensorImpl;
 class LabeledTensor;
 class LabeledTensorProduct;
 
-enum TensorType { Core, Disk, Distributed, Agnostic };
+enum TensorType { Current , Core, Disk, Distributed, Agnostic };
 enum EigenvalueOrder { Ascending, Descending };
+
+typedef std::vector<size_t> Dimension;
+typedef std::vector<std::pair<size_t, size_t> > IndexRange;
+typedef std::vector<boost::tuple<std::string, int, int, int> > ContractionTopology;
+
+/** Initializes the tensor library.
+ *
+ * Calls any necessary initialization of utilized frameworks.
+ * @param argc number of command line arguments
+ * @param argv the command line arguments
+ * @return error code
+ */
+int initialize(int argc, char** argv);
 
 class Tensor {
 
@@ -22,7 +37,7 @@ public:
 
     // => Constructors <= //
 
-    static Tensor build(TensorType type, const std::string& name, const std::vector<size_t>& dims);
+    static Tensor build(TensorType type, const std::string& name, const Dimension& dims);
 
     static Tensor build(TensorType type, const Tensor& other);
 
@@ -30,15 +45,15 @@ public:
 
     TensorType type() const;
     std::string name() const;
-    const std::vector<size_t>& dims() const;
+    const Dimension& dims() const;
     size_t rank() const;
     size_t numel() const;
 
     /**
      * Print some tensor information to fh
-     * \param level If level = 0, just print name and dimensions.  If level = 1, print the entire tensor.
+     * \param level If level = false, just print name and dimensions.  If level = true, print the entire tensor.
      **/
-    void print(FILE* fh, int level = 0) const;
+    void print(FILE* fh, bool level = false, const std::string& format = "%11.6f", int maxcols = 5) const;
 
     // => Labelers <= //
 
@@ -47,15 +62,16 @@ public:
 
     // => Setters/Getters <= //
 
-    void set_data(double* data, const std::vector<std::pair<size_t, size_t> >& ranges = std::vector<std::pair<size_t, size_t> >());
-    void get_data(double* data, const std::vector<std::pair<size_t, size_t> >& ranges = std::vector<std::pair<size_t, size_t> >());
+    void set_data(double* data, const IndexRange& ranges = IndexRange());
+    void get_data(double* data, const IndexRange& ranges = IndexRange()) const;
 
-    static double* get_block(const std::vector<std::pair<size_t, size_t> >& ranges = std::vector<std::pair<size_t, size_t> >());
+    static double* get_block(const Tensor& tensor);
+    static double* get_block(const IndexRange& ranges);
     static void free_block(double* data);
 
     // => Slicers <= //
 
-    static Tensor slice(const Tensor& tensor, const std::vector<std::pair<size_t, size_t> >& ranges);
+    static Tensor slice(const Tensor& tensor, const IndexRange& ranges);
     static Tensor cat(const std::vector<Tensor>, int dim);
 
     // => Simple Single Tensor Operations <= //
@@ -89,7 +105,6 @@ public:
 
 private:
 
-    class TensorImpl;
     boost::shared_ptr<TensorImpl> tensor_;
 
 protected:
