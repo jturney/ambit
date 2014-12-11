@@ -55,6 +55,8 @@ include(ConfigExplicitLibs)
 include(ConfigSafeGuards)
 include(GenericMacros)
 
+init_FCMangle()
+
 find_package(Threads REQUIRED)
 link_libraries("${CMAKE_THREAD_LIBS_INIT}")
 
