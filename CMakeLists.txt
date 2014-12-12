@@ -28,7 +28,7 @@ list(APPEND CMAKE_MODULE_PATH
 
 # Options
 option(ENABLE_MPI           "Enable MPI parallelization"  OFF)
-option(ENABLE_CTF           "Enable CTF usage" OFF)
+option(ENABLE_CYCLOPS       "Enable Cyclops usage" OFF)
 option(ENABLE_OMP           "Enable OpenMP parallelization" ON)
 option(ENABLE_AUTO_BLAS     "Enable CMake to autodetect BLAS" ON)
 option(ENABLE_AUTO_LAPACK   "Enable CMake to autodetect LAPACK" ON)
@@ -87,6 +87,11 @@ include_directories(
     ${PROJECT_BINARY_DIR}/include
     ${PROJECT_SOURCE_DIR}/include
 )
+
+if(ENABLE_CYCLOPS)
+    include_directories(${CYCLOPS}/include)
+    add_definitions(-DHAVE_CYCLOPS)
+endif()
 
 # recursively add source directories
 add_subdirectory(src)

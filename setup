@@ -123,7 +123,7 @@ def parse_input():
             action='store_true',
             default=True,
             help='enable OpenMP [default: %(default)s]')
-    group.add_argument('--ctf',
+    group.add_argument('--cyclops',
             action='store',
             default=None,
             help="""Path to the location of Cyclops. This location should have include and lib in it.""")
@@ -311,8 +311,8 @@ def translate_cmake(s):
 def gen_cmake_command(args):
 
     # do some checks
-    if args.ctf and not args.mpi:
-        print("Error: CTF requested but MPI was not.")
+    if args.cyclops and not args.mpi:
+        print("Error: cyclops requested but MPI was not.")
         sys.exit(1)
 
     # create cmake command from flags
@@ -332,7 +332,7 @@ def gen_cmake_command(args):
     command += ' -DENABLE_SGI_MPT=%s'        % translate_cmake(args.sgi_mpt)
     command += ' -DENABLE_OMP=%s'            % translate_cmake(args.omp)
     command += ' -DENABLE_VECTORIZATION=%s'  % translate_cmake(args.vectorization)
-    command += ' -DENABLE_CTF=%s'            % translate_cmake(args.ctf)
+    command += ' -DENABLE_CYCLOPS=%s'            % translate_cmake(args.cyclops)
     #command += ' -DENABLE_CSR=%s'            % translate_cmake(args.csr)
     command += ' -DENABLE_SCALAPACK=%s'      % translate_cmake(args.scalapack)
     #command += ' -DENABLE_SCALASCA=%s'       % translate_cmake(args.scalasca)
@@ -403,8 +403,8 @@ def gen_cmake_command(args):
     if args.python:
         command += ' -DPYTHON_INTERPRETER={0}'.format(args.python)
 
-    if args.ctf:
-        command += ' -DCTF={0}'.format(args.ctf)
+    if args.cyclops:
+        command += ' -DCYCLOPS={0}'.format(args.cyclops)
     if args.extra_cc_flags:
         command += ' -DEXTRA_C_FLAGS="%s"' % args.extra_cc_flags
     if args.extra_cxx_flags:
@@ -560,29 +560,30 @@ def configure_host(args):
 
 
 def configure_default_compilers(args):
+    pass
 
-    if args.mpi and not args.cc and not args.cxx:
-        # only --mpi flag but no --fc, --cc, --cxx
-        # set --cc, --cxx to mpicc, mpicxx
-        args.cc  = 'mpicc'
-        args.cxx = 'mpicxx'
+    #if args.mpi and not args.cc and not args.cxx:
+    #    # only --mpi flag but no --fc, --cc, --cxx
+    #    # set --cc, --cxx to mpicc, mpicxx
+    #    args.cc  = 'mpicc'
+    #    args.cxx = 'mpicxx'
 
-    if not args.mpi:
-        # if compiler starts with 'mp' turn on mpi
-        # it is possible to call compilers with long paths
-        if  args.cc  and os.path.basename(args.cc).lower().startswith('mp')  or \
-            args.cxx and os.path.basename(args.cxx).lower().startswith('mp'):
-            args.mpi = 'on'
-        # if compiler starts with 'openmpi' turn on mpi
-        # it is possible to call compilers with long paths
-        if  args.cc  and os.path.basename(args.cc).lower().startswith('openmpi')  or \
-            args.cxx and os.path.basename(args.cxx).lower().startswith('openmpi'):
-            args.mpi = 'on'
+    #if not args.mpi:
+    #    # if compiler starts with 'mp' turn on mpi
+    #    # it is possible to call compilers with long paths
+    #    if  args.cc  and os.path.basename(args.cc).lower().startswith('mp')  or \
+    #        args.cxx and os.path.basename(args.cxx).lower().startswith('mp'):
+    #        args.mpi = 'on'
+    #    # if compiler starts with 'openmpi' turn on mpi
+    #    # it is possible to call compilers with long paths
+    #    if  args.cc  and os.path.basename(args.cc).lower().startswith('openmpi')  or \
+    #        args.cxx and os.path.basename(args.cxx).lower().startswith('openmpi'):
+    #        args.mpi = 'on'
 
-    if not args.cc:
-        args.cc = 'gcc'
-    if not args.cxx:
-        args.cxx = 'g++'
+    #if not args.cc:
+    #    args.cc = 'gcc'
+    #if not args.cxx:
+    #    args.cxx = 'g++'
 
 
 configure_ubuntu = configure_default_compilers

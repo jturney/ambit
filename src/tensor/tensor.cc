@@ -2,7 +2,9 @@
 #include "tensorimpl.h"
 
 // include header files to specific tensor types supported.
-
+#if defined(HAVE_CYCLOPS)
+#   include "cyclops/cyclops.h"
+#endif
 
 namespace tensor {
 

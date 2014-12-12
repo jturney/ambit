@@ -14,7 +14,7 @@ set(TENSOR_SOURCES
 )
 
 # if we have MPI and Cyclops is enabled
-if(ENABLE_CTF)
+if(ENABLE_CYCLOPS)
     list(APPEND TENSOR_HEADERS tensor/cyclops/cyclops.h)
     list(APPEND TENSOR_SOURCES tensor/cyclops/cyclops.cc)
 endif()
@@ -22,8 +22,11 @@ endif()
 # build static libray
 add_library(tensor STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
 
-if(ENABLE_CTF)
-    target_link_libraries(tensor ${CTF}/lib/libctf.a)
+if(ENABLE_CYCLOPS)
+    target_link_libraries(tensor ${CYCLOPS}/lib/libctf.a ${MPI_LIBRARIES})
+    set_target_properties(tensor PROPERTIES COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+    set_target_properties(tensor PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
 
 install(TARGETS tensor ARCHIVE DESTINATION lib)
+
