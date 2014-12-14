@@ -1,6 +1,8 @@
 #if !defined(TENSOR_CORE_H)
 #define TENSOR_CORE_H
 
+#include "tensorimpl.h"
+
 namespace tensor {
 
 class CoreTensorImpl : public TensorImpl
@@ -21,16 +23,16 @@ public:
 
     // => Simple Double TensorImpl Operations <= //
 
-    void scale_and_add(double a, const TensorImpl& x);
-    void pointwise_multiplication(const TensorImpl& x);
-    void pointwise_division(const TensorImpl& x);
-    double dot(const TensorImpl& x) const;
+    void scale_and_add(double a, ConstTensorImplPtr x);
+    void pointwise_multiplication(ConstTensorImplPtr x);
+    void pointwise_division(ConstTensorImplPtr x);
+    double dot(ConstTensorImplPtr x) const;
 
     // => Contraction Type Operations <= //
 
     void contract(
-         const TensorImpl& A,
-         const TensorImpl& B,
+         ConstTensorImplPtr A,
+         ConstTensorImplPtr B,
          const ContractionTopology& topology,
          double alpha = 1.0,
          double beta = 0.0
@@ -38,17 +40,17 @@ public:
 
     // => Order-2 Operations <= //
 
-    std::map<std::string, TensorImpl*> syev(EigenvalueOrder order) const;
-    std::map<std::string, TensorImpl*> geev(EigenvalueOrder order) const;
-    std::map<std::string, TensorImpl*> svd() const;
+    std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const;
+    std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const;
+    std::map<std::string, TensorImplPtr> svd() const;
 
     TensorImpl* cholesky() const;
-    std::map<std::string, TensorImpl*> lu() const;
-    std::map<std::string, TensorImpl*> qr() const;
+    std::map<std::string, TensorImplPtr> lu() const;
+    std::map<std::string, TensorImplPtr> qr() const;
 
-    TensorImpl* cholesky_inverse() const;
-    TensorImpl* inverse() const;
-    TensorImpl* power(double power, double condition = 1.0E-12) const;
+    TensorImplPtr cholesky_inverse() const;
+    TensorImplPtr inverse() const;
+    TensorImplPtr power(double power, double condition = 1.0E-12) const;
 
     void givens(int dim, int i, int j, double s, double c);
     

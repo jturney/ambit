@@ -6,7 +6,12 @@
 
 #include <tensor/tensor.h>
 
+#include <boost/shared_ptr.hpp>
+
 namespace tensor {
+
+typedef TensorImpl* TensorImplPtr;
+typedef TensorImpl const * ConstTensorImplPtr;
 
 class TensorImpl
 {
@@ -19,8 +24,8 @@ public:
     {}
     virtual ~TensorImpl() {}
 
-    virtual void copy(const TensorImpl& other);
-    virtual TensorImpl* clone(TensorType type = Current);
+    virtual void copy(ConstTensorImplPtr other);
+    virtual TensorImplPtr clone(TensorType type = Current);
 
     // => Reflectors <= //
 
@@ -53,16 +58,16 @@ public:
 
     // => Simple Double Tensor Operations <= //
 
-    virtual void scale_and_add(double a, const TensorImpl& x) = 0;
-    virtual void pointwise_multiplication(const TensorImpl& x) = 0;
-    virtual void pointwise_division(const TensorImpl& x) = 0;
-    virtual double dot(const TensorImpl& x) const = 0;
+    virtual void scale_and_add(double a, ConstTensorImplPtr x) = 0;
+    virtual void pointwise_multiplication(ConstTensorImplPtr x) = 0;
+    virtual void pointwise_division(ConstTensorImplPtr x) = 0;
+    virtual double dot(ConstTensorImplPtr x) const = 0;
 
     // => Contraction Type Operations <= //
 
     virtual void contract(
-        const TensorImpl& A,
-        const TensorImpl& B,
+        ConstTensorImplPtr A,
+        ConstTensorImplPtr B,
         const ContractionTopology& topology,
         double alpha = 1.0,
         double beta = 0.0
@@ -70,26 +75,26 @@ public:
 
     // => Rank-2 Operations <= //
 
-    virtual std::map<std::string, TensorImpl*> syev(EigenvalueOrder order) const = 0;
-    virtual std::map<std::string, TensorImpl*> geev(EigenvalueOrder order) const = 0;
-    virtual std::map<std::string, TensorImpl*> svd() const = 0;
+    virtual std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const = 0;
+    virtual std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const = 0;
+    virtual std::map<std::string,TensorImplPtr> svd() const = 0;
 
-    virtual TensorImpl* cholesky() const = 0;
-    virtual std::map<std::string, TensorImpl*> lu() const = 0;
-    virtual std::map<std::string, TensorImpl*> qr() const = 0;
+    virtual TensorImplPtr cholesky() const = 0;
+    virtual std::map<std::string, TensorImplPtr> lu() const = 0;
+    virtual std::map<std::string, TensorImplPtr> qr() const = 0;
 
-    virtual TensorImpl* cholesky_inverse() const = 0;
-    virtual TensorImpl* inverse() const = 0;
-    virtual TensorImpl* power(double power, double condition = 1.0E-12) const = 0;
+    virtual TensorImplPtr cholesky_inverse() const = 0;
+    virtual TensorImplPtr inverse() const = 0;
+    virtual TensorImplPtr power(double power, double condition = 1.0E-12) const = 0;
 
     virtual void givens(int dim, int i, int j, double s, double c) = 0;
 
 protected:
 
-    static bool typeCheck(TensorType type, const TensorImpl& A, bool throwIfDiff = true);
-    static bool rankCheck(size_t rank, const TensorImpl& A, bool throwIfDiff = true);
-    static bool squareCheck(const TensorImpl& A, bool throwIfDiff = true);
-    static bool dimensionCheck(const TensorImpl& A, const TensorImpl& B, bool throwIfDiff = true);
+    static bool typeCheck(TensorType type, ConstTensorImplPtr A, bool throwIfDiff = true);
+    static bool rankCheck(size_t rank, ConstTensorImplPtr A, bool throwIfDiff = true);
+    static bool squareCheck(ConstTensorImplPtr A, bool throwIfDiff = true);
+    static bool dimensionCheck(ConstTensorImplPtr A, ConstTensorImplPtr B, bool throwIfDiff = true);
 
 private:
     TensorType type_;

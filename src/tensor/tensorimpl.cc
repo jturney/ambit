@@ -3,15 +3,15 @@
 
 namespace tensor {
 
-void TensorImpl::copy(const TensorImpl& other)
+void TensorImpl::copy(ConstTensorImplPtr other)
 {
-    TensorImpl::dimensionCheck(*this, other);
+    TensorImpl::dimensionCheck(this, other);
     double* temp = TensorImpl::get_block(numel());
-    other.get_data(temp);
+    other->get_data(temp);
     set_data(temp);
     temp = TensorImpl::free_block(temp);
 }
-TensorImpl* TensorImpl::clone(TensorType t)
+TensorImplPtr TensorImpl::clone(TensorType t)
 {
     if (t == Current) {
         t = type();
@@ -22,7 +22,7 @@ TensorImpl* TensorImpl::clone(TensorType t)
     } else {
         throw std::runtime_error("TensorImpl::clone: Invalid TensorType");
     }
-    tensor->copy(*this);
+    tensor->copy(this);
     return tensor;
 }
 size_t TensorImpl::numel() const
@@ -127,43 +127,43 @@ double* TensorImpl::free_block(double* numel)
     delete[] numel;
     return NULL;
 }
-bool TensorImpl::typeCheck(TensorType type, const TensorImpl& A, bool throwIfDiff)
+bool TensorImpl::typeCheck(TensorType type, ConstTensorImplPtr A, bool throwIfDiff)
 {
-    if (A.type() != type) {
+    if (A->type() != type) {
         if (throwIfDiff) throw std::runtime_error("TensorImpl::typeCheck: type mismatch");
         return true;
     } else {
         return false;
     }
 }
-bool TensorImpl::rankCheck(size_t rank, const TensorImpl& A, bool throwIfDiff)
+bool TensorImpl::rankCheck(size_t rank, ConstTensorImplPtr A, bool throwIfDiff)
 {
-    if (A.rank() != rank) {
+    if (A->rank() != rank) {
         if (throwIfDiff) throw std::runtime_error("TensorImpl::rankCheck: Rank mismatch");
         return true;
     } else {
         return false;
     }
 }
-bool TensorImpl::squareCheck(const TensorImpl& A, bool throwIfDiff)
+bool TensorImpl::squareCheck(ConstTensorImplPtr A, bool throwIfDiff)
 {
     if (TensorImpl::rankCheck(2, A, throwIfDiff)) {
         return true;
     } else {
-        bool diff = (A.dims()[0] != A.dims()[1]);
+        bool diff = (A->dims()[0] != A->dims()[1]);
         if (diff && throwIfDiff) throw std::runtime_error("TensorImpl::squareCheck: Dimension mismatch");
         return diff;
     }
 }
-bool TensorImpl::dimensionCheck(const TensorImpl& A, const TensorImpl& B, bool throwIfDiff)
+bool TensorImpl::dimensionCheck(ConstTensorImplPtr A, ConstTensorImplPtr B, bool throwIfDiff)
 {
-    if (TensorImpl::rankCheck(A.rank(), B, throwIfDiff)) {
+    if (TensorImpl::rankCheck(A->rank(), B, throwIfDiff)) {
         return true;
     } else {
         bool diff = false;
         int diffind = -1;
-        for (size_t ind = 0; ind < A.rank(); ind++) {
-            if (A.dims()[ind] != B.dims()[ind]) {
+        for (size_t ind = 0; ind < A->rank(); ind++) {
+            if (A->dims()[ind] != B->dims()[ind]) {
                 diff = true;
                 diffind = ind;
                 break;
