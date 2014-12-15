@@ -3,6 +3,7 @@
 
 #include "tensor/tensorimpl.h"
 #include <ctf.hpp>
+#include <El.hpp>
 
 namespace tensor {
 
@@ -60,6 +61,16 @@ public:
     void givens(int dim, int i, int j, double s, double c);
 
 private:
+
+#if defined(HAVE_ELEMENTAL)
+    // => Order-2 Helper Functions <=
+    void copyToElemental2(El::DistMatrix<double>& x) const;
+    void copyFromElemental2(const El::DistMatrix<double>& x);
+
+    // => Order-1 Helper Functions <=
+    void copyFromElemental1(const El::DistMatrix<double, El::VR, El::STAR>& x);
+#endif
+
     CTF_Tensor *data_;
 };
 

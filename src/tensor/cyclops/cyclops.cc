@@ -1,4 +1,5 @@
 #include "cyclops.h"
+#include <El.hpp>
 
 #define GET_CTF_TENSOR(X) \
     const CyclopsTensorImpl* c##X = dynamic_cast<const CyclopsTensorImpl*>((X)); \
@@ -196,17 +197,104 @@ void CyclopsTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B, con
 
 std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder order) const
 {
+    TensorImpl::squareCheck(this);
+    size_t length = dims()[0];
 
+#if defined(HAVE_ELEMENTAL)
+    // since elemental and cyclops distribute their data
+    // differently. construct an elemental matrix and
+    // use its data layout to pull remote data from
+    // cyclops.
+
+    El::DistMatrix<double> H(length, length);
+    copyToElemental2(H);
+
+    // construct elemental storage for values and vectors
+    El::DistMatrix<double,El::VR,El::STAR> w;
+    El::DistMatrix<double> X;
+    El::SortType sort = order == Ascending ? El::ASCENDING : El::DESCENDING;
+    El::HermitianEig(El::LOWER, H, w, X, sort);
+
+    El::Print(H, "H");
+    El::Print(X, "X");
+    El::Print(w, "w");
+
+    // construct cyclops tensors to hold eigen vectors and values.
+    Dimension value_dims(1);
+    value_dims[0] = length;
+    CyclopsTensorImpl* vectors = new CyclopsTensorImpl("Eigenvectors", dims());
+    CyclopsTensorImpl* values = new CyclopsTensorImpl("Eigenvalues", value_dims);
+
+    // populate cyclops with elemental data
+    vectors->copyFromElemental2(X);
+    values->copyFromElemental1(w);
+
+    std::map<std::string, TensorImplPtr> results;
+    results["values"] = values;
+    results["vectors"] = vectors;
+
+    return results;
+#else
+
+    // Distributed LAPACK is not available.
+    // Copy all data to master node and use
+    // local LAPACK then broadcast the data
+    // back out to the nodes.
+    if (globals::rank() == 0) {
+        int info;
+
+    }
+
+#endif
 }
 
 std::map<std::string, TensorImplPtr> CyclopsTensorImpl::geev(EigenvalueOrder order) const
 {
-    
+    TensorImpl::squareCheck(this);
 }
 
 std::map<std::string, TensorImplPtr> CyclopsTensorImpl::svd() const
 {
-    
+    TensorImpl::rankCheck(2, this);
+    size_t rows = dims()[0];
+    size_t cols = dims()[1];
+
+#if defined(HAVE_ELEMENTAL)
+    // since elemental and cyclops distribute their data
+    // differently. construct an elemental matrix and
+    // use its data layout to pull remote data from
+    // cyclops.
+
+    std::vector<kv_pair> pairs;
+    El::DistMatrix<double> U(rows, cols);
+    El::DistMatrix<double> V;
+    El::DistMatrix<double, El::VR, El::STAR> s;
+
+    copyToElemental2(U);
+
+    El::SVD(U, s, V);
+
+    Dimension sdim(1);
+    sdim[0] = dims()[0];
+    Dimension Vtdim(2);
+    Vtdim[0] = dims()[1];
+    Vtdim[1] = dims()[0];
+
+    CyclopsTensorImpl* tU = new CyclopsTensorImpl("U", dims());
+    CyclopsTensorImpl* ts = new CyclopsTensorImpl("s", sdim);
+    CyclopsTensorImpl* tVt = new CyclopsTensorImpl("Vt", Vtdim);
+
+    tU->copyFromElemental2(U);
+    ts->copyFromElemental1(s);
+    tVt->copyFromElemental2(V);
+
+    std::map<std::string, TensorImplPtr> results;
+    results["U"] = tU;
+    results["s"] = ts;
+    results["Vt"] = tVt;
+
+    return results;
+#endif
 }
 
 TensorImplPtr CyclopsTensorImpl::cholesky() const
@@ -216,6 +304,29 @@ TensorImplPtr CyclopsTensorImpl::cholesky() const
 
 std::map<std::string, TensorImplPtr> CyclopsTensorImpl::lu() const
 {
+    TensorImpl::rankCheck(2, this);
+    size_t rows = dims()[0];
+    size_t cols = dims()[1];
+
+#if defined(HAVE_ELEMENTAL)
+    // since elemental and cyclops distribute their data
+    // differently. construct an elemental matrix and
+    // use its data layout to pull remote data from
+    // cyclops.
+
+    std::vector<kv_pair> pairs;
+    El::DistMatrix<double> A(rows, cols);
+    copyToElemental2(A);
+
+    El::LU(A);
+
+    CyclopsTensorImpl* result = new CyclopsTensorImpl("A", dims());
+    result->copyFromElemental2(A);
+
+    std::map<std::string, TensorImplPtr> results;
+    results["A"] = result;
+    return results;
+#endif
 }
 
 std::map<std::string, TensorImplPtr> CyclopsTensorImpl::qr() const
@@ -230,7 +341,27 @@ TensorImplPtr CyclopsTensorImpl::cholesky_inverse() const
 
 TensorImplPtr CyclopsTensorImpl::inverse() const
 {
+    TensorImpl::rankCheck(2, this);
+    size_t rows = dims()[0];
+    size_t cols = dims()[1];
 
+#if defined(HAVE_ELEMENTAL)
+    // since elemental and cyclops distribute their data
+    // differently. construct an elemental matrix and
+    // use its data layout to pull remote data from
+    // cyclops.
+
+    std::vector<kv_pair> pairs;
+    El::DistMatrix<double> A(rows, cols);
+    copyToElemental2(A);
+
+    El::Inverse(A);
+
+    CyclopsTensorImpl* result = new CyclopsTensorImpl("A", dims());
+    result->copyFromElemental2(A);
+
+    return result;
+#endif
 }
 
 TensorImplPtr CyclopsTensorImpl::power(double power, double condition) const
@@ -242,5 +373,72 @@ void CyclopsTensorImpl::givens(int dim, int i, int j, double s, double c)
 {
 
 }
+
+#if defined(HAVE_ELEMENTAL)
+void CyclopsTensorImpl::copyToElemental2(El::DistMatrix<double> &U) const
+{
+    rankCheck(2, this);
+    size_t cols = dims()[1];
+
+    std::vector<kv_pair> pairs;
+    const int cshift = U.ColShift();
+    const int rshift = U.RowShift();
+    const int cstride = U.ColStride();
+    const int rstride = U.RowStride();
+
+    // determine which pairs from cyclops we need.
+    for (int i=0; i<U.LocalHeight(); i++) {
+        for (int j=0; j<U.LocalWidth(); j++) {
+            const int c = cshift+i*cstride;
+            const int r = rshift+j*rstride;
+
+            pairs.push_back(kv_pair(r*cols+c, 0));
+        }
+    }
+
+    // gather data from cyclops
+    data_->read(pairs.size(), pairs.data());
+
+    // populate elemental
+    for (size_t p=0; p<pairs.size(); p++) {
+        const int r = pairs[p].k/cols;
+        const int c = pairs[p].k-cols*r;
+        const int i = (c-cshift)/cstride;
+        const int j = (r-rshift)/rstride;
+
+        U.SetLocal(i, j, pairs[p].d);
+    }
+}
+
+void CyclopsTensorImpl::copyFromElemental2(const El::DistMatrix<double> &X)
+{
+    size_t length = dims()[1];
+    std::vector<kv_pair> pairs;
+    const int cshift = X.ColShift();
+    const int rshift = X.RowShift();
+    const int cstride = X.ColStride();
+    const int rstride = X.RowStride();
+
+    for (int i=0; i<X.LocalHeight(); i++) {
+        for (int j=0; j<X.LocalWidth(); j++) {
+            const int c = cshift+i*cstride;
+            const int r = rshift+j*rstride;
+
+            pairs.push_back(kv_pair(r*length+c, X.GetLocal(i, j)));
+        }
+    }
+    data_->write(pairs.size(), pairs.data());
+}
+
+void CyclopsTensorImpl::copyFromElemental1(const El::DistMatrix<double, El::VR, El::STAR>& w)
+{
+    std::vector<kv_pair> pairs;
+    const int cshift = w.ColShift();
+    for (int i=0; i<w.LocalHeight(); i++) {
+        pairs.push_back(kv_pair(i+cshift, w.GetLocal(i, 0)));
+    }
+    data_->write(pairs.size(), pairs.data());
+}
+#endif
 
 }}

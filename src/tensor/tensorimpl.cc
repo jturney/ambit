@@ -1,6 +1,10 @@
 #include "tensorimpl.h"
 #include "core.h"
 
+#if defined(HAVE_ELEMENTAL)
+#include "cyclops/cyclops.h"
+#endif
+
 namespace tensor {
 
 void TensorImpl::copy(ConstTensorImplPtr other)
@@ -19,7 +23,13 @@ TensorImplPtr TensorImpl::clone(TensorType t)
     TensorImpl* tensor;
     if (t == Core) {
         tensor = new CoreTensorImpl(name(), dims());
-    } else {
+    }
+#if defined(HAVE_ELEMENTAL)
+    else if (t == Distributed) {
+        tensor = new cyclops::CyclopsTensorImpl(name(), dims());
+    }
+#endif
+    else {
         throw std::runtime_error("TensorImpl::clone: Invalid TensorType");
     }
     tensor->copy(this);

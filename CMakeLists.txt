@@ -91,6 +91,11 @@ include_directories(
 if(ENABLE_CYCLOPS)
     include_directories(${CYCLOPS}/include)
     add_definitions(-DHAVE_CYCLOPS)
+
+    if (ENABLE_ELEMENTAL)
+        include_directories(${ELEMENTAL}/include)
+        add_definitions(-DHAVE_ELEMENTAL)
+    endif()
 endif()
 
 # recursively add source directories
