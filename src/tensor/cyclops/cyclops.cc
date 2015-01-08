@@ -11,6 +11,9 @@ namespace globals {
     CTF_World *world = NULL;
     int rank = -1;
     int nprocess = -1;
+
+    // did we initialize MPI or did the user?
+    int initialized_mpi = 0;
 }
 
 namespace {
@@ -26,10 +29,9 @@ namespace {
 
 int initialize(int argc, char* argv[])
 {
-    int flag = 0;
-    MPI_Initialized(&flag);
+    MPI_Initialized(&globals::initialized_mpi);
 
-    if (!flag) {
+    if (!globals::initialized_mpi) {
         int error = MPI_Init(&argc, &argv);
         if (error != MPI_SUCCESS) {
             throw std::runtime_error("cyclops::initialize: Unable to initialize MPI.");
@@ -39,7 +41,19 @@ int initialize(int argc, char* argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &globals::rank);
     MPI_Comm_size(MPI_COMM_WORLD, &globals::nprocess);
 
+    globals::world = new CTF_World(argc, argv);
+
     return 0;
+}
+
+void finalize()
+{
+    delete globals::world;
+    globals::world = NULL;
+
+    // if we initialized MPI then we finalize it.
+    if (!globals::initialized_mpi)
+        MPI_Finalize();
 }
 
 CyclopsTensorImpl::CyclopsTensorImpl(const std::string& name,

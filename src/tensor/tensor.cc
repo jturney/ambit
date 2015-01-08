@@ -8,6 +8,22 @@
 
 namespace tensor {
 
+int initialize(int argc, char** argv)
+{
+#if defined(HAVE_CYCLOPS)
+    cyclops::initialize(argc, argv);
+#endif
+
+    return 0;
+}
+
+void finialize()
+{
+#if defined(HAVE_CYCLOPS)
+    cyclops::finalize();
+#endif
+}
+
 TensorType Tensor::type() const
 {
     return tensor_->type();

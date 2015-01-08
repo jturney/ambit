@@ -10,6 +10,7 @@ namespace tensor {
 namespace cyclops {
 
 int initialize(int argc, char* argv[]);
+void finalize();
 
 class CyclopsTensorImpl : public TensorImpl
 {
