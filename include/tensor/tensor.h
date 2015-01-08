@@ -5,9 +5,37 @@
 #include <utility>
 #include <vector>
 #include <map>
+#include <string>
 
+#if defined(CXX11)
+#include <memory>
+#include <tuple>
+
+namespace tensor {
+
+    /*
+     * If we have C++11 then we don't need Boost for shared_ptr, tuple, and unique_ptr.
+     */
+    using std::tuple;
+    using std::shared_ptr;
+    using std::unique_ptr;
+
+}
+
+#else
 #include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/tuple/tuple.hpp>
+
+namespace tensor {
+
+    using boost::tuple;
+    using boost::shared_ptr;
+    template<class T> using unique_ptr = boost::scoped_ptr<T>;
+
+}
+
+#endif
 
 namespace tensor {
 
@@ -20,7 +48,7 @@ enum EigenvalueOrder { Ascending, Descending };
 
 typedef std::vector<size_t> Dimension;
 typedef std::vector<std::pair<size_t, size_t> > IndexRange;
-typedef std::vector<boost::tuple<std::string, int, int, int> > ContractionTopology;
+typedef std::vector<tuple<std::string, int, int, int> > ContractionTopology;
 
 /** Initializes the tensor library.
  *
@@ -30,6 +58,12 @@ typedef std::vector<boost::tuple<std::string, int, int, int> > ContractionTopolo
  * @return error code
  */
 int initialize(int argc, char** argv);
+
+/** Shutdowns the tensor library.
+ *
+ * Calls any necessary routines of utilized frameworks.
+ */
+void finialize();
 
 class Tensor {
 
@@ -53,7 +87,7 @@ public:
      * Print some tensor information to fh
      * \param level If level = false, just print name and dimensions.  If level = true, print the entire tensor.
      **/
-    void print(FILE* fh, bool level = false, const std::string& format = "%11.6f", int maxcols = 5) const;
+    void print(FILE* fh, bool level = false, const std::string& format = std::string("%11.6f"), int maxcols = 5) const;
 
     // => Labelers <= //
 
@@ -105,11 +139,11 @@ public:
 
 private:
 
-    boost::shared_ptr<TensorImpl> tensor_;
+    shared_ptr<TensorImpl> tensor_;
 
 protected:
 
-    Tensor(boost::shared_ptr<TensorImpl> tensor);
+    Tensor(shared_ptr<TensorImpl> tensor);
 
 };
 
