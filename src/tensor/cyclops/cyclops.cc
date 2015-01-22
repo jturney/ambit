@@ -18,12 +18,12 @@ namespace globals {
 
 namespace {
 
-    std::string generateGenericLabels(const Dimension& dims)
-    {
-        std::string labels(dims.size(), 0);
-        std::copy(dims.begin(), dims.end(), labels.begin());
-        return labels;
-    }
+std::string generateGenericLabels(const Dimension& dims)
+{
+    std::string labels(dims.size(), 0);
+    std::copy(dims.begin(), dims.end(), labels.begin());
+    return labels;
+}
     
 }
 
@@ -106,14 +106,16 @@ void CyclopsTensorImpl::scale(double a)
     }
 }
 
-double CyclopsTensorImpl::norm(double power) const
+double CyclopsTensorImpl::norm(double /*power*/) const
 {
-    return 0.0;
+    // not sure what power is for
+    return data_->norm1();
 }
 
-double CyclopsTensorImpl::rms(double power) const
+double CyclopsTensorImpl::rms(double /*power*/) const
 {
-    return 0.0;
+    // not sure what power is for
+    return data_->norm2();
 }
 
 void CyclopsTensorImpl::scale_and_add(double a, ConstTensorImplPtr x)
