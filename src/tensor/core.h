@@ -44,7 +44,7 @@ public:
     std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const;
     std::map<std::string, TensorImplPtr> svd() const;
 
-    TensorImpl* cholesky() const;
+    TensorImplPtr cholesky() const;
     std::map<std::string, TensorImplPtr> lu() const;
     std::map<std::string, TensorImplPtr> qr() const;
 

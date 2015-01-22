@@ -101,5 +101,8 @@ endif()
 # recursively add source directories
 add_subdirectory(src)
 
+# test suite
+add_subdirectory(test)
+
 # this has to be the very last CMake module to be included
 include(ConfigInfo)

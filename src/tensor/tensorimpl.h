@@ -3,8 +3,10 @@
 
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 #include <tensor/tensor.h>
+#include "macros.h"
 
 #include <boost/shared_ptr.hpp>
 
@@ -12,6 +14,26 @@ namespace tensor {
 
 typedef TensorImpl* TensorImplPtr;
 typedef TensorImpl const * ConstTensorImplPtr;
+
+namespace detail {
+
+class NotImplementedException : public std::logic_error
+{
+public:
+    NotImplementedException(const std::string& str) : std::logic_error(str)
+    {
+    }
+};
+
+}
+
+#define ThrowNotImplementedException throw detail::NotImplementedException(std::string("Function not yet implemented: ") + CURRENT_FUNCTION)
+
+class OutOfMemoryException : public std::runtime_error
+{
+public:
+    OutOfMemoryException() : std::runtime_error("Out of memory") {}
+};
 
 class TensorImpl
 {
@@ -25,7 +47,7 @@ public:
     virtual ~TensorImpl() {}
 
     virtual void copy(ConstTensorImplPtr other);
-    virtual TensorImplPtr clone(TensorType type = Current);
+    virtual TensorImplPtr clone(TensorType type = kCurrent);
 
     // => Reflectors <= //
 

@@ -17,11 +17,11 @@ void TensorImpl::copy(ConstTensorImplPtr other)
 }
 TensorImplPtr TensorImpl::clone(TensorType t)
 {
-    if (t == Current) {
+    if (t == kCurrent) {
         t = type();
     }
     TensorImpl* tensor;
-    if (t == Core) {
+    if (t == kCore) {
         tensor = new CoreTensorImpl(name(), dims());
     }
 #if defined(HAVE_ELEMENTAL)

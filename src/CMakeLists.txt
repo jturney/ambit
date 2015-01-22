@@ -2,6 +2,8 @@ set(TENSOR_HEADERS
     ${PROJECT_SOURCE_DIR}/include/tensor/tensor.h
     math/math.h
     tensor/core.h
+    tensor/macros.h
+    tensor/memory.h
     tensor/tensorimpl.h
 )
 

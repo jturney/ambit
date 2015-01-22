@@ -43,8 +43,12 @@ class TensorImpl;
 class LabeledTensor;
 class LabeledTensorProduct;
 
-enum TensorType { Current , Core, Disk, Distributed, Agnostic };
-enum EigenvalueOrder { Ascending, Descending };
+enum TensorType {
+    kCurrent, kCore, kDisk, kDistributed, kAgnostic
+};
+enum EigenvalueOrder {
+    kAscending, kDescending
+};
 
 typedef std::vector<size_t> Dimension;
 typedef std::vector<std::pair<size_t, size_t> > IndexRange;
@@ -143,6 +147,8 @@ private:
 
 protected:
 
+    Tensor();
+
     Tensor(shared_ptr<TensorImpl> tensor);
 
 };
@@ -160,16 +166,17 @@ public:
 
     LabeledTensorProduct operator*(LabeledTensor& rhs);
 
-    void operator=(LabeledTensor& rhs);
+    void operator=(const LabeledTensor& rhs);
     void operator+=(LabeledTensor& rhs);
     void operator-=(LabeledTensor& rhs);
 
-    void operator=(LabeledTensorProduct& rhs);
+    void operator=(const LabeledTensorProduct& rhs);
     void operator+=(LabeledTensorProduct& rhs);
     void operator-=(LabeledTensorProduct& rhs);
 
     void operator*=(double scale);
 
+    size_t numdim() const { return indices_.size(); }
 private:
     Tensor& T_;
     std::vector<std::string> indices_;
@@ -177,7 +184,7 @@ private:
 
 };
 
-inline LabeledTensor operator*(double factor, LabeledTensor& ti) {
+inline LabeledTensor operator*(double factor, const LabeledTensor& ti) {
     return LabeledTensor(ti.T(), ti.indices(), factor*ti.factor());
 };
 
@@ -195,6 +202,12 @@ private:
     LabeledTensor& A_;
     LabeledTensor& B_;
 };
+
+namespace util {
+
+std::vector<std::string> split_indices(const std::string& indices);
+
+}
 
 }
 
