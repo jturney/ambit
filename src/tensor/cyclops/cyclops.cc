@@ -1,4 +1,5 @@
 #include "cyclops.h"
+#include "../macros.h"
 #include <El.hpp>
 
 #define GET_CTF_TENSOR(X) \
@@ -94,13 +95,14 @@ void CyclopsTensorImpl::zero()
     *data_ = 0;
 }
 
-void CyclopsTensorImpl::scale(double a)
+void CyclopsTensorImpl::scale(const double& a)
 {
     long_int local_size;
     double* local_data;
 
     local_data = data_->get_raw_data(&local_size);
 
+    VECTORIZED_LOOP
     for (long_int i=0; i<local_size; ++i) {
         local_data[i] *= a;
     }

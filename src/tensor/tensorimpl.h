@@ -46,7 +46,7 @@ public:
     {}
     virtual ~TensorImpl() {}
 
-    virtual void copy(ConstTensorImplPtr other);
+    virtual void copy(ConstTensorImplPtr other, const double& scale=1.0);
     virtual TensorImplPtr clone(TensorType type = kCurrent);
 
     // => Reflectors <= //
@@ -74,7 +74,7 @@ public:
     // => Simple Single Tensor Operations <= //
 
     virtual void zero() = 0;
-    virtual void scale(double a) = 0;
+    virtual void scale(const double& a) = 0;
     virtual double norm(double power = 2.0) const = 0;
     virtual double rms(double power = 2.0) const = 0;
 

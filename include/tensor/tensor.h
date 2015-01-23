@@ -42,6 +42,8 @@ namespace tensor {
 class TensorImpl;
 class LabeledTensor;
 class LabeledTensorProduct;
+class LabeledTensorAddition;
+class LabeledTensorSubtraction;
 
 enum TensorType {
     kCurrent, kCore, kDisk, kDistributed, kAgnostic
@@ -78,6 +80,8 @@ public:
     static Tensor build(TensorType type, const std::string& name, const Dimension& dims);
 
     static Tensor build(TensorType type, const Tensor& other);
+
+    void copy(const Tensor& other, const double& scale = 1.0);
 
     // => Reflectors <= //
 
@@ -141,6 +145,16 @@ public:
 
     Tensor& givens(int dim, int i, int j, double s, double c);
 
+    // => Contraction Type Operations <= //
+
+    void contract(
+            const Tensor& A,
+            const Tensor& B,
+            const ContractionTopology& topology,
+            double alpha = 1.0,
+            double beta = 0.0
+    );
+
 private:
 
     shared_ptr<TensorImpl> tensor_;
@@ -164,15 +178,26 @@ public:
     const std::vector<std::string>& indices() const { return indices_; }
     Tensor& T() const { return T_; }
 
-    LabeledTensorProduct operator*(LabeledTensor& rhs);
+    LabeledTensorProduct operator*(const LabeledTensor& rhs);
+    LabeledTensorAddition operator+(const LabeledTensor& rhs);
+    LabeledTensorSubtraction operator-(const LabeledTensor& rhs);
 
+    /** Copies data from rhs to this sorting the data if needed. */
     void operator=(const LabeledTensor& rhs);
     void operator+=(LabeledTensor& rhs);
     void operator-=(LabeledTensor& rhs);
 
     void operator=(const LabeledTensorProduct& rhs);
-    void operator+=(LabeledTensorProduct& rhs);
-    void operator-=(LabeledTensorProduct& rhs);
+    void operator+=(const LabeledTensorProduct& rhs);
+    void operator-=(const LabeledTensorProduct& rhs);
+
+    void operator=(const LabeledTensorAddition& rhs);
+    void operator+=(const LabeledTensorAddition& rhs);
+    void operator-=(const LabeledTensorAddition& rhs);
+
+    void operator=(const LabeledTensorSubtraction& rhs);
+    void operator+=(const LabeledTensorSubtraction& rhs);
+    void operator-=(const LabeledTensorSubtraction& rhs);
 
     void operator*=(double scale);
 
@@ -191,23 +216,47 @@ inline LabeledTensor operator*(double factor, const LabeledTensor& ti) {
 class LabeledTensorProduct {
 
 public:
-    LabeledTensorProduct(LabeledTensor& A, LabeledTensor& B) :
+    LabeledTensorProduct(const LabeledTensor& A, const LabeledTensor& B) :
         A_(A), B_(B)
     {}
 
-    LabeledTensor& A() const { return A_; }
-    LabeledTensor& B() const { return B_; }
+    const LabeledTensor& A() const { return A_; }
+    const LabeledTensor& B() const { return B_; }
 
 private:
-    LabeledTensor& A_;
-    LabeledTensor& B_;
+    const LabeledTensor& A_;
+    const LabeledTensor& B_;
 };
 
-namespace util {
+class LabeledTensorAddition
+{
+public:
+    LabeledTensorAddition(const LabeledTensor& A, const LabeledTensor& B) :
+            A_(A), B_(B)
+    {}
 
-std::vector<std::string> split_indices(const std::string& indices);
+    const LabeledTensor& A() const { return A_; }
+    const LabeledTensor& B() const { return B_; }
 
-}
+private:
+    const LabeledTensor& A_;
+    const LabeledTensor& B_;
+};
+
+class LabeledTensorSubtraction
+{
+public:
+    LabeledTensorSubtraction(const LabeledTensor& A, const LabeledTensor& B) :
+            A_(A), B_(B)
+    {}
+
+    const LabeledTensor& A() const { return A_; }
+    const LabeledTensor& B() const { return B_; }
+
+private:
+    const LabeledTensor& A_;
+    const LabeledTensor& B_;
+};
 
 }
 

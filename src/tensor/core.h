@@ -17,7 +17,7 @@ public:
     // => Simple Single Tensor Operations <= //
 
     void zero();
-    void scale(double a);
+    void scale(const double& a);
     double norm(double power = 2.0) const;
     double rms(double power = 2.0) const;
 

@@ -39,14 +39,17 @@ Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& 
     }
     switch(type) {
         case kCore:
+//            printf("Constructing core tensor.\n");
             newObject.tensor_.reset(new CoreTensorImpl(name, dims));
             break;
 
         case kDisk:
+//            printf("Constructing disk tensor.\n");
             // TODO: Construct disk tensor object
             break;
 
         case kDistributed:
+//            printf("Constructing distributed tensor.\n");
 
             #if defined(HAVE_CYCLOPS)
             newObject.tensor_.reset(new cyclops::CyclopsTensorImpl(name, dims));
@@ -59,11 +62,18 @@ Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& 
         default:
             throw std::runtime_error("Tensor::build: Unknown parameter passed into 'type'.");
     }
+
+    return newObject;
 }
 
 Tensor Tensor::build(TensorType type, const Tensor& other)
 {
     ThrowNotImplementedException;
+}
+
+void Tensor::copy(const Tensor& other, const double& scale)
+{
+    tensor_->copy(other.tensor_.get(), scale);
 }
 
 Tensor::Tensor()
@@ -96,7 +106,7 @@ size_t Tensor::numel() const
 
 void Tensor::print(FILE *fh, bool level, std::string const &format, int maxcols) const
 {
-    ThrowNotImplementedException;
+    tensor_->print(fh, level, format, maxcols);
 }
 
 LabeledTensor Tensor::operator()(const std::string& indices)
@@ -232,12 +242,120 @@ Tensor& Tensor::givens(int dim, int i, int j, double s, double c)
     ThrowNotImplementedException;
 }
 
+void Tensor::contract(const Tensor &A, const Tensor &B, const ContractionTopology &topology, double alpha, double beta)
+{
+    tensor_->contract(A.tensor_.get(),
+                      B.tensor_.get(),
+                      topology,
+                      alpha,
+                      beta);
+}
+
 /********************************************************************
 * LabeledTensor operators
 ********************************************************************/
 void LabeledTensor::operator=(const LabeledTensor& rhs)
 {
+    if (indices::equivalent(indices_, rhs.indices_) == true) {
+        // equivalent indices:   "i,a" = "i,a"
+        // perform a simple copy
+        T_.copy(rhs.T(), rhs.factor());
+    }
+    else {
+        // TODO: potential sorting of data
+        printf("Potential sorting assignment.\n");
+        ThrowNotImplementedException;
+    }
+}
 
+LabeledTensorProduct LabeledTensor::operator*(const LabeledTensor &rhs)
+{
+    return LabeledTensorProduct(*this, rhs);
+}
+
+LabeledTensorAddition LabeledTensor::operator+(const LabeledTensor &rhs)
+{
+    return LabeledTensorAddition(*this, rhs);
+}
+
+LabeledTensorSubtraction LabeledTensor::operator-(const LabeledTensor &rhs)
+{
+    return LabeledTensorSubtraction(*this, rhs);
+}
+
+void LabeledTensor::operator=(const LabeledTensorProduct& rhs)
+{
+    // Perform a tensor contraction.
+    ThrowNotImplementedException;
+
+    // 1. TODO create a ContractionTopology
+
+    // 2. call contract on the tensor.
+//    T_.contract(rhs.A().T(),
+//                rhs.B().T(),
+//                <#(tensor::ContractionTopology const &)topology#>,
+//                rhs.A().factor() * rhs.B().factor(),
+//                0.0);
+}
+
+void LabeledTensor::operator+=(const LabeledTensorProduct& rhs)
+{
+    // Perform a tensor contraction.
+    ThrowNotImplementedException;
+
+    // 1. TODO create a ContractionTopology
+
+    // 2. call contract on the tensor.
+//    T_.contract(rhs.A().T(),
+//                rhs.B().T(),
+//                <#(tensor::ContractionTopology const &)topology#>,
+//                rhs.A().factor() * rhs.B().factor(),
+//                1.0);
+}
+
+void LabeledTensor::operator-=(const LabeledTensorProduct& rhs)
+{
+    // Perform a tensor contraction.
+    ThrowNotImplementedException;
+
+    // 1. TODO create a ContractionTopology
+
+    // 2. call contract on the tensor.
+//    T_.contract(rhs.A().T(),
+//                rhs.B().T(),
+//                <#(tensor::ContractionTopology const &)topology#>,
+//                - rhs.A().factor() * rhs.B().factor(),
+//                1.0);
+}
+
+void LabeledTensor::operator=(const LabeledTensorAddition& rhs)
+{
+    ThrowNotImplementedException;
+}
+
+void LabeledTensor::operator+=(const LabeledTensorAddition& rhs)
+{
+    ThrowNotImplementedException;
+}
+
+void LabeledTensor::operator-=(const LabeledTensorAddition& rhs)
+{
+    ThrowNotImplementedException;
+}
+
+void LabeledTensor::operator=(const LabeledTensorSubtraction& rhs)
+{
+    ThrowNotImplementedException;
+}
+
+void LabeledTensor::operator+=(const LabeledTensorSubtraction& rhs)
+{
+    ThrowNotImplementedException;
+}
+
+void LabeledTensor::operator-=(const LabeledTensorSubtraction& rhs)
+{
+    ThrowNotImplementedException;
 }
 
 }

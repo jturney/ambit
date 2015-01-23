@@ -7,13 +7,15 @@
 
 namespace tensor {
 
-void TensorImpl::copy(ConstTensorImplPtr other)
+void TensorImpl::copy(ConstTensorImplPtr other, const double& s)
 {
     TensorImpl::dimensionCheck(this, other);
     double* temp = TensorImpl::get_block(numel());
     other->get_data(temp);
     set_data(temp);
     temp = TensorImpl::free_block(temp);
+
+    scale(s);
 }
 TensorImplPtr TensorImpl::clone(TensorType t)
 {
