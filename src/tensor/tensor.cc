@@ -1,61 +1,14 @@
 #include <tensor/tensor.h>
 #include "tensorimpl.h"
 #include "core.h"
+#include "indices.h"
 
 // include header files to specific tensor types supported.
 #if defined(HAVE_CYCLOPS)
 #   include "cyclops/cyclops.h"
 #endif
 
-#include <sstream>
-
 namespace tensor {
-
-namespace util {
-
-namespace {
-
-// trim from start
-static inline std::string &ltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-    return s;
-}
-
-// trim from end
-static inline std::string &rtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
-    return s;
-}
-
-// trim from both ends
-static inline std::string &trim(std::string &s) {
-    return util::ltrim(util::rtrim(s));
-}
-
-}
-
-std::vector<std::string> split_indices(const std::string &indices)
-{
-    std::istringstream f(indices);
-    std::string s;
-    std::vector<std::string> v;
-
-    if (indices.find(",") != std::string::npos) {
-        while (std::getline(f, s, ',')) {
-            std::string trimmed = util::trim(s);
-            v.push_back(trimmed);
-        }
-    }
-    else {
-        // simply split the string up
-        for (int i=0; i<indices.size(); ++i)
-            v.push_back(std::string(1, indices[i]));
-    }
-
-    return v;
-}
-
-}
 
 int initialize(int argc, char** argv)
 {
@@ -148,12 +101,12 @@ void Tensor::print(FILE *fh, bool level, std::string const &format, int maxcols)
 
 LabeledTensor Tensor::operator()(const std::string& indices)
 {
-    return LabeledTensor(*this, util::split_indices(indices));
+    return LabeledTensor(*this, indices::split(indices));
 }
 
 LabeledTensor Tensor::operator[](const std::string& indices)
 {
-    return LabeledTensor(*this, util::split_indices(indices));
+    return LabeledTensor(*this, indices::split(indices));
 }
 
 void Tensor::set_data(double *data, IndexRange const &ranges)

@@ -2,6 +2,7 @@ set(TENSOR_HEADERS
     ${PROJECT_SOURCE_DIR}/include/tensor/tensor.h
     math/math.h
     tensor/core.h
+    tensor/indices.h
     tensor/macros.h
     tensor/memory.h
     tensor/tensorimpl.h
@@ -11,6 +12,7 @@ set(TENSOR_SOURCES
     math/blas.cc
     math/lapack.cc
     tensor/core.cc
+    tensor/indices.cc
     tensor/tensor.cc
     tensor/tensorimpl.cc
 )
