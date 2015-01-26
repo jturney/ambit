@@ -87,6 +87,10 @@ void finialize()
 #endif
 }
 
+Tensor::Tensor(shared_ptr<TensorImpl> tensor)
+    : tensor_(tensor)
+{}
+
 Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& dims)
 {
     Tensor newObject;
@@ -182,27 +186,33 @@ LabeledTensor Tensor::operator[](const std::string& indices)
 
 void Tensor::set_data(double *data, IndexRange const &ranges)
 {
-    ThrowNotImplementedException;
+    tensor_->set_data(data, ranges);
 }
 
 void Tensor::get_data(double *data, IndexRange const &ranges) const
 {
-    ThrowNotImplementedException;
+    tensor_->get_data(data, ranges);
 }
 
 double* Tensor::get_block(const Tensor& tensor)
 {
-    ThrowNotImplementedException;
+    return TensorImpl::get_block(tensor.numel());
 }
 
 double* Tensor::get_block(const IndexRange &ranges)
 {
-    ThrowNotImplementedException;
+    size_t nel = 1;
+    for (IndexRange::const_iterator iter = ranges.begin();
+            iter != ranges.end();
+            ++iter) {
+        nel *= iter->second - iter->first;
+    }
+    return TensorImpl::get_block(nel);
 }
 
 void Tensor::free_block(double *data)
 {
-    ThrowNotImplementedException;
+    TensorImpl::free_block(data);
 }
 
 Tensor Tensor::slice(const Tensor &tensor, const IndexRange &ranges)
@@ -217,90 +227,104 @@ Tensor Tensor::cat(std::vector<Tensor> const, int dim)
 
 Tensor& Tensor::zero()
 {
-    ThrowNotImplementedException;
+    tensor_->zero();
 }
 
 Tensor& Tensor::scale(double a)
 {
-    ThrowNotImplementedException;
+    tensor_->scale(a);
+    return *this;
 }
 
 double Tensor::norm(double power) const
 {
-    ThrowNotImplementedException;
+    return tensor_->norm(power);
 }
 
 Tensor& Tensor::scale_and_add(double a, const Tensor &x)
 {
-    ThrowNotImplementedException;
+    tensor_->scale_and_add(a, x.tensor_.get());
+    return *this;
 }
 
 Tensor& Tensor::pointwise_multiplication(const Tensor &x)
 {
-    ThrowNotImplementedException;
+    tensor_->pointwise_multiplication(x.tensor_.get());
+    return *this;
 }
 
 Tensor& Tensor::pointwise_division(const Tensor &x)
 {
-    ThrowNotImplementedException;
+    tensor_->pointwise_division(x.tensor_.get());
+    return *this;
 }
 
 double Tensor::dot(const Tensor& x)
 {
-    ThrowNotImplementedException;
+    return tensor_->dot(x.tensor_.get());
+}
+
+std::map<std::string, Tensor> Tensor::map_to_tensor(const std::map<std::string, TensorImplPtr>& x)
+{
+    std::map<std::string, Tensor> result;
+
+    for (std::map<std::string, TensorImplPtr>::const_iterator iter = x.begin();
+            iter != x.end();
+            ++iter) {
+        result.insert(make_pair(iter->first, Tensor(shared_ptr<TensorImpl>(iter->second))));
+    }
+    return result;
 }
 
 std::map<std::string, Tensor> Tensor::syev(EigenvalueOrder order)
 {
-    ThrowNotImplementedException;
-
+    return map_to_tensor(tensor_->syev(order));
 }
+
 std::map<std::string, Tensor> Tensor::geev(EigenvalueOrder order)
 {
-    ThrowNotImplementedException;
-
+    return map_to_tensor(tensor_->geev(order));
 }
+
 std::map<std::string, Tensor> Tensor::svd()
 {
-    ThrowNotImplementedException;
-
+    return map_to_tensor(tensor_->svd());
 }
 
 Tensor Tensor::cholesky()
 {
-    ThrowNotImplementedException;
-
+    return Tensor(shared_ptr<TensorImpl>(tensor_->cholesky()));
 }
+
 std::map<std::string, Tensor> Tensor::lu()
 {
-    ThrowNotImplementedException;
-
+    return map_to_tensor(tensor_->lu());
 }
+
 std::map<std::string, Tensor> Tensor::qr()
 {
-    ThrowNotImplementedException;
-
+    return map_to_tensor(tensor_->qr());
 }
 
 Tensor Tensor::cholesky_inverse()
 {
-    ThrowNotImplementedException;
-
+    return Tensor(shared_ptr<TensorImpl>(tensor_->cholesky_inverse()));
 }
+
 Tensor Tensor::inverse()
 {
-    ThrowNotImplementedException;
-
+    return Tensor(shared_ptr<TensorImpl>(tensor_->inverse()));
 }
+
 Tensor Tensor::power(double power, double condition)
 {
-    ThrowNotImplementedException;
-
+    return Tensor(shared_ptr<TensorImpl>(tensor_->power(power, condition)));
 }
 
 Tensor& Tensor::givens(int dim, int i, int j, double s, double c)
 {
-    ThrowNotImplementedException;
+    tensor_->givens(dim, i, j, s, c);
+    return *this;
 }
 
 void Tensor::contract(const Tensor &A, const Tensor &B, const ContractionTopology &topology, double alpha, double beta)
