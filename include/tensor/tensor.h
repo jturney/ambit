@@ -30,6 +30,7 @@ namespace tensor {
 namespace tensor {
 
     using boost::tuple;
+    using boost::make_tuple;
     using boost::shared_ptr;
     template<class T> using unique_ptr = boost::scoped_ptr<T>;
 

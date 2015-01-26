@@ -32,14 +32,14 @@ int main(int argc, char* argv[])
     Tensor test3 = Tensor::build(kAgnostic, "Test 3", dims);
 
     // Element addition test
-    test3["a,b"]  = test["a,b"] + test2["a,b"];
-    test3["a,b"] += test["a,b"] + test2["a,b"];
-    test3["a,b"] -= test["a,b"] + test2["a,b"];
-
-    // Element subtraction test
-    test3["a,b"]  = test["a,b"] - test2["a,b"];
-    test3["a,b"] += test["a,b"] - test2["a,b"];
-    test3["a,b"] -= test["a,b"] - test2["a,b"];
+//    test3["a,b"]  = test["a,b"] + test2["a,b"];
+//    test3["a,b"] += test["a,b"] + test2["a,b"];
+//    test3["a,b"] -= test["a,b"] + test2["a,b"];
+//
+//    // Element subtraction test
+//    test3["a,b"]  = test["a,b"] - test2["a,b"];
+//    test3["a,b"] += test["a,b"] - test2["a,b"];
+//    test3["a,b"] -= test["a,b"] - test2["a,b"];
 
     // Contraction test
     test3["a,b"]  = test["a,c"] * test2["c,b"];

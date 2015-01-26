@@ -8,7 +8,68 @@
 #   include "cyclops/cyclops.h"
 #endif
 
+#include <list>
+#include <algorithm>
+
 namespace tensor {
+
+namespace {
+
+void add_all_indices(const LabeledTensor& x, std::list<std::string>& list)
+{
+    std::vector<std::string>::const_iterator iter, end = x.indices().end();
+    for (iter = x.indices().begin(); iter != end; ++iter) {
+        list.push_back(*iter);
+    }
+}
+
+int find_index_in_labeled_tensor(const LabeledTensor& x, const std::string& index)
+{
+    long xpos = -1;
+    std::vector<std::string>::const_iterator at = std::find(x.indices().begin(), x.indices().end(), index);
+    if (at != x.indices().end()) {
+        xpos = at - x.indices().begin();
+    }
+
+    return (int)xpos;
+}
+
+// Constructs a ContractionTopology object for C = A * B.
+ContractionTopology make_contraction_topology(const LabeledTensor& C, const LabeledTensor& A, const LabeledTensor& B)
+{
+    ContractionTopology newTopology;
+    std::list<std::string> listOfIndices;
+
+    // Add all indices from each LabeledTensor
+    add_all_indices(C, listOfIndices);
+    add_all_indices(A, listOfIndices);
+    add_all_indices(B, listOfIndices);
+
+    // Sort and grab unique
+    listOfIndices.sort();
+    listOfIndices.unique();
+
+    printf("Contraction Topology:\n");
+    // Walk our way through the list of unique indices and assign topology values
+    for (std::list<std::string>::const_iterator index = listOfIndices.begin(),
+            end = listOfIndices.end();
+            index != end;
+            ++index) {
+
+        // In each LabeledTensor find the index
+        int Cpos = find_index_in_labeled_tensor(C, *index),
+            Apos = find_index_in_labeled_tensor(A, *index),
+            Bpos = find_index_in_labeled_tensor(B, *index);
+
+        newTopology.push_back(boost::make_tuple(*index, Cpos, Apos, Bpos));
+
+        printf("%s: %d %d %d\n", index->c_str(), Cpos, Apos, Bpos);
+    }
+
+    return newTopology;
+}
+
+}
 
 int initialize(int argc, char** argv)
 {
@@ -286,46 +347,52 @@ LabeledTensorSubtraction LabeledTensor::operator-(const LabeledTensor &rhs)
 void LabeledTensor::operator=(const LabeledTensorProduct& rhs)
 {
     // Perform a tensor contraction.
-    ThrowNotImplementedException;
 
-    // 1. TODO create a ContractionTopology
+    // 1. create a ContractionTopology
+    ContractionTopology ct = make_contraction_topology(*this,
+                                                       rhs.A(),
+                                                       rhs.B());
 
     // 2. call contract on the tensor.
-//    T_.contract(rhs.A().T(),
-//                rhs.B().T(),
-//                <#(tensor::ContractionTopology const &)topology#>,
-//                rhs.A().factor() * rhs.B().factor(),
-//                0.0);
+    T_.contract(rhs.A().T(),
+                rhs.B().T(),
+                ct,
+                rhs.A().factor() * rhs.B().factor(),
+                0.0);
 }
 
 void LabeledTensor::operator+=(const LabeledTensorProduct& rhs)
 {
     // Perform a tensor contraction.
-    ThrowNotImplementedException;
 
-    // 1. TODO create a ContractionTopology
+    // 1. create a ContractionTopology
+    ContractionTopology ct = make_contraction_topology(*this,
+                                                       rhs.A(),
+                                                       rhs.B());
 
     // 2. call contract on the tensor.
-//    T_.contract(rhs.A().T(),
-//                rhs.B().T(),
-//                <#(tensor::ContractionTopology const &)topology#>,
-//                rhs.A().factor() * rhs.B().factor(),
-//                1.0);
+    T_.contract(rhs.A().T(),
+                rhs.B().T(),
+                ct,
+                rhs.A().factor() * rhs.B().factor(),
+                1.0);
 }
 
 void LabeledTensor::operator-=(const LabeledTensorProduct& rhs)
 {
     // Perform a tensor contraction.
-    ThrowNotImplementedException;
 
-    // 1. TODO create a ContractionTopology
+    // 1. create a ContractionTopology
+    ContractionTopology ct = make_contraction_topology(*this,
+                                                       rhs.A(),
+                                                       rhs.B());
 
     // 2. call contract on the tensor.
-//    T_.contract(rhs.A().T(),
-//                rhs.B().T(),
-//                <#(tensor::ContractionTopology const &)topology#>,
-//                - rhs.A().factor() * rhs.B().factor(),
-//                1.0);
+    T_.contract(rhs.A().T(),
+                rhs.B().T(),
+                ct,
+                - rhs.A().factor() * rhs.B().factor(),
+                1.0);
 }
 
 void LabeledTensor::operator=(const LabeledTensorAddition& rhs)

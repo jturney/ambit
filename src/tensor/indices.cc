@@ -42,7 +42,7 @@ std::vector<std::string> split(const std::string &indices)
     }
     else {
         // simply split the string up
-        for (int i = 0; i < indices.size(); ++i)
+        for (size_t i = 0; i < indices.size(); ++i)
             v.push_back(std::string(1, indices[i]));
     }
 
