@@ -345,23 +345,23 @@ void CoreTensorContractionTopology::contract(double alpha, double beta)
         size_t ldaR;
 
         if (C_transpose_) {
-            double* Lp = Bp;
-            double* Rp = Ap;
-            size_t nrow = BC_size_;
-            size_t ncol = AC_size_;
-            char transL = (B_transpose_ ? 'N' : 'T');
-            char transR = (A_transpose_ ? 'N' : 'T');
-            size_t ldaL = (B_transpose_ ? AB_size_ : BC_size_);
-            size_t ldaR = (A_transpose_ ? AC_size_ : AB_size_);
+            Lp = Bp;
+            Rp = Ap;
+            nrow = BC_size_;
+            ncol = AC_size_;
+            transL = (B_transpose_ ? 'N' : 'T');
+            transR = (A_transpose_ ? 'N' : 'T');
+            ldaL = (B_transpose_ ? AB_size_ : BC_size_);
+            ldaR = (A_transpose_ ? AC_size_ : AB_size_);
         } else {
-            double* Lp = Ap;
-            double* Rp = Bp;
-            size_t nrow = AC_size_;
-            size_t ncol = BC_size_;
-            char transL = (A_transpose_ ? 'T' : 'N');
-            char transR = (B_transpose_ ? 'T' : 'N');
-            size_t ldaL = (A_transpose_ ? AC_size_ : AB_size_);
-            size_t ldaR = (B_transpose_ ? AB_size_ : BC_size_);
+            Lp = Ap;
+            Rp = Bp;
+            nrow = AC_size_;
+            ncol = BC_size_;
+            transL = (A_transpose_ ? 'T' : 'N');
+            transR = (B_transpose_ ? 'T' : 'N');
+            ldaL = (A_transpose_ ? AC_size_ : AB_size_);
+            ldaR = (B_transpose_ ? AB_size_ : BC_size_);
         }
 
         size_t nzip = AB_size_;
