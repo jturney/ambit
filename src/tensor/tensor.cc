@@ -91,6 +91,8 @@ ContractionTopology::ContractionTopology(const LabeledTensor& C, const LabeledTe
         } else
             throw std::runtime_error("Invalid contraction topology!");
 
+        types_.push_back(type);
+
         printf("%s: %d %d %d %d\n", index->c_str(), Cpos, Apos, Bpos, type);
     }
 }

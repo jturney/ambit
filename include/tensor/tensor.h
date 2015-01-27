@@ -288,6 +288,13 @@ public:
                         const LabeledTensor& A,
                         const LabeledTensor& B);
 
+
+    const std::vector<std::string>& indices() const { return indices_; }
+    const std::vector<int>& A_pos() const { return A_pos_; }
+    const std::vector<int>& B_pos() const { return B_pos_; }
+    const std::vector<int>& C_pos() const { return C_pos_; }
+    const std::vector<ContractionType>& types() const { return types_; }
+
 private:
     std::vector<std::string> indices_;
     std::vector<int> A_pos_;
