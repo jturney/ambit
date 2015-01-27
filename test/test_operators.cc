@@ -16,10 +16,7 @@ double d4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
 
 using namespace tensor;
 
-/// Initialize a tensor and a double* with the same sequence of
-/// random numbers
-//void initialize_random(Tensor& tensor,double[][] vec);
-
+/// Initialize a tensor and a 2-dim matrix with random numbers
 void initialize_random_2(Tensor& tensor,double matrix[MAXTWO][MAXTWO]);
 
 std::pair<std::string,double> test_Cij_plus_equal_Aik_Bkj();
@@ -28,6 +25,9 @@ std::pair<std::string,double> test_Cij_equal_Aik_Bkj();
 std::pair<std::string,double> test_Cij_equal_Aik_Bjk();
 std::pair<std::string,double> test_Cij_equal_Aik_Bkj();
 std::pair<std::string,double> test_Cij_equal_Aik_Bjk();
+std::pair<std::string,double> test_Cijkl_equal_Aijab_Bklab();
+std::pair<std::string,double> test_Cikjl_equal_Aijab_Bklab();
+std::pair<std::string,double> test_Cij_equal_Aiabc_Bjabc();
 std::pair<std::string,double> test_C_equal_A_B(std::string c_ind,std::string a_ind,std::string b_ind,
                                                std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim);
 
@@ -35,6 +35,7 @@ double zero = 1.0e-14;
 
 int main(int argc, char* argv[])
 {
+    srand (time(NULL));
     tensor::initialize(argc, argv);
 
     Dimension dims;
@@ -97,6 +98,11 @@ int main(int argc, char* argv[])
     results.push_back(test_Cij_plus_equal_Aik_Bkj());
     results.push_back(test_Cij_minus_equal_Aik_Bkj());
 
+    results.push_back(test_Cijkl_equal_Aijab_Bklab());
+    results.push_back(test_Cij_equal_Aiabc_Bjabc());
+
+    results.push_back(test_Cikjl_equal_Aijab_Bklab());
+
     tensor::finialize();
 
     bool success = true;
@@ -153,6 +159,63 @@ std::pair<double,double> difference_2(Tensor& tensor,double matrix[MAXTWO][MAXTW
             double diff = std::fabs(matrix[i][j] - result[ij]);
             sum_diff += diff;
             max_diff = std::max(diff,max_diff);
+        }
+    }
+    delete[] result;
+    return std::make_pair(sum_diff,max_diff);
+}
+
+void initialize_random_4(Tensor& tensor,double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR])
+{
+    size_t n0 = tensor.dims()[0];
+    size_t n1 = tensor.dims()[1];
+    size_t n2 = tensor.dims()[2];
+    size_t n3 = tensor.dims()[3];
+
+    double* vec = new double[n0 * n1 * n2 * n3];
+    for (size_t i = 0, ijkl = 0; i < n0; ++i){
+        for (size_t j = 0; j < n1; ++j){
+            for (size_t k = 0; k < n2; ++k){
+                for (size_t l = 0; l < n3; ++l, ++ijkl){
+                    double randnum = double(std::rand())/double(RAND_MAX);
+                    matrix[i][j][k][l] = randnum;
+                    vec[ijkl] = randnum;
+                }
+            }
+        }
+    }
+    tensor.set_data(vec);
+    delete[] vec;
+}
+
+std::pair<double,double> difference_4(Tensor& tensor,double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR])
+{
+    size_t n0 = tensor.dims()[0];
+    size_t n1 = tensor.dims()[1];
+    size_t n2 = tensor.dims()[2];
+    size_t n3 = tensor.dims()[3];
+
+    size_t numel = tensor.numel();
+
+    printf("\n  %zu %zu %zu %zu",n0,n1,n2,n3);
+    printf("\n  numel = %zu",numel);
+
+    double* result = new double[numel];
+
+    tensor.get_data(result);
+
+    double sum_diff = 0.0;
+    double max_diff = 0.0;
+
+    for (size_t i = 0, ijkl = 0; i < n0; ++i){
+        for (size_t j = 0; j < n1; ++j){
+            for (size_t k = 0; k < n2; ++k){
+                for (size_t l = 0; l < n3; ++l, ++ijkl){
+                    double diff = std::fabs(matrix[i][j][k][l] - result[ijkl]);
+                    sum_diff += diff;
+                    max_diff = std::max(diff,max_diff);
+                }
+            }
         }
     }
     delete[] result;
@@ -218,7 +281,7 @@ std::pair<std::string,double> test_C_equal_A_B(std::string c_ind,std::string a_i
 
 std::pair<std::string,double> test_Cij_plus_equal_Aik_Bkj()
 {
-    std::string test = "C2(\"ij\") += A2(\"ik\") * B2(\"kj\")";
+    std::string test = "C(\"ij\") += A(\"ik\") * B(\"kj\")";
     printf("\n  Testing %s",test.c_str());
 
     size_t ni = 9;
@@ -263,7 +326,7 @@ std::pair<std::string,double> test_Cij_plus_equal_Aik_Bkj()
 
 std::pair<std::string,double> test_Cij_minus_equal_Aik_Bkj()
 {
-    std::string test = "C2(\"ij\") -= A2(\"ik\") * B2(\"kj\")";
+    std::string test = "C(\"ij\") -= A(\"ik\") * B(\"kj\")";
     printf("\n  Testing %s",test.c_str());
 
     size_t ni = 9;
@@ -309,7 +372,7 @@ std::pair<std::string,double> test_Cij_minus_equal_Aik_Bkj()
 
 std::pair<std::string,double> test_Cij_equal_Aik_Bkj()
 {
-    std::string test = "C2(\"ij\") = A2(\"ik\") * B2(\"kj\")";
+    std::string test = "C(\"ij\") = A(\"ik\") * B(\"kj\")";
     printf("\n  Testing %s",test.c_str());
 
     size_t ni = 9;
@@ -352,7 +415,7 @@ std::pair<std::string,double> test_Cij_equal_Aik_Bkj()
 
 std::pair<std::string,double> test_Cij_equal_Aik_Bjk()
 {
-    std::string test = "C2(\"ij\") = A2(\"ik\") * B2(\"jk\")";
+    std::string test = "C(\"ij\") = A(\"ik\") * B(\"jk\")";
     printf("\n  Testing %s",test.c_str());
 
     size_t ni = 9;
@@ -393,3 +456,170 @@ std::pair<std::string,double> test_Cij_equal_Aik_Bjk()
     return std::make_pair(test,c_diff.second);
 }
 
+
+std::pair<std::string,double> test_Cijkl_equal_Aijab_Bklab()
+{
+    std::string test = "C(\"ijkl\") += A(\"ijab\") * B(\"klab\")";
+    printf("\n  Testing %s",test.c_str());
+
+    size_t ni = 9;
+    size_t nj = 6;
+    size_t nk = 7;
+    size_t nl = 9;
+    size_t na = 6;
+    size_t nb = 7;
+
+    Dimension dimsA;
+    dimsA.push_back(ni); dimsA.push_back(nj);
+    dimsA.push_back(na); dimsA.push_back(nb);
+    Tensor A = Tensor::build(kCore, "A", dimsA);
+
+    Dimension dimsB;
+    dimsB.push_back(nk); dimsB.push_back(nl);
+    dimsB.push_back(na); dimsB.push_back(nb);
+    Tensor B = Tensor::build(kCore, "B", dimsB);
+
+    Dimension dimsC;
+    dimsC.push_back(ni); dimsC.push_back(nj);
+    dimsC.push_back(nk); dimsC.push_back(nl);
+    Tensor C = Tensor::build(kCore, "C", dimsC);
+
+    initialize_random_4(A,a4);
+    std::pair<double,double> a_diff = difference_4(A,a4);
+
+    initialize_random_4(B,b4);
+    std::pair<double,double> b_diff = difference_4(B,b4);
+
+    initialize_random_4(C,c4);
+    std::pair<double,double> c_diff = difference_4(C,c4);
+
+    C("ijkl") += A("ijab") * B("klab");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            for (size_t k = 0; k < nk; ++k){
+                for (size_t l = 0; l < nl; ++l){
+                    for (size_t a = 0; a < na; ++a){
+                        for (size_t b = 0; b < nb; ++b){
+                            c4[i][j][k][l] += a4[i][j][a][b] * b4[k][l][a][b];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    c_diff = difference_4(C,c4);
+
+    return std::make_pair(test,c_diff.second);
+}
+
+
+std::pair<std::string,double> test_Cikjl_equal_Aijab_Bklab()
+{
+    std::string test = "C(\"ikjl\") += A(\"ijab\") * B(\"klab\")";
+    printf("\n  Testing %s",test.c_str());
+
+    size_t ni = 9;
+    size_t nj = 6;
+    size_t nk = 7;
+    size_t nl = 9;
+    size_t na = 6;
+    size_t nb = 7;
+
+    Dimension dimsA;
+    dimsA.push_back(ni); dimsA.push_back(nj);
+    dimsA.push_back(na); dimsA.push_back(nb);
+    Tensor A = Tensor::build(kCore, "A", dimsA);
+
+    Dimension dimsB;
+    dimsB.push_back(nk); dimsB.push_back(nl);
+    dimsB.push_back(na); dimsB.push_back(nb);
+    Tensor B = Tensor::build(kCore, "B", dimsB);
+
+    Dimension dimsC;
+    dimsC.push_back(ni); dimsC.push_back(nk);
+    dimsC.push_back(nj); dimsC.push_back(nl);
+    Tensor C = Tensor::build(kCore, "C", dimsC);
+
+    initialize_random_4(A,a4);
+    std::pair<double,double> a_diff = difference_4(A,a4);
+
+    initialize_random_4(B,b4);
+    std::pair<double,double> b_diff = difference_4(B,b4);
+
+    initialize_random_4(C,c4);
+    std::pair<double,double> c_diff = difference_4(C,c4);
+
+    C("ijkl") += A("ijab") * B("klab");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            for (size_t k = 0; k < nk; ++k){
+                for (size_t l = 0; l < nl; ++l){
+                    for (size_t a = 0; a < na; ++a){
+                        for (size_t b = 0; b < nb; ++b){
+                            c4[i][k][j][l] += a4[i][j][a][b] * b4[k][l][a][b];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    c_diff = difference_4(C,c4);
+
+    return std::make_pair(test,c_diff.second);
+}
+
+
+
+std::pair<std::string,double> test_Cij_equal_Aiabc_Bjabc()
+{
+    std::string test = "C(\"ij\") += A(\"iabc\") * B(\"jabc\")";
+    printf("\n  Testing %s",test.c_str());
+
+    size_t ni = 9;
+    size_t nj = 6;
+    size_t na = 6;
+    size_t nb = 7;
+    size_t nc = 8;
+
+    Dimension dimsA;
+    dimsA.push_back(ni); dimsA.push_back(na);
+    dimsA.push_back(nb); dimsA.push_back(nc);
+    Tensor A = Tensor::build(kCore, "A", dimsA);
+
+    Dimension dimsB;
+    dimsB.push_back(nj); dimsB.push_back(na);
+    dimsB.push_back(nb); dimsB.push_back(nc);
+    Tensor B = Tensor::build(kCore, "B", dimsB);
+
+    Dimension dimsC;
+    dimsC.push_back(ni); dimsC.push_back(nj);
+    Tensor C = Tensor::build(kCore, "C", dimsC);
+
+    initialize_random_4(A,a4);
+    std::pair<double,double> a_diff = difference_4(A,a4);
+
+    initialize_random_4(B,b4);
+    std::pair<double,double> b_diff = difference_4(B,b4);
+
+    initialize_random_2(C,c2);
+    std::pair<double,double> c_diff = difference_2(C,c2);
+
+    C("ij") += A("iabc") * B("jabc");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            for (size_t a = 0; a < na; ++a){
+                for (size_t b = 0; b < nb; ++b){
+                    for (size_t c = 0; c < nc; ++c){
+                        c2[i][j] += a4[i][a][b][c] * b4[j][a][b][c];
+                    }
+                }
+            }
+        }
+    }
+    c_diff = difference_2(C,c2);
+
+    return std::make_pair(test,c_diff.second);
+}
