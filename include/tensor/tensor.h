@@ -90,6 +90,7 @@ public:
     std::string name() const;
     const Dimension& dims() const;
     size_t rank() const;
+    /// \return Total number of elements in the tensor.
     size_t numel() const;
 
     /**
