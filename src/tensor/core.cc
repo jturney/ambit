@@ -73,6 +73,53 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B, const 
     CoreTensorContractionTopology manager(topology,*this,*(const CoreTensorImplPtr)A,*(const CoreTensorImplPtr)B);
     manager.contract(alpha,beta);
 }
+void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds)
+{
+    if (rank() != A->rank()) throw std::runtime_error("Tensors must be same rank");
+
+    if (Ainds.size() != rank()) throw std::runtime_error("Ainds does not have correct rank");
+
+    std::vector<int> Ainds2 = Ainds;
+    std::sort(Ainds2.begin(),Ainds2.end());
+    for (int dim = 0; dim < rank(); dim++) {
+        if (dim != Ainds2[dim])
+            throw std::runtime_error("Ainds does not have dims 0,1,2,...");
+    }
+
+    for (int dim = 0; dim < rank(); dim++) {
+        if (dims()[dim] != A->dims()[Ainds[dim]])
+            throw std::runtime_error("Permuted tensors do not have same dimensions");
+    }
+
+    int fast_dims = 0;
+    size_t fast_size = 1L;
+    for (int dim = ((int)rank()) - 1; dim >= 0; dim++) {
+        if (dim == Ainds[dim]) {
+            fast_dims++;
+            fast_size *= dims()[dim];
+        } else {
+            break;
+        }
+    }
+
+    double* Cp = data();
+    double* Ap = ((const CoreTensorImplPtr)A)->data();
+
+    int slow_dims = rank() - fast_dims;
+    if (slow_dims == 0) {
+        // Fully sorted case or (equivalently) 0-rank tensors
+        ::memcpy(Cp,Ap,fast_size*sizeof(double));
+    } else if (slow_dims == 1) {
+        throw std::runtime_error("Should be impossible to reach here.");
+    } else if (slow_dims == 2) {
+        size_t size0 = dims()[0];
+        size_t size1 = dims()[1];
+
+    } else {
+        throw std::runtime_error("Permutation not coded for rank > 8");
+    }
+
+}
 
 std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
 {
@@ -288,24 +335,37 @@ void CoreTensorContractionTopology::contract(double alpha, double beta)
     double* Cp = C_.data();
     for (size_t P = 0L; P < ABC_size_; P++) {
 
-        char transL = (A_transpose_ ? 'T' : 'N');
-        char transR = (B_transpose_ ? 'T' : 'N');
-        size_t nrow = AC_size_;
-        size_t ncol = BC_size_;
-        double* Lp = Ap;
-        double* Rp = Bp;
-        size_t ldaL = (A_transpose_ ? AC_size_ : AB_size_);
-        size_t ldaR = (B_transpose_ ? AB_size_ : BC_size_);
+        char transL;
+        char transR;
+        size_t nrow;
+        size_t ncol;
+        double* Lp;
+        double* Rp;
+        size_t ldaL;
+        size_t ldaR;
+
+        if (C_transpose_) {
+            double* Lp = Bp;
+            double* Rp = Ap;
+            size_t nrow = BC_size_;
+            size_t ncol = AC_size_;
+            char transL = (B_transpose_ ? 'N' : 'T');
+            char transR = (A_transpose_ ? 'N' : 'T');
+            size_t ldaL = (B_transpose_ ? AB_size_ : BC_size_);
+            size_t ldaR = (A_transpose_ ? AC_size_ : AB_size_);
+        } else {
+            double* Lp = Ap;
+            double* Rp = Bp;
+            size_t nrow = AC_size_;
+            size_t ncol = BC_size_;
+            char transL = (A_transpose_ ? 'T' : 'N');
+            char transR = (B_transpose_ ? 'T' : 'N');
+            size_t ldaL = (A_transpose_ ? AC_size_ : AB_size_);
+            size_t ldaR = (B_transpose_ ? AB_size_ : BC_size_);
+        }
 
         size_t nzip = AB_size_;
         size_t ldaC = (C_transpose_ ? AC_size_ : BC_size_);
-
-        if (C_transpose_) {
-            std::swap(transL,transR);
-            std::swap(nrow,ncol);
-            std::swap(Lp,Rp);
-            std::swap(ldaL,ldaR);
-        }
 
         C_DGEMM(transL,transR,nrow,ncol,nzip,alpha,Lp,ldaL,Rp,ldaR,beta,Cp,ldaC);
 

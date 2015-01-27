@@ -40,6 +40,16 @@ public:
          double beta = 0.0
          );
 
+    /**
+     * Perform C(0:n) = A(Ainds(0:n))
+     * E.g., to do C_ijkl = A_lkij
+     *
+     * Call C->permute(A,{3,2,0,1})
+     **/
+    void permute(
+         ConstTensorImplPtr A,
+         const std::vector<int>& Ainds);
+
     // => Order-2 Operations <= //
 
     std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const;
