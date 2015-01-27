@@ -50,7 +50,7 @@ ContractionTopology::ContractionTopology(const LabeledTensor& C, const LabeledTe
     listOfIndices.sort();
     listOfIndices.unique();
 
-    printf("Contraction Topology:\n");
+//    printf("Contraction Topology:\n");
     // Walk our way through the list of unique indices and assign topology values
     for (std::list<std::string>::const_iterator index = listOfIndices.begin(),
             end = listOfIndices.end();
@@ -93,7 +93,7 @@ ContractionTopology::ContractionTopology(const LabeledTensor& C, const LabeledTe
 
         types_.push_back(type);
 
-        printf("%s: %d %d %d %d\n", index->c_str(), Cpos, Apos, Bpos, type);
+//        printf("%s: %d %d %d %d\n", index->c_str(), Cpos, Apos, Bpos, type);
     }
 }
 
