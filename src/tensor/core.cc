@@ -1,6 +1,7 @@
 #include "tensorimpl.h"
 #include "core.h"
 #include "memory.h"
+#include "math/math.h"
 
 namespace tensor {
 
@@ -68,7 +69,9 @@ double CoreTensorImpl::dot(ConstTensorImplPtr x) const
 void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B, const ContractionTopology &topology,
                               double alpha, double beta)
 {
-    ThrowNotImplementedException;
+
+    CoreTensorContractionTopology manager(topology,*this,*(const CoreTensorImplPtr)A,*(const CoreTensorImplPtr)B);
+    manager.contract(alpha,beta);
 }
 
 std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
@@ -115,6 +118,40 @@ TensorImplPtr CoreTensorImpl::power(double power, double condition) const
 void CoreTensorImpl::givens(int dim, int i, int j, double s, double c)
 {
     ThrowNotImplementedException;
+}
+
+void CoreTensorContractionTopology::contract(double alpha, double beta)
+{
+    double* Ap = A_.data();
+    double* Bp = B_.data();
+    double* Cp = C_.data();
+    for (size_t P = 0L; P < ABC_size_; P++) {
+
+        char transL = (A_transpose_ ? 'T' : 'N');
+        char transR = (B_transpose_ ? 'T' : 'N');
+        size_t nrow = AC_size_;
+        size_t ncol = BC_size_;
+        double* Lp = Ap;
+        double* Rp = Bp;
+        size_t ldaL = (A_transpose_ ? AC_size_ : AB_size_);
+        size_t ldaR = (B_transpose_ ? AB_size_ : BC_size_);
+
+        size_t nzip = AB_size_;
+        size_t ldaC = (C_transpose_ ? AC_size_ : BC_size_);
+
+        if (C_transpose_) {
+            std::swap(transL,transR);
+            std::swap(nrow,ncol);
+            std::swap(Lp,Rp);
+            std::swap(ldaL,ldaR);
+        }
+
+        C_DGEMM(transL,transR,nrow,ncol,nzip,alpha,Lp,ldaL,Rp,ldaR,beta,Cp,ldaC);
+
+        Cp += AC_size_ * BC_size_;
+        Ap += AB_size_ * AC_size_;
+        Bp += AB_size_ * BC_size_;
+    }
 }
 
 }

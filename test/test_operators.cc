@@ -46,6 +46,8 @@ int main(int argc, char* argv[])
     test3["a,b"] += test["a,c"] * test2["c,b"];
     test3["a,b"] -= test["a,c"] * test2["c,b"];
 
+    test3["a,b"]  = test["a,c"] * test2["c,b"] * test2["c,b"];
+
     tensor::finialize();
 
     return 0;

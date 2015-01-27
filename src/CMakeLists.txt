@@ -32,5 +32,7 @@ if(ENABLE_CYCLOPS)
     set_target_properties(tensor PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
 
+target_link_libraries(tensor ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+
 install(TARGETS tensor ARCHIVE DESTINATION lib)
 

@@ -45,6 +45,7 @@ class LabeledTensor;
 class LabeledTensorProduct;
 class LabeledTensorAddition;
 class LabeledTensorSubtraction;
+class ContractionTopology;
 
 enum TensorType {
     kCurrent, kCore, kDisk, kDistributed, kAgnostic
@@ -55,7 +56,6 @@ enum EigenvalueOrder {
 
 typedef std::vector<size_t> Dimension;
 typedef std::vector<std::pair<size_t, size_t> > IndexRange;
-typedef std::vector<tuple<std::string, int, int, int> > ContractionTopology;
 
 /** Initializes the tensor library.
  *
@@ -217,16 +217,29 @@ inline LabeledTensor operator*(double factor, const LabeledTensor& ti) {
 class LabeledTensorProduct {
 
 public:
-    LabeledTensorProduct(const LabeledTensor& A, const LabeledTensor& B) :
-        A_(A), B_(B)
-    {}
+    LabeledTensorProduct(const LabeledTensor& A, const LabeledTensor& B)
+    //  : A_(A), B_(B)
+    {
+        tensors_.push_back(A);
+        tensors_.push_back(B);
+    }
 
-    const LabeledTensor& A() const { return A_; }
-    const LabeledTensor& B() const { return B_; }
+    //const LabeledTensor& A() const { return A_; }
+    //const LabeledTensor& B() const { return B_; }
 
+    size_t size() const { return tensors_.size(); }
+
+    const LabeledTensor& operator[](size_t i) const { return tensors_[i]; }
+
+    LabeledTensorProduct& operator*(const LabeledTensor& other) {
+        tensors_.push_back(other);
+        return *this;
+    }
 private:
-    const LabeledTensor& A_;
-    const LabeledTensor& B_;
+
+    std::vector<LabeledTensor> tensors_;
+    //const LabeledTensor& A_;
+    //const LabeledTensor& B_;
 };
 
 class LabeledTensorAddition
@@ -257,6 +270,30 @@ public:
 private:
     const LabeledTensor& A_;
     const LabeledTensor& B_;
+};
+
+enum ContractionType {
+    AB, // Contraction index
+    AC, // Outer left index
+    BC, // Outer right index
+    ABC, // Hadamard index
+    invalid
+};
+
+class ContractionTopology
+{
+public:
+
+    ContractionTopology(const LabeledTensor& C,
+                        const LabeledTensor& A,
+                        const LabeledTensor& B);
+
+private:
+    std::vector<std::string> indices_;
+    std::vector<int> A_pos_;
+    std::vector<int> B_pos_;
+    std::vector<int> C_pos_;
+    std::vector<ContractionType> types_;
 };
 
 }

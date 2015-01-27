@@ -14,6 +14,8 @@ public:
     void set_data(double* data, const IndexRange& ranges = IndexRange());
     void get_data(double* data, const IndexRange& ranges = IndexRange()) const;
 
+    double* data() const { return data_; }
+
     // => Simple Single Tensor Operations <= //
 
     void zero();
@@ -53,9 +55,48 @@ public:
     TensorImplPtr power(double power, double condition = 1.0E-12) const;
 
     void givens(int dim, int i, int j, double s, double c);
-    
+
 private:
-    double* data_;    
+    double* data_;
+};
+
+typedef CoreTensorImpl* CoreTensorImplPtr;
+typedef const CoreTensorImpl* ConstCoreTensorImplPtr;
+
+class CoreTensorContractionTopology {
+
+public:
+    CoreTensorContractionTopology(
+        const ContractionTopology& topology,
+        const CoreTensorImpl& C,
+        const CoreTensorImpl& A,
+        const CoreTensorImpl& B);
+
+    size_t ABC_size() const;
+    size_t AB_size() const;
+    size_t AC_size() const;
+    size_t BC_size() const;
+    bool A_transpose() const;
+    bool B_transpose() const;
+    bool C_transpose() const;
+
+    void contract(double alpha, double beta);
+
+
+private:
+    const ContractionTopology& topology_;
+    const CoreTensorImpl& C_;
+    const CoreTensorImpl& A_;
+    const CoreTensorImpl& B_;
+
+    size_t ABC_size_;
+    size_t AB_size_;
+    size_t AC_size_;
+    size_t BC_size_;
+    bool A_transpose_;
+    bool B_transpose_;
+    bool C_transpose_;
+
 };
 
 }

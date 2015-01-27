@@ -34,10 +34,11 @@ int find_index_in_labeled_tensor(const LabeledTensor& x, const std::string& inde
     return (int)xpos;
 }
 
+}
+
 // Constructs a ContractionTopology object for C = A * B.
-ContractionTopology make_contraction_topology(const LabeledTensor& C, const LabeledTensor& A, const LabeledTensor& B)
+ContractionTopology::ContractionTopology(const LabeledTensor& C, const LabeledTensor& A, const LabeledTensor& B)
 {
-    ContractionTopology newTopology;
     std::list<std::string> listOfIndices;
 
     // Add all indices from each LabeledTensor
@@ -61,14 +62,37 @@ ContractionTopology make_contraction_topology(const LabeledTensor& C, const Labe
             Apos = find_index_in_labeled_tensor(A, *index),
             Bpos = find_index_in_labeled_tensor(B, *index);
 
-        newTopology.push_back(boost::make_tuple(*index, Cpos, Apos, Bpos));
+        indices_.push_back(*index);
+        A_pos_.push_back(Apos);
+        B_pos_.push_back(Bpos);
+        C_pos_.push_back(Cpos);
 
-        printf("%s: %d %d %d\n", index->c_str(), Cpos, Apos, Bpos);
+        ContractionType type;
+        if (Cpos != -1 && Apos != -1 && Bpos != -1) {
+            type = ABC;
+            if (A.T().dims()[Apos] != B.T().dims()[Bpos] || A.T().dims()[Apos] != C.T().dims()[Cpos]) {
+                throw std::runtime_error("Invalid ABC contraction index sizes!");
+            }
+        } else if (Apos != -1 && Bpos != -1 && Cpos == -1) {
+            type = AB;
+            if (A.T().dims()[Apos] != B.T().dims()[Bpos]) {
+                throw std::runtime_error("Invalid AB contraction index sizes!");
+            }
+        } else if (Apos != -1 && Bpos == -1 && Cpos != -1) {
+            type = AC;
+            if (A.T().dims()[Apos] != C.T().dims()[Cpos]) {
+                throw std::runtime_error("Invalid AC contraction index sizes!");
+            }
+        } else if (Apos == -1 && Bpos != -1 && Cpos != -1) {
+            type = BC;
+            if (B.T().dims()[Bpos] != C.T().dims()[Cpos]) {
+                throw std::runtime_error("Invalid BC contraction index sizes!");
+            }
+        } else
+            throw std::runtime_error("Invalid contraction topology!");
+
+        printf("%s: %d %d %d %d\n", index->c_str(), Cpos, Apos, Bpos, type);
     }
-
-    return newTopology;
-}
-
 }
 
 int initialize(int argc, char** argv)
@@ -371,51 +395,54 @@ LabeledTensorSubtraction LabeledTensor::operator-(const LabeledTensor &rhs)
 void LabeledTensor::operator=(const LabeledTensorProduct& rhs)
 {
     // Perform a tensor contraction.
+    assert(rhs.size() == 2);
+    const LabeledTensor& A = rhs[0];
+    const LabeledTensor& B = rhs[1];
 
     // 1. create a ContractionTopology
-    ContractionTopology ct = make_contraction_topology(*this,
-                                                       rhs.A(),
-                                                       rhs.B());
+    ContractionTopology ct(*this, A, B);
 
     // 2. call contract on the tensor.
-    T_.contract(rhs.A().T(),
-                rhs.B().T(),
+    T_.contract(A.T(),
+                B.T(),
                 ct,
-                rhs.A().factor() * rhs.B().factor(),
+                A.factor() * B.factor(),
                 0.0);
 }
 
 void LabeledTensor::operator+=(const LabeledTensorProduct& rhs)
 {
     // Perform a tensor contraction.
+    assert(rhs.size() == 2);
+    const LabeledTensor& A = rhs[0];
+    const LabeledTensor& B = rhs[1];
 
     // 1. create a ContractionTopology
-    ContractionTopology ct = make_contraction_topology(*this,
-                                                       rhs.A(),
-                                                       rhs.B());
+    ContractionTopology ct(*this, A, B);
 
     // 2. call contract on the tensor.
-    T_.contract(rhs.A().T(),
-                rhs.B().T(),
+    T_.contract(A.T(),
+                B.T(),
                 ct,
-                rhs.A().factor() * rhs.B().factor(),
+                A.factor() * B.factor(),
                 1.0);
 }
 
 void LabeledTensor::operator-=(const LabeledTensorProduct& rhs)
 {
     // Perform a tensor contraction.
+    assert(rhs.size() == 2);
+    const LabeledTensor& A = rhs[0];
+    const LabeledTensor& B = rhs[1];
 
     // 1. create a ContractionTopology
-    ContractionTopology ct = make_contraction_topology(*this,
-                                                       rhs.A(),
-                                                       rhs.B());
+    ContractionTopology ct(*this, A, B);
 
     // 2. call contract on the tensor.
-    T_.contract(rhs.A().T(),
-                rhs.B().T(),
+    T_.contract(A.T(),
+                B.T(),
                 ct,
-                - rhs.A().factor() * rhs.B().factor(),
+                - A.factor() * B.factor(),
                 1.0);
 }
 
