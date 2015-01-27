@@ -75,6 +75,9 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B, const 
 }
 void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds)
 {
+    ThrowNotImplementedException;
+
+#if 0
     if (rank() != A->rank()) throw std::runtime_error("Tensors must be same rank");
 
     if (Ainds.size() != rank()) throw std::runtime_error("Ainds does not have correct rank");
@@ -108,17 +111,33 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
     int slow_dims = rank() - fast_dims;
     if (slow_dims == 0) {
         // Fully sorted case or (equivalently) 0-rank tensors
-        ::memcpy(Cp,Ap,fast_size*sizeof(double));
+        ::memcpy(Cp,Ap,sizeof(double)*fast_size);
     } else if (slow_dims == 1) {
         throw std::runtime_error("Should be impossible to reach here.");
     } else if (slow_dims == 2) {
         size_t size0 = dims()[0];
         size_t size1 = dims()[1];
 
+        double* C2p = Cp;
+        double* A2p;
+
+        for (size_t Cind0 = 0L; Cind0 < size0; Cind0++) {
+
+        for (size_t Cind1 = 0L; Cind1 < size1; Cind1++) {
+
+            if (fast_dims > 0) {
+                ::memcpy(C2p,A2p,sizeof(double)*fast_size);
+                C2p += fast_size;
+            } else {
+                (*C2p++) = (*A2p)
+            }
+        }}
+
     } else {
         throw std::runtime_error("Permutation not coded for rank > 8");
     }
 
+#endif
 }
 
 std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
