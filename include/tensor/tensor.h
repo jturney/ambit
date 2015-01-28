@@ -126,7 +126,10 @@ public:
 
     // => Simple Double Tensor Operations <= //
 
-    Tensor& scale_and_add(double a, const Tensor& x);
+    /**
+    * Performs for example: C["ij"] += 2.0 * A["ij"];
+    */
+    Tensor& scale_and_add(const double& a, const Tensor& x);
     Tensor& pointwise_multiplication(const Tensor& x);
     Tensor& pointwise_division(const Tensor& x);
     double dot(const Tensor& x);
@@ -186,8 +189,8 @@ public:
 
     /** Copies data from rhs to this sorting the data if needed. */
     void operator=(const LabeledTensor& rhs);
-    void operator+=(LabeledTensor& rhs);
-    void operator-=(LabeledTensor& rhs);
+    void operator+=(const LabeledTensor& rhs);
+    void operator-=(const LabeledTensor& rhs);
 
     void operator=(const LabeledTensorProduct& rhs);
     void operator+=(const LabeledTensorProduct& rhs);

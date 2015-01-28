@@ -80,7 +80,7 @@ public:
 
     // => Simple Double Tensor Operations <= //
 
-    virtual void scale_and_add(double a, ConstTensorImplPtr x) = 0;
+    virtual void scale_and_add(const double& a, ConstTensorImplPtr x) = 0;
     virtual void pointwise_multiplication(ConstTensorImplPtr x) = 0;
     virtual void pointwise_division(ConstTensorImplPtr x) = 0;
     virtual double dot(ConstTensorImplPtr x) const = 0;

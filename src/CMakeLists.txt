@@ -13,6 +13,7 @@ set(TENSOR_SOURCES
     math/lapack.cc
     tensor/core.cc
     tensor/indices.cc
+    tensor/labeled_tensor.cc
     tensor/tensor.cc
     tensor/tensorimpl.cc
 )

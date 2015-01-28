@@ -49,10 +49,17 @@ double CoreTensorImpl::rms(double power) const
 {
     ThrowNotImplementedException;
 }
-void CoreTensorImpl::scale_and_add(double a, ConstTensorImplPtr x)
+
+void CoreTensorImpl::scale_and_add(const double& a, ConstTensorImplPtr x)
 {
-    ThrowNotImplementedException;
+    C_DAXPY(numel(),
+            a,
+            ((ConstCoreTensorImplPtr)x)->data(),
+            1,
+            data_,
+            1);
 }
+
 void CoreTensorImpl::pointwise_multiplication(ConstTensorImplPtr x)
 {
     ThrowNotImplementedException;

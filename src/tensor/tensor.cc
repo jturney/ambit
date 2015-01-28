@@ -267,7 +267,7 @@ double Tensor::norm(double power) const
     return tensor_->norm(power);
 }
 
-Tensor& Tensor::scale_and_add(double a, const Tensor &x)
+Tensor& Tensor::scale_and_add(const double& a, const Tensor &x)
 {
     tensor_->scale_and_add(a, x.tensor_.get());
     return *this;
@@ -360,122 +360,6 @@ void Tensor::contract(const Tensor &A, const Tensor &B, const ContractionTopolog
                       topology,
                       alpha,
                       beta);
-}
-
-/********************************************************************
-* LabeledTensor operators
-********************************************************************/
-void LabeledTensor::operator=(const LabeledTensor& rhs)
-{
-    if (indices::equivalent(indices_, rhs.indices_) == true) {
-        // equivalent indices:   "i,a" = "i,a"
-        // perform a simple copy
-        T_.copy(rhs.T(), rhs.factor());
-    }
-    else {
-        // TODO: potential sorting of data
-        printf("Potential sorting assignment.\n");
-        ThrowNotImplementedException;
-    }
-}
-
-LabeledTensorProduct LabeledTensor::operator*(const LabeledTensor &rhs)
-{
-    return LabeledTensorProduct(*this, rhs);
-}
-
-LabeledTensorAddition LabeledTensor::operator+(const LabeledTensor &rhs)
-{
-    return LabeledTensorAddition(*this, rhs);
-}
-
-LabeledTensorSubtraction LabeledTensor::operator-(const LabeledTensor &rhs)
-{
-    return LabeledTensorSubtraction(*this, rhs);
-}
-
-void LabeledTensor::operator=(const LabeledTensorProduct& rhs)
-{
-    // Perform a tensor contraction.
-    assert(rhs.size() == 2);
-    const LabeledTensor& A = rhs[0];
-    const LabeledTensor& B = rhs[1];
-
-    // 1. create a ContractionTopology
-    ContractionTopology ct(*this, A, B);
-
-    // 2. call contract on the tensor.
-    T_.contract(A.T(),
-                B.T(),
-                ct,
-                A.factor() * B.factor(),
-                0.0);
-}
-
-void LabeledTensor::operator+=(const LabeledTensorProduct& rhs)
-{
-    // Perform a tensor contraction.
-    assert(rhs.size() == 2);
-    const LabeledTensor& A = rhs[0];
-    const LabeledTensor& B = rhs[1];
-
-    // 1. create a ContractionTopology
-    ContractionTopology ct(*this, A, B);
-
-    // 2. call contract on the tensor.
-    T_.contract(A.T(),
-                B.T(),
-                ct,
-                A.factor() * B.factor(),
-                1.0);
-}
-
-void LabeledTensor::operator-=(const LabeledTensorProduct& rhs)
-{
-    // Perform a tensor contraction.
-    assert(rhs.size() == 2);
-    const LabeledTensor& A = rhs[0];
-    const LabeledTensor& B = rhs[1];
-
-    // 1. create a ContractionTopology
-    ContractionTopology ct(*this, A, B);
-
-    // 2. call contract on the tensor.
-    T_.contract(A.T(),
-                B.T(),
-                ct,
-                - A.factor() * B.factor(),
-                1.0);
-}
-
-void LabeledTensor::operator=(const LabeledTensorAddition& rhs)
-{
-    ThrowNotImplementedException;
-}
-
-void LabeledTensor::operator+=(const LabeledTensorAddition& rhs)
-{
-    ThrowNotImplementedException;
-}
-
-void LabeledTensor::operator-=(const LabeledTensorAddition& rhs)
-{
-    ThrowNotImplementedException;
-}
-
-void LabeledTensor::operator=(const LabeledTensorSubtraction& rhs)
-{
-    ThrowNotImplementedException;
-}
-
-void LabeledTensor::operator+=(const LabeledTensorSubtraction& rhs)
-{
-    ThrowNotImplementedException;
-}
-
-void LabeledTensor::operator-=(const LabeledTensorSubtraction& rhs)
-{
-    ThrowNotImplementedException;
 }
 
 }

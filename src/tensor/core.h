@@ -25,7 +25,7 @@ public:
 
     // => Simple Double TensorImpl Operations <= //
 
-    void scale_and_add(double a, ConstTensorImplPtr x);
+    void scale_and_add(const double& a, ConstTensorImplPtr x);
     void pointwise_multiplication(ConstTensorImplPtr x);
     void pointwise_division(ConstTensorImplPtr x);
     double dot(ConstTensorImplPtr x) const;
