@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 
     results.push_back(test_Cij_equal_Cji_trans());
 
-    results.push_back(test_Cikjl_equal_Aijab_Bklab());
+    //results.push_back(test_Cikjl_equal_Aijab_Bklab());
 
     tensor::finalize();
 
@@ -607,6 +607,14 @@ std::pair<std::string,double> test_Cij_equal_Cji_trans()
 
     C("ij") = A("ji");
 
-    A.print(stdout, true);
-    C.print(stdout, true);
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            c2[i][j] = a2[j][i];
+        }
+    }
+
+    //A.print(stdout, true);
+    //C.print(stdout, true);
+
+    return std::make_pair(test,c_diff.second);
 }
