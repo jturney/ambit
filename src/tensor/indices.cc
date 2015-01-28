@@ -1,4 +1,5 @@
 #include "indices.h"
+#include <algorithm>
 
 namespace tensor {
 

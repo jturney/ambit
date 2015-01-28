@@ -2,6 +2,7 @@
 #include "core.h"
 #include "memory.h"
 #include "math/math.h"
+#include <string.h>
 
 namespace tensor {
 
