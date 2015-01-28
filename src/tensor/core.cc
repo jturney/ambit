@@ -36,13 +36,12 @@ void CoreTensorImpl::zero()
 {
     memset(data_,'\0', sizeof(double)*numel());
 }
+
 void CoreTensorImpl::scale(const double& a)
 {
-    VECTORIZED_LOOP
-    for (size_t i=0, end=numel(); i<end; ++i) {
-        data_[i] *= a;
-    }
+    C_DSCAL(numel(), a, data_, 1);
 }
+
 double CoreTensorImpl::norm(double power) const
 {
     ThrowNotImplementedException;
