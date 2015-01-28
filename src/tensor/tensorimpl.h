@@ -95,6 +95,10 @@ public:
         double beta = 0.0
         ) = 0;
 
+    virtual void permute(
+        ConstTensorImplPtr A,
+        const std::vector<int>& Ainds) = 0;
+
     // => Rank-2 Operations <= //
 
     virtual std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const = 0;

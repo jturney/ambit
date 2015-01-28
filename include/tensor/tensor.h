@@ -70,7 +70,7 @@ int initialize(int argc, char** argv);
  *
  * Calls any necessary routines of utilized frameworks.
  */
-void finialize();
+void finalize();
 
 class Tensor {
 
@@ -156,6 +156,10 @@ public:
             double alpha = 1.0,
             double beta = 0.0
     );
+
+    void permute(
+        const Tensor& A,
+        const std::vector<int>& Ainds);
 
 private:
 

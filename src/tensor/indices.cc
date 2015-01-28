@@ -55,6 +55,39 @@ bool equivalent(const std::vector<std::string> &left, const std::vector<std::str
     return left == right;
 }
 
+std::vector<int> permutation_order(const std::vector<std::string>& left, const std::vector<std::string>& right)
+{
+    /// Check that these strings have the same number of indices
+    if (left.size() != right.size()) throw std::runtime_error("Permutation indices not of same rank");
+
+    std::vector<std::string> left2 = left;
+    std::vector<std::string> right2 = right;
+    std::sort(left2.begin(),left2.end());
+    std::sort(right2.begin(),right2.end());
+
+    /// Check that the strings have the same tokens
+    for (int ind = 0; ind < left2.size(); ind++) {
+        if (left2[ind] != right2[ind]) throw std::runtime_error("Permutation indices do not match");
+    }
+
+    /// Check that the strings do not ave repeats
+    for (int ind = 0; ind < ((int)left2.size()) - 1; ind++) {
+        if (left2[ind] == left2[ind+1]) throw std::runtime_error("Permutation indices contain repeats");
+    }
+
+    /// Find the indices of the tokens of left in right
+    std::vector<int> ret(left.size(),-1);
+    for (int ind = 0; ind < left.size(); ind++) {
+        for (int ind2 = 0; ind2 < right.size(); ind2++) {
+            if (left[ind] == right[ind2]) {
+                ret[ind] = ind2;
+                break;
+            }
+        } 
+    } 
+    return ret;
+}
+
 }
 
 }

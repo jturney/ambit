@@ -20,6 +20,8 @@ std::vector<std::string> split(const std::string& indices);
 /** Returns true if the two indices are equivalent. */
 bool equivalent(const std::vector<std::string>& left, const std::vector<std::string>& right);
 
+std::vector<int> permutation_order(const std::vector<std::string>& left, const std::vector<std::string>& right);
+
 }
 
 }

@@ -30,6 +30,7 @@ std::pair<std::string,double> test_Cikjl_equal_Aijab_Bklab();
 std::pair<std::string,double> test_Cij_equal_Aiabc_Bjabc();
 std::pair<std::string,double> test_C_equal_A_B(std::string c_ind,std::string a_ind,std::string b_ind,
                                                std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim);
+std::pair<std::string,double> test_Cij_equal_Cji_trans();
 
 double zero = 1.0e-14;
 
@@ -58,9 +59,11 @@ int main(int argc, char* argv[])
     results.push_back(test_Cijkl_equal_Aijab_Bklab());
     results.push_back(test_Cij_equal_Aiabc_Bjabc());
 
+    results.push_back(test_Cij_equal_Cji_trans());
+
     results.push_back(test_Cikjl_equal_Aijab_Bklab());
 
-    tensor::finialize();
+    tensor::finalize();
 
     bool success = true;
     for (auto sb : results){
@@ -579,4 +582,31 @@ std::pair<std::string,double> test_Cij_equal_Aiabc_Bjabc()
     c_diff = difference_2(C,c2);
 
     return std::make_pair(test,c_diff.second);
+}
+std::pair<std::string,double> test_Cij_equal_Cji_trans()
+{
+    std::string test = "C(\"ij\") = C(\"ji\")^\\dagger";
+    printf("\n  Testing %s",test.c_str());
+
+    size_t ni = 9;
+    size_t nj = 6;
+
+    Dimension dimsC;
+    dimsC.push_back(ni); dimsC.push_back(nj);
+    Tensor C = Tensor::build(kCore, "C", dimsC);
+
+    Dimension dimsA;
+    dimsA.push_back(nj); dimsA.push_back(ni);
+    Tensor A = Tensor::build(kCore, "A", dimsA);
+
+    initialize_random_2(C,c2);
+    std::pair<double,double> c_diff = difference_2(C,c2);
+
+    initialize_random_2(A,a2);
+    std::pair<double,double> a_diff = difference_2(A,a2);
+
+    C("ij") = A("ji");
+
+    A.print(stdout, true);
+    C.print(stdout, true);
 }

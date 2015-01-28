@@ -106,7 +106,7 @@ int initialize(int argc, char** argv)
     return 0;
 }
 
-void finialize()
+void finalize()
 {
 #if defined(HAVE_CYCLOPS)
     cyclops::finalize();
@@ -362,6 +362,11 @@ void Tensor::contract(const Tensor &A, const Tensor &B, const ContractionTopolog
                       beta);
 }
 
+void Tensor::permute(const Tensor &A, const std::vector<int> &Ainds)
+{
+    tensor_->permute(A.tensor_.get(),Ainds);
+}
+
 /********************************************************************
 * LabeledTensor operators
 ********************************************************************/
@@ -373,9 +378,9 @@ void LabeledTensor::operator=(const LabeledTensor& rhs)
         T_.copy(rhs.T(), rhs.factor());
     }
     else {
-        // TODO: potential sorting of data
-        printf("Potential sorting assignment.\n");
-        ThrowNotImplementedException;
+        std::vector<int> rhs_indices = indices::permutation_order(indices_, rhs.indices_);
+        T_.permute(rhs.T(),rhs_indices);
+        T_.scale(rhs.factor());
     }
 }
 
