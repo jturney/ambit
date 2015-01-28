@@ -3,6 +3,8 @@
 #include "memory.h"
 #include "math/math.h"
 
+#include <boost/timer/timer.hpp>
+
 namespace tensor {
 
 CoreTensorImpl::CoreTensorImpl(const std::string& name, const Dimension& dims)
@@ -52,6 +54,10 @@ double CoreTensorImpl::rms(double power) const
 
 void CoreTensorImpl::scale_and_add(const double& a, ConstTensorImplPtr x)
 {
+    if (numel() != x->numel()) {
+        throw std::runtime_error("Tensors must have the same number of elements.");
+    }
+
     C_DAXPY(numel(),
             a,
             ((ConstCoreTensorImplPtr)x)->data(),
@@ -62,16 +68,39 @@ void CoreTensorImpl::scale_and_add(const double& a, ConstTensorImplPtr x)
 
 void CoreTensorImpl::pointwise_multiplication(ConstTensorImplPtr x)
 {
-    ThrowNotImplementedException;
+    if (numel() != x->numel()) {
+        throw std::runtime_error("Tensors must have the same number of elements.");
+    }
+
+    const double* rhs = ((ConstCoreTensorImplPtr)x)->data();
+    OMP_VECTORIZED_STATIC_LOOP
+    for (size_t ind=0, end=numel(); ind < end; ++ind) {
+        data_[ind] *= rhs[ind];
+    }
 }
+
 void CoreTensorImpl::pointwise_division(ConstTensorImplPtr x)
 {
-    ThrowNotImplementedException;
+    if (numel() != x->numel()) {
+        throw std::runtime_error("Tensors must have the same number of elements.");
+    }
+
+    const double* rhs = ((ConstCoreTensorImplPtr)x)->data();
+    OMP_VECTORIZED_STATIC_LOOP
+    for (size_t ind=0, end=numel(); ind < end; ++ind) {
+        data_[ind] /= rhs[ind];
+    }
 }
+
 double CoreTensorImpl::dot(ConstTensorImplPtr x) const
 {
-    ThrowNotImplementedException;
+    if (numel() != x->numel()) {
+        throw std::runtime_error("Tensors must have the same number of elements.");
+    }
+
+    return C_DDOT(numel(), data_, 1, ((ConstCoreTensorImplPtr)x)->data(), 1);
 }
+
 void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B, const ContractionTopology &topology,
                               double alpha, double beta)
 {

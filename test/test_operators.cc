@@ -606,10 +606,10 @@ std::pair<std::string,double> test_C_equal_2_A()
     Tensor C = Tensor::build(kCore, "C", dimsC);
 
     initialize_random_2(A,a2);
-    std::pair<double,double> a_diff = difference_4(A,a4);
+    std::pair<double,double> a_diff = difference_2(A,a2);
 
     initialize_random_2(C,c2);
-    std::pair<double,double> c_diff = difference_4(C,c4);
+    std::pair<double,double> c_diff = difference_2(C,c2);
 
     C("ij") = 2.0 * A("ij");
 
@@ -640,10 +640,10 @@ std::pair<std::string,double> test_C_plus_equal_2_A()
     Tensor C = Tensor::build(kCore, "C", dimsC);
 
     initialize_random_2(A,a2);
-    std::pair<double,double> a_diff = difference_4(A,a4);
+    std::pair<double,double> a_diff = difference_2(A,a2);
 
     initialize_random_2(C,c2);
-    std::pair<double,double> c_diff = difference_4(C,c4);
+    std::pair<double,double> c_diff = difference_2(C,c2);
 
     C("ij") += 2.0 * A("ij");
 
@@ -674,10 +674,10 @@ std::pair<std::string,double> test_C_minus_equal_2_A()
     Tensor C = Tensor::build(kCore, "C", dimsC);
 
     initialize_random_2(A,a2);
-    std::pair<double,double> a_diff = difference_4(A,a4);
+    std::pair<double,double> a_diff = difference_2(A,a2);
 
     initialize_random_2(C,c2);
-    std::pair<double,double> c_diff = difference_4(C,c4);
+    std::pair<double,double> c_diff = difference_2(C,c2);
 
     C("ij") -= 2.0 * A("ij");
 

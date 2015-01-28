@@ -127,10 +127,16 @@ public:
     // => Simple Double Tensor Operations <= //
 
     /**
-    * Performs for example: C["ij"] += 2.0 * A["ij"];
+    * Performs: C["ij"] += 2.0 * A["ij"];
     */
     Tensor& scale_and_add(const double& a, const Tensor& x);
+    /**
+    * Performs: C["ij"] *= A["ij"];
+     */
     Tensor& pointwise_multiplication(const Tensor& x);
+    /**
+    * Performs: C["ij"] /= A["ij"];
+    */
     Tensor& pointwise_division(const Tensor& x);
     double dot(const Tensor& x);
 
