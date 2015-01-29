@@ -111,27 +111,9 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B, const 
 }
 void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds)
 {
-    // => Error Checks <= //
-
-    /// Check rank(C) = rank(A)
-    if (rank() != A->rank()) throw std::runtime_error("Tensors must be same rank");
-
-    /// Check rank(Ainds) = rank(C) = rank(A)
-    if (Ainds.size() != rank()) throw std::runtime_error("Ainds does not have correct rank");
-
-    /// Check Ainds contains 0,1,2,...,rank-1
-    std::vector<int> Ainds2 = Ainds;
-    std::sort(Ainds2.begin(),Ainds2.end());
-    for (int dim = 0; dim < rank(); dim++) {
-        if (dim != Ainds2[dim])
-            throw std::runtime_error("Ainds does not have dims 0,1,2,...");
-    }
-
-    /// Check size(C(i)) = size(A(Ainds(i))
-    for (int dim = 0; dim < rank(); dim++) {
-        if (dims()[dim] != A->dims()[Ainds[dim]])
-            throw std::runtime_error("Permuted tensors do not have same dimensions");
-    }
+    /// Data pointers
+    double* Cp = data();
+    double* Ap = ((const CoreTensorImplPtr)A)->data();
 
     // => Index Logic <= //
 
@@ -152,6 +134,15 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
 
     /// Determine the total number of memcpy operations
     int slow_dims = rank() - fast_dims;
+    assert(slow_dims == 0 || slow_dims > 1); // slow_dims != 1
+
+    // Fully sorted case or (equivalently) 0-rank tensors
+    if (slow_dims == 0) {
+        ::memcpy(Cp,Ap,sizeof(double)*fast_size);
+        return;
+    }
+    
+    /// Number of collapsed indices in permutation traverse
     size_t slow_size = 1L;
     for (int dim = 0; dim < slow_dims; dim++) {
         slow_size *= dims()[dim];
@@ -160,8 +151,8 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
     /// Strides of slow indices of tensor A in its own ordering
     std::vector<size_t> Astrides(slow_dims,0L);
     if (slow_dims != 0) Astrides[slow_dims-1] = fast_size;
-    for (int dim = slow_dims-2; dim >= 0; dim++) {
-        Astrides[dim] = Astrides[dim+1] * A->dims()[dim];
+    for (int dim = slow_dims-2; dim >= 0; dim--) {
+        Astrides[dim] = Astrides[dim+1] * A->dims()[dim+1];
     }
 
     /// Strides of slow indices of tensor A in the ordering of tensor C
@@ -173,32 +164,23 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
     /// Strides of slow indices of tensor C in its own ordering
     std::vector<size_t> Cstrides(slow_dims,0L);
     if (slow_dims != 0) Cstrides[slow_dims-1] = fast_size;
-    for (int dim = slow_dims-2; dim >= 0; dim++) {
-        Cstrides[dim] = Cstrides[dim+1] * dims()[dim];
+    for (int dim = slow_dims-2; dim >= 0; dim--) {
+        Cstrides[dim] = Cstrides[dim+1] * dims()[dim+1];
     }
 
     /// Handle to dimensions of C
     const std::vector<size_t>& Csizes = dims();
     
-    /// Starting pointers
-    double* Cp = data();
-    double* Ap = ((const CoreTensorImplPtr)A)->data();
-
     // => Actual Permute Operation <= //
 
-    if (slow_dims == 0) {
-        // Fully sorted case or (equivalently) 0-rank tensors
-        ::memcpy(Cp,Ap,sizeof(double)*fast_size);
-    } else if (slow_dims == 1) {
-        throw std::runtime_error("Should be topologically impossible to reach here.");
-    } else if (slow_dims == 2) {
+    if (slow_dims == 2) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
             double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
-            Atp += Cind1 * AstridesC[1];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            Atp += AstridesC[1];
             Ctp += fast_size;
         }}
     } else if (slow_dims == 3) {
@@ -207,114 +189,133 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
             double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
-            Atp += Cind1 * AstridesC[1];
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
-            Atp += Cind2 * AstridesC[2];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-        }}}
+            Atp += AstridesC[2];
+        }
+            Atp += AstridesC[1];
+        }}
     } else if (slow_dims == 4) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
             double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
-            Atp += Cind1 * AstridesC[1];
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
-            Atp += Cind2 * AstridesC[2];
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
-            Atp += Cind3 * AstridesC[3];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-        }}}}
+            Atp += AstridesC[3];
+        }
+            Atp += AstridesC[2];
+        }
+            Atp += AstridesC[1];
+        }}
     } else if (slow_dims == 5) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
             double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
-            Atp += Cind1 * AstridesC[1];
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
-            Atp += Cind2 * AstridesC[2];
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
-            Atp += Cind3 * AstridesC[3];
         for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++) {
-            Atp += Cind4 * AstridesC[4];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-        }}}}}
+            Atp += AstridesC[4];
+        }
+            Atp += AstridesC[3];
+        }
+            Atp += AstridesC[2];
+        }
+            Atp += AstridesC[1];
+        }}
     } else if (slow_dims == 6) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
             double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
-            Atp += Cind1 * AstridesC[1];
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
-            Atp += Cind2 * AstridesC[2];
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
-            Atp += Cind3 * AstridesC[3];
         for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++) {
-            Atp += Cind4 * AstridesC[4];
         for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++) {
-            Atp += Cind5 * AstridesC[5];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-        }}}}}}
+            Atp += AstridesC[5];
+        }
+            Atp += AstridesC[4];
+        }
+            Atp += AstridesC[3];
+        }
+            Atp += AstridesC[2];
+        }
+            Atp += AstridesC[1];
+        }}
     } else if (slow_dims == 7) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
             double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
-            Atp += Cind1 * AstridesC[1];
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
-            Atp += Cind2 * AstridesC[2];
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
-            Atp += Cind3 * AstridesC[3];
         for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++) {
-            Atp += Cind4 * AstridesC[4];
         for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++) {
-            Atp += Cind5 * AstridesC[5];
         for (size_t Cind6 = 0L; Cind6 < Csizes[6]; Cind6++) {
-            Atp += Cind6 * AstridesC[6];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-        }}}}}}}
+            Atp += AstridesC[6];
+        }
+            Atp += AstridesC[5];
+        }
+            Atp += AstridesC[4];
+        }
+            Atp += AstridesC[3];
+        }
+            Atp += AstridesC[2];
+        }
+            Atp += AstridesC[1];
+        }}
     } else if (slow_dims == 8) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
             double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
-            Atp += Cind1 * AstridesC[1];
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
-            Atp += Cind2 * AstridesC[2];
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
-            Atp += Cind3 * AstridesC[3];
         for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++) {
-            Atp += Cind4 * AstridesC[4];
         for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++) {
-            Atp += Cind5 * AstridesC[5];
         for (size_t Cind6 = 0L; Cind6 < Csizes[6]; Cind6++) {
-            Atp += Cind6 * AstridesC[6];
         for (size_t Cind7 = 0L; Cind7 < Csizes[7]; Cind7++) {
-            Atp += Cind7 * AstridesC[7];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-        }}}}}}}}
+            Atp += AstridesC[7];
+        }
+            Atp += AstridesC[6];
+        }
+            Atp += AstridesC[5];
+        }
+            Atp += AstridesC[4];
+        }
+            Atp += AstridesC[3];
+        }
+            Atp += AstridesC[2];
+        }
+            Atp += AstridesC[1];
+        }}
     } else {
         for (size_t ind = 0L; ind < slow_size; ind++) {
             double* Ctp = Cp + ind * fast_size;
             double* Atp = Ap;
             size_t num = ind;
-            size_t den = slow_size;
-            for (int dim = 0; dim < slow_dims; dim++) {
-                den /= AstridesC[dim];
-                size_t offset = num / dim;
-                Atp += offset * AstridesC[dim];
-                num -= offset * den;
-            } 
+            for (int dim = slow_dims - 1; dim >= 0; dim--) {
+                size_t val = num % Csizes[dim]; // value of the dim-th index
+                num /= Csizes[dim];
+                Atp += val * AstridesC[dim];
+            }
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
         }
     }

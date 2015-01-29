@@ -70,7 +70,7 @@ int initialize(int argc, char** argv);
  *
  * Calls any necessary routines of utilized frameworks.
  */
-void finialize();
+void finalize();
 
 class Tensor {
 
@@ -166,6 +166,10 @@ public:
             double beta = 0.0
     );
 
+    void permute(
+        const Tensor& A,
+        const std::vector<int>& Ainds);
+
 private:
 
     shared_ptr<TensorImpl> tensor_;
@@ -181,9 +185,7 @@ protected:
 class LabeledTensor {
 
 public:
-    LabeledTensor(Tensor& T, const std::vector<std::string>& indices, double factor = 1.0) :
-        T_(T), indices_(indices), factor_(factor)
-    {}
+    LabeledTensor(Tensor& T, const std::vector<std::string>& indices, double factor = 1.0);
 
     double factor() const { return factor_; }
     const std::vector<std::string>& indices() const { return indices_; }

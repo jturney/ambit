@@ -106,7 +106,7 @@ int initialize(int argc, char** argv)
     return 0;
 }
 
-void finialize()
+void finalize()
 {
 #if defined(HAVE_CYCLOPS)
     cyclops::finalize();
@@ -360,6 +360,11 @@ void Tensor::contract(const Tensor &A, const Tensor &B, const ContractionTopolog
                       topology,
                       alpha,
                       beta);
+}
+
+void Tensor::permute(const Tensor &A, const std::vector<int> &Ainds)
+{
+    tensor_->permute(A.tensor_.get(),Ainds);
 }
 
 }

@@ -13,18 +13,25 @@
 
 namespace tensor {
 
+LabeledTensor::LabeledTensor(Tensor& T, const std::vector<std::string>& indices, double factor) :
+        T_(T), indices_(indices), factor_(factor)
+{
+    if (T_.rank() != indices.size()) throw std::runtime_error("Labeled tensor does not have correct number of indices for underlying tensor's rank");
+}
+
 void LabeledTensor::operator=(const LabeledTensor& rhs)
 {
-    if (indices::equivalent(indices_, rhs.indices_) == true) {
-        // equivalent indices:   "i,a" = "i,a"
-        // perform a simple copy
-        T_.copy(rhs.T(), rhs.factor());
+    if (T_.rank() != rhs.T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+
+    std::vector<int> rhs_indices = indices::permutation_order(indices_, rhs.indices_);
+
+    for (int dim = 0; dim < T_.rank(); dim++) {
+        if (T_.dims()[dim] != rhs.T().dims()[rhs_indices[dim]])
+            throw std::runtime_error("Permuted tensors do not have same dimensions");
     }
-    else {
-        // TODO: potential sorting of data
-        printf("Potential sorting assignment.\n");
-        ThrowNotImplementedException;
-    }
+
+    T_.permute(rhs.T(),rhs_indices);
+    T_.scale(rhs.factor());
 }
 
 void LabeledTensor::operator+=(const LabeledTensor& rhs)

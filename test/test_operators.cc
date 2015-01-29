@@ -30,6 +30,7 @@ std::pair<std::string,double> test_Cikjl_equal_Aijab_Bklab();
 std::pair<std::string,double> test_Cij_equal_Aiabc_Bjabc();
 std::pair<std::string,double> test_C_equal_A_B(std::string c_ind,std::string a_ind,std::string b_ind,
                                                std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim);
+std::pair<std::string,double> test_Cij_equal_Cji_trans();
 
 std::pair<std::string,double> test_C_equal_2_A();
 std::pair<std::string,double> test_C_plus_equal_2_A();
@@ -71,9 +72,11 @@ int main(int argc, char* argv[])
     results.push_back(test_Cijkl_equal_Aijab_Bklab());
     results.push_back(test_Cij_equal_Aiabc_Bjabc());
 
-//    results.push_back(test_Cikjl_equal_Aijab_Bklab());
+    results.push_back(test_Cikjl_equal_Aijab_Bklab());
 
-    tensor::finialize();
+    results.push_back(test_Cij_equal_Cji_trans());
+
+    tensor::finalize();
 
     bool success = true;
     for (auto sb : results){
@@ -597,14 +600,9 @@ std::pair<std::string,double> test_Cij_equal_Aiabc_Bjabc()
 std::pair<std::string,double> test_C_equal_2_A()
 {
     std::string test = "C(\"ij\") = 2.0 * A(\"ij\")";
-    printf("\n  Testing %s",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
-
-    Dimension dimsA;
-    dimsA.push_back(ni); dimsA.push_back(nj);
-    Tensor A = Tensor::build(kCore, "A", dimsA);
 
     Dimension dimsC;
     dimsC.push_back(ni); dimsC.push_back(nj);
@@ -746,6 +744,42 @@ std::pair<std::string,double> test_C_divide_equal_2()
         }
     }
     c_diff = difference_2(C,c2);
+
+    return std::make_pair(test,c_diff.second);
+}
+
+std::pair<std::string,double> test_Cij_equal_Cji_trans()
+{
+    std::string test = "C(\"ij\") = C(\"ji\")^\\dagger";
+    printf("\n  Testing %s",test.c_str());
+
+    size_t ni = 9;
+    size_t nj = 6;
+
+    Dimension dimsA;
+    dimsA.push_back(ni); dimsA.push_back(nj);
+    Tensor A = Tensor::build(kCore, "A", dimsA);
+
+    Dimension dimsC;
+    dimsC.push_back(ni); dimsC.push_back(nj);
+    Tensor C = Tensor::build(kCore, "C", dimsC);
+
+    initialize_random_2(C,c2);
+    std::pair<double,double> c_diff = difference_2(C,c2);
+
+    initialize_random_2(A,a2);
+    std::pair<double,double> a_diff = difference_2(A,a2);
+
+    C("ij") = A("ji");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            c2[i][j] = a2[j][i];
+        }
+    }
+
+    //A.print(stdout, true);
+    //C.print(stdout, true);
 
     return std::make_pair(test,c_diff.second);
 }
