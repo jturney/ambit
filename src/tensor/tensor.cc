@@ -370,6 +370,11 @@ void Tensor::permute(const Tensor &A, const std::vector<int> &Ainds)
 /********************************************************************
 * LabeledTensor operators
 ********************************************************************/
+LabeledTensor::LabeledTensor(Tensor& T, const std::vector<std::string>& indices, double factor) :
+    T_(T), indices_(indices), factor_(factor)
+{
+    if (T_.rank() != indices.size()) throw std::runtime_error("Labeled tensor does not have correct number of indices for underlying tensor's rank");
+}
 void LabeledTensor::operator=(const LabeledTensor& rhs)
 {
     if (indices::equivalent(indices_, rhs.indices_) == true) {

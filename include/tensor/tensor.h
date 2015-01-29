@@ -176,9 +176,7 @@ protected:
 class LabeledTensor {
 
 public:
-    LabeledTensor(Tensor& T, const std::vector<std::string>& indices, double factor = 1.0) :
-        T_(T), indices_(indices), factor_(factor)
-    {}
+    LabeledTensor(Tensor& T, const std::vector<std::string>& indices, double factor = 1.0);
 
     double factor() const { return factor_; }
     const std::vector<std::string>& indices() const { return indices_; }
