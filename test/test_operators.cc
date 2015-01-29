@@ -1,7 +1,7 @@
 #include <tensor/tensor.h>
-#include <cstdio>
+//#include <cstdio>
 #include <cmath>
-#include <utility>
+//#include <utility>
 
 #define MAXTWO 10
 #define MAXFOUR 10
@@ -35,6 +35,9 @@ std::pair<std::string,double> test_C_equal_2_A();
 std::pair<std::string,double> test_C_plus_equal_2_A();
 std::pair<std::string,double> test_C_minus_equal_2_A();
 
+std::pair<std::string,double> test_C_times_equal_2();
+std::pair<std::string,double> test_C_divide_equal_2();
+
 double zero = 1.0e-14;
 
 int main(int argc, char* argv[])
@@ -47,6 +50,8 @@ int main(int argc, char* argv[])
     results.push_back(test_C_equal_2_A());
     results.push_back(test_C_plus_equal_2_A());
     results.push_back(test_C_minus_equal_2_A());
+    results.push_back(test_C_times_equal_2());
+    results.push_back(test_C_divide_equal_2());
 
     results.push_back(test_C_equal_A_B("ij","ik","jk",{0,1},{0,2},{1,2}));
     results.push_back(test_C_equal_A_B("ij","ik","kj",{0,1},{0,2},{2,1}));
@@ -63,9 +68,9 @@ int main(int argc, char* argv[])
     results.push_back(test_Cij_plus_equal_Aik_Bkj());
     results.push_back(test_Cij_minus_equal_Aik_Bkj());
 
-//    results.push_back(test_Cijkl_equal_Aijab_Bklab());
-//    results.push_back(test_Cij_equal_Aiabc_Bjabc());
-//
+    results.push_back(test_Cijkl_equal_Aijab_Bklab());
+    results.push_back(test_Cij_equal_Aiabc_Bjabc());
+
 //    results.push_back(test_Cikjl_equal_Aijab_Bklab());
 
     tensor::finialize();
@@ -684,6 +689,60 @@ std::pair<std::string,double> test_C_minus_equal_2_A()
     for (size_t i = 0; i < ni; ++i){
         for (size_t j = 0; j < nj; ++j){
             c2[i][j] -= 2.0 * a2[i][j];
+        }
+    }
+    c_diff = difference_2(C,c2);
+
+    return std::make_pair(test,c_diff.second);
+}
+
+std::pair<std::string,double> test_C_times_equal_2()
+{
+    std::string test = "C(\"ij\") *= 2.0";
+    printf("\n  Testing %s",test.c_str());
+
+    size_t ni = 9;
+    size_t nj = 6;
+
+    Dimension dimsC;
+    dimsC.push_back(ni); dimsC.push_back(nj);
+    Tensor C = Tensor::build(kCore, "C", dimsC);
+
+    initialize_random_2(C,c2);
+    std::pair<double,double> c_diff = difference_2(C,c2);
+
+    C("ij") *= 2.0;
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            c2[i][j] *= 2.0;
+        }
+    }
+    c_diff = difference_2(C,c2);
+
+    return std::make_pair(test,c_diff.second);
+}
+
+std::pair<std::string,double> test_C_divide_equal_2()
+{
+    std::string test = "C(\"ij\") /= 2.0";
+    printf("\n  Testing %s",test.c_str());
+
+    size_t ni = 9;
+    size_t nj = 6;
+
+    Dimension dimsC;
+    dimsC.push_back(ni); dimsC.push_back(nj);
+    Tensor C = Tensor::build(kCore, "C", dimsC);
+
+    initialize_random_2(C,c2);
+    std::pair<double,double> c_diff = difference_2(C,c2);
+
+    C("ij") /= 2.0;
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            c2[i][j] /= 2.0;
         }
     }
     c_diff = difference_2(C,c2);

@@ -148,4 +148,14 @@ void LabeledTensor::operator-=(const LabeledTensorSubtraction& rhs)
     ThrowNotImplementedException;
 }
 
+void LabeledTensor::operator*=(const double& scale)
+{
+    T_.scale(scale);
+}
+
+void LabeledTensor::operator/=(const double& scale)
+{
+    T_.scale(1.0/scale);
+}
+
 }

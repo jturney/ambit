@@ -210,7 +210,8 @@ public:
     void operator+=(const LabeledTensorSubtraction& rhs);
     void operator-=(const LabeledTensorSubtraction& rhs);
 
-    void operator*=(double scale);
+    void operator*=(const double& scale);
+    void operator/=(const double& scale);
 
     size_t numdim() const { return indices_.size(); }
 private:
