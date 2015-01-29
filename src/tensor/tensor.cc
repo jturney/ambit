@@ -377,16 +377,17 @@ LabeledTensor::LabeledTensor(Tensor& T, const std::vector<std::string>& indices,
 }
 void LabeledTensor::operator=(const LabeledTensor& rhs)
 {
-    if (indices::equivalent(indices_, rhs.indices_) == true) {
-        // equivalent indices:   "i,a" = "i,a"
-        // perform a simple copy
-        T_.copy(rhs.T(), rhs.factor());
+    if (T_.rank() != rhs.T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+
+    std::vector<int> rhs_indices = indices::permutation_order(indices_, rhs.indices_);
+
+    for (int dim = 0; dim < T_.rank(); dim++) {
+        if (T_.dims()[dim] != rhs.T().dims()[rhs_indices[dim]]) 
+            throw std::runtime_error("Permuted tensors do not have same dimensions");
     }
-    else {
-        std::vector<int> rhs_indices = indices::permutation_order(indices_, rhs.indices_);
-        T_.permute(rhs.T(),rhs_indices);
-        T_.scale(rhs.factor());
-    }
+
+    T_.permute(rhs.T(),rhs_indices);
+    T_.scale(rhs.factor());
 }
 
 LabeledTensorProduct LabeledTensor::operator*(const LabeledTensor &rhs)

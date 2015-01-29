@@ -70,7 +70,7 @@ std::vector<int> permutation_order(const std::vector<std::string>& left, const s
         if (left2[ind] != right2[ind]) throw std::runtime_error("Permutation indices do not match");
     }
 
-    /// Check that the strings do not ave repeats
+    /// Check that the strings do not have repeats
     for (int ind = 0; ind < ((int)left2.size()) - 1; ind++) {
         if (left2[ind] == left2[ind+1]) throw std::runtime_error("Permutation indices contain repeats");
     }

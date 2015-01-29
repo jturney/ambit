@@ -75,27 +75,9 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B, const 
 }
 void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds)
 {
-    // => Error Checks <= //
-
-    /// Check rank(C) = rank(A)
-    if (rank() != A->rank()) throw std::runtime_error("Tensors must be same rank");
-
-    /// Check rank(Ainds) = rank(C) = rank(A)
-    if (Ainds.size() != rank()) throw std::runtime_error("Ainds does not have correct rank");
-
-    /// Check Ainds contains 0,1,2,...,rank-1
-    std::vector<int> Ainds2 = Ainds;
-    std::sort(Ainds2.begin(),Ainds2.end());
-    for (int dim = 0; dim < rank(); dim++) {
-        if (dim != Ainds2[dim])
-            throw std::runtime_error("Ainds does not have dims 0,1,2,...");
-    }
-
-    /// Check size(C(i)) = size(A(Ainds(i))
-    for (int dim = 0; dim < rank(); dim++) {
-        if (dims()[dim] != A->dims()[Ainds[dim]])
-            throw std::runtime_error("Permuted tensors do not have same dimensions");
-    }
+    /// Data pointers
+    double* Cp = data();
+    double* Ap = ((const CoreTensorImplPtr)A)->data();
 
     // => Index Logic <= //
 
@@ -116,6 +98,15 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
 
     /// Determine the total number of memcpy operations
     int slow_dims = rank() - fast_dims;
+    assert(slow_dims == 0 || slow_dims > 1); // slow_dims != 1
+
+    // Fully sorted case or (equivalently) 0-rank tensors
+    if (slow_dims == 0) {
+        ::memcpy(Cp,Ap,sizeof(double)*fast_size);
+        return;
+    }
+    
+    /// Number of collapsed indices in permutation traverse
     size_t slow_size = 1L;
     for (int dim = 0; dim < slow_dims; dim++) {
         slow_size *= dims()[dim];
@@ -144,18 +135,9 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
     /// Handle to dimensions of C
     const std::vector<size_t>& Csizes = dims();
     
-    /// Starting pointers
-    double* Cp = data();
-    double* Ap = ((const CoreTensorImplPtr)A)->data();
-
     // => Actual Permute Operation <= //
 
-    if (slow_dims == 0) {
-        // Fully sorted case or (equivalently) 0-rank tensors
-        ::memcpy(Cp,Ap,sizeof(double)*fast_size);
-    } else if (slow_dims == 1) {
-        throw std::runtime_error("Should be topologically impossible to reach here.");
-    } else if (slow_dims == 2) {
+    if (slow_dims == 2) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
