@@ -123,7 +123,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
     /// C_ijkl = A_jikl would have k and l as fast dimensions, and a fast size of dim(k) * dim(l)
     int fast_dims = 0;
     size_t fast_size = 1L;
-    for (int dim = ((int)rank()) - 1; dim >= 0; dim++) {
+    for (int dim = ((int)rank()) - 1; dim >= 0; dim--) {
         if (dim == Ainds[dim]) {
             fast_dims++;
             fast_size *= dims()[dim];
