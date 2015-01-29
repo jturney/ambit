@@ -98,13 +98,14 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
 
     /// Determine the total number of memcpy operations
     int slow_dims = rank() - fast_dims;
-    assert(slow_dims == 0 || slow_dims > 1); // slow_dims != 1
 
     // Fully sorted case or (equivalently) 0-rank tensors
     if (slow_dims == 0) {
         ::memcpy(Cp,Ap,sizeof(double)*fast_size);
         return;
     }
+
+    assert(slow_dims > 1); // slow_dims != 1
     
     /// Number of collapsed indices in permutation traverse
     size_t slow_size = 1L;
