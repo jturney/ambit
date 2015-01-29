@@ -508,7 +508,7 @@ double test_Cikjl_equal_Aijab_Bklab()
     initialize_random_4(C,c4);
     std::pair<double,double> c_diff = difference_4(C,c4);
 
-    C("ijkl") += A("ijab") * B("klab");
+    C("ikjl") += A("ijab") * B("klab");
 
     for (size_t i = 0; i < ni; ++i){
         for (size_t j = 0; j < nj; ++j){
