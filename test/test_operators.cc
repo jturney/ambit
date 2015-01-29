@@ -46,13 +46,32 @@ int main(int argc, char* argv[])
     srand (time(NULL));
     tensor::initialize(argc, argv);
 
+    auto test_functions = {
+//            test_C_equal_2_A,
+            test_C_plus_equal_2_A,
+            test_C_minus_equal_2_A,
+            test_C_times_equal_2,
+            test_C_divide_equal_2,
+            test_Cij_equal_Aik_Bkj,
+            test_Cij_equal_Aik_Bjk,
+            test_Cij_plus_equal_Aik_Bkj,
+            test_Cij_minus_equal_Aik_Bkj,
+            test_Cijkl_equal_Aijab_Bklab,
+            test_Cij_equal_Aiabc_Bjabc,
+            test_Cikjl_equal_Aijab_Bklab,
+            test_Cij_equal_Cji_trans
+    };
+
     std::vector<std::pair<std::string,double> > results;
 
-    results.push_back(test_C_equal_2_A());
-    results.push_back(test_C_plus_equal_2_A());
-    results.push_back(test_C_minus_equal_2_A());
-    results.push_back(test_C_times_equal_2());
-    results.push_back(test_C_divide_equal_2());
+    for (auto test_function : test_functions) {
+        try {
+            results.push_back(test_function());
+        }
+        catch (std::exception& e) {
+            printf("Exception caught: %s\n", e.what());
+        }
+    }
 
     results.push_back(test_C_equal_A_B("ij","ik","jk",{0,1},{0,2},{1,2}));
     results.push_back(test_C_equal_A_B("ij","ik","kj",{0,1},{0,2},{2,1}));
@@ -62,19 +81,6 @@ int main(int argc, char* argv[])
     results.push_back(test_C_equal_A_B("ji","ik","kj",{1,0},{0,2},{2,1}));
     results.push_back(test_C_equal_A_B("ji","ki","jk",{1,0},{2,0},{1,2}));
     results.push_back(test_C_equal_A_B("ji","ki","kj",{1,0},{2,0},{2,1}));
-
-    results.push_back(test_Cij_equal_Aik_Bkj());
-    results.push_back(test_Cij_equal_Aik_Bjk());
-
-    results.push_back(test_Cij_plus_equal_Aik_Bkj());
-    results.push_back(test_Cij_minus_equal_Aik_Bkj());
-
-    results.push_back(test_Cijkl_equal_Aijab_Bklab());
-    results.push_back(test_Cij_equal_Aiabc_Bjabc());
-
-    results.push_back(test_Cikjl_equal_Aijab_Bklab());
-
-    results.push_back(test_Cij_equal_Cji_trans());
 
     tensor::finalize();
 
@@ -603,6 +609,10 @@ std::pair<std::string,double> test_C_equal_2_A()
 
     size_t ni = 9;
     size_t nj = 6;
+
+    Dimension dimsA;
+    dimsA.push_back(ni); dimsA.push_back(nj);
+    Tensor A = Tensor::build(kCore, "A", dimsA);
 
     Dimension dimsC;
     dimsC.push_back(ni); dimsC.push_back(nj);
