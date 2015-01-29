@@ -367,4 +367,14 @@ void Tensor::permute(const Tensor &A, const std::vector<int> &Ainds)
     tensor_->permute(A.tensor_.get(),Ainds);
 }
 
+bool Tensor::operator==(const Tensor& other) const
+{
+    return tensor_ == other.tensor_;
+}
+
+bool Tensor::operator!=(const Tensor& other) const
+{
+    return tensor_ != other.tensor_;
+}
+
 }

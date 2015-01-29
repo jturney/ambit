@@ -39,6 +39,8 @@ std::pair<std::string,double> test_C_minus_equal_2_A();
 std::pair<std::string,double> test_C_times_equal_2();
 std::pair<std::string,double> test_C_divide_equal_2();
 
+std::pair<std::string,double> test_Cij_equal_Cij();
+
 double zero = 1.0e-14;
 
 int main(int argc, char* argv[])
@@ -47,11 +49,11 @@ int main(int argc, char* argv[])
     tensor::initialize(argc, argv);
 
     auto test_functions = {
-//            test_C_equal_2_A,
-            test_C_plus_equal_2_A,
-            test_C_minus_equal_2_A,
-            test_C_times_equal_2,
-            test_C_divide_equal_2,
+            test_C_equal_2_A,               // C("ij") = 2.0 * A("ij")
+            test_C_plus_equal_2_A,          // C("ij") += 2.0 * A("ij")
+            test_C_minus_equal_2_A,         // C("ij") -= 2.0 * A("ij")
+            test_C_times_equal_2,           // C("ij") *= 2.0;
+            test_C_divide_equal_2,          // C("ij") /= 2.0;
             test_Cij_equal_Aik_Bkj,
             test_Cij_equal_Aik_Bjk,
             test_Cij_plus_equal_Aik_Bkj,
@@ -59,7 +61,9 @@ int main(int argc, char* argv[])
             test_Cijkl_equal_Aijab_Bklab,
             test_Cij_equal_Aiabc_Bjabc,
             test_Cikjl_equal_Aijab_Bklab,
-            test_Cij_equal_Cji_trans
+            test_Cij_equal_Cji_trans,
+
+            test_Cij_equal_Cij,             // C("ij") = C("ij") (expected to fail == pass)
     };
 
     std::vector<std::pair<std::string,double> > results;
@@ -205,7 +209,7 @@ std::pair<std::string,double> test_C_equal_A_B(std::string c_ind,std::string a_i
                                                std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim)
 {
     std::string test = "C(\"" + c_ind + "\") += A(\"" + a_ind + "\") * B(\"" + b_ind + "\")";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     std::vector<int> dims;
     dims.push_back(9);
@@ -261,7 +265,7 @@ std::pair<std::string,double> test_C_equal_A_B(std::string c_ind,std::string a_i
 std::pair<std::string,double> test_Cij_plus_equal_Aik_Bkj()
 {
     std::string test = "C(\"ij\") += A(\"ik\") * B(\"kj\")";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -306,7 +310,7 @@ std::pair<std::string,double> test_Cij_plus_equal_Aik_Bkj()
 std::pair<std::string,double> test_Cij_minus_equal_Aik_Bkj()
 {
     std::string test = "C(\"ij\") -= A(\"ik\") * B(\"kj\")";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -352,7 +356,7 @@ std::pair<std::string,double> test_Cij_minus_equal_Aik_Bkj()
 std::pair<std::string,double> test_Cij_equal_Aik_Bkj()
 {
     std::string test = "C(\"ij\") = A(\"ik\") * B(\"kj\")";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -395,7 +399,7 @@ std::pair<std::string,double> test_Cij_equal_Aik_Bkj()
 std::pair<std::string,double> test_Cij_equal_Aik_Bjk()
 {
     std::string test = "C(\"ij\") = A(\"ik\") * B(\"jk\")";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -439,7 +443,7 @@ std::pair<std::string,double> test_Cij_equal_Aik_Bjk()
 std::pair<std::string,double> test_Cijkl_equal_Aijab_Bklab()
 {
     std::string test = "C(\"ijkl\") += A(\"ijab\") * B(\"klab\")";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -496,7 +500,7 @@ std::pair<std::string,double> test_Cijkl_equal_Aijab_Bklab()
 std::pair<std::string,double> test_Cikjl_equal_Aijab_Bklab()
 {
     std::string test = "C(\"ikjl\") += A(\"ijab\") * B(\"klab\")";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -554,7 +558,7 @@ std::pair<std::string,double> test_Cikjl_equal_Aijab_Bklab()
 std::pair<std::string,double> test_Cij_equal_Aiabc_Bjabc()
 {
     std::string test = "C(\"ij\") += A(\"iabc\") * B(\"jabc\")";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -639,7 +643,7 @@ std::pair<std::string,double> test_C_equal_2_A()
 std::pair<std::string,double> test_C_plus_equal_2_A()
 {
     std::string test = "C(\"ij\") += 2.0 * A(\"ij\")";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -673,7 +677,7 @@ std::pair<std::string,double> test_C_plus_equal_2_A()
 std::pair<std::string,double> test_C_minus_equal_2_A()
 {
     std::string test = "C(\"ij\") -= 2.0 * A(\"ij\")";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -707,7 +711,7 @@ std::pair<std::string,double> test_C_minus_equal_2_A()
 std::pair<std::string,double> test_C_times_equal_2()
 {
     std::string test = "C(\"ij\") *= 2.0";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -734,7 +738,7 @@ std::pair<std::string,double> test_C_times_equal_2()
 std::pair<std::string,double> test_C_divide_equal_2()
 {
     std::string test = "C(\"ij\") /= 2.0";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -761,7 +765,7 @@ std::pair<std::string,double> test_C_divide_equal_2()
 std::pair<std::string,double> test_Cij_equal_Cji_trans()
 {
     std::string test = "C(\"ij\") = C(\"ji\")^\\dagger";
-    printf("\n  Testing %s",test.c_str());
+    printf("  Testing %s\n",test.c_str());
 
     size_t ni = 9;
     size_t nj = 6;
@@ -792,4 +796,26 @@ std::pair<std::string,double> test_Cij_equal_Cji_trans()
     //C.print(stdout, true);
 
     return std::make_pair(test,c_diff.second);
+}
+
+std::pair<std::string,double> test_Cij_equal_Cij()
+{
+    std::string test = "C(\"ij\") = C(\"ji\") not allowed";
+
+    printf("  Testing %s\n",test.c_str());
+
+    size_t ni = 9;
+    size_t nj = 6;
+
+    Dimension dimsC;
+    dimsC.push_back(ni); dimsC.push_back(nj);
+    Tensor C = Tensor::build(kCore, "C", dimsC);
+
+    try {
+        C("ij") = C("ij");
+    }
+    catch (std::exception& e) {
+        return std::make_pair(test, 0.00);
+    }
+    return std::make_pair(test, 1.0);
 }

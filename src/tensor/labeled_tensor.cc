@@ -21,6 +21,7 @@ LabeledTensor::LabeledTensor(Tensor& T, const std::vector<std::string>& indices,
 
 void LabeledTensor::operator=(const LabeledTensor& rhs)
 {
+    if (T() == rhs.T()) throw std::runtime_error("Self assignment is not allowed.");
     if (T_.rank() != rhs.T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
 
     std::vector<int> rhs_indices = indices::permutation_order(indices_, rhs.indices_);

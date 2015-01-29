@@ -170,6 +170,10 @@ public:
         const Tensor& A,
         const std::vector<int>& Ainds);
 
+
+    bool operator==(const Tensor& other) const;
+    bool operator!=(const Tensor& other) const;
+
 private:
 
     shared_ptr<TensorImpl> tensor_;
@@ -214,6 +218,9 @@ public:
 
     void operator*=(const double& scale);
     void operator/=(const double& scale);
+
+//    bool operator==(const LabeledTensor& other) const;
+//    bool operator!=(const LabeledTensor& other) const;
 
     size_t numdim() const { return indices_.size(); }
 private:
