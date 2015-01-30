@@ -59,9 +59,9 @@ LabeledTensorAddition LabeledTensor::operator+(const LabeledTensor &rhs)
     return LabeledTensorAddition(*this, rhs);
 }
 
-LabeledTensorSubtraction LabeledTensor::operator-(const LabeledTensor &rhs)
+LabeledTensorAddition LabeledTensor::operator-(const LabeledTensor &rhs)
 {
-    return LabeledTensorSubtraction(*this, rhs);
+    return LabeledTensorAddition(*this, -rhs);
 }
 
 void LabeledTensor::operator=(const LabeledTensorProduct& rhs)
@@ -117,32 +117,47 @@ void LabeledTensor::operator-=(const LabeledTensorProduct& rhs)
 
 void LabeledTensor::operator=(const LabeledTensorAddition& rhs)
 {
-    ThrowNotImplementedException;
+    for (size_t ind=0, end=rhs.size(); ind < end; ++ind) {
+        const LabeledTensor& labeledTensor = rhs[ind];
+
+        if (T() == labeledTensor.T()) throw std::runtime_error("Self assignment is not allowed.");
+        if (indices::equivalent(indices_, labeledTensor.indices()) == false) {
+            throw std::runtime_error("Indices must be equivalent.");
+        }
+
+        if (ind > 0)
+            T_.scale_and_add(labeledTensor.factor(), labeledTensor.T());
+        else
+            T_.copy(labeledTensor.T(), labeledTensor.factor());
+    }
 }
 
 void LabeledTensor::operator+=(const LabeledTensorAddition& rhs)
 {
-    ThrowNotImplementedException;
+    for (size_t ind=0, end=rhs.size(); ind < end; ++ind) {
+        const LabeledTensor& labeledTensor = rhs[ind];
+
+        if (T() == labeledTensor.T()) throw std::runtime_error("Self assignment is not allowed.");
+        if (indices::equivalent(indices_, labeledTensor.indices()) == false) {
+            throw std::runtime_error("Indices must be equivalent.");
+        }
+
+        T_.scale_and_add(labeledTensor.factor(), labeledTensor.T());
+    }
 }
 
 void LabeledTensor::operator-=(const LabeledTensorAddition& rhs)
 {
-    ThrowNotImplementedException;
-}
+    for (size_t ind=0, end=rhs.size(); ind < end; ++ind) {
+        const LabeledTensor& labeledTensor = rhs[ind];
 
-void LabeledTensor::operator=(const LabeledTensorSubtraction& rhs)
-{
-    ThrowNotImplementedException;
-}
+        if (T() == labeledTensor.T()) throw std::runtime_error("Self assignment is not allowed.");
+        if (indices::equivalent(indices_, labeledTensor.indices()) == false) {
+            throw std::runtime_error("Indices must be equivalent.");
+        }
 
-void LabeledTensor::operator+=(const LabeledTensorSubtraction& rhs)
-{
-    ThrowNotImplementedException;
-}
-
-void LabeledTensor::operator-=(const LabeledTensorSubtraction& rhs)
-{
-    ThrowNotImplementedException;
+        T_.scale_and_add(-labeledTensor.factor(), labeledTensor.T());
+    }
 }
 
 void LabeledTensor::operator*=(const double& scale)

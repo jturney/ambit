@@ -200,7 +200,7 @@ public:
 
     LabeledTensorProduct operator*(const LabeledTensor& rhs);
     LabeledTensorAddition operator+(const LabeledTensor& rhs);
-    LabeledTensorSubtraction operator-(const LabeledTensor& rhs);
+    LabeledTensorAddition operator-(const LabeledTensor& rhs);
 
     /** Copies data from rhs to this sorting the data if needed. */
     void operator=(const LabeledTensor& rhs);
@@ -215,10 +215,6 @@ public:
     void operator+=(const LabeledTensorAddition& rhs);
     void operator-=(const LabeledTensorAddition& rhs);
 
-    void operator=(const LabeledTensorSubtraction& rhs);
-    void operator+=(const LabeledTensorSubtraction& rhs);
-    void operator-=(const LabeledTensorSubtraction& rhs);
-
     void operator*=(const double& scale);
     void operator/=(const double& scale);
 
@@ -226,6 +222,12 @@ public:
 //    bool operator!=(const LabeledTensor& other) const;
 
     size_t numdim() const { return indices_.size(); }
+
+    // negation
+    LabeledTensor operator-() const {
+        return LabeledTensor(T_, indices_, -factor_);
+    }
+
 private:
     Tensor& T_;
     std::vector<std::string> indices_;
@@ -241,14 +243,10 @@ class LabeledTensorProduct {
 
 public:
     LabeledTensorProduct(const LabeledTensor& A, const LabeledTensor& B)
-    //  : A_(A), B_(B)
     {
         tensors_.push_back(A);
         tensors_.push_back(B);
     }
-
-    //const LabeledTensor& A() const { return A_; }
-    //const LabeledTensor& B() const { return B_; }
 
     size_t size() const { return tensors_.size(); }
 
@@ -261,38 +259,40 @@ public:
 private:
 
     std::vector<LabeledTensor> tensors_;
-    //const LabeledTensor& A_;
-    //const LabeledTensor& B_;
 };
 
 class LabeledTensorAddition
 {
 public:
-    LabeledTensorAddition(const LabeledTensor& A, const LabeledTensor& B) :
-            A_(A), B_(B)
-    {}
+    LabeledTensorAddition(const LabeledTensor& A, const LabeledTensor& B)
+    {
+        tensors_.push_back(A);
+        tensors_.push_back(B);
+    }
 
-    const LabeledTensor& A() const { return A_; }
-    const LabeledTensor& B() const { return B_; }
+    size_t size() const { return tensors_.size(); }
+
+    const LabeledTensor& operator[](size_t i) const { return tensors_[i]; }
+
+    std::vector<LabeledTensor>::iterator begin() { return tensors_.begin(); }
+    std::vector<LabeledTensor>::const_iterator begin() const { return tensors_.begin(); }
+
+    std::vector<LabeledTensor>::iterator end() { return tensors_.end(); }
+    std::vector<LabeledTensor>::const_iterator end() const { return tensors_.end(); }
+
+    LabeledTensorAddition& operator+(const LabeledTensor& other) {
+        tensors_.push_back(other);
+        return *this;
+    }
+
+    LabeledTensorAddition& operator-(const LabeledTensor& other) {
+        tensors_.push_back(-other);
+        return *this;
+    }
 
 private:
-    const LabeledTensor& A_;
-    const LabeledTensor& B_;
-};
 
-class LabeledTensorSubtraction
-{
-public:
-    LabeledTensorSubtraction(const LabeledTensor& A, const LabeledTensor& B) :
-            A_(A), B_(B)
-    {}
-
-    const LabeledTensor& A() const { return A_; }
-    const LabeledTensor& B() const { return B_; }
-
-private:
-    const LabeledTensor& A_;
-    const LabeledTensor& B_;
+    std::vector<LabeledTensor> tensors_;
 };
 
 }
