@@ -88,6 +88,39 @@ std::vector<int> permutation_order(const std::vector<std::string>& left, const s
     return ret;
 }
 
+// => Stuff for contract <= //
+
+int find_index_in_vector(const std::vector<std::string>& vec, const std::string& key)
+{
+    for (size_t ind = 0L; ind < vec.size(); ind++) {
+        if (key == vec[ind]) {
+            return ind;
+        }
+    } 
+    return -1;
+}
+bool contiguous(const std::vector<std::pair<int, std::string>>& vec) 
+{
+    for (int prim = 0L; prim < ((int)vec.size()) - 1; prim++) {
+        if (vec[prim+1].first != vec[prim].first + 1) {
+            return false;
+        }
+    }
+    return true;
+}
+Dimension permuted_dimension(
+    const Dimension& old_dim, 
+    const std::vector<std::string>& new_order,
+    const std::vector<std::string>& old_order)
+{
+    std::vector<int> order = indices::permutation_order(new_order,old_order);
+    Dimension new_dim(order.size(),0L);
+    for (size_t ind = 0L; ind < order.size(); ind++) {
+        new_dim[ind] = old_dim[order[ind]];
+    }
+    return new_dim;
+}
+
 }
 
 }

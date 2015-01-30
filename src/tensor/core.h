@@ -69,43 +69,6 @@ private:
 typedef CoreTensorImpl* CoreTensorImplPtr;
 typedef const CoreTensorImpl* ConstCoreTensorImplPtr;
 
-class CoreContractionManager {
-
-public:
-    CoreContractionManager(
-        CoreTensorImpl& C,
-        const CoreTensorImpl& A,
-        const CoreTensorImpl& B,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
-        const std::vector<std::string>& Binds,
-        double alpha,
-        double beta) :
-        C_(C),
-        A_(A),
-        B_(B),
-        Cinds_(Cinds),
-        Ainds_(Ainds),
-        Binds_(Binds),
-        alpha_(alpha),
-        beta_(beta)
-    {}
-
-    void contract();
-
-private:    
-   
-    CoreTensorImpl& C_; 
-    const CoreTensorImpl& A_; 
-    const CoreTensorImpl& B_; 
-    const std::vector<std::string>& Cinds_;
-    const std::vector<std::string>& Ainds_;
-    const std::vector<std::string>& Binds_;
-    double alpha_;
-    double beta_;
-
-};
-
 }
 
 #endif
