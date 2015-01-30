@@ -131,7 +131,6 @@ void CoreTensorImpl::permute(
     // => Convert to indices of A <= //
 
     std::vector<int> Ainds = indices::permutation_order(CindsS, AindsS);
-
     for (int dim = 0; dim < rank(); dim++) {
         if (dims()[dim] != A->dims()[Ainds[dim]])
             throw std::runtime_error("Permuted tensors do not have same dimensions");
@@ -149,14 +148,14 @@ void CoreTensorImpl::permute(
     /// C_ijkl = A_jikl would have k and l as fast dimensions, and a fast size of dim(k) * dim(l)
     int fast_dims = 0;
     size_t fast_size = 1L;
-    //for (int dim = ((int)rank()) - 1; dim >= 0; dim--) {
-    //    if (dim == Ainds[dim]) {
-    //        fast_dims++;
-    //        fast_size *= dims()[dim];
-    //    } else {
-    //        break;
-    //    }
-    //}
+    for (int dim = ((int)rank()) - 1; dim >= 0; dim--) {
+        if (dim == Ainds[dim]) {
+            fast_dims++;
+            fast_size *= dims()[dim];
+        } else {
+            break;
+        }
+    }
 
     /// Determine the total number of memcpy operations
     int slow_dims = rank() - fast_dims;
@@ -204,117 +203,102 @@ void CoreTensorImpl::permute(
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
-            double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
+            double* Atp = Ap + 
+                Cind0 * AstridesC[0] +
+                Cind1 * AstridesC[1];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
-            Atp += AstridesC[1];
             Ctp += fast_size;
         }}
     } else if (slow_dims == 3) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
-            double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
+            double* Atp = Ap + 
+                Cind0 * AstridesC[0] +
+                Cind1 * AstridesC[1] +
+                Cind2 * AstridesC[2];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-            Atp += AstridesC[2];
-        }
-            Atp += AstridesC[1];
-        }}
+        }}}
     } else if (slow_dims == 4) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
-            double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
-            double* At2p = Ap + 
+            double* Atp = Ap + 
                 Cind0 * AstridesC[0] +
                 Cind1 * AstridesC[1] +
                 Cind2 * AstridesC[2] +
                 Cind3 * AstridesC[3];
-            ::memcpy(Ctp,At2p,sizeof(double)*fast_size);
+            ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-            Atp += AstridesC[3];
-        }
-            Atp += AstridesC[2];
-        }
-            Atp += AstridesC[1];
-        }}
+        }}}}
     } else if (slow_dims == 5) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
-            double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
         for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++) {
+            double* Atp = Ap + 
+                Cind0 * AstridesC[0] +
+                Cind1 * AstridesC[1] +
+                Cind2 * AstridesC[2] +
+                Cind3 * AstridesC[3] +
+                Cind4 * AstridesC[4];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-            Atp += AstridesC[4];
-        }
-            Atp += AstridesC[3];
-        }
-            Atp += AstridesC[2];
-        }
-            Atp += AstridesC[1];
-        }}
+        }}}}}
     } else if (slow_dims == 6) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
-            double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
         for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++) {
         for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++) {
+            double* Atp = Ap + 
+                Cind0 * AstridesC[0] +
+                Cind1 * AstridesC[1] +
+                Cind2 * AstridesC[2] +
+                Cind3 * AstridesC[3] +
+                Cind4 * AstridesC[4] +
+                Cind5 * AstridesC[5];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-            Atp += AstridesC[5];
-        }
-            Atp += AstridesC[4];
-        }
-            Atp += AstridesC[3];
-        }
-            Atp += AstridesC[2];
-        }
-            Atp += AstridesC[1];
-        }}
+        }}}}}}
     } else if (slow_dims == 7) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
-            double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
         for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++) {
         for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++) {
         for (size_t Cind6 = 0L; Cind6 < Csizes[6]; Cind6++) {
+            double* Atp = Ap + 
+                Cind0 * AstridesC[0] +
+                Cind1 * AstridesC[1] +
+                Cind2 * AstridesC[2] +
+                Cind3 * AstridesC[3] +
+                Cind4 * AstridesC[4] +
+                Cind5 * AstridesC[5] +
+                Cind6 * AstridesC[6];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-            Atp += AstridesC[6];
-        }
-            Atp += AstridesC[5];
-        }
-            Atp += AstridesC[4];
-        }
-            Atp += AstridesC[3];
-        }
-            Atp += AstridesC[2];
-        }
-            Atp += AstridesC[1];
-        }}
+        }}}}}}}
     } else if (slow_dims == 8) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
             double* Ctp = Cp + Cind0 * Cstrides[0]; 
-            double* Atp = Ap + Cind0 * AstridesC[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
@@ -322,22 +306,18 @@ void CoreTensorImpl::permute(
         for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++) {
         for (size_t Cind6 = 0L; Cind6 < Csizes[6]; Cind6++) {
         for (size_t Cind7 = 0L; Cind7 < Csizes[7]; Cind7++) {
+            double* Atp = Ap + 
+                Cind0 * AstridesC[0] +
+                Cind1 * AstridesC[1] +
+                Cind2 * AstridesC[2] +
+                Cind3 * AstridesC[3] +
+                Cind4 * AstridesC[4] +
+                Cind5 * AstridesC[5] +
+                Cind6 * AstridesC[6] +
+                Cind7 * AstridesC[7];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
             Ctp += fast_size;
-            Atp += AstridesC[7];
-        }
-            Atp += AstridesC[6];
-        }
-            Atp += AstridesC[5];
-        }
-            Atp += AstridesC[4];
-        }
-            Atp += AstridesC[3];
-        }
-            Atp += AstridesC[2];
-        }
-            Atp += AstridesC[1];
-        }}
+        }}}}}}}}
     } else {
         #pragma omp parallel for
         for (size_t ind = 0L; ind < slow_size; ind++) {
