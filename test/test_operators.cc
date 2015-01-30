@@ -895,7 +895,7 @@ double test_power()
 
     Tensor A = C.power(-0.5);
 
-    A.print(stdout, true);
+//    A.print(stdout, true);
 
     return 0;
 }

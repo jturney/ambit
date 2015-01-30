@@ -749,6 +749,8 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
 
     C_DGEMM('T','N',n,n,n,1.0,a2,n,a1,n,0.0,powered->data_,n);
 
+    memory::free(a2);
+
     // Need to manually delete the tensors in the diag map
     for (auto& el : diag) {
         delete el.second;
