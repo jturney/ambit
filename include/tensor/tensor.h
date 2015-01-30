@@ -45,6 +45,7 @@ class LabeledTensor;
 class LabeledTensorProduct;
 class LabeledTensorAddition;
 class LabeledTensorSubtraction;
+class LabeledTensorDistributive;
 class ContractionTopology;
 
 enum TensorType {
@@ -201,10 +202,13 @@ public:
     LabeledTensorAddition operator+(const LabeledTensor& rhs);
     LabeledTensorAddition operator-(const LabeledTensor& rhs);
 
+    LabeledTensorDistributive operator*(const LabeledTensorAddition& rhs);
+
     /** Copies data from rhs to this sorting the data if needed. */
     void operator=(const LabeledTensor& rhs);
     void operator+=(const LabeledTensor& rhs);
     void operator-=(const LabeledTensor& rhs);
+    void operator=(const LabeledTensorDistributive& rhs);
 
     void operator=(const LabeledTensorProduct& rhs);
     void operator+=(const LabeledTensorProduct& rhs);
@@ -292,6 +296,24 @@ public:
 private:
 
     std::vector<LabeledTensor> tensors_;
+};
+
+// Is responsible for expressions like D * (J - K) --> D*J - D*K
+class LabeledTensorDistributive
+{
+public:
+    LabeledTensorDistributive(const LabeledTensor& A, const LabeledTensorAddition& B)
+            : A_(A), B_(B)
+    {}
+
+    const LabeledTensor& A() const { return A_; }
+    const LabeledTensorAddition& B() const { return B_; }
+
+private:
+
+    const LabeledTensor& A_;
+    const LabeledTensorAddition& B_;
+
 };
 
 }

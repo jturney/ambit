@@ -63,6 +63,8 @@ double test_Cij_equal_Aij_plus_Bij();
 double test_Dij_equal_Aij_plus_Bij_plus_Cij();
 double test_Cij_equal_Aij_minus_Bij();
 double test_Dij_equal_Aij_minus_Bij_plus_Cij();
+double test_Dij_equal_Aij_times_Bij_plus_Cij();
+double test_F_equal_D_times_2g_minus_g();
 
 std::tuple<std::string,TestResult,double> test_C_equal_A_B(std::string c_ind,std::string a_ind,std::string b_ind,
                                                std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim);
@@ -97,6 +99,8 @@ int main(int argc, char* argv[])
             std::make_pair(test_Dij_equal_Aij_plus_Bij_plus_Cij, "D(\"ij\") = A(\"ij\") + B(\"ij\") + C(\"ij\")"),
             std::make_pair(test_Cij_equal_Aij_minus_Bij,    "C(\"ij\") = A(\"ij\") - 5.0 * B(\"ij\")"),
             std::make_pair(test_Dij_equal_Aij_minus_Bij_plus_Cij, "D(\"ij\") = A(\"ij\") - B(\"ij\") + 2.0 * C(\"ij\")"),
+            std::make_pair(test_Dij_equal_Aij_times_Bij_plus_Cij, "D(\"ij\") = A(\"ij\") * (2.0 * B(\"ij\") - C(\"ij\"))"),
+            std::make_pair(test_F_equal_D_times_2g_minus_g, "F(\"ij\") = D(\"kl\") * (2.0 * g(\"ijkl\") - g(\"ikjl\"))"),
             std::make_pair(test_syev,                      "Diagonalization (not confirmed)")
     };
 
@@ -288,12 +292,12 @@ std::tuple<std::string,TestResult,double> test_C_equal_A_B(std::string c_ind,std
     for (n[0] = 0; n[0] < ni; ++n[0]){
         for (n[1] = 0; n[1] < nj; ++n[1]){
             for (n[2] = 0; n[2] < nk; ++n[2]){
-                int aind1 = n[a_dim[0]];
-                int aind2 = n[a_dim[1]];
-                int bind1 = n[b_dim[0]];
-                int bind2 = n[b_dim[1]];
-                int cind1 = n[c_dim[0]];
-                int cind2 = n[c_dim[1]];
+                size_t aind1 = n[a_dim[0]];
+                size_t aind2 = n[a_dim[1]];
+                size_t bind1 = n[b_dim[0]];
+                size_t bind2 = n[b_dim[1]];
+                size_t cind1 = n[c_dim[0]];
+                size_t cind2 = n[c_dim[1]];
                 c2[cind1][cind2] += a2[aind1][aind2] * b2[bind1][bind2];
             }
         }
@@ -834,4 +838,49 @@ double test_Dij_equal_Aij_minus_Bij_plus_Cij()
     }
 
     return difference(D, d2).second;
+}
+
+double test_Dij_equal_Aij_times_Bij_plus_Cij()
+{
+    size_t ni = 9, nj = 6;
+
+    Dimension dims = {ni, nj};
+    Tensor A = build_and_fill("A", dims, a2);
+    Tensor B = build_and_fill("B", dims, b2);
+    Tensor C = build_and_fill("C", dims, c2);
+    Tensor D = build_and_fill("D", dims, d2);
+
+    D("ij") = A("ij") * (2.0 * B("ij") - C("ij"));
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            d2[i][j] = a2[i][j] * (2.0 * b2[i][j] - c2[i][j]);
+        }
+    }
+
+    return difference(D, d2).second;
+}
+
+double test_F_equal_D_times_2g_minus_g()
+{
+    size_t ni = 9, nj = 9, nk = 9, nl = 9;
+
+    Tensor F = build_and_fill("F", {ni, nj}, a2);
+    Tensor D = build_and_fill("D", {nk, nl}, b2);
+    Tensor g = build_and_fill("g", {ni, nj, nk, nl}, c4);
+
+    F("i,j") = D("k,l") * (2.0 * g("i,j,k,l") - g("i,k,j,l"));
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            a2[i][j] = 0.0;
+            for (size_t k = 0; k < nk; ++k) {
+                for (size_t l = 0; l < nl; ++l) {
+                    a2[i][j] += b2[k][l] * (2.0 * c4[i][j][k][l] - c4[i][k][j][l]);
+                }
+            }
+        }
+    }
+
+    return difference(F, a2).second;
 }

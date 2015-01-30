@@ -170,4 +170,18 @@ void LabeledTensor::operator/=(const double& scale)
     T_.scale(1.0/scale);
 }
 
+LabeledTensorDistributive LabeledTensor::operator*(const LabeledTensorAddition& rhs)
+{
+    return LabeledTensorDistributive(*this, rhs);
+}
+
+void LabeledTensor::operator=(const LabeledTensorDistributive &rhs)
+{
+    T_.zero();
+
+    for (const LabeledTensor& B : rhs.B()) {
+        *this += const_cast<LabeledTensor&>(rhs.A()) * const_cast<LabeledTensor&>(B);
+    }
+}
+
 }
