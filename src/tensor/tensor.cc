@@ -13,90 +13,6 @@
 
 namespace tensor {
 
-namespace {
-
-void add_all_indices(const LabeledTensor& x, std::list<std::string>& list)
-{
-    std::vector<std::string>::const_iterator iter, end = x.indices().end();
-    for (iter = x.indices().begin(); iter != end; ++iter) {
-        list.push_back(*iter);
-    }
-}
-
-int find_index_in_labeled_tensor(const LabeledTensor& x, const std::string& index)
-{
-    long xpos = -1;
-    std::vector<std::string>::const_iterator at = std::find(x.indices().begin(), x.indices().end(), index);
-    if (at != x.indices().end()) {
-        xpos = at - x.indices().begin();
-    }
-
-    return (int)xpos;
-}
-
-}
-
-// Constructs a ContractionTopology object for C = A * B.
-ContractionTopology::ContractionTopology(const LabeledTensor& C, const LabeledTensor& A, const LabeledTensor& B)
-{
-    std::list<std::string> listOfIndices;
-
-    // Add all indices from each LabeledTensor
-    add_all_indices(C, listOfIndices);
-    add_all_indices(A, listOfIndices);
-    add_all_indices(B, listOfIndices);
-
-    // Sort and grab unique
-    listOfIndices.sort();
-    listOfIndices.unique();
-
-//    printf("Contraction Topology: number of indices %zu\n", listOfIndices.size());
-    // Walk our way through the list of unique indices and assign topology values
-    for (std::list<std::string>::const_iterator index = listOfIndices.begin(),
-            end = listOfIndices.end();
-            index != end;
-            ++index) {
-
-        // In each LabeledTensor find the index
-        int Cpos = find_index_in_labeled_tensor(C, *index),
-            Apos = find_index_in_labeled_tensor(A, *index),
-            Bpos = find_index_in_labeled_tensor(B, *index);
-
-        indices_.push_back(*index);
-        A_pos_.push_back(Apos);
-        B_pos_.push_back(Bpos);
-        C_pos_.push_back(Cpos);
-
-        ContractionType type;
-        if (Cpos != -1 && Apos != -1 && Bpos != -1) {
-            type = ABC;
-            if (A.T().dims()[Apos] != B.T().dims()[Bpos] || A.T().dims()[Apos] != C.T().dims()[Cpos]) {
-                throw std::runtime_error("Invalid ABC contraction index sizes!");
-            }
-        } else if (Apos != -1 && Bpos != -1 && Cpos == -1) {
-            type = AB;
-            if (A.T().dims()[Apos] != B.T().dims()[Bpos]) {
-                throw std::runtime_error("Invalid AB contraction index sizes!");
-            }
-        } else if (Apos != -1 && Bpos == -1 && Cpos != -1) {
-            type = AC;
-            if (A.T().dims()[Apos] != C.T().dims()[Cpos]) {
-                throw std::runtime_error("Invalid AC contraction index sizes!");
-            }
-        } else if (Apos == -1 && Bpos != -1 && Cpos != -1) {
-            type = BC;
-            if (B.T().dims()[Bpos] != C.T().dims()[Cpos]) {
-                throw std::runtime_error("Invalid BC contraction index sizes!");
-            }
-        } else
-            throw std::runtime_error("Invalid contraction topology!");
-
-        types_.push_back(type);
-
-//        printf("%s: %d %d %d %d\n", index->c_str(), Cpos, Apos, Bpos, type);
-    }
-}
-
 int initialize(int argc, char** argv)
 {
 #if defined(HAVE_CYCLOPS)
@@ -377,15 +293,6 @@ void Tensor::permute(
     const std::vector<std::string>& Ainds)
 {
     tensor_->permute(A.tensor_.get(),Cinds,Ainds);
-}
-
-void Tensor::contract(const Tensor &A, const Tensor &B, const ContractionTopology &topology, double alpha, double beta)
-{
-    tensor_->contract(A.tensor_.get(),
-                      B.tensor_.get(),
-                      topology,
-                      alpha,
-                      beta);
 }
 
 bool Tensor::operator==(const Tensor& other) const

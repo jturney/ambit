@@ -167,14 +167,6 @@ public:
         double alpha = 1.0,
         double beta = 1.0);
 
-    void contract(
-            const Tensor& A,
-            const Tensor& B,
-            const ContractionTopology& topology,
-            double alpha = 1.0,
-            double beta = 0.0
-    );
-
     void permute(
         const Tensor& A,
         const std::vector<std::string>& Cinds,
@@ -299,37 +291,6 @@ public:
 private:
     const LabeledTensor& A_;
     const LabeledTensor& B_;
-};
-
-enum ContractionType {
-    AB, // Contraction index
-    AC, // Outer left index
-    BC, // Outer right index
-    ABC, // Hadamard index
-    invalid
-};
-
-class ContractionTopology
-{
-public:
-
-    ContractionTopology(const LabeledTensor& C,
-                        const LabeledTensor& A,
-                        const LabeledTensor& B);
-
-
-    const std::vector<std::string>& indices() const { return indices_; }
-    const std::vector<int>& A_pos() const { return A_pos_; }
-    const std::vector<int>& B_pos() const { return B_pos_; }
-    const std::vector<int>& C_pos() const { return C_pos_; }
-    const std::vector<ContractionType>& types() const { return types_; }
-
-private:
-    std::vector<std::string> indices_;
-    std::vector<int> A_pos_;
-    std::vector<int> B_pos_;
-    std::vector<int> C_pos_;
-    std::vector<ContractionType> types_;
 };
 
 }

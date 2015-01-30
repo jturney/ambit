@@ -96,14 +96,6 @@ public:
         double alpha = 1.0,
         double beta = 0.0) = 0;
 
-    virtual void contract(
-        ConstTensorImplPtr A,
-        ConstTensorImplPtr B,
-        const ContractionTopology& topology,
-        double alpha = 1.0,
-        double beta = 0.0
-        ) = 0;
-
     virtual void permute(
         ConstTensorImplPtr A,
         const std::vector<std::string>& Cinds,
