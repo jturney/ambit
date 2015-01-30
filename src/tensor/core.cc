@@ -324,12 +324,41 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
 
 std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
 {
-    ThrowNotImplementedException;
+    squareCheck(this, true);
+
+    CoreTensorImpl *vecs = new CoreTensorImpl("Eigenvectors of " + name(), dims());
+    CoreTensorImpl *vals = new CoreTensorImpl("Eigenvalues of " + name(), {dims()[0]});
+
+    vecs->copy(this, 1.0);
+
+    size_t n = dims()[0];
+    size_t lwork = 3 * dims()[0];
+    double *work = new double[lwork];
+    C_DSYEV('V', 'U', n, vecs->data_, n, vals->data_, work, lwork);
+
+    std::map<std::string, TensorImplPtr> result;
+    result["eigenvectors"] = vecs;
+    result["eigenvalues"] = vals;
+
+    return result;
 }
+
 std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order) const
 {
-    ThrowNotImplementedException;
+//    squareCheck(this, true);
+//
+//    CoreTensorImpl *L = new CoreTensorImpl("Left eigenvectors of " + name(), dims());
+//    CoreTensorImpl *R = new CoreTensorImpl("Right eigenvectors of " + name(), dims());
+//    CoreTensorImpl *work = new CoreTensorImpl("Work of " + name(), dims());
+//    CoreTensorImpl *vals = new CoreTensorImpl("Eigenvalues of " + name(), {dims()[0]});
+//
+//    work->copy(this, 1.0);
+//
+//    size_t n = dims()[0];
+//    size_t work = 4*n;
+//    double *
 }
+
 std::map<std::string, TensorImplPtr> CoreTensorImpl::svd() const
 {
     ThrowNotImplementedException;

@@ -84,6 +84,8 @@ public:
 
     void copy(const Tensor& other, const double& scale = 1.0);
 
+    Tensor();
+
     // => Reflectors <= //
 
     TensorType type() const;
@@ -180,7 +182,7 @@ private:
 
 protected:
 
-    Tensor();
+//    Tensor();
     Tensor(shared_ptr<TensorImpl> tensor);
 
     std::map<std::string, Tensor> map_to_tensor(const std::map<std::string, TensorImpl*>& x);

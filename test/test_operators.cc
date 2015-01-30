@@ -35,6 +35,7 @@ double test_C_minus_equal_2_A();
 double test_C_times_equal_2();
 double test_C_divide_equal_2();
 double test_Cij_equal_Cij();
+double test_syev();
 
 std::pair<std::string,double> test_C_equal_A_B(std::string c_ind,std::string a_ind,std::string b_ind,
                                                std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim);
@@ -60,7 +61,8 @@ int main(int argc, char* argv[])
             std::make_pair(test_Cij_equal_Aiabc_Bjabc,     "C(\"ij\") += A(\"iabc\") * B(\"jabc\")"),
             std::make_pair(test_Cikjl_equal_Aijab_Bklab,   "C(\"ikjl\") += A(\"ijab\") * B(\"klab\")"),
             std::make_pair(test_Cij_equal_Aji_trans,       "C(\"ij\") = A(\"ji\")^\\dagger"),
-            std::make_pair(test_Cij_equal_Cij,             "C(\"ij\") = C(\"ji\") not allowed")
+            std::make_pair(test_Cij_equal_Cij,             "C(\"ij\") = C(\"ji\") not allowed"),
+            std::make_pair(test_syev,                      "Diagonalization (not confirmed)")
     };
 
     std::vector<std::pair<std::string,double> > results;
@@ -767,4 +769,23 @@ double test_Cij_equal_Cij()
         return 0.00;
     }
     return 1.0;
+}
+
+double test_syev()
+{
+    size_t ni = 9;
+
+    Dimension dimsC;
+    dimsC.push_back(ni); dimsC.push_back(ni);
+    Tensor C = Tensor::build(kCore, "C", dimsC);
+    initialize_random_2(C,c2);
+
+    auto result = C.syev(kAscending);
+
+//    Tensor vectors = result["eigenvectors"];
+
+    result["eigenvectors"].print(stdout, 1);
+    result["eigenvalues"].print(stdout, 1);
+
+    return 0.0;
 }
