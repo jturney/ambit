@@ -33,6 +33,15 @@ public:
     // => Contraction Type Operations <= //
 
     void contract(
+        ConstTensorImplPtr A,
+        ConstTensorImplPtr B,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds,
+        const std::vector<std::string>& Binds,
+        double alpha = 1.0,
+        double beta = 0.0);
+
+    void contract(
          ConstTensorImplPtr A,
          ConstTensorImplPtr B,
          const ContractionTopology& topology,
@@ -40,15 +49,10 @@ public:
          double beta = 0.0
          );
 
-    /**
-     * Perform C(0:n) = A(Ainds(0:n))
-     * E.g., to do C_ijkl = A_lkij
-     *
-     * Call C->permute(A,{3,2,0,1})
-     **/
     void permute(
-         ConstTensorImplPtr A,
-         const std::vector<int>& Ainds);
+        ConstTensorImplPtr A,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds);
 
     // => Order-2 Operations <= //
 
@@ -106,6 +110,43 @@ private:
     bool A_transpose_;
     bool B_transpose_;
     bool C_transpose_;
+
+};
+
+class CoreContractionManager {
+
+public:
+    CoreContractionManager(
+        const CoreTensorImpl& C,
+        const CoreTensorImpl& A,
+        const CoreTensorImpl& B,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds,
+        const std::vector<std::string>& Binds,
+        double alpha,
+        double beta) :
+        C_(C),
+        A_(A),
+        B_(B),
+        Cinds_(Cinds),
+        Ainds_(Ainds),
+        Binds_(Binds),
+        alpha_(alpha),
+        beta_(beta)
+    {}
+
+    void contract();
+
+private:    
+   
+    const CoreTensorImpl& C_; 
+    const CoreTensorImpl& A_; 
+    const CoreTensorImpl& B_; 
+    const std::vector<std::string>& Cinds_;
+    const std::vector<std::string>& Ainds_;
+    const std::vector<std::string>& Binds_;
+    double alpha_;
+    double beta_;
 
 };
 

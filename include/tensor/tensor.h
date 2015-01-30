@@ -159,6 +159,15 @@ public:
     // => Contraction Type Operations <= //
 
     void contract(
+        const Tensor& A,
+        const Tensor& B,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds,
+        const std::vector<std::string>& Binds,
+        double alpha = 1.0,
+        double beta = 1.0);
+
+    void contract(
             const Tensor& A,
             const Tensor& B,
             const ContractionTopology& topology,
@@ -168,8 +177,8 @@ public:
 
     void permute(
         const Tensor& A,
-        const std::vector<int>& Ainds);
-
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds);
 
     bool operator==(const Tensor& other) const;
     bool operator!=(const Tensor& other) const;

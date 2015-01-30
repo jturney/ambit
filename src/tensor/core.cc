@@ -2,6 +2,7 @@
 #include "core.h"
 #include "memory.h"
 #include "math/math.h"
+#include "indices.h"
 #include <string.h>
 
 #include <boost/timer/timer.hpp>
@@ -102,6 +103,19 @@ double CoreTensorImpl::dot(ConstTensorImplPtr x) const
     return C_DDOT(numel(), data_, 1, ((ConstCoreTensorImplPtr)x)->data(), 1);
 }
 
+void CoreTensorImpl::contract(
+    ConstTensorImplPtr A,
+    ConstTensorImplPtr B,
+    const std::vector<std::string>& Cinds,
+    const std::vector<std::string>& Ainds,
+    const std::vector<std::string>& Binds,
+    double alpha,
+    double beta)
+{
+    CoreContractionManager manager(*this,*(const CoreTensorImplPtr)A,*(const CoreTensorImplPtr)B,Cinds,Ainds,Binds,alpha,beta);
+    manager.contract();
+}
+
 void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B, const ContractionTopology &topology,
                               double alpha, double beta)
 {
@@ -109,8 +123,20 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B, const 
     CoreTensorContractionTopology manager(topology,*this,*(const CoreTensorImplPtr)A,*(const CoreTensorImplPtr)B);
     manager.contract(alpha,beta);
 }
-void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds)
+void CoreTensorImpl::permute(
+    ConstTensorImplPtr A, 
+    const std::vector<std::string>& CindsS,
+    const std::vector<std::string>& AindsS)
 {
+    // => Convert to indices of A <= //
+
+    std::vector<int> Ainds = indices::permutation_order(CindsS, AindsS);
+
+    for (int dim = 0; dim < rank(); dim++) {
+        if (dims()[dim] != A->dims()[Ainds[dim]])
+            throw std::runtime_error("Permuted tensors do not have same dimensions");
+    }
+
     /// Data pointers
     double* Cp = data();
     double* Ap = ((const CoreTensorImplPtr)A)->data();
@@ -135,7 +161,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
     /// Determine the total number of memcpy operations
     int slow_dims = rank() - fast_dims;
 
-    // Fully sorted case or (equivalently) 0-rank tensors
+    /// Fully sorted case or (equivalently) rank-0 or rank-1 tensors
     if (slow_dims == 0) {
         ::memcpy(Cp,Ap,sizeof(double)*fast_size);
         return;
@@ -321,7 +347,6 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const std::vector<int>& Ainds
         }
     }
 }
-
 std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
 {
     ThrowNotImplementedException;
@@ -574,6 +599,243 @@ void CoreTensorContractionTopology::contract(double alpha, double beta)
         Ap += AB_size_ * AC_size_;
         Bp += AB_size_ * BC_size_;
     }
+}
+
+namespace indices {
+
+int find_index_in_vector(const std::vector<std::string>& vec, const std::string& key)
+{
+    for (size_t ind = 0L; ind < vec.size(); ind++) {
+        if (key == vec[ind]) {
+            return ind;
+        }
+    } 
+    return -1;
+}
+bool is_contiguous(const std::vector<std::pair<int, std::string>>& vec) 
+{
+    for (int prim = 0L; prim < ((int)vec.size()) - 1; prim++) {
+        if (vec[prim+1].first != vec[prim].first + 1) {
+            return false;
+        }
+    }
+    return true;
+}
+bool is_equivalent(const std::vector<std::string>& vec1, const std::vector<std::string>& vec2) 
+{
+    for (int prim = 0L; prim < vec1.size(); prim++) {
+        if (vec1[prim] != vec2[prim]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+}
+
+void CoreContractionManager::contract()
+{
+    // Determine unique indices
+    std::vector<std::string> inds;
+    inds.insert(inds.end(),Cinds_.begin(),Cinds_.end());
+    inds.insert(inds.end(),Ainds_.begin(),Ainds_.end());
+    inds.insert(inds.end(),Binds_.begin(),Binds_.end());
+    std::sort(inds.begin(), inds.end());
+    std::vector<std::string>::iterator it = std::unique(inds.begin(), inds.end());
+    inds.resize(std::distance(inds.begin(),it));
+
+    // Determine index types and positions
+    std::vector<std::string> compound_names = {"PC", "PA", "PB", "iC", "iA", "jC", "jB", "kA", "kB"};
+    std::map<std::string, std::vector<std::pair<int, std::string>>> compound_inds;
+    for (size_t ind = 0L; ind < compound_names.size(); ind++) {
+        compound_inds[compound_names[ind]] = std::vector<std::pair<int, std::string>>();
+    }
+    for (size_t ind = 0L; ind < inds.size(); ind++) {
+        std::string index = inds[ind];
+        int Cpos = indices::find_index_in_vector(Cinds_,index);
+        int Apos = indices::find_index_in_vector(Ainds_,index);
+        int Bpos = indices::find_index_in_vector(Binds_,index);
+        if (Cpos != -1 && Apos != -1 && Bpos != -1) {
+            if (C_.dims()[Cpos] != A_.dims()[Apos] || C_.dims()[Cpos] != B_.dims()[Bpos]) 
+                throw std::runtime_error("Invalid ABC (Hadamard) index size");
+            compound_inds["PC"].push_back(std::make_pair(Cpos,index));
+            compound_inds["PA"].push_back(std::make_pair(Apos,index));
+            compound_inds["PB"].push_back(std::make_pair(Bpos,index));
+        } else if (Cpos != -1 && Apos != -1 && Bpos == -1) {
+            if (C_.dims()[Cpos] != A_.dims()[Apos])
+                throw std::runtime_error("Invalid AC (Left) index size");
+            compound_inds["iC"].push_back(std::make_pair(Cpos,index));
+            compound_inds["iA"].push_back(std::make_pair(Apos,index));
+        } else if (Cpos != -1 && Apos == -1 && Bpos != -1) {
+            if (C_.dims()[Cpos] != B_.dims()[Bpos])
+                throw std::runtime_error("Invalid BC (Right) index size");
+            compound_inds["jC"].push_back(std::make_pair(Cpos,index));
+            compound_inds["jB"].push_back(std::make_pair(Bpos,index));
+        } else if (Cpos == -1 && Apos != -1 && Bpos != -1) {
+            if (A_.dims()[Apos] != B_.dims()[Bpos])
+                throw std::runtime_error("Invalid AB (Contraction) index size");
+            compound_inds["kA"].push_back(std::make_pair(Apos,index));
+            compound_inds["kB"].push_back(std::make_pair(Bpos,index));
+        } else {
+            throw std::runtime_error("Invalid contraction topology - index only occurs once.");
+        }
+    }
+
+    // Sort compound indices by primitive indices to determine continuity
+    for (size_t ind = 0L; ind < compound_names.size(); ind++) {
+        std::sort(compound_inds[compound_names[ind]].begin(), compound_inds[compound_names[ind]].end());
+    } 
+
+    // The list to mark for permutation [C,A,B]
+    std::vector<bool> perms(3,false);
+
+    // Contiguous Index Test (always requires permutation)
+    perms[0] = perms[0] || !indices::is_contiguous(compound_inds["PC"]);
+    perms[0] = perms[0] || !indices::is_contiguous(compound_inds["iC"]);
+    perms[0] = perms[0] || !indices::is_contiguous(compound_inds["jC"]);
+    perms[1] = perms[1] || !indices::is_contiguous(compound_inds["PA"]);
+    perms[1] = perms[1] || !indices::is_contiguous(compound_inds["iA"]);
+    perms[1] = perms[1] || !indices::is_contiguous(compound_inds["kA"]);
+    perms[2] = perms[2] || !indices::is_contiguous(compound_inds["PB"]);
+    perms[2] = perms[2] || !indices::is_contiguous(compound_inds["jB"]);
+    perms[2] = perms[2] || !indices::is_contiguous(compound_inds["kB"]);
+
+    // Hadamard Test (always requires permutation)
+    int Psize = compound_inds["PC"].size();
+    if (Psize) {
+        perms[0] = perms[0] || (compound_inds["PC"][0].first != 0);
+        perms[1] = perms[1] || (compound_inds["PA"][0].first != 0);
+        perms[2] = perms[2] || (compound_inds["PB"][0].first != 0);
+    }
+
+    // Fix contiguous considerations (already in correct order for contiguous cases)
+    std::map<std::string, std::vector<std::string> > compound_inds2;
+    for (size_t ind = 0L; ind < compound_names.size(); ind++) {
+        std::string key = compound_names[ind];
+        std::vector<std::string> vals;
+        for (size_t ind2 = 0L; ind2 < compound_inds[key].size(); ind2++) {
+            vals.push_back(compound_inds[key][ind2].second);
+        }
+        compound_inds2[key] = vals;
+    }
+
+    /**
+    * Fix permutation order considerations
+    *
+    * Rules if a permutation mismatch is detected:
+    * -If both tensors are already on the permute list, it doesn't matter which is fixed
+    * -Else if one tensor is already on the permute list but not the other, fix the one that is already on the permute list
+    * -Else fix the smaller tensor
+    *
+    * Note: this scheme is not optimal is permutation mismatches exist in P - for reasons of simplicity, A and B are 
+    * permuted to C's P order, with no present considerations of better pathways
+    **/
+    if (!indices::is_equivalent(compound_inds2["iC"],compound_inds2["iA"])) {
+        if (perms[0]) {
+            compound_inds2["iC"] = compound_inds2["iA"];
+        } else if (perms[1]) {
+            compound_inds2["iA"] = compound_inds2["iC"];
+        } else if (C_.numel() <= A_.numel()) {
+            compound_inds2["iC"] = compound_inds2["iA"];
+            perms[0] = true; 
+        } else {
+            compound_inds2["iA"] = compound_inds2["iC"];
+            perms[1] = true; 
+        }
+    }
+    if (!indices::is_equivalent(compound_inds2["jC"],compound_inds2["jB"])) {
+        if (perms[0]) {
+            compound_inds2["jC"] = compound_inds2["jB"];
+        } else if (perms[2]) {
+            compound_inds2["jB"] = compound_inds2["jC"];
+        } else if (C_.numel() <= B_.numel()) {
+            compound_inds2["jC"] = compound_inds2["jB"];
+            perms[0] = true; 
+        } else {
+            compound_inds2["jB"] = compound_inds2["jC"];
+            perms[2] = true; 
+        }
+    }
+    if (!indices::is_equivalent(compound_inds2["kA"],compound_inds2["kB"])) {
+        if (perms[1]) {
+            compound_inds2["kA"] = compound_inds2["kB"];
+        } else if (perms[2]) {
+            compound_inds2["kB"] = compound_inds2["kA"];
+        } else if (A_.numel() <= B_.numel()) {
+            compound_inds2["kA"] = compound_inds2["kB"];
+            perms[1] = true; 
+        } else {
+            compound_inds2["kB"] = compound_inds2["kA"];
+            perms[2] = true; 
+        }
+    }
+    if (!indices::is_equivalent(compound_inds2["PC"],compound_inds2["PA"])) {
+        compound_inds2["PA"] = compound_inds2["PC"];
+        perms[1] = true; 
+    }
+    if (!indices::is_equivalent(compound_inds2["PC"],compound_inds2["PB"])) {
+        compound_inds2["PB"] = compound_inds2["PC"];
+        perms[2] = true; 
+    }
+
+    /// Assign the permuted indices (if flagged for permute) or the original indices
+    std::vector<std::string> Cinds2;
+    std::vector<std::string> Ainds2;
+    std::vector<std::string> Binds2;
+    if (perms[0]) {
+        Cinds2.insert(Cinds2.begin(),compound_inds2["PC"].begin(),compound_inds2["PC"].end());
+        Cinds2.insert(Cinds2.begin(),compound_inds2["iC"].begin(),compound_inds2["iC"].end());
+        Cinds2.insert(Cinds2.begin(),compound_inds2["jC"].begin(),compound_inds2["jC"].end());
+    } else {
+        Cinds2 = Cinds_;
+    }
+    if (perms[1]) {
+        Ainds2.insert(Ainds2.begin(),compound_inds2["PA"].begin(),compound_inds2["PA"].end());
+        Ainds2.insert(Ainds2.begin(),compound_inds2["iA"].begin(),compound_inds2["iA"].end());
+        Ainds2.insert(Ainds2.begin(),compound_inds2["kA"].begin(),compound_inds2["kA"].end());
+    } else {
+        Ainds2 = Ainds_;
+    }
+    if (perms[2]) {
+        Binds2.insert(Binds2.begin(),compound_inds2["PB"].begin(),compound_inds2["PB"].end());
+        Binds2.insert(Binds2.begin(),compound_inds2["jB"].begin(),compound_inds2["jB"].end());
+        Binds2.insert(Binds2.begin(),compound_inds2["kB"].begin(),compound_inds2["kB"].end());
+    } else {
+        Binds2 = Binds_;
+    }
+
+    printf("==> Core Contraction <==\n\n");
+    printf("Original: C[");
+    for (size_t ind = 0l; ind < Cinds_.size(); ind++) {
+        printf("%s", Cinds_[ind].c_str());
+    }
+    printf("] = A["); 
+    for (size_t ind = 0l; ind < Ainds_.size(); ind++) {
+        printf("%s", Ainds_[ind].c_str());
+    }
+    printf("] * B["); 
+    for (size_t ind = 0l; ind < Binds_.size(); ind++) {
+        printf("%s", Binds_[ind].c_str());
+    }
+    printf("]\n"); 
+    printf("New:      C[");
+    for (size_t ind = 0l; ind < Cinds2.size(); ind++) {
+        printf("%s", Cinds2[ind].c_str());
+    }
+    printf("] = A["); 
+    for (size_t ind = 0l; ind < Ainds2.size(); ind++) {
+        printf("%s", Ainds2[ind].c_str());
+    }
+    printf("] * B["); 
+    for (size_t ind = 0l; ind < Binds2.size(); ind++) {
+        printf("%s", Binds2[ind].c_str());
+    }
+    printf("]\n"); 
+    printf("C Permuted: %s\n", perms[0] ? "Yes" : "No");
+    printf("A Permuted: %s\n", perms[1] ? "Yes" : "No");
+    printf("B Permuted: %s\n", perms[2] ? "Yes" : "No");
+    printf("\n");
+    
 }
 
 }

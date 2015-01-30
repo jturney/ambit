@@ -353,6 +353,32 @@ Tensor& Tensor::givens(int dim, int i, int j, double s, double c)
     return *this;
 }
 
+void Tensor::contract(
+    const Tensor& A,
+    const Tensor& B,
+    const std::vector<std::string>& Cinds,
+    const std::vector<std::string>& Ainds,
+    const std::vector<std::string>& Binds,
+    double alpha,
+    double beta)
+{
+    tensor_->contract(
+        A.tensor_.get(),
+        B.tensor_.get(),
+        Cinds,
+        Ainds,
+        Binds,
+        alpha,
+        beta);
+}
+void Tensor::permute(
+    const Tensor &A, 
+    const std::vector<std::string>& Cinds,
+    const std::vector<std::string>& Ainds)
+{
+    tensor_->permute(A.tensor_.get(),Cinds,Ainds);
+}
+
 void Tensor::contract(const Tensor &A, const Tensor &B, const ContractionTopology &topology, double alpha, double beta)
 {
     tensor_->contract(A.tensor_.get(),
@@ -360,11 +386,6 @@ void Tensor::contract(const Tensor &A, const Tensor &B, const ContractionTopolog
                       topology,
                       alpha,
                       beta);
-}
-
-void Tensor::permute(const Tensor &A, const std::vector<int> &Ainds)
-{
-    tensor_->permute(A.tensor_.get(),Ainds);
 }
 
 bool Tensor::operator==(const Tensor& other) const
