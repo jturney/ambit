@@ -728,7 +728,7 @@ double test_Cij_equal_Aji_trans()
     Tensor A = Tensor::build(kCore, "A", dimsA);
 
     Dimension dimsC;
-    dimsC.push_back(nj); dimsC.push_back(ni);
+    dimsC.push_back(ni); dimsC.push_back(nj);
     Tensor C = Tensor::build(kCore, "C", dimsC);
 
     initialize_random_2(C,c2);
