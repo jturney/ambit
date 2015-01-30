@@ -28,7 +28,9 @@ double test_Cij_equal_Aik_Bjk();
 double test_Cijkl_equal_Aijab_Bklab();
 double test_Cikjl_equal_Aijab_Bklab();
 double test_Cij_equal_Aiabc_Bjabc();
-double test_Cij_equal_Aji_trans();
+double test_Cij_equal_Aji();
+double test_Cijkl_equal_Akilj();
+double test_Cijkl_equal_Akijl();
 double test_C_equal_2_A();
 double test_C_plus_equal_2_A();
 double test_C_minus_equal_2_A();
@@ -59,7 +61,9 @@ int main(int argc, char* argv[])
             std::make_pair(test_Cijkl_equal_Aijab_Bklab,   "C(\"ijkl\") += A(\"ijab\") * B(\"klab\")"),
             std::make_pair(test_Cij_equal_Aiabc_Bjabc,     "C(\"ij\") += A(\"iabc\") * B(\"jabc\")"),
             std::make_pair(test_Cikjl_equal_Aijab_Bklab,   "C(\"ikjl\") += A(\"ijab\") * B(\"klab\")"),
-            std::make_pair(test_Cij_equal_Aji_trans,       "C(\"ij\") = A(\"ji\")^\\dagger"),
+            std::make_pair(test_Cij_equal_Aji,             "C(\"ij\") = A(\"ji\")"),
+            std::make_pair(test_Cijkl_equal_Akilj,         "C(\"ijkl\") = A(\"kilj\")"),
+            std::make_pair(test_Cijkl_equal_Akijl,         "C(\"ijkl\") = A(\"kijl\")"),
             std::make_pair(test_Cij_equal_Cij,             "C(\"ij\") = C(\"ji\") not allowed")
     };
 
@@ -718,7 +722,7 @@ double test_C_divide_equal_2()
     return c_diff.second;
 }
 
-double test_Cij_equal_Aji_trans()
+double test_Cij_equal_Aji()
 {
     size_t ni = 9;
     size_t nj = 6;
@@ -744,6 +748,81 @@ double test_Cij_equal_Aji_trans()
             c2[i][j] = a2[j][i];
         }
     }
+    c_diff = difference_2(C,c2);
+
+    //A.print(stdout, true);
+    //C.print(stdout, true);
+
+    return c_diff.second;
+}
+double test_Cijkl_equal_Akijl()
+{
+    size_t ni = 9;
+    size_t nj = 6;
+    size_t nk = 5;
+    size_t nl = 4;
+
+    Dimension dimsA = {nk,ni,nj,nl};
+    Tensor A = Tensor::build(kCore, "A", dimsA);
+
+    Dimension dimsC = {ni,nj,nk,nl};
+    Tensor C = Tensor::build(kCore, "C", dimsC);
+
+    initialize_random_4(C,c4);
+    std::pair<double,double> c_diff = difference_4(C,c4);
+
+    initialize_random_4(A,a4);
+    std::pair<double,double> a_diff = difference_4(A,a4);
+
+    C("ijkl") = A("kijl");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            for (size_t k = 0; k < nk; ++k){
+                for (size_t l = 0; l < nl; ++l){
+                    c4[i][j][k][l] = a4[k][i][j][l];
+                }
+            }
+        }
+    }
+    c_diff = difference_4(C,c4);
+
+    //A.print(stdout, true);
+    //C.print(stdout, true);
+
+    return c_diff.second;
+}
+double test_Cijkl_equal_Akilj()
+{
+    size_t ni = 9;
+    size_t nj = 6;
+    size_t nk = 5;
+    size_t nl = 4;
+
+    Dimension dimsA = {nk,ni,nl,nj};
+    Tensor A = Tensor::build(kCore, "A", dimsA);
+
+    Dimension dimsC = {ni,nj,nk,nl};
+    Tensor C = Tensor::build(kCore, "C", dimsC);
+
+    initialize_random_4(C,c4);
+    std::pair<double,double> c_diff = difference_4(C,c4);
+
+    initialize_random_4(A,a4);
+    std::pair<double,double> a_diff = difference_4(A,a4);
+
+    C("ijkl") = A("kilj");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            for (size_t k = 0; k < nk; ++k){
+                for (size_t l = 0; l < nl; ++l){
+                    c4[i][j][k][l] = a4[k][i][l][j];
+                }
+            }
+        }
+    }
+    c_diff = difference_4(C,c4);
 
     //A.print(stdout, true);
     //C.print(stdout, true);

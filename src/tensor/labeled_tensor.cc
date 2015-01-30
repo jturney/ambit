@@ -72,7 +72,7 @@ void LabeledTensor::operator=(const LabeledTensorProduct& rhs)
     const LabeledTensor& B = rhs[1];
 
     // 1. create a ContractionTopology
-    ContractionTopology ct(*this, A, B);
+    //ContractionTopology ct(*this, A, B);
 
     T_.contract(A.T(),
                 B.T(),
@@ -83,12 +83,12 @@ void LabeledTensor::operator=(const LabeledTensorProduct& rhs)
                 0.0);
     
     // 2. call contract on the tensor.
-    T_.contract(A.T(),
-                B.T(),
-                ct,
-                A.factor() * B.factor(),
-                0.0);
-                 
+    //T_.contract(A.T(),
+    //            B.T(),
+    //            ct,
+    //            A.factor() * B.factor(),
+    //            0.0);
+    //             
 }
 
 void LabeledTensor::operator+=(const LabeledTensorProduct& rhs)
@@ -99,7 +99,7 @@ void LabeledTensor::operator+=(const LabeledTensorProduct& rhs)
     const LabeledTensor& B = rhs[1];
 
     // 1. create a ContractionTopology
-    ContractionTopology ct(*this, A, B);
+    //ContractionTopology ct(*this, A, B);
 
     T_.contract(A.T(),
                 B.T(),
@@ -110,11 +110,11 @@ void LabeledTensor::operator+=(const LabeledTensorProduct& rhs)
                 1.0);
     
     // 2. call contract on the tensor.
-    T_.contract(A.T(),
-                B.T(),
-                ct,
-                A.factor() * B.factor(),
-                1.0);
+    //T_.contract(A.T(),
+    //            B.T(),
+    //            ct,
+    //            A.factor() * B.factor(),
+    //            1.0);
 }
 
 void LabeledTensor::operator-=(const LabeledTensorProduct& rhs)
@@ -125,7 +125,7 @@ void LabeledTensor::operator-=(const LabeledTensorProduct& rhs)
     const LabeledTensor& B = rhs[1];
 
     // 1. create a ContractionTopology
-    ContractionTopology ct(*this, A, B);
+    //ContractionTopology ct(*this, A, B);
 
     T_.contract(A.T(),
                 B.T(),
@@ -136,11 +136,11 @@ void LabeledTensor::operator-=(const LabeledTensorProduct& rhs)
                 1.0);
 
     // 2. call contract on the tensor.
-    T_.contract(A.T(),
-                B.T(),
-                ct,
-                - A.factor() * B.factor(),
-                1.0);
+    //T_.contract(A.T(),
+    //            B.T(),
+    //            ct,
+    //            - A.factor() * B.factor(),
+    //            1.0);
 
 }
 

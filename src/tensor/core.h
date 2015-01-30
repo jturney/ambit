@@ -117,7 +117,7 @@ class CoreContractionManager {
 
 public:
     CoreContractionManager(
-        const CoreTensorImpl& C,
+        CoreTensorImpl& C,
         const CoreTensorImpl& A,
         const CoreTensorImpl& B,
         const std::vector<std::string>& Cinds,
@@ -139,7 +139,7 @@ public:
 
 private:    
    
-    const CoreTensorImpl& C_; 
+    CoreTensorImpl& C_; 
     const CoreTensorImpl& A_; 
     const CoreTensorImpl& B_; 
     const std::vector<std::string>& Cinds_;
