@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <tensor/tensor.h>
 
 namespace tensor {
 
@@ -22,8 +23,18 @@ bool equivalent(const std::vector<std::string>& left, const std::vector<std::str
 
 std::vector<int> permutation_order(const std::vector<std::string>& left, const std::vector<std::string>& right);
 
-}
+// => Stuff for contract <= //
+
+int find_index_in_vector(const std::vector<std::string>& vec, const std::string& key);
+
+bool contiguous(const std::vector<std::pair<int, std::string>>& vec);
+
+Dimension permuted_dimension(
+    const Dimension& old_dim, 
+    const std::vector<std::string>& new_order,
+    const std::vector<std::string>& old_order);
 
 }
 
+}
 #endif

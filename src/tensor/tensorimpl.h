@@ -90,14 +90,16 @@ public:
     virtual void contract(
         ConstTensorImplPtr A,
         ConstTensorImplPtr B,
-        const ContractionTopology& topology,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds,
+        const std::vector<std::string>& Binds,
         double alpha = 1.0,
-        double beta = 0.0
-        ) = 0;
+        double beta = 0.0) = 0;
 
     virtual void permute(
         ConstTensorImplPtr A,
-        const std::vector<int>& Ainds) = 0;
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds) = 0;
 
     // => Rank-2 Operations <= //
 

@@ -33,22 +33,18 @@ public:
     // => Contraction Type Operations <= //
 
     void contract(
-         ConstTensorImplPtr A,
-         ConstTensorImplPtr B,
-         const ContractionTopology& topology,
-         double alpha = 1.0,
-         double beta = 0.0
-         );
+        ConstTensorImplPtr A,
+        ConstTensorImplPtr B,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds,
+        const std::vector<std::string>& Binds,
+        double alpha = 1.0,
+        double beta = 0.0);
 
-    /**
-     * Perform C(0:n) = A(Ainds(0:n))
-     * E.g., to do C_ijkl = A_lkij
-     *
-     * Call C->permute(A,{3,2,0,1})
-     **/
     void permute(
-         ConstTensorImplPtr A,
-         const std::vector<int>& Ainds);
+        ConstTensorImplPtr A,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds);
 
     // => Order-2 Operations <= //
 
@@ -72,42 +68,6 @@ private:
 
 typedef CoreTensorImpl* CoreTensorImplPtr;
 typedef const CoreTensorImpl* ConstCoreTensorImplPtr;
-
-class CoreTensorContractionTopology {
-
-public:
-    CoreTensorContractionTopology(
-        const ContractionTopology& topology,
-        const CoreTensorImpl& C,
-        const CoreTensorImpl& A,
-        const CoreTensorImpl& B);
-
-    size_t ABC_size() const;
-    size_t AB_size() const;
-    size_t AC_size() const;
-    size_t BC_size() const;
-    bool A_transpose() const;
-    bool B_transpose() const;
-    bool C_transpose() const;
-
-    void contract(double alpha, double beta);
-
-
-private:
-    const ContractionTopology& topology_;
-    const CoreTensorImpl& C_;
-    const CoreTensorImpl& A_;
-    const CoreTensorImpl& B_;
-
-    size_t ABC_size_;
-    size_t AB_size_;
-    size_t AC_size_;
-    size_t BC_size_;
-    bool A_transpose_;
-    bool B_transpose_;
-    bool C_transpose_;
-
-};
 
 }
 
