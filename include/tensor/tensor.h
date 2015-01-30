@@ -183,7 +183,6 @@ private:
 
 protected:
 
-//    Tensor();
     Tensor(shared_ptr<TensorImpl> tensor);
 
     std::map<std::string, Tensor> map_to_tensor(const std::map<std::string, TensorImpl*>& x);

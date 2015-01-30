@@ -680,7 +680,7 @@ double test_syev()
 
     Tensor C = build_and_fill("C", {ni, ni}, c2);
 
-    auto result = C.syev(kAscending);
+    auto result = C.syev(kDescending);
 
 //    Tensor vectors = result["eigenvectors"];
 

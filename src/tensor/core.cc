@@ -651,6 +651,29 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
     double *work = new double[lwork];
     C_DSYEV('V', 'U', n, vecs->data_, n, vals->data_, work, lwork);
 
+    //If descending is required, the canonical order must be reversed
+    //Sort is stable
+    if (order == kDescending) {
+        double* Temp_sqrsp_col = memory::allocate<double>(n);
+        double w_Temp_sqrsp;
+
+        for (int c = 0; c<n/2; c++) {
+
+            //Swap eigenvectors
+            C_DCOPY(n, vecs->data_ + c,     n, Temp_sqrsp_col,      1);
+            C_DCOPY(n, vecs->data_ + n-c-1, n, vecs->data_ + c,     n);
+            C_DCOPY(n, Temp_sqrsp_col,      1, vecs->data_ + n-c-1, n);
+
+            //Swap eigenvalues
+            w_Temp_sqrsp = vals->data_[c];
+            vals->data_[c] = vals->data_[n-c-1];
+            vals->data_[n-c-1] = w_Temp_sqrsp;
+
+        }
+
+        memory::free(Temp_sqrsp_col);
+    }
+
     std::map<std::string, TensorImplPtr> result;
     result["eigenvectors"] = vecs;
     result["eigenvalues"] = vals;
