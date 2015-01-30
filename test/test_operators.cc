@@ -6,6 +6,14 @@
 #define MAXTWO 10
 #define MAXFOUR 10
 
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 double a2[MAXTWO][MAXTWO];
 double b2[MAXTWO][MAXTWO];
 double c2[MAXTWO][MAXTWO];
@@ -87,8 +95,8 @@ int main(int argc, char* argv[])
             std::make_pair(test_Cljik_equal_Abija_Blbak,   "C(\"ljik\") += A(\"bija\") * B(\"lbak\")"),
             std::make_pair(test_Cij_equal_Aij_plus_Bij,    "C(\"ij\") = A(\"ij\") + B(\"ij\")"),
             std::make_pair(test_Dij_equal_Aij_plus_Bij_plus_Cij, "D(\"ij\") = A(\"ij\") + B(\"ij\") + C(\"ij\")"),
-            std::make_pair(test_Cij_equal_Aij_minus_Bij,    "C(\"ij\") = A(\"ij\") - B(\"ij\")"),
-            std::make_pair(test_Dij_equal_Aij_minus_Bij_plus_Cij, "D(\"ij\") = A(\"ij\") - B(\"ij\") + C(\"ij\")"),
+            std::make_pair(test_Cij_equal_Aij_minus_Bij,    "C(\"ij\") = A(\"ij\") - 5.0 * B(\"ij\")"),
+            std::make_pair(test_Dij_equal_Aij_minus_Bij_plus_Cij, "D(\"ij\") = A(\"ij\") - B(\"ij\") + 2.0 * C(\"ij\")"),
             std::make_pair(test_syev,                      "Diagonalization (not confirmed)")
     };
 
@@ -135,7 +143,7 @@ int main(int argc, char* argv[])
             printf("\n %-50s %7e %s",
                    std::get<0>(sb).c_str(),
                    std::get<2>(sb),
-                   std::get<1>(sb) == kPassed ? "Passed" : std::get<1>(sb) == kFailed ? "Failed" : "Exception");
+                   std::get<1>(sb) == kPassed ? ANSI_COLOR_GREEN "Passed" ANSI_COLOR_RESET : std::get<1>(sb) == kFailed ? ANSI_COLOR_RED "Failed" ANSI_COLOR_RESET : ANSI_COLOR_YELLOW "Exception" ANSI_COLOR_RESET);
         }
         printf("\n %s",std::string(73,'-').c_str());
         printf("\n Tests: %s\n",success ? "All passed" : "Some failed");
@@ -796,11 +804,11 @@ double test_Cij_equal_Aij_minus_Bij()
     Tensor B = build_and_fill("B", {ni, nj}, b2);
     Tensor C = build_and_fill("C", {ni, nj}, c2);
 
-    C("ij") = A("ij") - B("ij");
+    C("ij") = A("ij") - 5.0 * B("ij");
 
     for (size_t i = 0; i < ni; ++i){
         for (size_t j = 0; j < nj; ++j){
-            c2[i][j] = a2[i][j] - b2[i][j];
+            c2[i][j] = a2[i][j] - 5.0 * b2[i][j];
         }
     }
 
@@ -817,11 +825,11 @@ double test_Dij_equal_Aij_minus_Bij_plus_Cij()
     Tensor C = build_and_fill("C", dims, c2);
     Tensor D = build_and_fill("D", dims, d2);
 
-    D("ij") = A("ij") - B("ij") + C("ij");
+    D("ij") = A("ij") - B("ij") + 2.0 * C("ij");
 
     for (size_t i = 0; i < ni; ++i){
         for (size_t j = 0; j < nj; ++j){
-            d2[i][j] = a2[i][j] - b2[i][j] + c2[i][j];
+            d2[i][j] = a2[i][j] - b2[i][j] + 2.0 * c2[i][j];
         }
     }
 
