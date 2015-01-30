@@ -65,6 +65,7 @@ double test_Cij_equal_Aij_minus_Bij();
 double test_Dij_equal_Aij_minus_Bij_plus_Cij();
 double test_Dij_equal_Aij_times_Bij_plus_Cij();
 double test_F_equal_D_times_2g_minus_g();
+double test_power();
 
 std::tuple<std::string,TestResult,double> test_C_equal_A_B(std::string c_ind,std::string a_ind,std::string b_ind,
                                                std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim);
@@ -101,10 +102,20 @@ int main(int argc, char* argv[])
             std::make_pair(test_Dij_equal_Aij_minus_Bij_plus_Cij, "D(\"ij\") = A(\"ij\") - B(\"ij\") + 2.0 * C(\"ij\")"),
             std::make_pair(test_Dij_equal_Aij_times_Bij_plus_Cij, "D(\"ij\") = A(\"ij\") * (2.0 * B(\"ij\") - C(\"ij\"))"),
             std::make_pair(test_F_equal_D_times_2g_minus_g, "F(\"ij\") = D(\"kl\") * (2.0 * g(\"ijkl\") - g(\"ikjl\"))"),
-            std::make_pair(test_syev,                      "Diagonalization (not confirmed)")
+            std::make_pair(test_syev,                      "Diagonalization (not confirmed)"),
+            std::make_pair(test_power,                     "C^(-1/2) (not confirmed)")
     };
 
     std::vector<std::tuple<std::string,TestResult,double>> results;
+
+    results.push_back(test_C_equal_A_B("ij","ik","jk",{0,1},{0,2},{1,2}));
+    results.push_back(test_C_equal_A_B("ij","ik","kj",{0,1},{0,2},{2,1}));
+    results.push_back(test_C_equal_A_B("ij","ki","jk",{0,1},{2,0},{1,2}));
+    results.push_back(test_C_equal_A_B("ij","ki","kj",{0,1},{2,0},{2,1}));
+    results.push_back(test_C_equal_A_B("ji","ik","jk",{1,0},{0,2},{1,2}));
+    results.push_back(test_C_equal_A_B("ji","ik","kj",{1,0},{0,2},{2,1}));
+    results.push_back(test_C_equal_A_B("ji","ki","jk",{1,0},{2,0},{1,2}));
+    results.push_back(test_C_equal_A_B("ji","ki","kj",{1,0},{2,0},{2,1}));
 
     for (auto test_function : test_functions) {
         printf("  Testing %s\n", test_function.second);
@@ -121,15 +132,6 @@ int main(int argc, char* argv[])
                                               0.0));
         }
     }
-
-    results.push_back(test_C_equal_A_B("ij","ik","jk",{0,1},{0,2},{1,2}));
-    results.push_back(test_C_equal_A_B("ij","ik","kj",{0,1},{0,2},{2,1}));
-    results.push_back(test_C_equal_A_B("ij","ki","jk",{0,1},{2,0},{1,2}));
-    results.push_back(test_C_equal_A_B("ij","ki","kj",{0,1},{2,0},{2,1}));
-    results.push_back(test_C_equal_A_B("ji","ik","jk",{1,0},{0,2},{1,2}));
-    results.push_back(test_C_equal_A_B("ji","ik","kj",{1,0},{0,2},{2,1}));
-    results.push_back(test_C_equal_A_B("ji","ki","jk",{1,0},{2,0},{1,2}));
-    results.push_back(test_C_equal_A_B("ji","ki","kj",{1,0},{2,0},{2,1}));
 
     tensor::finalize();
 
@@ -883,4 +885,17 @@ double test_F_equal_D_times_2g_minus_g()
     }
 
     return difference(F, a2).second;
+}
+
+double test_power()
+{
+    size_t ni = 9;
+
+    Tensor C = build_and_fill("C", {ni, ni}, c2);
+
+    Tensor A = C.power(-0.5);
+
+    A.print(stdout, true);
+
+    return 0;
 }

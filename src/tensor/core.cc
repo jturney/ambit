@@ -4,6 +4,7 @@
 #include "math/math.h"
 #include "indices.h"
 #include <string.h>
+#include <cmath>
 
 #include <boost/timer/timer.hpp>
 
@@ -683,18 +684,6 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
 
 std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order) const
 {
-//    squareCheck(this, true);
-//
-//    CoreTensorImpl *L = new CoreTensorImpl("Left eigenvectors of " + name(), dims());
-//    CoreTensorImpl *R = new CoreTensorImpl("Right eigenvectors of " + name(), dims());
-//    CoreTensorImpl *work = new CoreTensorImpl("Work of " + name(), dims());
-//    CoreTensorImpl *vals = new CoreTensorImpl("Eigenvalues of " + name(), {dims()[0]});
-//
-//    work->copy(this, 1.0);
-//
-//    size_t n = dims()[0];
-//    size_t work = 4*n;
-//    double *
 }
 
 std::map<std::string, TensorImplPtr> CoreTensorImpl::svd() const
@@ -725,9 +714,47 @@ TensorImplPtr CoreTensorImpl::inverse() const
 {
     ThrowNotImplementedException;
 }
-TensorImplPtr CoreTensorImpl::power(double power, double condition) const
+
+TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
 {
-    ThrowNotImplementedException;
+    // this call will ensure squareness
+    std::map<std::string, TensorImplPtr> diag = syev(kAscending);
+
+    size_t n = diag["eigenvalues"]->dims()[0];
+    double *a = dynamic_cast<CoreTensorImplPtr>(diag["eigenvalues"])->data();
+    double *a1 = dynamic_cast<CoreTensorImplPtr>(diag["eigenvectors"])->data();
+    double *a2 = memory::allocate<double>(n*n);
+
+    memcpy(a2, a1, sizeof(double)*n*n);
+
+    double max_a = (std::fabs(a[n-1]) > std::fabs(a[0]) ? std::fabs(a[n-1]) : std::fabs(a[0]));
+    int remain = 0;
+    for (int i=0; i<n; i++) {
+
+        if (alpha < 0.0 && fabs(a[i]) < condition * max_a)
+            a[i] = 0.0;
+        else {
+            a[i] = pow(a[i], alpha);
+            if (std::isfinite(a[i])) {
+                remain++;
+            } else {
+                a[i] = 0.0;
+            }
+        }
+
+        C_DSCAL(n, a[i], a2 + (i*n), 1);
+    }
+
+    CoreTensorImpl *powered = new CoreTensorImpl(name() + "^" + std::to_string(alpha), dims());
+
+    C_DGEMM('T','N',n,n,n,1.0,a2,n,a1,n,0.0,powered->data_,n);
+
+    // Need to manually delete the tensors in the diag map
+    for (auto& el : diag) {
+        delete el.second;
+    }
+
+    return powered;
 }
 
 void CoreTensorImpl::givens(int dim, int i, int j, double s, double c)

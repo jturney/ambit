@@ -258,9 +258,9 @@ Tensor Tensor::inverse()
     return Tensor(shared_ptr<TensorImpl>(tensor_->inverse()));
 }
 
-Tensor Tensor::power(double power, double condition)
+Tensor Tensor::power(double alpha, double condition)
 {
-    return Tensor(shared_ptr<TensorImpl>(tensor_->power(power, condition)));
+    return Tensor(shared_ptr<TensorImpl>(tensor_->power(alpha, condition)));
 }
 
 Tensor& Tensor::givens(int dim, int i, int j, double s, double c)
