@@ -259,6 +259,10 @@ public:
         tensors_.push_back(other);
         return *this;
     }
+
+    // conversion operator
+    operator double() const;
+
 private:
 
     std::vector<LabeledTensor> tensors_;
@@ -293,10 +297,24 @@ public:
         return *this;
     }
 
+    LabeledTensorDistributive operator*(const LabeledTensor& other);
+
+    LabeledTensorAddition& operator*(const double& scalar);
+
+    // negation
+    LabeledTensorAddition& operator-();
+
 private:
 
+    // This handles cases like T("ijab")
     std::vector<LabeledTensor> tensors_;
+
 };
+
+inline LabeledTensorAddition operator*(double factor, const LabeledTensorAddition& ti) {
+    LabeledTensorAddition ti2 = ti;
+    return ti2 * factor;
+}
 
 // Is responsible for expressions like D * (J - K) --> D*J - D*K
 class LabeledTensorDistributive

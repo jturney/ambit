@@ -117,6 +117,7 @@ void LabeledTensor::operator-=(const LabeledTensorProduct& rhs)
 
 void LabeledTensor::operator=(const LabeledTensorAddition& rhs)
 {
+    T().zero();
     for (size_t ind=0, end=rhs.size(); ind < end; ++ind) {
         const LabeledTensor& labeledTensor = rhs[ind];
 
@@ -125,10 +126,7 @@ void LabeledTensor::operator=(const LabeledTensorAddition& rhs)
             throw std::runtime_error("Indices must be equivalent.");
         }
 
-        if (ind > 0)
-            T_.scale_and_add(labeledTensor.factor(), labeledTensor.T());
-        else
-            T_.copy(labeledTensor.T(), labeledTensor.factor());
+        T_.scale_and_add(labeledTensor.factor(), labeledTensor.T());
     }
 }
 
@@ -182,6 +180,41 @@ void LabeledTensor::operator=(const LabeledTensorDistributive &rhs)
     for (const LabeledTensor& B : rhs.B()) {
         *this += const_cast<LabeledTensor&>(rhs.A()) * const_cast<LabeledTensor&>(B);
     }
+}
+
+LabeledTensorDistributive LabeledTensorAddition::operator*(const LabeledTensor& other)
+{
+    return LabeledTensorDistributive(other, *this);
+}
+
+LabeledTensorAddition& LabeledTensorAddition::operator*(const double& scalar)
+{
+    // distribute the scalar to each term
+    for (LabeledTensor& T : tensors_) {
+        T *= scalar;
+    }
+
+    return *this;
+}
+
+LabeledTensorAddition& LabeledTensorAddition::operator-()
+{
+    for (LabeledTensor& T : tensors_) {
+        T *= -1.0;
+    }
+
+    return *this;
+}
+
+LabeledTensorProduct::operator double() const
+{
+    // Only handles binary expressions.
+    if (size() == 0 || size() > 2) throw std::runtime_error("Conversion operator only supports binary expressions at the moment.");
+    if (indices::equivalent(tensors_[0].indices(), tensors_[1].indices()) == false) {
+        throw std::runtime_error("Conversion operator implies dot product and thus equivalent indices.");
+    }
+
+    return tensors_[0].T().dot(tensors_[1].T());
 }
 
 }
