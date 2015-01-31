@@ -71,6 +71,7 @@ double test_Dij_equal_negate_Aij_plus_Bij();
 double test_power();
 double test_dot_product();
 double test_dot_product2();
+double test_dot_product3();
 
 double test_C_equal_A_B(std::string c_ind,std::string a_ind,std::string b_ind,
                         std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim);
@@ -126,7 +127,8 @@ int main(int argc, char* argv[])
             std::make_tuple(kPass, test_syev, "Diagonalization (not confirmed)"),
             std::make_tuple(kPass, test_power, "C^(-1/2) (not confirmed)"),
             std::make_tuple(kPass, test_dot_product, "double = A(\"ij\")\" * B(\"ij\")"),
-            std::make_tuple(kException, test_dot_product2, "double = A(\"ij\")\" * B(\"ik\") exception expected")
+            std::make_tuple(kException, test_dot_product2, "double = A(\"ij\") * B(\"ik\") exception expected"),
+            std::make_tuple(kException, test_dot_product3, "double = A(\"ij\") * B(\"ij\") exception expected")
     };
 
     std::vector<std::tuple<std::string,TestResult,double>> results;
@@ -139,6 +141,7 @@ int main(int argc, char* argv[])
         printf("\n %-50s", std::get<2>(test_function));
         double result = 0.0;
         TestResult tresult = kPass, report_result = kPass;
+        std::string exception;
         try {
             result = std::get<1>(test_function)();
 
@@ -151,6 +154,10 @@ int main(int argc, char* argv[])
             // was an exception expected?
             tresult = kException;
             report_result = tresult == std::get<0>(test_function) ? kPass : kException;
+
+            if (report_result == kException) {
+                exception = e.what();
+            }
         }
         printf(" %7e", result);
         switch (report_result) {
@@ -174,6 +181,8 @@ int main(int argc, char* argv[])
                 printf(" Exception" ANSI_COLOR_RESET);
         }
 
+        if (report_result == kException)
+            printf("\n    Unexpected: %s", exception.c_str());
         if (report_result != kPass)
             success = false;
     }
@@ -1040,6 +1049,26 @@ double test_dot_product2()
     Tensor B = build_and_fill("B", dims, b2);
 
     double C = A("ij") * B("ik");
+    double c = 0.0;
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            c += a2[i][j] * b2[i][j];
+        }
+    }
+
+    return std::fabs(C - c);
+}
+
+double test_dot_product3()
+{
+    size_t ni = 9, nj = 6, nk = 5;
+
+    Tensor A = build_and_fill("A", {ni, nj}, a2);
+    Tensor B = build_and_fill("B", {ni, nk}, b2);
+
+    // Test if the user attempts to use the correct indices with wrong dimensions
+    double C = A("ij") * B("ij");
     double c = 0.0;
 
     for (size_t i = 0; i < ni; ++i){

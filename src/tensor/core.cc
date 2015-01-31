@@ -100,6 +100,7 @@ double CoreTensorImpl::dot(ConstTensorImplPtr x) const
     if (numel() != x->numel()) {
         throw std::runtime_error("Tensors must have the same number of elements.");
     }
+    dimensionCheck(this, x, true);
 
     return C_DDOT(numel(), data_, 1, ((ConstCoreTensorImplPtr)x)->data(), 1);
 }

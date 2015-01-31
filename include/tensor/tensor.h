@@ -46,6 +46,7 @@ class LabeledTensorProduct;
 class LabeledTensorAddition;
 class LabeledTensorSubtraction;
 class LabeledTensorDistributive;
+class LabeledTensorSumOfProducts;
 class ContractionTopology;
 
 enum TensorType {
