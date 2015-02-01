@@ -1,5 +1,9 @@
 set(TENSOR_HEADERS
     ${PROJECT_SOURCE_DIR}/include/tensor/tensor.h
+    ${PROJECT_SOURCE_DIR}/include/tensor/io/file.h
+    ${PROJECT_SOURCE_DIR}/include/tensor/io/io.h
+    ${PROJECT_SOURCE_DIR}/include/tensor/io/iwl.h
+    ${PROJECT_SOURCE_DIR}/include/tensor/io/manager.h
     math/math.h
     tensor/core.h
     tensor/indices.h
@@ -9,6 +13,9 @@ set(TENSOR_HEADERS
 )
 
 set(TENSOR_SOURCES
+    io/file.cc
+    io/iwl.cc
+    io/manager.cc
     math/blas.cc
     math/lapack.cc
     tensor/core.cc

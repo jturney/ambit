@@ -170,6 +170,7 @@ Tensor Tensor::cat(std::vector<Tensor> const, int dim)
 Tensor& Tensor::zero()
 {
     tensor_->zero();
+    return *this;
 }
 
 Tensor& Tensor::scale(double a)
@@ -288,7 +289,7 @@ void Tensor::contract(
         beta);
 }
 void Tensor::permute(
-    const Tensor &A, 
+    const Tensor &A,
     const std::vector<std::string>& Cinds,
     const std::vector<std::string>& Ainds)
 {

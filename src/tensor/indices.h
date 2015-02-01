@@ -21,7 +21,7 @@ std::vector<std::string> split(const std::string& indices);
 /** Returns true if the two indices are equivalent. */
 bool equivalent(const std::vector<std::string>& left, const std::vector<std::string>& right);
 
-std::vector<int> permutation_order(const std::vector<std::string>& left, const std::vector<std::string>& right);
+std::vector<size_t> permutation_order(const std::vector<std::string>& left, const std::vector<std::string>& right);
 
 // => Stuff for contract <= //
 
@@ -30,7 +30,7 @@ int find_index_in_vector(const std::vector<std::string>& vec, const std::string&
 bool contiguous(const std::vector<std::pair<int, std::string>>& vec);
 
 Dimension permuted_dimension(
-    const Dimension& old_dim, 
+    const Dimension& old_dim,
     const std::vector<std::string>& new_order,
     const std::vector<std::string>& old_order);
 

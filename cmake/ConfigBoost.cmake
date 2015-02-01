@@ -4,7 +4,7 @@ set(BOOSTVERMIN 1.55.0)
 set(BUILD_CUSTOM_BOOST FALSE)
 # List all components needed (except mpi and unit_test_framework) here.
 # mpi and unit_test_framework will be added afterwards, if needed.
-list(APPEND needed_components chrono system timer)
+list(APPEND needed_components filesystem chrono system timer)
 set(Boost_USE_STATIC_LIBS    ON)
 set(Boost_USE_MULTITHREADED  ON)
 set(Boost_USE_STATIC_RUNTIME OFF)

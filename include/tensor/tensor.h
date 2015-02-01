@@ -40,6 +40,8 @@ namespace tensor {
 
 namespace tensor {
 
+static constexpr double numerical_zero__ = 1.0e-15;
+
 class TensorImpl;
 class LabeledTensor;
 class LabeledTensorProduct;

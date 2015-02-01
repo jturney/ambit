@@ -55,7 +55,7 @@ bool equivalent(const std::vector<std::string> &left, const std::vector<std::str
     return left == right;
 }
 
-std::vector<int> permutation_order(const std::vector<std::string>& left, const std::vector<std::string>& right)
+std::vector<size_t> permutation_order(const std::vector<std::string>& left, const std::vector<std::string>& right)
 {
     /// Check that these strings have the same number of indices
     if (left.size() != right.size()) throw std::runtime_error("Permutation indices not of same rank");
@@ -66,7 +66,7 @@ std::vector<int> permutation_order(const std::vector<std::string>& left, const s
     std::sort(right2.begin(),right2.end());
 
     /// Check that the strings have the same tokens
-    for (int ind = 0; ind < left2.size(); ind++) {
+    for (size_t ind = 0; ind < left2.size(); ind++) {
         if (left2[ind] != right2[ind]) throw std::runtime_error("Permutation indices do not match");
     }
 
@@ -76,15 +76,15 @@ std::vector<int> permutation_order(const std::vector<std::string>& left, const s
     }
 
     /// Find the indices of the tokens of left in right
-    std::vector<int> ret(left.size(),-1);
-    for (int ind = 0; ind < left.size(); ind++) {
-        for (int ind2 = 0; ind2 < right.size(); ind2++) {
+    std::vector<size_t> ret(left.size(),-1);
+    for (size_t ind = 0; ind < left.size(); ind++) {
+        for (size_t ind2 = 0; ind2 < right.size(); ind2++) {
             if (left[ind] == right[ind2]) {
                 ret[ind] = ind2;
                 break;
             }
-        } 
-    } 
+        }
+    }
     return ret;
 }
 
@@ -96,10 +96,10 @@ int find_index_in_vector(const std::vector<std::string>& vec, const std::string&
         if (key == vec[ind]) {
             return ind;
         }
-    } 
+    }
     return -1;
 }
-bool contiguous(const std::vector<std::pair<int, std::string>>& vec) 
+bool contiguous(const std::vector<std::pair<int, std::string>>& vec)
 {
     for (int prim = 0L; prim < ((int)vec.size()) - 1; prim++) {
         if (vec[prim+1].first != vec[prim].first + 1) {
@@ -109,11 +109,11 @@ bool contiguous(const std::vector<std::pair<int, std::string>>& vec)
     return true;
 }
 Dimension permuted_dimension(
-    const Dimension& old_dim, 
+    const Dimension& old_dim,
     const std::vector<std::string>& new_order,
     const std::vector<std::string>& old_order)
 {
-    std::vector<int> order = indices::permutation_order(new_order,old_order);
+    std::vector<size_t> order = indices::permutation_order(new_order,old_order);
     Dimension new_dim(order.size(),0L);
     for (size_t ind = 0L; ind < order.size(); ind++) {
         new_dim[ind] = old_dim[order[ind]];
@@ -121,6 +121,20 @@ Dimension permuted_dimension(
     return new_dim;
 }
 
-}
+std::pair<std::string, Dimension> determine_contraction_result(const LabeledTensor& lhs, const LabeledTensor& rhs)
+{
+    std::string result_indices;
+    Dimension result_dimensions;
+
+    const std::vector<std::string>& lindices = lhs.indices();
+    const std::vector<std::string>& rindices = rhs.indices();
+
+    const Dimension& ldims = lhs.T().dims();
+    const Dimension& rdims = rhs.T().dims();
+
 
 }
+
+} // namespace  indices
+
+} // namespace tensor

@@ -46,11 +46,11 @@ void CoreTensorImpl::scale(const double& a)
     C_DSCAL(numel(), a, data_, 1);
 }
 
-double CoreTensorImpl::norm(double power) const
+double CoreTensorImpl::norm(double /*power*/) const
 {
     ThrowNotImplementedException;
 }
-double CoreTensorImpl::rms(double power) const
+double CoreTensorImpl::rms(double /*power*/) const
 {
     ThrowNotImplementedException;
 }
@@ -143,7 +143,7 @@ void CoreTensorImpl::contract(
         int Apos = indices::find_index_in_vector(Ainds,index);
         int Bpos = indices::find_index_in_vector(Binds,index);
         if (Cpos != -1 && Apos != -1 && Bpos != -1) {
-            if (C->dims()[Cpos] != A->dims()[Apos] || C->dims()[Cpos] != B->dims()[Bpos]) 
+            if (C->dims()[Cpos] != A->dims()[Apos] || C->dims()[Cpos] != B->dims()[Bpos])
                 throw std::runtime_error("Invalid ABC (Hadamard) index size");
             compound_inds["PC"].push_back(std::make_pair(Cpos,index));
             compound_inds["PA"].push_back(std::make_pair(Apos,index));
@@ -175,7 +175,7 @@ void CoreTensorImpl::contract(
     // Sort compound indices by primitive indices to determine continuity (will be sequential if continuous)
     for (size_t ind = 0L; ind < compound_names.size(); ind++) {
         std::sort(compound_inds[compound_names[ind]].begin(), compound_inds[compound_names[ind]].end());
-    } 
+    }
 
     // Flags to mark if tensors must be permuted
     bool permC = false;
@@ -201,10 +201,10 @@ void CoreTensorImpl::contract(
         permB = permB || (compound_inds["PB"][0].first != 0);
     }
 
-    /// Figure out the initial transposes (will be fixed if perm is set) 
-    bool A_transpose = false; 
-    bool B_transpose = false; 
-    bool C_transpose = false; 
+    /// Figure out the initial transposes (will be fixed if perm is set)
+    bool A_transpose = false;
+    bool B_transpose = false;
+    bool C_transpose = false;
     if (compound_inds["iC"].size() && compound_inds["iC"][0].first != Psize) C_transpose = true;
     if (compound_inds["iA"].size() && compound_inds["iA"][0].first != Psize) A_transpose = true;
     if (compound_inds["jB"].size() && compound_inds["jB"][0].first == Psize) B_transpose = true;
@@ -228,7 +228,7 @@ void CoreTensorImpl::contract(
     * -Else if one tensor is already on the permute list but not the other, fix the one that is already on the permute list
     * -Else fix the smaller tensor
     *
-    * Note: this scheme is not optimal is permutation mismatches exist in P - for reasons of simplicity, A and B are 
+    * Note: this scheme is not optimal is permutation mismatches exist in P - for reasons of simplicity, A and B are
     * permuted to C's P order, with no present considerations of better pathways
     **/
     if (!indices::equivalent(compound_inds2["iC"],compound_inds2["iA"])) {
@@ -238,10 +238,10 @@ void CoreTensorImpl::contract(
             compound_inds2["iA"] = compound_inds2["iC"];
         } else if (C->numel() <= A->numel()) {
             compound_inds2["iC"] = compound_inds2["iA"];
-            permC = true; 
+            permC = true;
         } else {
             compound_inds2["iA"] = compound_inds2["iC"];
-            permA = true; 
+            permA = true;
         }
     }
     if (!indices::equivalent(compound_inds2["jC"],compound_inds2["jB"])) {
@@ -251,10 +251,10 @@ void CoreTensorImpl::contract(
             compound_inds2["jB"] = compound_inds2["jC"];
         } else if (C->numel() <= B->numel()) {
             compound_inds2["jC"] = compound_inds2["jB"];
-            permC = true; 
+            permC = true;
         } else {
             compound_inds2["jB"] = compound_inds2["jC"];
-            permB = true; 
+            permB = true;
         }
     }
     if (!indices::equivalent(compound_inds2["kA"],compound_inds2["kB"])) {
@@ -264,19 +264,19 @@ void CoreTensorImpl::contract(
             compound_inds2["kB"] = compound_inds2["kA"];
         } else if (A->numel() <= B->numel()) {
             compound_inds2["kA"] = compound_inds2["kB"];
-            permA = true; 
+            permA = true;
         } else {
             compound_inds2["kB"] = compound_inds2["kA"];
-            permB = true; 
+            permB = true;
         }
     }
     if (!indices::equivalent(compound_inds2["PC"],compound_inds2["PA"])) {
         compound_inds2["PA"] = compound_inds2["PC"];
-        permA = true; 
+        permA = true;
     }
     if (!indices::equivalent(compound_inds2["PC"],compound_inds2["PB"])) {
         compound_inds2["PB"] = compound_inds2["PC"];
-        permB = true; 
+        permB = true;
     }
 
     /// Assign the permuted indices (if flagged for permute) or the original indices
@@ -315,28 +315,28 @@ void CoreTensorImpl::contract(
     for (size_t ind = 0l; ind < Cinds.size(); ind++) {
         printf("%s", Cinds[ind].c_str());
     }
-    printf("] = A["); 
+    printf("] = A[");
     for (size_t ind = 0l; ind < Ainds.size(); ind++) {
         printf("%s", Ainds[ind].c_str());
     }
-    printf("] * B["); 
+    printf("] * B[");
     for (size_t ind = 0l; ind < Binds.size(); ind++) {
         printf("%s", Binds[ind].c_str());
     }
-    printf("]\n"); 
+    printf("]\n");
     printf("New:      C[");
     for (size_t ind = 0l; ind < Cinds2.size(); ind++) {
         printf("%s", Cinds2[ind].c_str());
     }
-    printf("] = A["); 
+    printf("] = A[");
     for (size_t ind = 0l; ind < Ainds2.size(); ind++) {
         printf("%s", Ainds2[ind].c_str());
     }
-    printf("] * B["); 
+    printf("] * B[");
     for (size_t ind = 0l; ind < Binds2.size(); ind++) {
         printf("%s", Binds2[ind].c_str());
     }
-    printf("]\n"); 
+    printf("]\n");
     printf("C Permuted: %s\n", permC ? "Yes" : "No");
     printf("A Permuted: %s\n", permA ? "Yes" : "No");
     printf("B Permuted: %s\n", permB ? "Yes" : "No");
@@ -372,7 +372,7 @@ void CoreTensorImpl::contract(
         B2 = boost::shared_ptr<CoreTensorImpl>(new CoreTensorImpl("B2", Bdims2));
         B2p = B2->data();
     }
-    
+
     // => Permute A, B, and C if Necessary <= //
 
     if (permC) C2->permute(C,Cinds2,Cinds);
@@ -425,19 +425,19 @@ void CoreTensorImpl::contract(
     }
 
     // => Permute C if Necessary <= //
-    
+
     if (permC) C->permute(C2.get(),Cinds,Cinds2);
 }
 
 void CoreTensorImpl::permute(
-    ConstTensorImplPtr A, 
+    ConstTensorImplPtr A,
     const std::vector<std::string>& CindsS,
     const std::vector<std::string>& AindsS)
 {
     // => Convert to indices of A <= //
 
-    std::vector<int> Ainds = indices::permutation_order(CindsS, AindsS);
-    for (int dim = 0; dim < rank(); dim++) {
+    std::vector<size_t> Ainds = indices::permutation_order(CindsS, AindsS);
+    for (size_t dim = 0; dim < rank(); dim++) {
         if (dims()[dim] != A->dims()[Ainds[dim]])
             throw std::runtime_error("Permuted tensors do not have same dimensions");
     }
@@ -455,7 +455,7 @@ void CoreTensorImpl::permute(
     int fast_dims = 0;
     size_t fast_size = 1L;
     for (int dim = ((int)rank()) - 1; dim >= 0; dim--) {
-        if (dim == Ainds[dim]) {
+        if (dim == ((int)Ainds[dim])) {
             fast_dims++;
             fast_size *= dims()[dim];
         } else {
@@ -473,7 +473,7 @@ void CoreTensorImpl::permute(
     }
 
     assert(slow_dims > 1); // slow_dims != 1
-    
+
     /// Number of collapsed indices in permutation traverse
     size_t slow_size = 1L;
     for (int dim = 0; dim < slow_dims; dim++) {
@@ -492,7 +492,7 @@ void CoreTensorImpl::permute(
     for (int dim = 0; dim < slow_dims; dim++) {
         AstridesC[dim] = Astrides[Ainds[dim]];
     }
-    
+
     /// Strides of slow indices of tensor C in its own ordering
     std::vector<size_t> Cstrides(slow_dims,0L);
     if (slow_dims != 0) Cstrides[slow_dims-1] = fast_size;
@@ -502,15 +502,15 @@ void CoreTensorImpl::permute(
 
     /// Handle to dimensions of C
     const std::vector<size_t>& Csizes = dims();
-    
+
     // => Actual Permute Operation <= //
 
     if (slow_dims == 2) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
-            double* Ctp = Cp + Cind0 * Cstrides[0]; 
+            double* Ctp = Cp + Cind0 * Cstrides[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
-            double* Atp = Ap + 
+            double* Atp = Ap +
                 Cind0 * AstridesC[0] +
                 Cind1 * AstridesC[1];
             ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
@@ -519,10 +519,10 @@ void CoreTensorImpl::permute(
     } else if (slow_dims == 3) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
-            double* Ctp = Cp + Cind0 * Cstrides[0]; 
+            double* Ctp = Cp + Cind0 * Cstrides[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
-            double* Atp = Ap + 
+            double* Atp = Ap +
                 Cind0 * AstridesC[0] +
                 Cind1 * AstridesC[1] +
                 Cind2 * AstridesC[2];
@@ -532,11 +532,11 @@ void CoreTensorImpl::permute(
     } else if (slow_dims == 4) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
-            double* Ctp = Cp + Cind0 * Cstrides[0]; 
+            double* Ctp = Cp + Cind0 * Cstrides[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
-            double* Atp = Ap + 
+            double* Atp = Ap +
                 Cind0 * AstridesC[0] +
                 Cind1 * AstridesC[1] +
                 Cind2 * AstridesC[2] +
@@ -547,12 +547,12 @@ void CoreTensorImpl::permute(
     } else if (slow_dims == 5) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
-            double* Ctp = Cp + Cind0 * Cstrides[0]; 
+            double* Ctp = Cp + Cind0 * Cstrides[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
         for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++) {
-            double* Atp = Ap + 
+            double* Atp = Ap +
                 Cind0 * AstridesC[0] +
                 Cind1 * AstridesC[1] +
                 Cind2 * AstridesC[2] +
@@ -564,13 +564,13 @@ void CoreTensorImpl::permute(
     } else if (slow_dims == 6) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
-            double* Ctp = Cp + Cind0 * Cstrides[0]; 
+            double* Ctp = Cp + Cind0 * Cstrides[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
         for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++) {
         for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++) {
-            double* Atp = Ap + 
+            double* Atp = Ap +
                 Cind0 * AstridesC[0] +
                 Cind1 * AstridesC[1] +
                 Cind2 * AstridesC[2] +
@@ -583,14 +583,14 @@ void CoreTensorImpl::permute(
     } else if (slow_dims == 7) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
-            double* Ctp = Cp + Cind0 * Cstrides[0]; 
+            double* Ctp = Cp + Cind0 * Cstrides[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
         for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++) {
         for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++) {
         for (size_t Cind6 = 0L; Cind6 < Csizes[6]; Cind6++) {
-            double* Atp = Ap + 
+            double* Atp = Ap +
                 Cind0 * AstridesC[0] +
                 Cind1 * AstridesC[1] +
                 Cind2 * AstridesC[2] +
@@ -604,7 +604,7 @@ void CoreTensorImpl::permute(
     } else if (slow_dims == 8) {
         #pragma omp parallel for
         for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++) {
-            double* Ctp = Cp + Cind0 * Cstrides[0]; 
+            double* Ctp = Cp + Cind0 * Cstrides[0];
         for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++) {
         for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++) {
         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++) {
@@ -612,7 +612,7 @@ void CoreTensorImpl::permute(
         for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++) {
         for (size_t Cind6 = 0L; Cind6 < Csizes[6]; Cind6++) {
         for (size_t Cind7 = 0L; Cind7 < Csizes[7]; Cind7++) {
-            double* Atp = Ap + 
+            double* Atp = Ap +
                 Cind0 * AstridesC[0] +
                 Cind1 * AstridesC[1] +
                 Cind2 * AstridesC[2] +
@@ -659,7 +659,7 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
         double* Temp_sqrsp_col = memory::allocate<double>(n);
         double w_Temp_sqrsp;
 
-        for (int c = 0; c<n/2; c++) {
+        for (size_t c = 0; c<n/2; c++) {
 
             //Swap eigenvectors
             C_DCOPY(n, vecs->data_ + c,     n, Temp_sqrsp_col,      1);
@@ -683,8 +683,9 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
     return result;
 }
 
-std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order) const
+std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder /*order*/) const
 {
+    ThrowNotImplementedException;
 }
 
 std::map<std::string, TensorImplPtr> CoreTensorImpl::svd() const
@@ -730,7 +731,7 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
 
     double max_a = (std::fabs(a[n-1]) > std::fabs(a[0]) ? std::fabs(a[n-1]) : std::fabs(a[0]));
     int remain = 0;
-    for (int i=0; i<n; i++) {
+    for (size_t i=0; i<n; i++) {
 
         if (alpha < 0.0 && fabs(a[i]) < condition * max_a)
             a[i] = 0.0;
@@ -760,7 +761,7 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
     return powered;
 }
 
-void CoreTensorImpl::givens(int dim, int i, int j, double s, double c)
+void CoreTensorImpl::givens(int /*dim*/, int /*i*/, int /*j*/, double /*s*/, double /*c*/)
 {
     ThrowNotImplementedException;
 }
