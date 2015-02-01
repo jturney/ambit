@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
     Ft("i,j") = Smhalf("nu,j") * Fh("i,nu");
 
     auto Feigen = Ft.syev(kAscending);
-    Feigen["eigenvectors"].print(stdout, true);  // these are transposed into row major.
+    Feigen["eigenvectors"].print(stdout, true);  // LAPACK stores eigenvectors in rows -> C("i,mu")
     Feigen["eigenvalues"].print(stdout, true);
 
     tensor::finalize();
