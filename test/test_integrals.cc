@@ -78,15 +78,19 @@ int main(int argc, char* argv[])
     Tensor Ft = build("Ft", AO);
 
     Tensor Smhalf = S.power(-0.5);
-    Smhalf.print(stdout, true);
+//    Smhalf.print(stdout, true);
 
     Tensor Fh = build("Fh", AO);
     Fh("i,nu") = Smhalf("mu,i") * H("mu,nu");
     Ft("i,j") = Smhalf("nu,j") * Fh("i,nu");
 
     auto Feigen = Ft.syev(kAscending);
-    Feigen["eigenvectors"].print(stdout, true);  // LAPACK stores eigenvectors in rows -> C("i,mu")
-    Feigen["eigenvalues"].print(stdout, true);
+//    Feigen["eigenvectors"].print(stdout, true);  // LAPACK stores eigenvectors in rows -> C("i,mu"); Psi stores it as C("mu,i")
+//    Feigen["eigenvalues"].print(stdout, true);
+
+    Tensor C = build("C", AO);
+    C("i,j") = Smhalf("k,j") * Feigen["eigenvectors"]("i,k");
+    C.print(stdout, true);
 
     tensor::finalize();
     return EXIT_SUCCESS;
