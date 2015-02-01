@@ -14,6 +14,7 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
+double a1[MAXTWO];
 double a2[MAXTWO][MAXTWO];
 double b2[MAXTWO][MAXTWO];
 double c2[MAXTWO][MAXTWO];
@@ -32,6 +33,9 @@ enum TestResult {
 };
 
 /// Initialize a tensor and a 2-dim matrix with random numbers
+void initialize_random(Tensor &tensor, double matrix[MAXTWO]);
+std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO]);
+
 void initialize_random(Tensor &tensor, double matrix[MAXTWO][MAXTWO]);
 std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO][MAXTWO]);
 
@@ -194,6 +198,15 @@ int main(int argc, char* argv[])
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
+Tensor build_and_fill(const std::string& name, const Dimension& dims, double matrix[MAXTWO])
+{
+    Tensor T = Tensor::build(kCore, name, dims);
+    initialize_random(T, matrix);
+    std::pair<double,double> a_diff = difference(T, matrix);
+    if (std::fabs(a_diff.second) > zero) throw std::runtime_error("Tensor and standard matrix don't match.");
+    return T;
+}
+
 Tensor build_and_fill(const std::string& name, const Dimension& dims, double matrix[MAXTWO][MAXTWO])
 {
     Tensor T = Tensor::build(kCore, name, dims);
@@ -212,6 +225,19 @@ Tensor build_and_fill(const std::string& name, const Dimension& dims, double mat
     return T;
 }
 
+void initialize_random(Tensor &tensor, double matrix[MAXTWO])
+{
+    size_t n0 = tensor.dims()[0];
+    double* vec = new double[n0];
+    for (size_t i = 0; i < n0; ++i){
+        double randnum = double(std::rand())/double(RAND_MAX);
+        matrix[i] = randnum;
+        vec[i] = randnum;
+    }
+    tensor.set_data(vec);
+    delete[] vec;
+}
+
 void initialize_random(Tensor &tensor, double matrix[MAXTWO][MAXTWO])
 {
     size_t n0 = tensor.dims()[0];
@@ -226,6 +252,26 @@ void initialize_random(Tensor &tensor, double matrix[MAXTWO][MAXTWO])
     }
     tensor.set_data(vec);
     delete[] vec;
+}
+
+std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO])
+{
+    size_t n0 = tensor.dims()[0];
+
+    size_t numel = tensor.numel();
+    double* result = new double[numel];
+
+    tensor.get_data(result);
+
+    double sum_diff = 0.0;
+    double max_diff = 0.0;
+    for (size_t i = 0; i < n0; ++i){
+        double diff = std::fabs(matrix[i] - result[i]);
+        sum_diff += diff;
+        max_diff = std::max(diff,max_diff);
+    }
+    delete[] result;
+    return std::make_pair(sum_diff,max_diff);
 }
 
 std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO][MAXTWO])
@@ -344,7 +390,7 @@ double test_C_equal_A_B(std::string c_ind,std::string a_ind,std::string b_ind,
 double test_wrapper()
 {
     double max_error = 0.0, current_error = 0.0;
-    
+
     current_error = test_C_equal_A_B("ij","ik","jk",{0,1},{0,2},{1,2});
     if (std::fabs(current_error) > max_error)
         max_error = std::fabs(current_error);
