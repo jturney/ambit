@@ -54,6 +54,7 @@ public:
     virtual TensorType type() const { return type_; }
     std::string name() const { return name_; }
     virtual const Dimension& dims() const { return dims_; }
+    virtual size_t dims(size_t ind) const { return dims_[ind]; }
     virtual size_t rank() const { return dims_.size(); }
     size_t numel() const;
 

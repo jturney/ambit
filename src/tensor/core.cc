@@ -108,9 +108,9 @@ double CoreTensorImpl::dot(ConstTensorImplPtr x) const
 void CoreTensorImpl::contract(
     ConstTensorImplPtr A,
     ConstTensorImplPtr B,
-    const std::vector<std::string>& Cinds,
-    const std::vector<std::string>& Ainds,
-    const std::vector<std::string>& Binds,
+    const Indices& Cinds,
+    const Indices& Ainds,
+    const Indices& Binds,
     double alpha,
     double beta)
 {
@@ -357,19 +357,19 @@ void CoreTensorImpl::contract(
     double* B2p = Bp;
 
     /// TODO: This is ugly. Overall, where do we use shared pointers, references, const references, or object copy?
-    boost::shared_ptr<CoreTensorImpl> C2;
-    boost::shared_ptr<CoreTensorImpl> B2;
-    boost::shared_ptr<CoreTensorImpl> A2;
+    shared_ptr<CoreTensorImpl> C2;
+    shared_ptr<CoreTensorImpl> B2;
+    shared_ptr<CoreTensorImpl> A2;
     if (permC) {
-        C2 = boost::shared_ptr<CoreTensorImpl>(new CoreTensorImpl("C2", Cdims2));
+        C2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("C2", Cdims2));
         C2p = C2->data();
     }
     if (permA) {
-        A2 = boost::shared_ptr<CoreTensorImpl>(new CoreTensorImpl("A2", Adims2));
+        A2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("A2", Adims2));
         A2p = A2->data();
     }
     if (permB) {
-        B2 = boost::shared_ptr<CoreTensorImpl>(new CoreTensorImpl("B2", Bdims2));
+        B2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("B2", Bdims2));
         B2p = B2->data();
     }
 
@@ -431,9 +431,10 @@ void CoreTensorImpl::contract(
 
 void CoreTensorImpl::permute(
     ConstTensorImplPtr A,
-    const std::vector<std::string>& CindsS,
-    const std::vector<std::string>& AindsS)
+    const Indices& CindsS,
+    const Indices& AindsS)
 {
+
     // => Convert to indices of A <= //
 
     std::vector<size_t> Ainds = indices::permutation_order(CindsS, AindsS);

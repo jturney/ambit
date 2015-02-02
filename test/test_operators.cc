@@ -76,6 +76,10 @@ double test_power();
 double test_dot_product();
 double test_dot_product2();
 double test_dot_product3();
+double test_chain_multiply();
+double test_chain_multiply2();
+double test_chain_multiply3();
+double test_chain_multiply4();
 
 double test_C_equal_A_B(std::string c_ind,std::string a_ind,std::string b_ind,
                         std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim);
@@ -132,7 +136,11 @@ int main(int argc, char* argv[])
             std::make_tuple(kPass, test_power, "C^(-1/2) (not confirmed)"),
             std::make_tuple(kPass, test_dot_product, "double = A(\"ij\")\" * B(\"ij\")"),
             std::make_tuple(kException, test_dot_product2, "double = A(\"ij\") * B(\"ik\") exception expected"),
-            std::make_tuple(kException, test_dot_product3, "double = A(\"ij\") * B(\"ij\") exception expected")
+            std::make_tuple(kException, test_dot_product3, "double = A(\"ij\") * B(\"ij\") exception expected"),
+            std::make_tuple(kPass, test_chain_multiply, "D(\"ij\") = B(\"ik\") * C(\"kl\") * A(\"lj\")"),
+            std::make_tuple(kPass, test_chain_multiply2, "D4(\"ijkl\") = A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
+            std::make_tuple(kPass, test_chain_multiply3, "D4(\"ijkl\") += A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
+            std::make_tuple(kPass, test_chain_multiply4, "D4(\"ijkl\") -= A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
     };
 
     std::vector<std::tuple<std::string,TestResult,double>> results;
@@ -1124,4 +1132,145 @@ double test_dot_product3()
     }
 
     return std::fabs(C - c);
+}
+
+double test_chain_multiply()
+{
+    size_t ni = 9, nj = 6, nk = 4, nl=5;
+
+    Tensor A = build_and_fill("A", {nl, nj}, a2);
+    Tensor B = build_and_fill("B", {ni, nk}, b2);
+    Tensor C = build_and_fill("C", {nk, nl}, c2);
+    Tensor D = build_and_fill("D", {ni, nj}, d2);
+
+    D("ij") = B("ik") * C("kl") * A("lj");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            d2[i][j] = 0.0;
+
+            for (size_t k = 0; k < nk; ++k) {
+                for (size_t l = 0; l < nl; ++l) {
+                    d2[i][j] += b2[i][k] * c2[k][l] * a2[l][j];
+                }
+            }
+        }
+    }
+
+    return difference(D, d2).second;
+}
+
+double test_chain_multiply2()
+{
+    size_t ni = 5;
+    size_t nj = 6;
+    size_t nk = 7;
+    size_t nl = 6;
+    size_t nm = 7;
+    size_t nn = 5;
+
+    std::vector<size_t> dimsA = {ni,nj,nm,nn};
+    std::vector<size_t> dimsB = {nk,nm};
+    std::vector<size_t> dimsC = {nl,nn};
+    std::vector<size_t> dimsD = {ni,nj,nk,nl};
+
+    Tensor A4 = build_and_fill("A4", dimsA, a4);
+    Tensor B2 = build_and_fill("B2", dimsB, b2);
+    Tensor C2 = build_and_fill("C2", dimsC, c2);
+    Tensor D4 = build_and_fill("D4", dimsD, d4);
+
+    D4("ijkl") = A4("ijmn") * B2("km") * C2("ln");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            for (size_t k = 0; k < nk; ++k){
+                for (size_t l = 0; l < nl; ++l){
+                    d4[i][j][k][l]  = 0.0;
+                    for (size_t m = 0; m < nm; ++m){
+                        for (size_t n = 0; n < nn; ++n){
+                            d4[i][j][k][l] += a4[i][j][m][n] * b2[k][m] * c2[l][n];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(D4, d4).second;
+}
+
+double test_chain_multiply3()
+{
+    size_t ni = 5;
+    size_t nj = 6;
+    size_t nk = 7;
+    size_t nl = 6;
+    size_t nm = 7;
+    size_t nn = 5;
+
+    std::vector<size_t> dimsA = {ni,nj,nm,nn};
+    std::vector<size_t> dimsB = {nk,nm};
+    std::vector<size_t> dimsC = {nl,nn};
+    std::vector<size_t> dimsD = {ni,nj,nk,nl};
+
+    Tensor A4 = build_and_fill("A4", dimsA, a4);
+    Tensor B2 = build_and_fill("B2", dimsB, b2);
+    Tensor C2 = build_and_fill("C2", dimsC, c2);
+    Tensor D4 = build_and_fill("D4", dimsD, d4);
+
+    D4("ijkl") += A4("ijmn") * B2("km") * C2("ln");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            for (size_t k = 0; k < nk; ++k){
+                for (size_t l = 0; l < nl; ++l){
+                    for (size_t m = 0; m < nm; ++m){
+                        for (size_t n = 0; n < nn; ++n){
+                            d4[i][j][k][l] += a4[i][j][m][n] * b2[k][m] * c2[l][n];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(D4, d4).second;
+}
+
+double test_chain_multiply4()
+{
+    size_t ni = 5;
+    size_t nj = 6;
+    size_t nk = 7;
+    size_t nl = 6;
+    size_t nm = 7;
+    size_t nn = 5;
+
+    std::vector<size_t> dimsA = {ni,nj,nm,nn};
+    std::vector<size_t> dimsB = {nk,nm};
+    std::vector<size_t> dimsC = {nl,nn};
+    std::vector<size_t> dimsD = {ni,nj,nk,nl};
+
+    Tensor A4 = build_and_fill("A4", dimsA, a4);
+    Tensor B2 = build_and_fill("B2", dimsB, b2);
+    Tensor C2 = build_and_fill("C2", dimsC, c2);
+    Tensor D4 = build_and_fill("D4", dimsD, d4);
+
+    D4("ijkl") -= A4("ijmn") * B2("km") * C2("ln");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            for (size_t k = 0; k < nk; ++k){
+                for (size_t l = 0; l < nl; ++l){
+                    for (size_t m = 0; m < nm; ++m){
+                        for (size_t n = 0; n < nn; ++n){
+                            d4[i][j][k][l] -= a4[i][j][m][n] * b2[k][m] * c2[l][n];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(D4, d4).second;
 }

@@ -60,6 +60,7 @@ enum EigenvalueOrder {
 
 typedef std::vector<size_t> Dimension;
 typedef std::vector<std::pair<size_t, size_t> > IndexRange;
+typedef std::vector<std::string> Indices;
 
 /** Initializes the tensor library.
  *
@@ -95,6 +96,7 @@ public:
     TensorType type() const;
     std::string name() const;
     const Dimension& dims() const;
+    size_t dim(size_t index) const;
     size_t rank() const;
     /// \return Total number of elements in the tensor.
     size_t numel() const;
@@ -195,11 +197,11 @@ protected:
 class LabeledTensor {
 
 public:
-    LabeledTensor(Tensor& T, const std::vector<std::string>& indices, double factor = 1.0);
+    LabeledTensor(Tensor T, const std::vector<std::string>& indices, double factor = 1.0);
 
     double factor() const { return factor_; }
-    const std::vector<std::string>& indices() const { return indices_; }
-    Tensor& T() const { return T_; }
+    const Indices& indices() const { return indices_; }
+    Tensor T() const { return T_; }
 
     LabeledTensorProduct operator*(const LabeledTensor& rhs);
     LabeledTensorAddition operator+(const LabeledTensor& rhs);
@@ -228,6 +230,7 @@ public:
 //    bool operator!=(const LabeledTensor& other) const;
 
     size_t numdim() const { return indices_.size(); }
+    size_t dim_by_index(const std::string& idx) const;
 
     // negation
     LabeledTensor operator-() const {
@@ -235,7 +238,10 @@ public:
     }
 
 private:
-    Tensor& T_;
+
+    void set(const LabeledTensor& to);
+
+    Tensor T_;
     std::vector<std::string> indices_;
     double factor_;
 
@@ -265,6 +271,8 @@ public:
 
     // conversion operator
     operator double() const;
+
+    std::pair<double, double> compute_contraction_cost(const std::vector<size_t>& perm) const;
 
 private:
 

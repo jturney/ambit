@@ -55,7 +55,7 @@ bool equivalent(const std::vector<std::string> &left, const std::vector<std::str
     return left == right;
 }
 
-std::vector<size_t> permutation_order(const std::vector<std::string>& left, const std::vector<std::string>& right)
+std::vector<size_t> permutation_order(const Indices& left, const Indices& right)
 {
     /// Check that these strings have the same number of indices
     if (left.size() != right.size()) throw std::runtime_error("Permutation indices not of same rank");
@@ -121,18 +121,79 @@ Dimension permuted_dimension(
     return new_dim;
 }
 
-std::pair<std::string, Dimension> determine_contraction_result(const LabeledTensor& lhs, const LabeledTensor& rhs)
+void print(const Indices &indices)
 {
-    std::string result_indices;
-    Dimension result_dimensions;
-
-    const std::vector<std::string>& lindices = lhs.indices();
-    const std::vector<std::string>& rindices = rhs.indices();
-
-    const Dimension& ldims = lhs.T().dims();
-    const Dimension& rdims = rhs.T().dims();
+    printf("[ ");
+    for (const std::string &index : indices) {
+        printf("%-4s ", index.c_str());
+    }
+    printf("]\n");
+}
 
 
+std::string to_string(const Indices& indices)
+{
+    if (indices.size() == 0)
+        return std::string();
+
+    std::ostringstream ss;
+
+    std::copy(indices.begin(), indices.end() - 1, std::ostream_iterator<std::string>(ss, ","));
+    ss << indices.back();
+
+    return ss.str();
+}
+
+std::vector<Indices> determine_contraction_result(const LabeledTensor& A, const LabeledTensor& B)
+{
+    std::vector<Indices> result;
+
+    Indices Aindices = A.indices();
+    Indices Bindices = B.indices();
+
+    size_t dimAB = Aindices.size() + Bindices.size();
+
+    std::sort(Aindices.begin(), Aindices.end());
+    std::sort(Bindices.begin(), Bindices.end());
+
+    // Find the elements common to A and B
+    Indices AB_common(dimAB);
+    Indices::iterator it_AB_common;
+    it_AB_common = std::set_intersection(Aindices.begin(),
+                                         Aindices.end(),
+                                         Bindices.begin(),
+                                         Bindices.end(),
+                                         AB_common.begin());
+    AB_common.resize(it_AB_common - AB_common.begin());
+    result.push_back(AB_common);
+
+    // Find the elements in A but not in B
+    Indices A_minus_B(dimAB);
+    Indices::iterator it_A_minus_B;
+    it_A_minus_B = std::set_difference(Aindices.begin(),
+                                       Aindices.end(),
+                                       Bindices.begin(),
+                                       Bindices.end(),
+                                       A_minus_B.begin());
+    A_minus_B.resize(it_A_minus_B - A_minus_B.begin());
+    result.push_back(A_minus_B);
+
+    // Find the elements in B but not in A
+    Indices B_minus_A(dimAB);
+    Indices::iterator it_B_minus_A;
+    it_B_minus_A = std::set_difference(Bindices.begin(),
+                                       Bindices.end(),
+                                       Aindices.begin(),
+                                       Aindices.end(),
+                                       B_minus_A.begin());
+    B_minus_A.resize(it_B_minus_A - B_minus_A.begin());
+    result.push_back(B_minus_A);
+
+    Indices AB_unique = A_minus_B;
+    AB_unique.insert(AB_unique.end(), B_minus_A.begin(), B_minus_A.end());
+    result.push_back(AB_unique);
+
+    return result;
 }
 
 } // namespace  indices
