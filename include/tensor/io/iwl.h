@@ -81,7 +81,7 @@ struct IWL : public File
 
     static void read_one(File &io, const std::string &label, Tensor &tensor);
 
-//    static void read_two(iwl &io, ambit::tensor::tensor &tensor);
+    static void read_two(IWL &io, Tensor &tensor);
 
 private:
 

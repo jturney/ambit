@@ -121,107 +121,57 @@ void IWL::read_one(File& io, const std::string& label, Tensor& tensor)
     Tensor::free_block(data);
 }
 
-#if 0
-void iwl::read_two(iwl& io, ambit::tensor::tensor& tensor)
+namespace {
+    size_t position(size_t dim, short int p, short int q, short int r, short int s)
+    {
+        return ((p * dim + q) * dim + r) * dim + s;
+    }
+}
+
+void IWL::read_two(IWL& io, Tensor& tensor)
 {
     // ensure the tensor object is only 4D.
-    if (tensor.dimension() != 4)
-        throw std::runtime_error("tensor must be 4 dimension.");
+    if (tensor.rank() != 4)
+        throw std::runtime_error("tensor must be rank 4");
+
+    size_t dim = tensor.dim(0);
+    for (size_t i=1; i<4; ++i) {
+        if (dim != tensor.dim(i))
+            throw std::runtime_error("tensor must have equivalent length indices");
+    }
 
     // psi stores 1 of the 8 possible permutations
-    const std::vector<ambit::tensor::index_range>& ir = tensor.index_ranges();
 
-    ambit::tensor::key_generator4 key(ir[0], ir[1], ir[2], ir[3]);
-    std::vector<tkv_pair<double>> values(8*details::integrals_per_buffer__);
+    std::vector<double> values(dim*dim*dim*dim);
 
     size_t count = 0;
     do {
         size_t c = 0;
-        values.resize(8*details::integrals_per_buffer__);
 
         for (int i=0; i<io.nintegral; ++i) {
-
-//            ambit::util::print0("read (%d %d| %d %d) = %lf\ncontributes to\n", io.p[i], io.q[i], io.r[i], io.s[i], io.values[i]);
-
             short int p, q, r, s;
             p = io.p[i]; q = io.q[i]; r = io.r[i]; s = io.s[i];
 
-            // pppp case
-            if (p == q && p == r && p == s) {
-                values[c].k = key(p, p, p, p); values[c++].d = io.values[i];
-
-//                ambit::util::print0("[%d %d %d %d]\n", p, p, p, p);
-            }
-                // pprr case
-            else if (p == q && r == s) {
-                values[c].k = key(p, p, r, r); values[c++].d = io.values[i];
-                values[c].k = key(r, r, p, p); values[c++].d = io.values[i];
-
-//                ambit::util::print0("[%d %d %d %d]\n", p, p, r, r);
-//                ambit::util::print0("[%d %d %d %d]\n", r, r, p, p);
-            }
-                // pprs
-            else if (p == q) {
-                values[c].k = key(p, p, r, s); values[c++].d = io.values[i];
-                values[c].k = key(p, p, s, r); values[c++].d = io.values[i];
-                values[c].k = key(r, s, p, p); values[c++].d = io.values[i];
-                values[c].k = key(s, r, p, p); values[c++].d = io.values[i];
-//                ambit::util::print0("[%d %d %d %d]\n", p, p, r, s);
-//                ambit::util::print0("[%d %d %d %d]\n", p, p, s, r);
-//                ambit::util::print0("[%d %d %d %d]\n", r, s, p, p);
-//                ambit::util::print0("[%d %d %d %d]\n", s, r, p, p);
-            }
-                // pqrr
-            else if (r == s) {
-                values[c].k = key(p, q, r, r); values[c++].d = io.values[i];
-                values[c].k = key(q, p, r, r); values[c++].d = io.values[i];
-                values[c].k = key(r, r, p, q); values[c++].d = io.values[i];
-                values[c].k = key(r, r, q, p); values[c++].d = io.values[i];
-//                ambit::util::print0("[%d %d %d %d]\n", p, q, r, r);
-//                ambit::util::print0("[%d %d %d %d]\n", q, p, r, r);
-//                ambit::util::print0("[%d %d %d %d]\n", r, r, p, q);
-//                ambit::util::print0("[%d %d %d %d]\n", r, r, q, p);
-            }
-            else if (p == r && q == s) {
-                values[c].k = key(p, q, p, q); values[c++].d = io.values[i];
-                values[c].k = key(p, q, q, p); values[c++].d = io.values[i];
-                values[c].k = key(q, p, p, q); values[c++].d = io.values[i];
-                values[c].k = key(q, p, q, p); values[c++].d = io.values[i];
-//                ambit::util::print0("[%d %d %d %d]\n", p, q, p, q);
-//                ambit::util::print0("[%d %d %d %d]\n", p, q, q, p);
-//                ambit::util::print0("[%d %d %d %d]\n", q, p, p, q);
-//                ambit::util::print0("[%d %d %d %d]\n", q, p, q, p);
-            }
-            else {
-                values[c].k = key(p, q, r, s); values[c++].d = io.values[i];
-                values[c].k = key(p, q, s, r); values[c++].d = io.values[i];
-                values[c].k = key(q, p, r, s); values[c++].d = io.values[i];
-                values[c].k = key(q, p, s, r); values[c++].d = io.values[i];
-                values[c].k = key(r, s, p, q); values[c++].d = io.values[i];
-                values[c].k = key(r, s, q, p); values[c++].d = io.values[i];
-                values[c].k = key(s, r, p, q); values[c++].d = io.values[i];
-                values[c].k = key(s, r, q, p); values[c++].d = io.values[i];
-//                ambit::util::print0("[%d %d %d %d]\n", p, q, r, s);
-//                ambit::util::print0("[%d %d %d %d]\n", p, q, s, r);
-//                ambit::util::print0("[%d %d %d %d]\n", q, p, r, s);
-//                ambit::util::print0("[%d %d %d %d]\n", q, p, s, r);
-//                ambit::util::print0("[%d %d %d %d]\n", r, s, p, q);
-//                ambit::util::print0("[%d %d %d %d]\n", r, s, q, p);
-//                ambit::util::print0("[%d %d %d %d]\n", s, r, p, q);
-//                ambit::util::print0("[%d %d %d %d]\n", s, r, q, p);
-            }
+            values[position(dim, p, q, r, s)] = io.values[i];
+            values[position(dim, p, q, s, r)] = io.values[i];
+            values[position(dim, q, p, r, s)] = io.values[i];
+            values[position(dim, q, p, s, r)] = io.values[i];
+            values[position(dim, r, s, p, q)] = io.values[i];
+            values[position(dim, r, s, q, p)] = io.values[i];
+            values[position(dim, s, r, p, q)] = io.values[i];
+            values[position(dim, s, r, q, p)] = io.values[i];
         }
+
         count += c;
 
         values.resize(c);
-
-        tensor.write(values);
 
         if (io.last_buffer)
             break;
         io.fetch();
     } while(1);
+
+    tensor.set_data(values.data());
 }
-#endif
 
 }}

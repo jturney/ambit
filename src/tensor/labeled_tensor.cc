@@ -363,6 +363,20 @@ void LabeledTensor::operator=(const LabeledTensorDistributive &rhs)
     }
 }
 
+void LabeledTensor::operator+=(const LabeledTensorDistributive &rhs)
+{
+    for (const LabeledTensor &B : rhs.B()) {
+        *this += const_cast<LabeledTensor &>(rhs.A()) * const_cast<LabeledTensor &>(B);
+    }
+}
+
+void LabeledTensor::operator-=(const LabeledTensorDistributive &rhs)
+{
+    for (const LabeledTensor &B : rhs.B()) {
+        *this -= const_cast<LabeledTensor &>(rhs.A()) * const_cast<LabeledTensor &>(B);
+    }
+}
+
 LabeledTensorDistributive LabeledTensorAddition::operator*(const LabeledTensor &other)
 {
     return LabeledTensorDistributive(other, *this);

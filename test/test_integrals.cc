@@ -34,6 +34,16 @@ Tensor load_1e_hamiltonian(io::File& file35, const Dimension& AO)
     return H;
 }
 
+Tensor load_2e(const Dimension& AO)
+{
+    // psi two-electron integral file
+    Tensor g = build("g", AO);
+    io::IWL iwl("test.33", tensor::io::kOpenModeOpenExisting);
+    io::IWL::read_two(iwl, g);
+
+    return g;
+}
+
 int main(int argc, char* argv[])
 {
     srand(time(NULL));
@@ -42,55 +52,65 @@ int main(int argc, char* argv[])
     // psi checkpoint file
     tensor::io::File file32("test.32", tensor::io::kOpenModeOpenExisting);
 
-    // psi two-electron integral file
-//    tensor::io::File file34("test.34", tensor::io::kOpenModeOpenExisting);
 
     // psi one-electron integral file
     tensor::io::File file35("test.35", tensor::io::kOpenModeOpenExisting);
 
-    file32.toc().print();
+//    file32.toc().print();
 //    file34.toc().print();
-    file35.toc().print();
+//    file35.toc().print();
 
     // Read information from checkpoint file
     int nirrep = 0;
     file32.read("::Num. irreps", &nirrep, 1);
-    printf("\n\nnirrep = %d\n", nirrep);
+    printf("nirrep = %d\n", nirrep);
+    assert(nirrep == 1);
 
     int nso = 0;
     file32.read("::Num. SO", &nso, 1);
     printf("nso = %d\n", nso);
 
-    int nmo = 0;
-    file32.read("::Num. MO's", &nmo, 1);
-    printf("nmo = %d\n", nmo);
+    double Enuc = 0.0;
+    file32.read("::Nuclear rep. energy", &Enuc, 1);
 
+    // The value to compare to from Psi4.
+    double Eref = 0.0;
+    file32.read("::SCF energy", &Eref, 1);
 
     // Define dimension objects
     Dimension AO = {(size_t)nso, (size_t)nso};
-    Dimension AOvMO = {(size_t)nso, (size_t)nmo};
-    Dimension MO = {(size_t)nmo, (size_t)nmo};
+    Dimension AO4 = {(size_t)nso, (size_t)nso, (size_t)nso, (size_t)nso};
 
     // Build tensors
     Tensor S = load_overlap(file35, AO);
     Tensor H = load_1e_hamiltonian(file35, AO);
+    Tensor g = load_2e(AO4);
+
+//    g.print(stdout, false);
 
     Tensor Ft = build("Ft", AO);
 
     Tensor Smhalf = S.power(-0.5);
 //    Smhalf.print(stdout, true);
 
-    Tensor Fh = build("Fh", AO);
-    Fh("i,nu") = Smhalf("mu,i") * H("mu,nu");
-    Ft("i,j") = Smhalf("nu,j") * Fh("i,nu");
+    Ft("i,j") = Smhalf("mu,i") * Smhalf("nu,j") * H("mu,nu");
+    Ft.print(stdout, true);
 
     auto Feigen = Ft.syev(kAscending);
-//    Feigen["eigenvectors"].print(stdout, true);  // LAPACK stores eigenvectors in rows -> C("i,mu"); Psi stores it as C("mu,i")
-//    Feigen["eigenvalues"].print(stdout, true);
 
     Tensor C = build("C", AO);
     C("i,j") = Smhalf("k,j") * Feigen["eigenvectors"]("i,k");
-    C.print(stdout, true);
+//    C.print(stdout, true);
+
+    // Form initial D
+    Tensor D = build("D", AO);
+
+    Tensor F = build("F", AO);
+
+    // start SCF iteration
+    F("mu,nu") = H("mu,nu");
+    F("mu,nu") += D("rho,sigma") * (2.0 * g("mu,nu,rho,sigma") - g("mu,rho,nu,sigma"));
+    F.print(stdout, true);
 
     tensor::finalize();
     return EXIT_SUCCESS;

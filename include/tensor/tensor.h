@@ -214,6 +214,8 @@ public:
     void operator+=(const LabeledTensor& rhs);
     void operator-=(const LabeledTensor& rhs);
     void operator=(const LabeledTensorDistributive& rhs);
+    void operator+=(const LabeledTensorDistributive& rhs);
+    void operator-=(const LabeledTensorDistributive& rhs);
 
     void operator=(const LabeledTensorProduct& rhs);
     void operator+=(const LabeledTensorProduct& rhs);
