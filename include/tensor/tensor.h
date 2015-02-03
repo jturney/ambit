@@ -145,13 +145,6 @@ public:
     std::vector<double>& data();
     const std::vector<double>& data() const;
 
-    void set_data(double* data, const IndexRange& ranges = IndexRange());
-    void get_data(double* data, const IndexRange& ranges = IndexRange()) const;
-
-    static double* get_block(const Tensor& tensor);
-    static double* get_block(const IndexRange& ranges);
-    static void free_block(double* data);
-
     // => Slicers <= //
 
 //    static Tensor slice(const Tensor& tensor, const IndexRange& ranges);

@@ -69,12 +69,6 @@ public:
     virtual std::vector<double>& data();
     virtual const std::vector<double>& data() const;
 
-    static double* get_block(size_t numel);
-    static double* free_block(double* data);
-
-    virtual void set_data(double* data, const IndexRange& ranges = IndexRange()) = 0;
-    virtual void get_data(double* data, const IndexRange& ranges = IndexRange()) const = 0;
-
     // => Simple Single Tensor Operations <= //
 
     virtual void zero() = 0;

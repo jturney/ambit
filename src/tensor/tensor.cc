@@ -139,37 +139,6 @@ const std::vector<double>& Tensor::data() const
     return tensor_->data();
 }
 
-void Tensor::set_data(double *data, IndexRange const &ranges)
-{
-    tensor_->set_data(data, ranges);
-}
-
-void Tensor::get_data(double *data, IndexRange const &ranges) const
-{
-    tensor_->get_data(data, ranges);
-}
-
-double* Tensor::get_block(const Tensor& tensor)
-{
-    return TensorImpl::get_block(tensor.numel());
-}
-
-double* Tensor::get_block(const IndexRange &ranges)
-{
-    size_t nel = 1;
-    for (IndexRange::const_iterator iter = ranges.begin();
-            iter != ranges.end();
-            ++iter) {
-        nel *= iter->second - iter->first;
-    }
-    return TensorImpl::get_block(nel);
-}
-
-void Tensor::free_block(double *data)
-{
-    TensorImpl::free_block(data);
-}
-
 //Tensor Tensor::slice(const Tensor &tensor, const IndexRange &ranges)
 //{
 //    ThrowNotImplementedException;
