@@ -130,6 +130,15 @@ LabeledTensor Tensor::operator[](const std::string& indices)
 {
     return LabeledTensor(*this, indices::split(indices));
 }
+SlicedTensor Tensor::operator()(const IndexRange& range)
+{
+    return SlicedTensor(*this, range);
+}
+
+SlicedTensor Tensor::operator[](const IndexRange& range)
+{
+    return SlicedTensor(*this, range);
+}
 
 std::vector<double>& Tensor::data()
 {

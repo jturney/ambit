@@ -12,7 +12,7 @@ SlicedTensor::SlicedTensor(Tensor T, const IndexRange& range, double factor) :
             throw std::runtime_error("Each index of an IndexRange should have two elements {start,end+1} in it.");
         if (range_[ind][0] > range_[ind][1])
             throw std::runtime_error("Each index of an IndexRange should end+1>=start in it.");
-        if (range_[ind][1] >= T_.dims()[ind]) 
+        if (range_[ind][1] > T_.dims()[ind]) 
             throw std::runtime_error("IndexRange exceeds size of tensor.");
     }    
 }

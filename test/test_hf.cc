@@ -105,7 +105,8 @@ int main(int argc, char* argv[])
 
     size_t ndocc = 5;
     IndexRange CtoCdocc = { {0,ndocc}, {0,nso}};
-    Cdocc.slice(C, CtoCdocc, CtoCdocc);
+    //Cdocc.slice(C, CtoCdocc, CtoCdocc);
+    Cdocc(CtoCdocc) = C(CtoCdocc);
 
     // Form initial D
     Tensor D = build("D", AO);

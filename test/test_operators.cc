@@ -1279,7 +1279,7 @@ double test_slice2()
     IndexRange Cinds = {{1L,5L},{0L,4L}};
     IndexRange Ainds = {{0L,4L},{2L,6L}};
 
-    C.slice(A,Cinds,Ainds);
+    C(Cinds) = A(Ainds);
 
     for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
         for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
