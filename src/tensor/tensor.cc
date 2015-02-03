@@ -130,6 +130,14 @@ LabeledTensor Tensor::operator[](const std::string& indices)
 {
     return LabeledTensor(*this, indices::split(indices));
 }
+std::vector<double>& Tensor::data()
+{
+    return tensor_->data();
+}
+const std::vector<double>& Tensor::data() const
+{
+    return tensor_->data();
+}
 
 void Tensor::set_data(double *data, IndexRange const &ranges)
 {

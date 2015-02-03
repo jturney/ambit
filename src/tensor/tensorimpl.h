@@ -66,6 +66,9 @@ public:
 
     // => Setters/Getters <= //
 
+    virtual std::vector<double>& data();
+    virtual const std::vector<double>& data() const;
+
     static double* get_block(size_t numel);
     static double* free_block(double* data);
 

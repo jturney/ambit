@@ -9,12 +9,12 @@ class CoreTensorImpl : public TensorImpl
 {
 public:
     CoreTensorImpl(const std::string& name, const Dimension& dims);
-    ~CoreTensorImpl();
 
     void set_data(double* data, const IndexRange& ranges = IndexRange());
     void get_data(double* data, const IndexRange& ranges = IndexRange()) const;
 
-    double* data() const { return data_; }
+    std::vector<double>& data() { return data_; }
+    const std::vector<double>& data() const { return data_; }
 
     // => Simple Single Tensor Operations <= //
 
@@ -72,7 +72,7 @@ public:
     void givens(int dim, int i, int j, double s, double c);
 
 private:
-    double* data_;
+    std::vector<double> data_;
 };
 
 typedef CoreTensorImpl* CoreTensorImplPtr;

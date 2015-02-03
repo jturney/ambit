@@ -130,6 +130,14 @@ void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int 
         temp = free_block(temp);
     }
 }
+std::vector<double>& TensorImpl::data()
+{
+    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + type());
+}
+const std::vector<double>& TensorImpl::data() const
+{
+    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + type());
+}
 double* TensorImpl::get_block(size_t numel)
 {
     return new double[numel];

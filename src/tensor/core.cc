@@ -13,17 +13,12 @@ namespace tensor {
 CoreTensorImpl::CoreTensorImpl(const std::string& name, const Dimension& dims)
         : TensorImpl(kCore, name, dims)
 {
-    data_ = memory::allocate<double>(numel());
-    memset(data_,'\0', sizeof(double)*numel());
-}
-CoreTensorImpl::~CoreTensorImpl()
-{
-    if (data_) memory::free(data_);
+    data_.resize(numel(),0L);
 }
 void CoreTensorImpl::set_data(double* data, const IndexRange& range)
 {
     if (range.size() == 0) {
-        memcpy(data_,data,sizeof(double)*numel());
+        memcpy(data_.data(),data,sizeof(double)*numel());
         return;
     }
     // TODO
@@ -31,19 +26,19 @@ void CoreTensorImpl::set_data(double* data, const IndexRange& range)
 void CoreTensorImpl::get_data(double* data, const IndexRange& range) const
 {
     if (range.size() == 0) {
-        memcpy(data,data_,sizeof(double)*numel());
+        memcpy(data,data_.data(),sizeof(double)*numel());
         return;
     }
     // TODO
 }
 void CoreTensorImpl::zero()
 {
-    memset(data_,'\0', sizeof(double)*numel());
+    memset(data_.data(),'\0', sizeof(double)*numel());
 }
 
 void CoreTensorImpl::scale(const double& a)
 {
-    C_DSCAL(numel(), a, data_, 1);
+    C_DSCAL(numel(), a, data_.data(), 1);
 }
 
 double CoreTensorImpl::norm(double /*power*/) const
@@ -63,9 +58,9 @@ void CoreTensorImpl::scale_and_add(const double& a, ConstTensorImplPtr x)
 
     C_DAXPY(numel(),
             a,
-            ((ConstCoreTensorImplPtr)x)->data(),
+            const_cast<double*>(((ConstCoreTensorImplPtr)x)->data().data()),
             1,
-            data_,
+            data_.data(),
             1);
 }
 
@@ -75,7 +70,7 @@ void CoreTensorImpl::pointwise_multiplication(ConstTensorImplPtr x)
         throw std::runtime_error("Tensors must have the same number of elements.");
     }
 
-    const double* rhs = ((ConstCoreTensorImplPtr)x)->data();
+    const double* rhs = ((ConstCoreTensorImplPtr)x)->data().data();
     OMP_VECTORIZED_STATIC_LOOP
     for (size_t ind=0, end=numel(); ind < end; ++ind) {
         data_[ind] *= rhs[ind];
@@ -88,7 +83,7 @@ void CoreTensorImpl::pointwise_division(ConstTensorImplPtr x)
         throw std::runtime_error("Tensors must have the same number of elements.");
     }
 
-    const double* rhs = ((ConstCoreTensorImplPtr)x)->data();
+    const double* rhs = ((ConstCoreTensorImplPtr)x)->data().data();
     OMP_VECTORIZED_STATIC_LOOP
     for (size_t ind=0, end=numel(); ind < end; ++ind) {
         data_[ind] /= rhs[ind];
@@ -102,7 +97,7 @@ double CoreTensorImpl::dot(ConstTensorImplPtr x) const
     }
     dimensionCheck(this, x, true);
 
-    return C_DDOT(numel(), data_, 1, ((ConstCoreTensorImplPtr)x)->data(), 1);
+    return C_DDOT(numel(), const_cast<double*>(data_.data()), 1, const_cast<double*>(((ConstCoreTensorImplPtr)x)->data().data()), 1);
 }
 
 void CoreTensorImpl::contract(
@@ -349,9 +344,9 @@ void CoreTensorImpl::contract(
     Dimension Adims2 = indices::permuted_dimension(A->dims(), Ainds2, Ainds);
     Dimension Bdims2 = indices::permuted_dimension(B->dims(), Binds2, Binds);
 
-    double* Cp = ((CoreTensorImplPtr)C)->data();
-    double* Ap = ((CoreTensorImplPtr)A)->data();
-    double* Bp = ((CoreTensorImplPtr)B)->data();
+    double* Cp = ((CoreTensorImplPtr)C)->data().data();
+    double* Ap = ((CoreTensorImplPtr)A)->data().data();
+    double* Bp = ((CoreTensorImplPtr)B)->data().data();
     double* C2p = Cp;
     double* A2p = Ap;
     double* B2p = Bp;
@@ -362,15 +357,15 @@ void CoreTensorImpl::contract(
     shared_ptr<CoreTensorImpl> A2;
     if (permC) {
         C2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("C2", Cdims2));
-        C2p = C2->data();
+        C2p = C2->data().data();
     }
     if (permA) {
         A2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("A2", Adims2));
-        A2p = A2->data();
+        A2p = A2->data().data();
     }
     if (permB) {
         B2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("B2", Bdims2));
-        B2p = B2->data();
+        B2p = B2->data().data();
     }
 
     // => Permute A, B, and C if Necessary <= //
@@ -445,8 +440,8 @@ void CoreTensorImpl::permute(
     }
 
     /// Data pointers
-    double* Cp = data();
-    double* Ap = ((const CoreTensorImplPtr)A)->data();
+    double* Cp = data().data();
+    double* Ap = ((const CoreTensorImplPtr)A)->data().data();
 
     /// Beta scale 
     C_DSCAL(numel(),beta,Cp,1);
@@ -663,8 +658,8 @@ void CoreTensorImpl::slice(
     TensorImplPtr C = this;
 
     /// Data pointers
-    double* Cp = data();
-    double* Ap = ((const CoreTensorImplPtr)A)->data();
+    double* Cp = data().data();
+    double* Ap = ((const CoreTensorImplPtr)A)->data().data();
 
     // => Index Logic <= //
 
@@ -892,7 +887,7 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
     size_t n = dims()[0];
     size_t lwork = 3 * dims()[0];
     double *work = new double[lwork];
-    C_DSYEV('V', 'U', n, vecs->data_, n, vals->data_, work, lwork);
+    C_DSYEV('V', 'U', n, vecs->data().data(), n, vals->data().data(), work, lwork);
 
     //If descending is required, the canonical order must be reversed
     //Sort is stable
@@ -903,14 +898,14 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
         for (size_t c = 0; c<n/2; c++) {
 
             //Swap eigenvectors
-            C_DCOPY(n, vecs->data_ + c,     n, Temp_sqrsp_col,      1);
-            C_DCOPY(n, vecs->data_ + n-c-1, n, vecs->data_ + c,     n);
-            C_DCOPY(n, Temp_sqrsp_col,      1, vecs->data_ + n-c-1, n);
+            C_DCOPY(n, vecs->data().data() + c,     n, Temp_sqrsp_col,      1);
+            C_DCOPY(n, vecs->data().data() + n-c-1, n, vecs->data().data() + c,     n);
+            C_DCOPY(n, Temp_sqrsp_col,      1, vecs->data().data() + n-c-1, n);
 
             //Swap eigenvalues
-            w_Temp_sqrsp = vals->data_[c];
-            vals->data_[c] = vals->data_[n-c-1];
-            vals->data_[n-c-1] = w_Temp_sqrsp;
+            w_Temp_sqrsp = vals->data().data()[c];
+            vals->data().data()[c] = vals->data().data()[n-c-1];
+            vals->data().data()[n-c-1] = w_Temp_sqrsp;
 
         }
 
@@ -964,8 +959,8 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
     std::map<std::string, TensorImplPtr> diag = syev(kAscending);
 
     size_t n = diag["eigenvalues"]->dims()[0];
-    double *a = dynamic_cast<CoreTensorImplPtr>(diag["eigenvalues"])->data();
-    double *a1 = dynamic_cast<CoreTensorImplPtr>(diag["eigenvectors"])->data();
+    double *a = dynamic_cast<CoreTensorImplPtr>(diag["eigenvalues"])->data().data();
+    double *a1 = dynamic_cast<CoreTensorImplPtr>(diag["eigenvectors"])->data().data();
     double *a2 = memory::allocate<double>(n*n);
 
     memcpy(a2, a1, sizeof(double)*n*n);
@@ -990,7 +985,7 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
 
     CoreTensorImpl *powered = new CoreTensorImpl(name() + "^" + std::to_string(alpha), dims());
 
-    C_DGEMM('T','N',n,n,n,1.0,a2,n,a1,n,0.0,powered->data_,n);
+    C_DGEMM('T','N',n,n,n,1.0,a2,n,a1,n,0.0,powered->data_.data(),n);
 
     memory::free(a2);
 

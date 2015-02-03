@@ -116,6 +116,35 @@ public:
 
     // => Setters/Getters <= //
 
+    /**
+     * Returns the raw data vector underlying the tensor object
+     * if the underlying tensor object supports a raw data vector.
+     * This is only the case if the underlying tensor is of type kCore.
+     *
+     * This routine is intended to facilitate rapid filling of data into a
+     * kCore buffer tensor, following which the user may stripe the buffer
+     * tensor into a kDisk or kDistributed tensor via slice operations. 
+     *
+     * If a vector is successfully returned, it points to the unrolled
+     * data of the tensor, with the right-most dimensions running fastest
+     * and left-most dimensions running slowest.
+     *
+     * Example successful use case:
+     *  Tensor A = Tensor::build(kCore, "A3", {4,5,6});
+     *  std::vector<double>& Av = A.data();
+     *  double* Ap = Av.data(); // In case the raw pointer is needed
+     *  In this case, Av[0] = A(0,0,0), Av[1] = A(0,0,1), etc.
+     *
+     * Example unsuccessful use case:
+     *  Tensor B = Tensor::build(kDisk, "B3", {4,5,6});
+     *  std::vector<double>& Bv = B.data(); // throws
+     *
+     * Results:
+     *  @return data pointer, if tensor object supports it
+     **/
+    std::vector<double>& data();
+    const std::vector<double>& data() const;
+
     void set_data(double* data, const IndexRange& ranges = IndexRange());
     void get_data(double* data, const IndexRange& ranges = IndexRange()) const;
 
