@@ -348,6 +348,9 @@ public:
     const LabeledTensor& A() const { return A_; }
     const LabeledTensorAddition& B() const { return B_; }
 
+    // conversion operator
+    operator double() const;
+
 private:
 
     const LabeledTensor& A_;

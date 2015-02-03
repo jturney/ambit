@@ -499,4 +499,17 @@ std::pair<double, double> LabeledTensorProduct::compute_contraction_cost(const s
     return std::make_pair(cpu_cost_total, memory_cost_max);
 }
 
+LabeledTensorDistributive::operator double() const
+{
+    double result = 0.0;
+    for (const LabeledTensor& tensor : B_) {
+        if (indices::equivalent(tensor.indices(), A_.indices()) == false) {
+            throw std::runtime_error("Conversion operator implies dot product and thus equivalent indices.");
+        }
+
+        result += tensor.T().dot(A_.T());
+    }
+    return result;
+}
+
 }
