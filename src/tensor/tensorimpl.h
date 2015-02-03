@@ -100,7 +100,9 @@ public:
     virtual void permute(
         ConstTensorImplPtr A,
         const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds) = 0;
+        const std::vector<std::string>& Ainds,
+        double alpha = 1.0,
+        double beta = 0.0) = 0;
 
     // => Rank-2 Operations <= //
 

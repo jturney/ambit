@@ -49,7 +49,6 @@ class LabeledTensorAddition;
 class LabeledTensorSubtraction;
 class LabeledTensorDistributive;
 class LabeledTensorSumOfProducts;
-class ContractionTopology;
 
 enum TensorType {
     kCurrent, kCore, kDisk, kDistributed, kAgnostic
@@ -178,7 +177,9 @@ public:
     void permute(
         const Tensor& A,
         const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds);
+        const std::vector<std::string>& Ainds,
+        double alpha = 1.0,
+        double beta = 0.0);
 
     bool operator==(const Tensor& other) const;
     bool operator!=(const Tensor& other) const;

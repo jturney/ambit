@@ -296,9 +296,11 @@ void Tensor::contract(
 void Tensor::permute(
     const Tensor &A,
     const std::vector<std::string>& Cinds,
-    const std::vector<std::string>& Ainds)
+    const std::vector<std::string>& Ainds,
+    double alpha,
+    double beta)
 {
-    tensor_->permute(A.tensor_.get(),Cinds,Ainds);
+    tensor_->permute(A.tensor_.get(),Cinds,Ainds,alpha,beta);
 }
 
 bool Tensor::operator==(const Tensor& other) const

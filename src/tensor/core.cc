@@ -432,7 +432,9 @@ void CoreTensorImpl::contract(
 void CoreTensorImpl::permute(
     ConstTensorImplPtr A,
     const Indices& CindsS,
-    const Indices& AindsS)
+    const Indices& AindsS,
+    double alpha,
+    double beta)
 {
 
     // => Convert to indices of A <= //
@@ -446,6 +448,11 @@ void CoreTensorImpl::permute(
     /// Data pointers
     double* Cp = data();
     double* Ap = ((const CoreTensorImplPtr)A)->data();
+    if (beta == 0.0) {
+        ::memset(Cp,'\0',sizeof(double)*numel());
+    } else {
+        C_DSCAL(numel(),beta,Cp,1);
+    }
 
     // => Index Logic <= //
 
@@ -469,7 +476,8 @@ void CoreTensorImpl::permute(
 
     /// Fully sorted case or (equivalently) rank-0 or rank-1 tensors
     if (slow_dims == 0) {
-        ::memcpy(Cp,Ap,sizeof(double)*fast_size);
+        //::memcpy(Cp,Ap,sizeof(double)*fast_size);
+        C_DAXPY(fast_size,alpha,Ap,1,Cp,1);
         return;
     }
 
@@ -514,7 +522,8 @@ void CoreTensorImpl::permute(
             double* Atp = Ap +
                 Cind0 * AstridesC[0] +
                 Cind1 * AstridesC[1];
-            ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
             Ctp += fast_size;
         }}
     } else if (slow_dims == 3) {
@@ -527,7 +536,8 @@ void CoreTensorImpl::permute(
                 Cind0 * AstridesC[0] +
                 Cind1 * AstridesC[1] +
                 Cind2 * AstridesC[2];
-            ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
             Ctp += fast_size;
         }}}
     } else if (slow_dims == 4) {
@@ -542,7 +552,8 @@ void CoreTensorImpl::permute(
                 Cind1 * AstridesC[1] +
                 Cind2 * AstridesC[2] +
                 Cind3 * AstridesC[3];
-            ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
             Ctp += fast_size;
         }}}}
     } else if (slow_dims == 5) {
@@ -559,7 +570,8 @@ void CoreTensorImpl::permute(
                 Cind2 * AstridesC[2] +
                 Cind3 * AstridesC[3] +
                 Cind4 * AstridesC[4];
-            ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
             Ctp += fast_size;
         }}}}}
     } else if (slow_dims == 6) {
@@ -578,7 +590,8 @@ void CoreTensorImpl::permute(
                 Cind3 * AstridesC[3] +
                 Cind4 * AstridesC[4] +
                 Cind5 * AstridesC[5];
-            ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
             Ctp += fast_size;
         }}}}}}
     } else if (slow_dims == 7) {
@@ -599,7 +612,8 @@ void CoreTensorImpl::permute(
                 Cind4 * AstridesC[4] +
                 Cind5 * AstridesC[5] +
                 Cind6 * AstridesC[6];
-            ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
             Ctp += fast_size;
         }}}}}}}
     } else if (slow_dims == 8) {
@@ -622,7 +636,8 @@ void CoreTensorImpl::permute(
                 Cind5 * AstridesC[5] +
                 Cind6 * AstridesC[6] +
                 Cind7 * AstridesC[7];
-            ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
             Ctp += fast_size;
         }}}}}}}}
     } else {
@@ -636,7 +651,8 @@ void CoreTensorImpl::permute(
                 num /= Csizes[dim];
                 Atp += val * AstridesC[dim];
             }
-            ::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }
     }
 }
