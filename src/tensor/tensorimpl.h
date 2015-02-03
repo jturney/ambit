@@ -104,6 +104,13 @@ public:
         double alpha = 1.0,
         double beta = 0.0) = 0;
 
+    virtual void slice(
+        ConstTensorImplPtr A,
+        const IndexRange& Cinds,
+        const IndexRange& Ainds,
+        double alpha = 1.0,
+        double beta = 0.0) = 0;
+
     // => Rank-2 Operations <= //
 
     virtual std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const = 0;

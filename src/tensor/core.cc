@@ -436,7 +436,6 @@ void CoreTensorImpl::permute(
     double alpha,
     double beta)
 {
-
     // => Convert to indices of A <= //
 
     std::vector<size_t> Ainds = indices::permutation_order(CindsS, AindsS);
@@ -448,6 +447,8 @@ void CoreTensorImpl::permute(
     /// Data pointers
     double* Cp = data();
     double* Ap = ((const CoreTensorImplPtr)A)->data();
+
+    /// Beta scale 
     if (beta == 0.0) {
         ::memset(Cp,'\0',sizeof(double)*numel());
     } else {
@@ -512,7 +513,7 @@ void CoreTensorImpl::permute(
     /// Handle to dimensions of C
     const std::vector<size_t>& Csizes = dims();
 
-    // => Actual Permute Operation <= //
+    // => Permute Operation <= //
 
     if (slow_dims == 2) {
         #pragma omp parallel for
@@ -652,6 +653,98 @@ void CoreTensorImpl::permute(
                 Atp += val * AstridesC[dim];
             }
             //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
+        }
+    }
+}
+void CoreTensorImpl::slice(
+    ConstTensorImplPtr A,
+    const IndexRange& Cinds,
+    const IndexRange& Ainds,
+    double alpha,
+    double beta)
+{
+    TensorImplPtr C = this;
+
+    /// Data pointers
+    double* Cp = data();
+    double* Ap = ((const CoreTensorImplPtr)A)->data();
+
+    // => Index Logic <= //
+
+    // TODO Validity checks
+    // TODO This is not valid for rank() == 0
+    
+    /// Sizes of stripes
+    std::vector<size_t> sizes(rank(),0L);
+    for (size_t ind = 0L; ind < rank(); ind++) {
+        sizes[ind] = Cinds[ind].second - Cinds[ind].first;
+    }
+
+    /// Size of contiguous DAXPY call
+    int fast_dims = (rank() == 0 ? 0 : 1);
+    size_t fast_size = (rank() == 0 ? 1L : sizes[rank() - 1]);
+    for (int ind = ((int) rank()) - 2; ind >= 0; ind--) {
+        if (sizes[ind+1] == A->dims()[ind+1] && sizes[ind+1] == C->dims()[ind+1]) {
+            fast_dims++;
+            fast_size *= sizes[ind];
+        }
+    }
+
+    int slow_dims = rank() - fast_dims;
+    size_t slow_size = 1L;
+    for (int dim = 0; dim < slow_dims; dim++) {
+        slow_size *= sizes[dim];
+    }
+
+    std::vector<size_t> Astrides(rank());
+    Astrides[rank() - 1] = 1L;
+    for (int ind = ((int)rank() - 2); ind >= 0; ind--) {
+        Astrides[ind] = Astrides[ind+1] * A->dims()[ind+1];
+    }
+
+    std::vector<size_t> Cstrides(rank());
+    Cstrides[rank() - 1] = 1L;
+    for (int ind = ((int)rank() - 2); ind >= 0; ind--) {
+        Cstrides[ind] = Cstrides[ind+1] * C->dims()[ind+1];
+    }
+
+    // => Slice Operation <= //
+
+    if (slow_dims == 0) {
+        double* Atp = Ap 
+            + Ainds[0].first * Astrides[0]; 
+        double* Ctp = Cp 
+            + Cinds[0].first * Cstrides[0]; 
+        C_DSCAL(fast_size,beta,Ctp,1);
+        C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
+    } else if (slow_dims == 1) {
+        #pragma omp parallel for
+        for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
+            double* Atp = Ap 
+                + (Ainds[0].first + ind0) * Astrides[0]
+                + Ainds[1].first * Astrides[1];
+            double* Ctp = Cp 
+                + (Cinds[0].first + ind0) * Cstrides[0]
+                + Cinds[1].first * Cstrides[1];
+            C_DSCAL(fast_size,beta,Ctp,1);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
+        }
+    } else {
+        #pragma omp parallel for
+        for (size_t ind = 0L; ind < slow_size; ind++) {
+            double* Ctp = Cp;
+            double* Atp = Ap;
+            size_t num = ind;
+            for (int dim = slow_dims - 1; dim >= 0; dim--) {
+                size_t val = num % sizes[dim]; // value of the dim-th index
+                num /= sizes[dim];
+                Atp += (Ainds[dim].first + val) * Astrides[dim];
+                Ctp += (Cinds[dim].first + val) * Cstrides[dim];
+            }
+            Atp += Ainds[slow_dims].first * Astrides[slow_dims];
+            Ctp += Cinds[slow_dims].first * Cstrides[slow_dims];
+            C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }
     }

@@ -80,6 +80,7 @@ double test_chain_multiply();
 double test_chain_multiply2();
 double test_chain_multiply3();
 double test_chain_multiply4();
+double test_slice2();
 
 double test_C_equal_A_B(std::string c_ind,std::string a_ind,std::string b_ind,
                         std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim);
@@ -141,6 +142,7 @@ int main(int argc, char* argv[])
             std::make_tuple(kPass, test_chain_multiply2, "D4(\"ijkl\") = A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
             std::make_tuple(kPass, test_chain_multiply3, "D4(\"ijkl\") += A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
             std::make_tuple(kPass, test_chain_multiply4, "D4(\"ijkl\") -= A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
+            std::make_tuple(kPass, test_slice2, "Slice A(0:9,0:9) = B(2:11,2:11)"),
     };
 
     std::vector<std::tuple<std::string,TestResult,double>> results;
@@ -1274,3 +1276,28 @@ double test_chain_multiply4()
 
     return difference(D4, d4).second;
 }
+double test_slice2()
+{
+    size_t ni = 7;
+    size_t nj = 7;
+    size_t nk = 7;
+    size_t nl = 7;
+
+    std::vector<size_t> dimsC = {ni,nj};
+    std::vector<size_t> dimsA = {nk,nl};
+
+    Tensor C = build_and_fill("C", dimsC, c2);
+    Tensor A = build_and_fill("A", dimsA, a2);
+
+    C.zero();
+    IndexRange Cinds = {std::make_pair(1L,5L), std::make_pair(1L,5L)};
+    IndexRange Ainds = {std::make_pair(2L,6L), std::make_pair(2L,6L)};
+
+    C.slice(A,Cinds,Ainds);
+
+    A.print(stdout,true);
+    C.print(stdout,true);
+
+    return 0.0;
+}
+

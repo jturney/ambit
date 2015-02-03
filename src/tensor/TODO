@@ -1,1 +1,3 @@
-Check if BLAS1 operations work for size_t - critical for DCOPY/DAXPY/DSCAL to do this.
+-Check if BLAS1 operations work for size_t - critical for DCOPY/DAXPY/DSCAL to do this.
+-Type checking/errors in multi-tensor operations
+-Performance modifications for permute/slice (memcpy/for loops) and contract(BLAS1/BLAS2)

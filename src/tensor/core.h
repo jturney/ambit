@@ -48,6 +48,13 @@ public:
         double alpha = 1.0,
         double beta = 0.0);
 
+    void slice(
+        ConstTensorImplPtr A,
+        const IndexRange& Cinds,
+        const IndexRange& Ainds,
+        double alpha = 1.0,
+        double beta = 0.0);
+
     // => Order-2 Operations <= //
 
     std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const;

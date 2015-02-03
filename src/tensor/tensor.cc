@@ -302,6 +302,15 @@ void Tensor::permute(
 {
     tensor_->permute(A.tensor_.get(),Cinds,Ainds,alpha,beta);
 }
+void Tensor::slice(
+    const Tensor &A,
+    const IndexRange& Cinds,
+    const IndexRange& Ainds,
+    double alpha,
+    double beta)
+{
+    tensor_->slice(A.tensor_.get(),Cinds,Ainds,alpha,beta);
+}
 
 bool Tensor::operator==(const Tensor& other) const
 {
