@@ -19,9 +19,10 @@
 #include <tensor/io/iwl.h>
 #include <stdexcept>
 
-namespace tensor { namespace io {
+namespace tensor {
+namespace io {
 
-IWL::IWL(File&& f, double cutoff, bool psi34_compatible)
+IWL::IWL(File &&f, double cutoff, bool psi34_compatible)
         : File(std::move(f)),
           nintegral(0),
           last_buffer(0),
@@ -44,7 +45,7 @@ IWL::IWL(File&& f, double cutoff, bool psi34_compatible)
     }
 }
 
-IWL::IWL(const std::string& full_pathname, enum OpenMode om, enum DeleteMode dm, double cutoff, bool psi34_compatible)
+IWL::IWL(const std::string &full_pathname, enum OpenMode om, enum DeleteMode dm, double cutoff, bool psi34_compatible)
         : File(full_pathname, om, dm),
           nintegral(0),
           last_buffer(0),
@@ -69,12 +70,13 @@ IWL::IWL(const std::string& full_pathname, enum OpenMode om, enum DeleteMode dm,
 }
 
 IWL::~IWL()
-{}
+{
+}
 
 void IWL::fetch()
 {
-    read_entry_stream(details::buffer_key__, read_position_, (int*)&last_buffer, 1);
-    read_entry_stream(details::buffer_key__, read_position_, (int*)&nintegral, 1);
+    read_entry_stream(details::buffer_key__, read_position_, (int *) &last_buffer, 1);
+    read_entry_stream(details::buffer_key__, read_position_, (int *) &nintegral, 1);
 
     if (psi34_compatible_)
         read_entry_stream(details::buffer_key__, read_position_, labels_.data(), 4 * details::integrals_per_buffer__);
@@ -85,14 +87,14 @@ void IWL::fetch()
 
     // distribute the labels to their respective p, q, r, s
     for (int i = 0; i < details::integrals_per_buffer__; ++i) {
-        p[i] = labels_[4*i+0];
-        q[i] = labels_[4*i+1];
-        r[i] = labels_[4*i+2];
-        s[i] = labels_[4*i+3];
+        p[i] = labels_[4 * i + 0];
+        q[i] = labels_[4 * i + 1];
+        r[i] = labels_[4 * i + 2];
+        s[i] = labels_[4 * i + 3];
     }
 }
 
-void IWL::read_one(File& io, const std::string& label, Tensor& tensor)
+void IWL::read_one(File &io, const std::string &label, Tensor &tensor)
 {
     // ensure the tensor object is only 2D.
     if (tensor.rank() != 2)
@@ -104,16 +106,16 @@ void IWL::read_one(File& io, const std::string& label, Tensor& tensor)
 
     double *data = Tensor::get_block(tensor);
     size_t n = tensor.dims()[0];
-    size_t ntri = n * (n+1) / 2;
+    size_t ntri = n * (n + 1) / 2;
 
     std::vector<double> ints(ntri);
     io.read(label, ints);
 
     // Walk through lower triangle and mirror it to the upper triangle
-    for (size_t x=0, xy=0; x < n; ++x) {
-        for (size_t y=0; y <= x; ++y, ++xy) {
-            data[x*n+y] = ints[xy];
-            data[y*n+x] = ints[xy];
+    for (size_t x = 0, xy = 0; x < n; ++x) {
+        for (size_t y = 0; y <= x; ++y, ++xy) {
+            data[x * n + y] = ints[xy];
+            data[y * n + x] = ints[xy];
         }
     }
 
@@ -122,35 +124,41 @@ void IWL::read_one(File& io, const std::string& label, Tensor& tensor)
 }
 
 namespace {
-    size_t position(size_t dim, short int p, short int q, short int r, short int s)
-    {
-        return ((p * dim + q) * dim + r) * dim + s;
-    }
+size_t position(size_t dim, short int p, short int q, short int r, short int s)
+{
+//    return ((p * dim + q) * dim + r) * dim + s;
+    return p*dim*dim*dim + q*dim*dim + r*dim + s;
+}
 }
 
-void IWL::read_two(IWL& io, Tensor& tensor)
+void IWL::read_two(IWL &io, Tensor &tensor)
 {
     // ensure the tensor object is only 4D.
     if (tensor.rank() != 4)
         throw std::runtime_error("tensor must be rank 4");
 
     size_t dim = tensor.dim(0);
-    for (size_t i=1; i<4; ++i) {
+    for (size_t i = 1; i < 4; ++i) {
         if (dim != tensor.dim(i))
             throw std::runtime_error("tensor must have equivalent length indices");
     }
 
+    tensor.print(stdout, false);
+
     // psi stores 1 of the 8 possible permutations
 
-    std::vector<double> values(dim*dim*dim*dim);
+    std::vector<double> values(dim * dim * dim * dim);
 
     size_t count = 0;
     do {
         size_t c = 0;
 
-        for (int i=0; i<io.nintegral; ++i) {
+        for (int i = 0; i < io.nintegral; ++i) {
             short int p, q, r, s;
-            p = io.p[i]; q = io.q[i]; r = io.r[i]; s = io.s[i];
+            p = io.p[i];
+            q = io.q[i];
+            r = io.r[i];
+            s = io.s[i];
 
             values[position(dim, p, q, r, s)] = io.values[i];
             values[position(dim, p, q, s, r)] = io.values[i];
@@ -160,6 +168,18 @@ void IWL::read_two(IWL& io, Tensor& tensor)
             values[position(dim, r, s, q, p)] = io.values[i];
             values[position(dim, s, r, p, q)] = io.values[i];
             values[position(dim, s, r, q, p)] = io.values[i];
+
+            printf("value %+lf saved to (%d %d| %d %d) %5zu, %5zu, %5zu, %5zu, %5zu, %5zu, %5zu, %5zu\n",
+                   io.values[i],
+                   p, q, r, s,
+                   position(dim, p, q, r, s),
+                   position(dim, p, q, s, r),
+                   position(dim, q, p, r, s),
+                   position(dim, q, p, s, r),
+                   position(dim, r, s, p, q),
+                   position(dim, r, s, q, p),
+                   position(dim, s, r, p, q),
+                   position(dim, s, r, q, p));
         }
 
         count += c;
@@ -169,9 +189,10 @@ void IWL::read_two(IWL& io, Tensor& tensor)
         if (io.last_buffer)
             break;
         io.fetch();
-    } while(1);
+    } while (1);
 
     tensor.set_data(values.data());
 }
 
-}}
+}
+}
