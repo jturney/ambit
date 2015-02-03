@@ -13,6 +13,7 @@ Tensor build(const std::string& name, const Dimension& dims)
 Tensor build_and_load(io::File& file35, const std::string& toc, const Dimension& AO)
 {
     Tensor X = build(toc, AO);
+    X.zero();
     io::IWL::read_one(file35, toc, X);
     return X;
 }
@@ -100,16 +101,31 @@ int main(int argc, char* argv[])
 
     Tensor C = build("C", AO);
     C("i,j") = Smhalf("k,j") * Feigen["eigenvectors"]("i,k");
-//    C.print(stdout, true);
+
+    Tensor Cdocc = build("C", {5, (size_t)nso});
+    double *data = new double[Cdocc.numel()];
+    IndexRange Cdocc_range = { std::make_pair(0, 5), std::make_pair(0, nso) };
+    C.get_data(data, Cdocc_range);
+    Cdocc.set_data(data);
+
+    C.print(stdout, true);
+    Cdocc.print(stdout, true);
 
     // Form initial D
     Tensor D = build("D", AO);
+    D("mu,nu") = Cdocc("i,mu") * Cdocc("i,nu");
+    D.print(stdout, true);
 
     Tensor F = build("F", AO);
 
     // start SCF iteration
     F("mu,nu") = H("mu,nu");
     F("mu,nu") += D("rho,sigma") * (2.0 * g("mu,nu,rho,sigma") - g("mu,rho,nu,sigma"));
+    F.print(stdout, true);
+
+    F("mu,nu") = H("mu,nu");
+    F("mu,nu") += 2.0 * D("rho,sigma") * g("mu,nu,rho,sigma");
+//    F("mu,nu") -= D("rho,sigma") * g("mu,rho,nu,sigma");
     F.print(stdout, true);
 
     tensor::finalize();
