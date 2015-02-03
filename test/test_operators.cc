@@ -147,6 +147,8 @@ int main(int argc, char* argv[])
 
     std::vector<std::tuple<std::string,TestResult,double>> results;
 
+    printf(ANSI_COLOR_RESET);
+
     printf("\n %-50s %12s %s","Description","Max. error","Result");
     printf("\n %s",std::string(73,'-').c_str());
 
