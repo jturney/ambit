@@ -54,13 +54,8 @@ int main(int argc, char* argv[])
     // psi checkpoint file
     tensor::io::File file32("test.32", tensor::io::kOpenModeOpenExisting);
 
-
     // psi one-electron integral file
     tensor::io::File file35("test.35", tensor::io::kOpenModeOpenExisting);
-
-//    file32.toc().print();
-//    file34.toc().print();
-//    file35.toc().print();
 
     // Read information from checkpoint file
     int nirrep = 0;
@@ -88,12 +83,9 @@ int main(int argc, char* argv[])
     Tensor H = load_1e_hamiltonian(file35, AO);
     Tensor g = load_2e(AO4);
 
-//    g.print(stdout, false);
-
     Tensor Ft = build("Ft", AO);
 
     Tensor Smhalf = S.power(-0.5);
-//    Smhalf.print(stdout, true);
 
     Ft("i,j") = Smhalf("mu,i") * Smhalf("nu,j") * H("mu,nu");
     auto Feigen = Ft.syev(kAscending);

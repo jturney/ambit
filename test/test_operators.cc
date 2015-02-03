@@ -76,6 +76,7 @@ double test_power();
 double test_dot_product();
 double test_dot_product2();
 double test_dot_product3();
+double test_dot_product4();
 double test_chain_multiply();
 double test_chain_multiply2();
 double test_chain_multiply3();
@@ -138,6 +139,7 @@ int main(int argc, char* argv[])
             std::make_tuple(kPass, test_dot_product, "double = A(\"ij\")\" * B(\"ij\")"),
             std::make_tuple(kException, test_dot_product2, "double = A(\"ij\") * B(\"ik\") exception expected"),
             std::make_tuple(kException, test_dot_product3, "double = A(\"ij\") * B(\"ij\") exception expected"),
+            std::make_tuple(kPass, test_dot_product4, "double D = A(\"i,j\") * (B(\"i,j\") + C(\"i,j\"))"),
             std::make_tuple(kPass, test_chain_multiply, "D(\"ij\") = B(\"ik\") * C(\"kl\") * A(\"lj\")"),
             std::make_tuple(kPass, test_chain_multiply2, "D4(\"ijkl\") = A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
             std::make_tuple(kPass, test_chain_multiply3, "D4(\"ijkl\") += A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
@@ -1136,6 +1138,27 @@ double test_dot_product3()
     }
 
     return std::fabs(C - c);
+}
+
+double test_dot_product4()
+{
+    size_t ni = 9, nj = 6;
+
+    Dimension dims = {ni, nj};
+    Tensor A = build_and_fill("A", dims, a2);
+    Tensor B = build_and_fill("B", dims, b2);
+    Tensor C = build_and_fill("C", dims, c2);
+
+    double D = A("i,j") * (B("i,j") + C("i,j"));
+    double d = 0.0;
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            d += a2[i][j] * (b2[i][j] + c2[i][j]);
+        }
+    }
+
+    return std::fabs(D - d);
 }
 
 double test_chain_multiply()
