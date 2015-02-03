@@ -208,9 +208,16 @@ double CyclopsTensorImpl::dot(ConstTensorImplPtr x) const
     return global_total;
 }
 
-void CyclopsTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B, const ContractionTopology &topology, double alpha, double beta)
+void CyclopsTensorImpl::contract(
+        ConstTensorImplPtr A,
+        ConstTensorImplPtr B,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds,
+        const std::vector<std::string>& Binds,
+        double alpha = 1.0,
+        double beta = 0.0)
 {
-    // Need a way to translate topology to strings of indices
+
 }
 
 std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder order) const

@@ -38,12 +38,13 @@ public:
     // => Contraction Type Operations <= //
 
     void contract(
-                  ConstTensorImplPtr A,
-                  ConstTensorImplPtr B,
-                  const ContractionTopology& topology,
-                  double alpha = 1.0,
-                  double beta = 0.0
-                  );
+            ConstTensorImplPtr A,
+            ConstTensorImplPtr B,
+            const std::vector<std::string>& Cinds,
+            const std::vector<std::string>& Ainds,
+            const std::vector<std::string>& Binds,
+            double alpha = 1.0,
+            double beta = 0.0);
 
     // => Order-2 Operations <= //
 
