@@ -49,6 +49,7 @@ class LabeledTensorAddition;
 class LabeledTensorSubtraction;
 class LabeledTensorDistributive;
 class LabeledTensorSumOfProducts;
+class SlicedTensor;
 
 enum TensorType {
     kCurrent, kCore, kDisk, kDistributed, kAgnostic
@@ -58,7 +59,7 @@ enum EigenvalueOrder {
 };
 
 typedef std::vector<size_t> Dimension;
-typedef std::vector<std::pair<size_t, size_t> > IndexRange;
+typedef std::vector<std::vector<size_t>> IndexRange;
 typedef std::vector<std::string> Indices;
 
 /** Initializes the tensor library.
@@ -113,6 +114,11 @@ public:
 
     LabeledTensor operator()(const std::string& indices);
     LabeledTensor operator[](const std::string& indices);
+
+    // => Slicers <= //
+
+    SlicedTensor operator()(const IndexRange& indices);
+    SlicedTensor operator[](const IndexRange& indices);
 
     // => Setters/Getters <= //
 
@@ -440,6 +446,30 @@ private:
     const LabeledTensorAddition& B_;
 
 };
+
+class SlicedTensor
+{
+public:
+    SlicedTensor(Tensor T, const IndexRange& range, double factor = 1.0);
+
+    double factor() const { return factor_; }
+    const IndexRange& range() const { return range_; }
+    Tensor T() const { return T_; }
+
+    void operator=(const SlicedTensor& rhs);
+    void operator+=(const SlicedTensor& rhs);
+    void operator-=(const SlicedTensor& rhs);
+
+private:
+    Tensor T_;
+    IndexRange range_;
+    double factor_;
+};
+
+inline SlicedTensor operator*(double factor, const SlicedTensor& ti) {
+    return SlicedTensor(ti.T(), ti.range(), factor*ti.factor());
+};
+
 
 }
 

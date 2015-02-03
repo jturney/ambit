@@ -13,7 +13,7 @@ void TensorImpl::copy(ConstTensorImplPtr other, const double& s)
    
     IndexRange ranges;
     for (int ind = 0; ind < rank(); ind++) {
-        ranges.push_back(std::make_pair(0L,dims()[ind]));
+        ranges.push_back({0L,dims()[ind]});
     } 
     slice(other,ranges,ranges,s,0.0);
 }
