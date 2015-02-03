@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <cerrno>
+#include <cstring>
 
 //#include <util/print.h>
 
