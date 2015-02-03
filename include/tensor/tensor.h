@@ -76,6 +76,9 @@ int initialize(int argc, char** argv);
  */
 void finalize();
 
+/**
+ * Class Tensor is 
+ **/
 class Tensor {
 
 public:
@@ -165,6 +168,27 @@ public:
 
     // => Contraction Type Operations <= //
 
+    /**
+     * Perform the contraction:
+     *  C(Cinds) = alpha * A(Ainds) * B(Binds) + beta * C(Cinds)
+     *   
+     * Note: Most users should instead use the operator overloading
+     * routines, e.g.,
+     *  C2("ij") += 0.5 * A2("ik") * B2("jk");
+     *
+     * Parameters:
+     *  @param A: The left-side factor tensor, e.g., A2
+     *  @param B: The right-side factor tensor, e.g., B2
+     *  @param Cinds: The indices of tensor C, e.g., "ij"
+     *  @param Ainds: The indices of tensor A, e.g., "ik"
+     *  @param Binds: The indices of tensor B, e.g., "jk"
+     *  @param alpha: The scale applied to the product A*B, e.g., 0.5
+     *  @param beta: The scale applied to the tensor C, e.g., 1.0
+     *
+     * Results:
+     *  @return void
+     *  C is the current tensor, whose data is overwritten. e.g., C2
+     **/
     void contract(
         const Tensor& A,
         const Tensor& B,
@@ -172,8 +196,27 @@ public:
         const std::vector<std::string>& Ainds,
         const std::vector<std::string>& Binds,
         double alpha = 1.0,
-        double beta = 1.0);
+        double beta = 0.0);
 
+    /**
+     * Perform the permutation:
+     *  C(Cinds) = alpha * A(Ainds) + beta * C(Cinds)
+     *   
+     * Note: Most users should instead use the operator overloading
+     * routines, e.g.,
+     *  C2("ij") += 0.5 * A2("ji");
+     *
+     * Parameters:
+     *  @param A: The source tensor, e.g., A2
+     *  @param Cinds: The indices of tensor C, e.g., "ij"
+     *  @param Ainds: The indices of tensor A, e.g., "ji"
+     *  @param alpha: The scale applied to the tensor A, e.g., 0.5
+     *  @param beta: The scale applied to the tensor C, e.g., 1.0
+     *
+     * Results:
+     *  @return void
+     *  C is the current tensor, whose data is overwritten. e.g., C2
+     **/
     void permute(
         const Tensor& A,
         const std::vector<std::string>& Cinds,
@@ -181,6 +224,26 @@ public:
         double alpha = 1.0,
         double beta = 0.0);
 
+    /**
+     * Perform the slice:
+     *  C(Cinds) = alpha * A(Ainds) + beta * C(Cinds)
+     *   
+     * Note: Most users should instead use the operator overloading
+     * routines, e.g.,
+     *  C2({{0,m},{0,n}}) += 0.5 * A2({{1,m+1},{1,n+1}});
+     *  TODO: This must be coded. Possibly IndexRange should be changed to vector<vector<size_t>> for brevity
+     *
+     * Parameters:
+     *  @param A: The source tensor, e.g., A2
+     *  @param Cinds: The slices of indices of tensor C, e.g., {{0,m},{0,n}}
+     *  @param Ainds: The indices of tensor A, e.g., {{1,m+1},{1,n+1}}
+     *  @param alpha: The scale applied to the tensor A, e.g., 0.5
+     *  @param beta: The scale applied to the tensor C, e.g., 1.0
+     *
+     * Results:
+     *  @return void
+     *  C is the current tensor, whose data is overwritten. e.g., C2
+     **/
     void slice(
         const Tensor& A,
         const IndexRange& Cinds,

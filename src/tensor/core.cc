@@ -449,11 +449,7 @@ void CoreTensorImpl::permute(
     double* Ap = ((const CoreTensorImplPtr)A)->data();
 
     /// Beta scale 
-    if (beta == 0.0) {
-        ::memset(Cp,'\0',sizeof(double)*numel());
-    } else {
-        C_DSCAL(numel(),beta,Cp,1);
-    }
+    C_DSCAL(numel(),beta,Cp,1);
 
     // => Index Logic <= //
 
