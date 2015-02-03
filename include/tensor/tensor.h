@@ -176,7 +176,7 @@ public:
     * Performs: C["ij"] /= A["ij"];
     */
     Tensor& pointwise_division(const Tensor& x);
-    double dot(const Tensor& x);
+    double dot(const Tensor& x) const;
 
     // => Order-2 Operations <= //
 
@@ -269,6 +269,8 @@ public:
      * Results:
      *  @return void
      *  C is the current tensor, whose data is overwritten. e.g., C2
+     *  All elements outside of the IndexRange in C are untouched, alpha and beta
+     *  scales are applied only to elements indices of the IndexRange
      **/
     void slice(
         const Tensor& A,
@@ -298,7 +300,7 @@ public:
 
     double factor() const { return factor_; }
     const Indices& indices() const { return indices_; }
-    Tensor T() const { return T_; }
+    const Tensor& T() const { return T_; }
 
     LabeledTensorProduct operator*(const LabeledTensor& rhs);
     LabeledTensorAddition operator+(const LabeledTensor& rhs);
@@ -454,7 +456,7 @@ public:
 
     double factor() const { return factor_; }
     const IndexRange& range() const { return range_; }
-    Tensor T() const { return T_; }
+    const Tensor& T() const { return T_; }
 
     void operator=(const SlicedTensor& rhs);
     void operator+=(const SlicedTensor& rhs);

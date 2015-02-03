@@ -190,7 +190,7 @@ Tensor& Tensor::pointwise_division(const Tensor &x)
     return *this;
 }
 
-double Tensor::dot(const Tensor& x)
+double Tensor::dot(const Tensor& x) const
 {
     return tensor_->dot(x.tensor_.get());
 }
