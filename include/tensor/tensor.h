@@ -186,8 +186,6 @@ public:
     Tensor inverse();
     Tensor power(double power, double condition = 1.0E-12);
 
-    Tensor& givens(int dim, int i, int j, double s, double c);
-
     // => Contraction Type Operations <= //
 
     /**

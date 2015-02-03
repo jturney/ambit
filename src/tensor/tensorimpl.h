@@ -112,7 +112,7 @@ public:
 
     virtual std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const = 0;
     virtual std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const = 0;
-    virtual std::map<std::string,TensorImplPtr> svd() const = 0;
+    virtual std::map<std::string, TensorImplPtr> svd() const = 0;
 
     virtual TensorImplPtr cholesky() const = 0;
     virtual std::map<std::string, TensorImplPtr> lu() const = 0;
@@ -121,8 +121,6 @@ public:
     virtual TensorImplPtr cholesky_inverse() const = 0;
     virtual TensorImplPtr inverse() const = 0;
     virtual TensorImplPtr power(double power, double condition = 1.0E-12) const = 0;
-
-    virtual void givens(int dim, int i, int j, double s, double c) = 0;
 
 protected:
 

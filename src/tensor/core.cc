@@ -997,9 +997,4 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
     return powered;
 }
 
-void CoreTensorImpl::givens(int /*dim*/, int /*i*/, int /*j*/, double /*s*/, double /*c*/)
-{
-    ThrowNotImplementedException;
-}
-
 }

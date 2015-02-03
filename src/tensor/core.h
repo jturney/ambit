@@ -69,8 +69,6 @@ public:
     TensorImplPtr inverse() const;
     TensorImplPtr power(double power, double condition = 1.0E-12) const;
 
-    void givens(int dim, int i, int j, double s, double c);
-
 private:
     std::vector<double> data_;
 };

@@ -130,19 +130,16 @@ LabeledTensor Tensor::operator[](const std::string& indices)
 {
     return LabeledTensor(*this, indices::split(indices));
 }
+
 std::vector<double>& Tensor::data()
 {
     return tensor_->data();
 }
+
 const std::vector<double>& Tensor::data() const
 {
     return tensor_->data();
 }
-
-//Tensor Tensor::slice(const Tensor &tensor, const IndexRange &ranges)
-//{
-//    ThrowNotImplementedException;
-//}
 
 Tensor Tensor::cat(std::vector<Tensor> const, int dim)
 {
@@ -244,12 +241,6 @@ Tensor Tensor::inverse()
 Tensor Tensor::power(double alpha, double condition)
 {
     return Tensor(shared_ptr<TensorImpl>(tensor_->power(alpha, condition)));
-}
-
-Tensor& Tensor::givens(int dim, int i, int j, double s, double c)
-{
-    tensor_->givens(dim, i, j, s, c);
-    return *this;
 }
 
 void Tensor::contract(
