@@ -103,10 +103,14 @@ int main(int argc, char* argv[])
     C("i,j") = Smhalf("k,j") * Feigen["eigenvectors"]("i,k");
 
     Tensor Cdocc = build("C", {5, (size_t)nso});
-    double *data = new double[Cdocc.numel()];
-    IndexRange Cdocc_range = { std::make_pair(0, 5), std::make_pair(0, nso) };
-    C.get_data(data, Cdocc_range);
-    Cdocc.set_data(data);
+//    double *data = new double[Cdocc.numel()];
+//    IndexRange Cdocc_range = { std::make_pair(0, 5), std::make_pair(0, nso) };
+//    C.get_data(data, Cdocc_range);
+//    Cdocc.set_data(data);
+
+    size_t ndocc = 5;
+    IndexRange CtoCdocc = { std::make_pair(0, ndocc), std::make_pair(0, nso) };
+    Cdocc.slice(C, CtoCdocc, CtoCdocc);
 
     C.print(stdout, true);
     Cdocc.print(stdout, true);
