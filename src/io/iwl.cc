@@ -143,8 +143,6 @@ void IWL::read_two(IWL &io, Tensor &tensor)
             throw std::runtime_error("tensor must have equivalent length indices");
     }
 
-    tensor.print(stdout, false);
-
     // psi stores 1 of the 8 possible permutations
 
     std::vector<double> values(dim * dim * dim * dim);
@@ -169,17 +167,6 @@ void IWL::read_two(IWL &io, Tensor &tensor)
             values[position(dim, s, r, p, q)] = io.values[i];
             values[position(dim, s, r, q, p)] = io.values[i];
 
-            printf("value %+lf saved to (%d %d| %d %d) %5zu, %5zu, %5zu, %5zu, %5zu, %5zu, %5zu, %5zu\n",
-                   io.values[i],
-                   p, q, r, s,
-                   position(dim, p, q, r, s),
-                   position(dim, p, q, s, r),
-                   position(dim, q, p, r, s),
-                   position(dim, q, p, s, r),
-                   position(dim, r, s, p, q),
-                   position(dim, r, s, q, p),
-                   position(dim, s, r, p, q),
-                   position(dim, s, r, q, p));
         }
 
         count += c;
