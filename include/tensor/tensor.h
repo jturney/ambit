@@ -122,7 +122,7 @@ public:
 
     // => Slicers <= //
 
-    static Tensor slice(const Tensor& tensor, const IndexRange& ranges);
+//    static Tensor slice(const Tensor& tensor, const IndexRange& ranges);
     static Tensor cat(const std::vector<Tensor>, int dim);
 
     // => Simple Single Tensor Operations <= //

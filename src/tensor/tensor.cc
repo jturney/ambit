@@ -162,10 +162,10 @@ void Tensor::free_block(double *data)
     TensorImpl::free_block(data);
 }
 
-Tensor Tensor::slice(const Tensor &tensor, const IndexRange &ranges)
-{
-    ThrowNotImplementedException;
-}
+//Tensor Tensor::slice(const Tensor &tensor, const IndexRange &ranges)
+//{
+//    ThrowNotImplementedException;
+//}
 
 Tensor Tensor::cat(std::vector<Tensor> const, int dim)
 {
