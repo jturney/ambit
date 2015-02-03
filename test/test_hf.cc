@@ -2,6 +2,7 @@
 #include <tensor/io/io.h>
 
 #include <string>
+#include <cmath>
 
 using namespace tensor;
 
@@ -95,42 +96,54 @@ int main(int argc, char* argv[])
 //    Smhalf.print(stdout, true);
 
     Ft("i,j") = Smhalf("mu,i") * Smhalf("nu,j") * H("mu,nu");
-    Ft.print(stdout, true);
-
     auto Feigen = Ft.syev(kAscending);
 
     Tensor C = build("C", AO);
     C("i,j") = Smhalf("k,j") * Feigen["eigenvectors"]("i,k");
 
     Tensor Cdocc = build("C", {5, (size_t)nso});
-//    double *data = new double[Cdocc.numel()];
-//    IndexRange Cdocc_range = { std::make_pair(0, 5), std::make_pair(0, nso) };
-//    C.get_data(data, Cdocc_range);
-//    Cdocc.set_data(data);
 
     size_t ndocc = 5;
     IndexRange CtoCdocc = { std::make_pair(0, ndocc), std::make_pair(0, nso) };
     Cdocc.slice(C, CtoCdocc, CtoCdocc);
 
-    C.print(stdout, true);
-    Cdocc.print(stdout, true);
-
     // Form initial D
     Tensor D = build("D", AO);
     D("mu,nu") = Cdocc("i,mu") * Cdocc("i,nu");
-    D.print(stdout, true);
 
     Tensor F = build("F", AO);
 
     // start SCF iteration
-    F("mu,nu") = H("mu,nu");
-    F("mu,nu") += D("rho,sigma") * (2.0 * g("mu,nu,rho,sigma") - g("mu,rho,nu,sigma"));
-    F.print(stdout, true);
+    bool converged = false;
+    double Eelec = 0.0, Eold = 0.0;
+    int iter = 1;
+    do {
+        F("mu,nu") = H("mu,nu");
+        F("mu,nu") += D("rho,sigma") * (2.0 * g("mu,nu,rho,sigma") - g("mu,rho,nu,sigma"));
+//        F.print(stdout, true);
 
-    F("mu,nu") = H("mu,nu");
-    F("mu,nu") += 2.0 * D("rho,sigma") * g("mu,nu,rho,sigma");
-//    F("mu,nu") -= D("rho,sigma") * g("mu,rho,nu,sigma");
-    F.print(stdout, true);
+        // Calculate energy
+        Eelec = D("mu,nu") * (H("mu,nu") + F("mu,nu"));
+        printf("  @RHF iter %5d: %20.14lf\n", iter++, Enuc + Eelec);
+
+        // Transform the Fock matrix
+        Ft("i,j") = Smhalf("mu,i") * Smhalf("nu,j") * F("mu,nu");
+
+        // Diagonalize Fock matrix
+        Feigen = Ft.syev(kAscending);
+
+        // Construct new SCF eigenvector matrix.
+        C("i,j") = Smhalf("k,j") * Feigen["eigenvectors"]("i,k");
+
+        // Form new density matrix
+        Cdocc.slice(C, CtoCdocc, CtoCdocc);
+        D("mu,nu") = Cdocc("i,mu") * Cdocc("i,nu");
+//        D.print(stdout, true);
+
+        if (std::fabs(Eelec - Eold) < 1.0e-8) converged = true;
+        Eold = Eelec;
+
+    } while (!converged);
 
     tensor::finalize();
     return EXIT_SUCCESS;
