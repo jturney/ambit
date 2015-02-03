@@ -181,6 +181,13 @@ public:
         double alpha = 1.0,
         double beta = 0.0);
 
+    void slice(
+        const Tensor& A,
+        const IndexRange& Cinds,
+        const IndexRange& Ainds,
+        double alpha = 1.0,
+        double beta = 0.0);
+
     bool operator==(const Tensor& other) const;
     bool operator!=(const Tensor& other) const;
 

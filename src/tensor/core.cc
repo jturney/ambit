@@ -713,9 +713,9 @@ void CoreTensorImpl::slice(
 
     if (slow_dims == 0) {
         double* Atp = Ap 
-            + Ainds[0].first * Astrides[0]; 
+            + Ainds[slow_dims].first * Astrides[slow_dims]; 
         double* Ctp = Cp 
-            + Cinds[0].first * Cstrides[0]; 
+            + Cinds[slow_dims].first * Cstrides[slow_dims]; 
         C_DSCAL(fast_size,beta,Ctp,1);
         C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
     } else if (slow_dims == 1) {
@@ -723,13 +723,148 @@ void CoreTensorImpl::slice(
         for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
             double* Atp = Ap 
                 + (Ainds[0].first + ind0) * Astrides[0]
-                + Ainds[1].first * Astrides[1];
+                + Ainds[slow_dims].first * Astrides[slow_dims]; 
             double* Ctp = Cp 
                 + (Cinds[0].first + ind0) * Cstrides[0]
-                + Cinds[1].first * Cstrides[1];
+                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }
+    } else if (slow_dims == 2) {
+        #pragma omp parallel for
+        for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
+        for (size_t ind1 = 0L; ind1 < sizes[1]; ind1++) {
+            double* Atp = Ap 
+                + (Ainds[0].first + ind0) * Astrides[0]
+                + (Ainds[1].first + ind1) * Astrides[1]
+                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+            double* Ctp = Cp 
+                + (Cinds[0].first + ind0) * Cstrides[0]
+                + (Cinds[1].first + ind1) * Cstrides[1]
+                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+            C_DSCAL(fast_size,beta,Ctp,1);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
+        }}
+    } else if (slow_dims == 3) {
+        #pragma omp parallel for
+        for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
+        for (size_t ind1 = 0L; ind1 < sizes[1]; ind1++) {
+        for (size_t ind2 = 0L; ind2 < sizes[2]; ind2++) {
+            double* Atp = Ap 
+                + (Ainds[0].first + ind0) * Astrides[0]
+                + (Ainds[1].first + ind1) * Astrides[1]
+                + (Ainds[2].first + ind2) * Astrides[2]
+                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+            double* Ctp = Cp 
+                + (Cinds[0].first + ind0) * Cstrides[0]
+                + (Cinds[1].first + ind1) * Cstrides[1]
+                + (Cinds[2].first + ind2) * Cstrides[2]
+                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+            C_DSCAL(fast_size,beta,Ctp,1);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
+        }}}
+    } else if (slow_dims == 4) {
+        #pragma omp parallel for
+        for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
+        for (size_t ind1 = 0L; ind1 < sizes[1]; ind1++) {
+        for (size_t ind2 = 0L; ind2 < sizes[2]; ind2++) {
+        for (size_t ind3 = 0L; ind3 < sizes[3]; ind3++) {
+            double* Atp = Ap 
+                + (Ainds[0].first + ind0) * Astrides[0]
+                + (Ainds[1].first + ind1) * Astrides[1]
+                + (Ainds[2].first + ind2) * Astrides[2]
+                + (Ainds[3].first + ind3) * Astrides[3]
+                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+            double* Ctp = Cp 
+                + (Cinds[0].first + ind0) * Cstrides[0]
+                + (Cinds[1].first + ind1) * Cstrides[1]
+                + (Cinds[2].first + ind2) * Cstrides[2]
+                + (Cinds[3].first + ind3) * Cstrides[3]
+                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+            C_DSCAL(fast_size,beta,Ctp,1);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
+        }}}}
+    } else if (slow_dims == 5) {
+        #pragma omp parallel for
+        for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
+        for (size_t ind1 = 0L; ind1 < sizes[1]; ind1++) {
+        for (size_t ind2 = 0L; ind2 < sizes[2]; ind2++) {
+        for (size_t ind3 = 0L; ind3 < sizes[3]; ind3++) {
+        for (size_t ind4 = 0L; ind4 < sizes[4]; ind4++) {
+            double* Atp = Ap 
+                + (Ainds[0].first + ind0) * Astrides[0]
+                + (Ainds[1].first + ind1) * Astrides[1]
+                + (Ainds[2].first + ind2) * Astrides[2]
+                + (Ainds[3].first + ind3) * Astrides[3]
+                + (Ainds[4].first + ind4) * Astrides[4]
+                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+            double* Ctp = Cp 
+                + (Cinds[0].first + ind0) * Cstrides[0]
+                + (Cinds[1].first + ind1) * Cstrides[1]
+                + (Cinds[2].first + ind2) * Cstrides[2]
+                + (Cinds[3].first + ind3) * Cstrides[3]
+                + (Cinds[4].first + ind4) * Cstrides[4]
+                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+            C_DSCAL(fast_size,beta,Ctp,1);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
+        }}}}}
+    } else if (slow_dims == 6) {
+        #pragma omp parallel for
+        for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
+        for (size_t ind1 = 0L; ind1 < sizes[1]; ind1++) {
+        for (size_t ind2 = 0L; ind2 < sizes[2]; ind2++) {
+        for (size_t ind3 = 0L; ind3 < sizes[3]; ind3++) {
+        for (size_t ind4 = 0L; ind4 < sizes[4]; ind4++) {
+        for (size_t ind5 = 0L; ind5 < sizes[5]; ind5++) {
+            double* Atp = Ap 
+                + (Ainds[0].first + ind0) * Astrides[0]
+                + (Ainds[1].first + ind1) * Astrides[1]
+                + (Ainds[2].first + ind2) * Astrides[2]
+                + (Ainds[3].first + ind3) * Astrides[3]
+                + (Ainds[4].first + ind4) * Astrides[4]
+                + (Ainds[5].first + ind5) * Astrides[5]
+                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+            double* Ctp = Cp 
+                + (Cinds[0].first + ind0) * Cstrides[0]
+                + (Cinds[1].first + ind1) * Cstrides[1]
+                + (Cinds[2].first + ind2) * Cstrides[2]
+                + (Cinds[3].first + ind3) * Cstrides[3]
+                + (Cinds[4].first + ind4) * Cstrides[4]
+                + (Cinds[5].first + ind5) * Cstrides[5]
+                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+            C_DSCAL(fast_size,beta,Ctp,1);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
+        }}}}}}
+    } else if (slow_dims == 7) {
+        #pragma omp parallel for
+        for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
+        for (size_t ind1 = 0L; ind1 < sizes[1]; ind1++) {
+        for (size_t ind2 = 0L; ind2 < sizes[2]; ind2++) {
+        for (size_t ind3 = 0L; ind3 < sizes[3]; ind3++) {
+        for (size_t ind4 = 0L; ind4 < sizes[4]; ind4++) {
+        for (size_t ind5 = 0L; ind5 < sizes[5]; ind5++) {
+        for (size_t ind6 = 0L; ind6 < sizes[6]; ind6++) {
+            double* Atp = Ap 
+                + (Ainds[0].first + ind0) * Astrides[0]
+                + (Ainds[1].first + ind1) * Astrides[1]
+                + (Ainds[2].first + ind2) * Astrides[2]
+                + (Ainds[3].first + ind3) * Astrides[3]
+                + (Ainds[4].first + ind4) * Astrides[4]
+                + (Ainds[5].first + ind5) * Astrides[5]
+                + (Ainds[6].first + ind6) * Astrides[6]
+                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+            double* Ctp = Cp 
+                + (Cinds[0].first + ind0) * Cstrides[0]
+                + (Cinds[1].first + ind1) * Cstrides[1]
+                + (Cinds[2].first + ind2) * Cstrides[2]
+                + (Cinds[3].first + ind3) * Cstrides[3]
+                + (Cinds[4].first + ind4) * Cstrides[4]
+                + (Cinds[5].first + ind5) * Cstrides[5]
+                + (Cinds[6].first + ind6) * Cstrides[6]
+                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+            C_DSCAL(fast_size,beta,Ctp,1);
+            C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
+        }}}}}}}
     } else {
         #pragma omp parallel for
         for (size_t ind = 0L; ind < slow_size; ind++) {

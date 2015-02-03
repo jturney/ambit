@@ -1292,6 +1292,8 @@ double test_slice2()
     C.zero();
     IndexRange Cinds = {std::make_pair(1L,5L), std::make_pair(1L,5L)};
     IndexRange Ainds = {std::make_pair(2L,6L), std::make_pair(2L,6L)};
+    //IndexRange Cinds = {std::make_pair(1L,5L), std::make_pair(0L,7L)};
+    //IndexRange Ainds = {std::make_pair(2L,6L), std::make_pair(0L,7L)};
 
     C.slice(A,Cinds,Ainds);
 
