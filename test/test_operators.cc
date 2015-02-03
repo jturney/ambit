@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
             std::make_tuple(kPass, test_chain_multiply2, "D4(\"ijkl\") = A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
             std::make_tuple(kPass, test_chain_multiply3, "D4(\"ijkl\") += A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
             std::make_tuple(kPass, test_chain_multiply4, "D4(\"ijkl\") -= A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
-            std::make_tuple(kPass, test_slice2, "Slice A(0:9,0:9) = B(2:11,2:11)"),
+            std::make_tuple(kPass, test_slice2, "Slice C2(1:5,0:4) = A2(0:4,2:6)"),
     };
 
     std::vector<std::tuple<std::string,TestResult,double>> results;
@@ -1289,17 +1289,17 @@ double test_slice2()
     Tensor C = build_and_fill("C", dimsC, c2);
     Tensor A = build_and_fill("A", dimsA, a2);
 
-    C.zero();
-    IndexRange Cinds = {std::make_pair(1L,5L), std::make_pair(1L,5L)};
-    IndexRange Ainds = {std::make_pair(2L,6L), std::make_pair(2L,6L)};
-    //IndexRange Cinds = {std::make_pair(1L,5L), std::make_pair(0L,7L)};
-    //IndexRange Ainds = {std::make_pair(2L,6L), std::make_pair(0L,7L)};
+    IndexRange Cinds = {std::make_pair(1L,5L), std::make_pair(0L,4L)};
+    IndexRange Ainds = {std::make_pair(0L,4L), std::make_pair(2L,6L)};
 
     C.slice(A,Cinds,Ainds);
 
-    A.print(stdout,true);
-    C.print(stdout,true);
+    for (size_t i = 0; i < Cinds[0].second - Cinds[0].first; i++) {
+        for (size_t j = 0; j < Cinds[1].second - Cinds[1].first; j++) {
+            c2[i + Cinds[0].first][j + Cinds[1].first] = a2[i + Ainds[0].first][j + Ainds[1].first];
+        }
+    }
 
-    return 0.0;
+    return difference(C, c2).second;
 }
 
