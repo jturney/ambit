@@ -103,7 +103,7 @@ const std::vector<size_t>& Tensor::dims() const
 
 size_t Tensor::dim(size_t ind) const
 {
-    return tensor_->dims(ind);
+    return tensor_->dim(ind);
 }
 
 size_t Tensor::rank() const
