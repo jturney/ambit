@@ -15,10 +15,8 @@ public:
 
     // => Simple Single Tensor Operations <= //
 
-    void zero();
-    void scale(double beta = 0.0);
-
-    // => Contraction Type Operations <= //
+    void scale(
+        double beta = 0.0);
 
     void contract(
         ConstTensorImplPtr A,

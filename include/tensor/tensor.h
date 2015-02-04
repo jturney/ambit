@@ -127,7 +127,7 @@ public:
 
     /**
      * Returns the raw data vector underlying the tensor object if the
-     * underlying tensor object supports a raw data vector.  This is only the
+     * underlying tensor object supports a raw data vector. This is only the
      * case if the underlying tensor is of type kCore.
      *
      * This routine is intended to facilitate rapid filling of data into a
@@ -164,6 +164,8 @@ public:
     /**
      * Scales the tensor by scalar beta, e.g.:
      *  C = beta * C
+     *
+     * Note, this calls zero
      **/
     void scale(double beta = 0.0);
 

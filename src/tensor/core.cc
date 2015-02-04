@@ -15,18 +15,13 @@ CoreTensorImpl::CoreTensorImpl(const std::string& name, const Dimension& dims)
 {
     data_.resize(numel(),0L);
 }
-void CoreTensorImpl::zero()
-{
-    memset(data_.data(),'\0', sizeof(double)*numel());
-}
 
 void CoreTensorImpl::scale(double beta)
 {
-    if (beta == 0.0) { 
-        zero();
-        return; 
-    }
-    C_DSCAL(numel(), beta, data_.data(), 1);
+    if (beta == 0.0) 
+        memset(data_.data(),'\0', sizeof(double)*numel());
+    else 
+        C_DSCAL(numel(), beta, data_.data(), 1);
 }
 
 void CoreTensorImpl::contract(

@@ -73,10 +73,9 @@ public:
 
     // => Simple Single Tensor Operations <= //
 
-    virtual void zero() = 0;
-    virtual void scale(double beta) = 0;
-
-    // => Contraction Type Operations <= //
+    /// This function must clamp to zero (no *= 0.0) for beta = 0.0
+    virtual void scale(
+        double beta = 0.0) = 0;
 
     virtual void contract(
         ConstTensorImplPtr A,

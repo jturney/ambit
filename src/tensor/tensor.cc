@@ -162,7 +162,7 @@ Tensor Tensor::cat(std::vector<Tensor> const, int dim)
 
 void Tensor::zero()
 {
-    tensor_->zero();
+    tensor_->scale(0.0);
 }
 
 void Tensor::scale(double a)
