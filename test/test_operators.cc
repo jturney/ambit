@@ -242,21 +242,19 @@ Tensor build_and_fill(const std::string& name, const Dimension& dims, double mat
 void initialize_random(Tensor &tensor, double matrix[MAXTWO])
 {
     size_t n0 = tensor.dims()[0];
-    double* vec = new double[n0];
+    std::vector<double>& vec = tensor.data();
     for (size_t i = 0; i < n0; ++i){
         double randnum = double(std::rand())/double(RAND_MAX);
         matrix[i] = randnum;
         vec[i] = randnum;
     }
-    tensor.set_data(vec);
-    delete[] vec;
 }
 
 void initialize_random(Tensor &tensor, double matrix[MAXTWO][MAXTWO])
 {
     size_t n0 = tensor.dims()[0];
     size_t n1 = tensor.dims()[1];
-    double* vec = new double[n0 * n1];
+    std::vector<double>& vec = tensor.data();
     for (size_t i = 0, ij = 0; i < n0; ++i){
         for (size_t j = 0; j < n1; ++j, ++ij){
             double randnum = double(std::rand())/double(RAND_MAX);
@@ -264,8 +262,6 @@ void initialize_random(Tensor &tensor, double matrix[MAXTWO][MAXTWO])
             vec[ij] = randnum;
         }
     }
-    tensor.set_data(vec);
-    delete[] vec;
 }
 
 std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO])
@@ -273,9 +269,7 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO])
     size_t n0 = tensor.dims()[0];
 
     size_t numel = tensor.numel();
-    double* result = new double[numel];
-
-    tensor.get_data(result);
+    const std::vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
     double max_diff = 0.0;
@@ -284,7 +278,6 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO])
         sum_diff += diff;
         max_diff = std::max(diff,max_diff);
     }
-    delete[] result;
     return std::make_pair(sum_diff,max_diff);
 }
 
@@ -294,9 +287,7 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO][MAXTWO
     size_t n1 = tensor.dims()[1];
 
     size_t numel = tensor.numel();
-    double* result = new double[numel];
-
-    tensor.get_data(result);
+    const std::vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
     double max_diff = 0.0;
@@ -307,7 +298,6 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO][MAXTWO
             max_diff = std::max(diff,max_diff);
         }
     }
-    delete[] result;
     return std::make_pair(sum_diff,max_diff);
 }
 
@@ -318,7 +308,7 @@ void initialize_random(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][
     size_t n2 = tensor.dims()[2];
     size_t n3 = tensor.dims()[3];
 
-    double* vec = new double[n0 * n1 * n2 * n3];
+    std::vector<double>& vec = tensor.data();
     for (size_t i = 0, ijkl = 0; i < n0; ++i){
         for (size_t j = 0; j < n1; ++j){
             for (size_t k = 0; k < n2; ++k){
@@ -330,8 +320,6 @@ void initialize_random(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][
             }
         }
     }
-    tensor.set_data(vec);
-    delete[] vec;
 }
 
 std::pair<double,double> difference(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR])
@@ -343,9 +331,7 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXFOUR][MAXFO
 
     size_t numel = tensor.numel();
 
-    double* result = new double[numel];
-
-    tensor.get_data(result);
+    const std::vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
     double max_diff = 0.0;
@@ -361,7 +347,6 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXFOUR][MAXFO
             }
         }
     }
-    delete[] result;
     return std::make_pair(sum_diff,max_diff);
 }
 
@@ -1314,14 +1299,14 @@ double test_slice2()
     Tensor C = build_and_fill("C", dimsC, c2);
     Tensor A = build_and_fill("A", dimsA, a2);
 
-    IndexRange Cinds = {std::make_pair(1L,5L), std::make_pair(0L,4L)};
-    IndexRange Ainds = {std::make_pair(0L,4L), std::make_pair(2L,6L)};
+    IndexRange Cinds = {{1L,5L},{0L,4L}};
+    IndexRange Ainds = {{0L,4L},{2L,6L}};
 
-    C.slice(A,Cinds,Ainds);
+    C(Cinds) = A(Ainds);
 
-    for (size_t i = 0; i < Cinds[0].second - Cinds[0].first; i++) {
-        for (size_t j = 0; j < Cinds[1].second - Cinds[1].first; j++) {
-            c2[i + Cinds[0].first][j + Cinds[1].first] = a2[i + Ainds[0].first][j + Ainds[1].first];
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            c2[i + Cinds[0][0]][j + Cinds[1][0]] = a2[i + Ainds[0][0]][j + Ainds[1][0]];
         }
     }
 

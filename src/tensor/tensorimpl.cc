@@ -10,12 +10,12 @@ namespace tensor {
 void TensorImpl::copy(ConstTensorImplPtr other, const double& s)
 {
     TensorImpl::dimensionCheck(this, other);
-    double* temp = TensorImpl::get_block(numel());
-    other->get_data(temp);
-    set_data(temp);
-    temp = TensorImpl::free_block(temp);
-
-    scale(s);
+   
+    IndexRange ranges;
+    for (int ind = 0; ind < rank(); ind++) {
+        ranges.push_back({0L,dims()[ind]});
+    } 
+    slice(other,ranges,ranges,s,0.0);
 }
 TensorImplPtr TensorImpl::clone(TensorType t)
 {
@@ -55,8 +55,8 @@ void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int 
     }
 
     if (level > 0) {
-        double* temp = get_block(numel());
-        get_data(temp);
+        double* temp = const_cast<double*>(data().data());
+        // TODO: Slicing
 
         int order = rank();
         size_t nelem = numel();
@@ -127,17 +127,15 @@ void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int 
                 }
             }
         }
-        temp = free_block(temp);
     }
 }
-double* TensorImpl::get_block(size_t numel)
+std::vector<double>& TensorImpl::data()
 {
-    return new double[numel];
+    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + type());
 }
-double* TensorImpl::free_block(double* numel)
+const std::vector<double>& TensorImpl::data() const
 {
-    delete[] numel;
-    return NULL;
+    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + type());
 }
 bool TensorImpl::typeCheck(TensorType type, ConstTensorImplPtr A, bool throwIfDiff)
 {

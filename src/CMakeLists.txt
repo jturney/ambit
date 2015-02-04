@@ -21,6 +21,7 @@ set(TENSOR_SOURCES
     tensor/core.cc
     tensor/indices.cc
     tensor/labeled_tensor.cc
+    tensor/sliced_tensor.cc
     tensor/tensor.cc
     tensor/tensorimpl.cc
 )

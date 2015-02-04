@@ -51,12 +51,14 @@ public:
 
     // => Reflectors <= //
 
-    virtual TensorType type() const { return type_; }
+    TensorType type() const { return type_; }
     std::string name() const { return name_; }
-    virtual const Dimension& dims() const { return dims_; }
-    virtual size_t dim(size_t ind) const { return dims_[ind]; }
-    virtual size_t rank() const { return dims_.size(); }
+    const Dimension& dims() const { return dims_; }
+    size_t dim(size_t ind) const { return dims_[ind]; }
+    size_t rank() const { return dims_.size(); }
     size_t numel() const;
+
+    void set_name(const std::string& name) { name_ = name; } 
 
     /**
      * Print some tensor information to fh
@@ -66,18 +68,13 @@ public:
 
     // => Setters/Getters <= //
 
-    static double* get_block(size_t numel);
-    static double* free_block(double* data);
-
-    virtual void set_data(double* data, const IndexRange& ranges = IndexRange()) = 0;
-    virtual void get_data(double* data, const IndexRange& ranges = IndexRange()) const = 0;
+    virtual std::vector<double>& data();
+    virtual const std::vector<double>& data() const;
 
     // => Simple Single Tensor Operations <= //
 
     virtual void zero() = 0;
     virtual void scale(const double& a) = 0;
-    virtual double norm(double power = 2.0) const = 0;
-    virtual double rms(double power = 2.0) const = 0;
 
     // => Simple Double Tensor Operations <= //
 
@@ -115,7 +112,7 @@ public:
 
     virtual std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const = 0;
     virtual std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const = 0;
-    virtual std::map<std::string,TensorImplPtr> svd() const = 0;
+    virtual std::map<std::string, TensorImplPtr> svd() const = 0;
 
     virtual TensorImplPtr cholesky() const = 0;
     virtual std::map<std::string, TensorImplPtr> lu() const = 0;
@@ -124,8 +121,6 @@ public:
     virtual TensorImplPtr cholesky_inverse() const = 0;
     virtual TensorImplPtr inverse() const = 0;
     virtual TensorImplPtr power(double power, double condition = 1.0E-12) const = 0;
-
-    virtual void givens(int dim, int i, int j, double s, double c) = 0;
 
 protected:
 

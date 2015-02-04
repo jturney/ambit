@@ -96,8 +96,9 @@ int main(int argc, char* argv[])
     Tensor Cdocc = build("C", {5, (size_t)nso});
 
     size_t ndocc = 5;
-    IndexRange CtoCdocc = { std::make_pair(0, ndocc), std::make_pair(0, nso) };
-    Cdocc.slice(C, CtoCdocc, CtoCdocc);
+    IndexRange CtoCdocc = { {0,ndocc}, {0,nso}};
+    //Cdocc.slice(C, CtoCdocc, CtoCdocc);
+    Cdocc(CtoCdocc) = C(CtoCdocc);
 
     // Form initial D
     Tensor D = build("D", AO);
@@ -128,7 +129,7 @@ int main(int argc, char* argv[])
         C("i,j") = Smhalf("k,j") * Feigen["eigenvectors"]("i,k");
 
         // Form new density matrix
-        Cdocc.slice(C, CtoCdocc, CtoCdocc);
+        Cdocc(CtoCdocc) = C(CtoCdocc);
         D("mu,nu") = Cdocc("i,mu") * Cdocc("i,nu");
 //        D.print(stdout, true);
 

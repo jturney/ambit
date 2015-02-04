@@ -13,17 +13,12 @@ namespace tensor {
 CoreTensorImpl::CoreTensorImpl(const std::string& name, const Dimension& dims)
         : TensorImpl(kCore, name, dims)
 {
-    data_ = memory::allocate<double>(numel());
-    memset(data_,'\0', sizeof(double)*numel());
-}
-CoreTensorImpl::~CoreTensorImpl()
-{
-    if (data_) memory::free(data_);
+    data_.resize(numel(),0L);
 }
 void CoreTensorImpl::set_data(double* data, const IndexRange& range)
 {
     if (range.size() == 0) {
-        memcpy(data_,data,sizeof(double)*numel());
+        memcpy(data_.data(),data,sizeof(double)*numel());
         return;
     }
     // TODO
@@ -31,28 +26,19 @@ void CoreTensorImpl::set_data(double* data, const IndexRange& range)
 void CoreTensorImpl::get_data(double* data, const IndexRange& range) const
 {
     if (range.size() == 0) {
-        memcpy(data,data_,sizeof(double)*numel());
+        memcpy(data,data_.data(),sizeof(double)*numel());
         return;
     }
     // TODO
 }
 void CoreTensorImpl::zero()
 {
-    memset(data_,'\0', sizeof(double)*numel());
+    memset(data_.data(),'\0', sizeof(double)*numel());
 }
 
 void CoreTensorImpl::scale(const double& a)
 {
-    C_DSCAL(numel(), a, data_, 1);
-}
-
-double CoreTensorImpl::norm(double /*power*/) const
-{
-    ThrowNotImplementedException;
-}
-double CoreTensorImpl::rms(double /*power*/) const
-{
-    ThrowNotImplementedException;
+    C_DSCAL(numel(), a, data_.data(), 1);
 }
 
 void CoreTensorImpl::scale_and_add(const double& a, ConstTensorImplPtr x)
@@ -63,9 +49,9 @@ void CoreTensorImpl::scale_and_add(const double& a, ConstTensorImplPtr x)
 
     C_DAXPY(numel(),
             a,
-            ((ConstCoreTensorImplPtr)x)->data(),
+            const_cast<double*>(((ConstCoreTensorImplPtr)x)->data().data()),
             1,
-            data_,
+            data_.data(),
             1);
 }
 
@@ -75,7 +61,7 @@ void CoreTensorImpl::pointwise_multiplication(ConstTensorImplPtr x)
         throw std::runtime_error("Tensors must have the same number of elements.");
     }
 
-    const double* rhs = ((ConstCoreTensorImplPtr)x)->data();
+    const double* rhs = ((ConstCoreTensorImplPtr)x)->data().data();
     OMP_VECTORIZED_STATIC_LOOP
     for (size_t ind=0, end=numel(); ind < end; ++ind) {
         data_[ind] *= rhs[ind];
@@ -88,7 +74,7 @@ void CoreTensorImpl::pointwise_division(ConstTensorImplPtr x)
         throw std::runtime_error("Tensors must have the same number of elements.");
     }
 
-    const double* rhs = ((ConstCoreTensorImplPtr)x)->data();
+    const double* rhs = ((ConstCoreTensorImplPtr)x)->data().data();
     OMP_VECTORIZED_STATIC_LOOP
     for (size_t ind=0, end=numel(); ind < end; ++ind) {
         data_[ind] /= rhs[ind];
@@ -102,7 +88,7 @@ double CoreTensorImpl::dot(ConstTensorImplPtr x) const
     }
     dimensionCheck(this, x, true);
 
-    return C_DDOT(numel(), data_, 1, ((ConstCoreTensorImplPtr)x)->data(), 1);
+    return C_DDOT(numel(), const_cast<double*>(data_.data()), 1, const_cast<double*>(((ConstCoreTensorImplPtr)x)->data().data()), 1);
 }
 
 void CoreTensorImpl::contract(
@@ -349,9 +335,9 @@ void CoreTensorImpl::contract(
     Dimension Adims2 = indices::permuted_dimension(A->dims(), Ainds2, Ainds);
     Dimension Bdims2 = indices::permuted_dimension(B->dims(), Binds2, Binds);
 
-    double* Cp = ((CoreTensorImplPtr)C)->data();
-    double* Ap = ((CoreTensorImplPtr)A)->data();
-    double* Bp = ((CoreTensorImplPtr)B)->data();
+    double* Cp = ((CoreTensorImplPtr)C)->data().data();
+    double* Ap = ((CoreTensorImplPtr)A)->data().data();
+    double* Bp = ((CoreTensorImplPtr)B)->data().data();
     double* C2p = Cp;
     double* A2p = Ap;
     double* B2p = Bp;
@@ -362,15 +348,15 @@ void CoreTensorImpl::contract(
     shared_ptr<CoreTensorImpl> A2;
     if (permC) {
         C2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("C2", Cdims2));
-        C2p = C2->data();
+        C2p = C2->data().data();
     }
     if (permA) {
         A2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("A2", Adims2));
-        A2p = A2->data();
+        A2p = A2->data().data();
     }
     if (permB) {
         B2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("B2", Bdims2));
-        B2p = B2->data();
+        B2p = B2->data().data();
     }
 
     // => Permute A, B, and C if Necessary <= //
@@ -445,15 +431,11 @@ void CoreTensorImpl::permute(
     }
 
     /// Data pointers
-    double* Cp = data();
-    double* Ap = ((const CoreTensorImplPtr)A)->data();
+    double* Cp = data().data();
+    double* Ap = ((const CoreTensorImplPtr)A)->data().data();
 
     /// Beta scale 
-    if (beta == 0.0) {
-        ::memset(Cp,'\0',sizeof(double)*numel());
-    } else {
-        C_DSCAL(numel(),beta,Cp,1);
-    }
+    C_DSCAL(numel(),beta,Cp,1);
 
     // => Index Logic <= //
 
@@ -667,18 +649,21 @@ void CoreTensorImpl::slice(
     TensorImplPtr C = this;
 
     /// Data pointers
-    double* Cp = data();
-    double* Ap = ((const CoreTensorImplPtr)A)->data();
+    double* Cp = data().data();
+    double* Ap = ((const CoreTensorImplPtr)A)->data().data();
 
     // => Index Logic <= //
 
-    // TODO Validity checks
     // TODO This is not valid for rank() == 0
     
     /// Sizes of stripes
     std::vector<size_t> sizes(rank(),0L);
     for (size_t ind = 0L; ind < rank(); ind++) {
-        sizes[ind] = Cinds[ind].second - Cinds[ind].first;
+        size_t Asize = Ainds[ind][1] - Ainds[ind][0];
+        size_t Csize = Cinds[ind][1] - Cinds[ind][0];
+        if (Asize != Csize) 
+            throw std::runtime_error("Slice range sizes must agree between tensors A and C.");
+        sizes[ind] = Asize;
     }
 
     /// Size of contiguous DAXPY call
@@ -713,20 +698,20 @@ void CoreTensorImpl::slice(
 
     if (slow_dims == 0) {
         double* Atp = Ap 
-            + Ainds[slow_dims].first * Astrides[slow_dims]; 
+            + Ainds[slow_dims][0] * Astrides[slow_dims]; 
         double* Ctp = Cp 
-            + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+            + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
         C_DSCAL(fast_size,beta,Ctp,1);
         C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
     } else if (slow_dims == 1) {
         #pragma omp parallel for
         for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
             double* Atp = Ap 
-                + (Ainds[0].first + ind0) * Astrides[0]
-                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+                + (Ainds[0][0] + ind0) * Astrides[0]
+                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
             double* Ctp = Cp 
-                + (Cinds[0].first + ind0) * Cstrides[0]
-                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+                + (Cinds[0][0] + ind0) * Cstrides[0]
+                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }
@@ -735,13 +720,13 @@ void CoreTensorImpl::slice(
         for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
         for (size_t ind1 = 0L; ind1 < sizes[1]; ind1++) {
             double* Atp = Ap 
-                + (Ainds[0].first + ind0) * Astrides[0]
-                + (Ainds[1].first + ind1) * Astrides[1]
-                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+                + (Ainds[0][0] + ind0) * Astrides[0]
+                + (Ainds[1][0] + ind1) * Astrides[1]
+                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
             double* Ctp = Cp 
-                + (Cinds[0].first + ind0) * Cstrides[0]
-                + (Cinds[1].first + ind1) * Cstrides[1]
-                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+                + (Cinds[0][0] + ind0) * Cstrides[0]
+                + (Cinds[1][0] + ind1) * Cstrides[1]
+                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}
@@ -751,15 +736,15 @@ void CoreTensorImpl::slice(
         for (size_t ind1 = 0L; ind1 < sizes[1]; ind1++) {
         for (size_t ind2 = 0L; ind2 < sizes[2]; ind2++) {
             double* Atp = Ap 
-                + (Ainds[0].first + ind0) * Astrides[0]
-                + (Ainds[1].first + ind1) * Astrides[1]
-                + (Ainds[2].first + ind2) * Astrides[2]
-                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+                + (Ainds[0][0] + ind0) * Astrides[0]
+                + (Ainds[1][0] + ind1) * Astrides[1]
+                + (Ainds[2][0] + ind2) * Astrides[2]
+                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
             double* Ctp = Cp 
-                + (Cinds[0].first + ind0) * Cstrides[0]
-                + (Cinds[1].first + ind1) * Cstrides[1]
-                + (Cinds[2].first + ind2) * Cstrides[2]
-                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+                + (Cinds[0][0] + ind0) * Cstrides[0]
+                + (Cinds[1][0] + ind1) * Cstrides[1]
+                + (Cinds[2][0] + ind2) * Cstrides[2]
+                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}}
@@ -770,17 +755,17 @@ void CoreTensorImpl::slice(
         for (size_t ind2 = 0L; ind2 < sizes[2]; ind2++) {
         for (size_t ind3 = 0L; ind3 < sizes[3]; ind3++) {
             double* Atp = Ap 
-                + (Ainds[0].first + ind0) * Astrides[0]
-                + (Ainds[1].first + ind1) * Astrides[1]
-                + (Ainds[2].first + ind2) * Astrides[2]
-                + (Ainds[3].first + ind3) * Astrides[3]
-                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+                + (Ainds[0][0] + ind0) * Astrides[0]
+                + (Ainds[1][0] + ind1) * Astrides[1]
+                + (Ainds[2][0] + ind2) * Astrides[2]
+                + (Ainds[3][0] + ind3) * Astrides[3]
+                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
             double* Ctp = Cp 
-                + (Cinds[0].first + ind0) * Cstrides[0]
-                + (Cinds[1].first + ind1) * Cstrides[1]
-                + (Cinds[2].first + ind2) * Cstrides[2]
-                + (Cinds[3].first + ind3) * Cstrides[3]
-                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+                + (Cinds[0][0] + ind0) * Cstrides[0]
+                + (Cinds[1][0] + ind1) * Cstrides[1]
+                + (Cinds[2][0] + ind2) * Cstrides[2]
+                + (Cinds[3][0] + ind3) * Cstrides[3]
+                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}}}
@@ -792,19 +777,19 @@ void CoreTensorImpl::slice(
         for (size_t ind3 = 0L; ind3 < sizes[3]; ind3++) {
         for (size_t ind4 = 0L; ind4 < sizes[4]; ind4++) {
             double* Atp = Ap 
-                + (Ainds[0].first + ind0) * Astrides[0]
-                + (Ainds[1].first + ind1) * Astrides[1]
-                + (Ainds[2].first + ind2) * Astrides[2]
-                + (Ainds[3].first + ind3) * Astrides[3]
-                + (Ainds[4].first + ind4) * Astrides[4]
-                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+                + (Ainds[0][0] + ind0) * Astrides[0]
+                + (Ainds[1][0] + ind1) * Astrides[1]
+                + (Ainds[2][0] + ind2) * Astrides[2]
+                + (Ainds[3][0] + ind3) * Astrides[3]
+                + (Ainds[4][0] + ind4) * Astrides[4]
+                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
             double* Ctp = Cp 
-                + (Cinds[0].first + ind0) * Cstrides[0]
-                + (Cinds[1].first + ind1) * Cstrides[1]
-                + (Cinds[2].first + ind2) * Cstrides[2]
-                + (Cinds[3].first + ind3) * Cstrides[3]
-                + (Cinds[4].first + ind4) * Cstrides[4]
-                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+                + (Cinds[0][0] + ind0) * Cstrides[0]
+                + (Cinds[1][0] + ind1) * Cstrides[1]
+                + (Cinds[2][0] + ind2) * Cstrides[2]
+                + (Cinds[3][0] + ind3) * Cstrides[3]
+                + (Cinds[4][0] + ind4) * Cstrides[4]
+                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}}}}
@@ -817,21 +802,21 @@ void CoreTensorImpl::slice(
         for (size_t ind4 = 0L; ind4 < sizes[4]; ind4++) {
         for (size_t ind5 = 0L; ind5 < sizes[5]; ind5++) {
             double* Atp = Ap 
-                + (Ainds[0].first + ind0) * Astrides[0]
-                + (Ainds[1].first + ind1) * Astrides[1]
-                + (Ainds[2].first + ind2) * Astrides[2]
-                + (Ainds[3].first + ind3) * Astrides[3]
-                + (Ainds[4].first + ind4) * Astrides[4]
-                + (Ainds[5].first + ind5) * Astrides[5]
-                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+                + (Ainds[0][0] + ind0) * Astrides[0]
+                + (Ainds[1][0] + ind1) * Astrides[1]
+                + (Ainds[2][0] + ind2) * Astrides[2]
+                + (Ainds[3][0] + ind3) * Astrides[3]
+                + (Ainds[4][0] + ind4) * Astrides[4]
+                + (Ainds[5][0] + ind5) * Astrides[5]
+                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
             double* Ctp = Cp 
-                + (Cinds[0].first + ind0) * Cstrides[0]
-                + (Cinds[1].first + ind1) * Cstrides[1]
-                + (Cinds[2].first + ind2) * Cstrides[2]
-                + (Cinds[3].first + ind3) * Cstrides[3]
-                + (Cinds[4].first + ind4) * Cstrides[4]
-                + (Cinds[5].first + ind5) * Cstrides[5]
-                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+                + (Cinds[0][0] + ind0) * Cstrides[0]
+                + (Cinds[1][0] + ind1) * Cstrides[1]
+                + (Cinds[2][0] + ind2) * Cstrides[2]
+                + (Cinds[3][0] + ind3) * Cstrides[3]
+                + (Cinds[4][0] + ind4) * Cstrides[4]
+                + (Cinds[5][0] + ind5) * Cstrides[5]
+                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}}}}}
@@ -845,23 +830,23 @@ void CoreTensorImpl::slice(
         for (size_t ind5 = 0L; ind5 < sizes[5]; ind5++) {
         for (size_t ind6 = 0L; ind6 < sizes[6]; ind6++) {
             double* Atp = Ap 
-                + (Ainds[0].first + ind0) * Astrides[0]
-                + (Ainds[1].first + ind1) * Astrides[1]
-                + (Ainds[2].first + ind2) * Astrides[2]
-                + (Ainds[3].first + ind3) * Astrides[3]
-                + (Ainds[4].first + ind4) * Astrides[4]
-                + (Ainds[5].first + ind5) * Astrides[5]
-                + (Ainds[6].first + ind6) * Astrides[6]
-                + Ainds[slow_dims].first * Astrides[slow_dims]; 
+                + (Ainds[0][0] + ind0) * Astrides[0]
+                + (Ainds[1][0] + ind1) * Astrides[1]
+                + (Ainds[2][0] + ind2) * Astrides[2]
+                + (Ainds[3][0] + ind3) * Astrides[3]
+                + (Ainds[4][0] + ind4) * Astrides[4]
+                + (Ainds[5][0] + ind5) * Astrides[5]
+                + (Ainds[6][0] + ind6) * Astrides[6]
+                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
             double* Ctp = Cp 
-                + (Cinds[0].first + ind0) * Cstrides[0]
-                + (Cinds[1].first + ind1) * Cstrides[1]
-                + (Cinds[2].first + ind2) * Cstrides[2]
-                + (Cinds[3].first + ind3) * Cstrides[3]
-                + (Cinds[4].first + ind4) * Cstrides[4]
-                + (Cinds[5].first + ind5) * Cstrides[5]
-                + (Cinds[6].first + ind6) * Cstrides[6]
-                + Cinds[slow_dims].first * Cstrides[slow_dims]; 
+                + (Cinds[0][0] + ind0) * Cstrides[0]
+                + (Cinds[1][0] + ind1) * Cstrides[1]
+                + (Cinds[2][0] + ind2) * Cstrides[2]
+                + (Cinds[3][0] + ind3) * Cstrides[3]
+                + (Cinds[4][0] + ind4) * Cstrides[4]
+                + (Cinds[5][0] + ind5) * Cstrides[5]
+                + (Cinds[6][0] + ind6) * Cstrides[6]
+                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}}}}}}
@@ -874,11 +859,11 @@ void CoreTensorImpl::slice(
             for (int dim = slow_dims - 1; dim >= 0; dim--) {
                 size_t val = num % sizes[dim]; // value of the dim-th index
                 num /= sizes[dim];
-                Atp += (Ainds[dim].first + val) * Astrides[dim];
-                Ctp += (Cinds[dim].first + val) * Cstrides[dim];
+                Atp += (Ainds[dim][0] + val) * Astrides[dim];
+                Ctp += (Cinds[dim][0] + val) * Cstrides[dim];
             }
-            Atp += Ainds[slow_dims].first * Astrides[slow_dims];
-            Ctp += Cinds[slow_dims].first * Cstrides[slow_dims];
+            Atp += Ainds[slow_dims][0] * Astrides[slow_dims];
+            Ctp += Cinds[slow_dims][0] * Cstrides[slow_dims];
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }
@@ -896,7 +881,7 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
     size_t n = dims()[0];
     size_t lwork = 3 * dims()[0];
     double *work = new double[lwork];
-    C_DSYEV('V', 'U', n, vecs->data_, n, vals->data_, work, lwork);
+    C_DSYEV('V', 'U', n, vecs->data().data(), n, vals->data().data(), work, lwork);
 
     //If descending is required, the canonical order must be reversed
     //Sort is stable
@@ -907,14 +892,14 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
         for (size_t c = 0; c<n/2; c++) {
 
             //Swap eigenvectors
-            C_DCOPY(n, vecs->data_ + c,     n, Temp_sqrsp_col,      1);
-            C_DCOPY(n, vecs->data_ + n-c-1, n, vecs->data_ + c,     n);
-            C_DCOPY(n, Temp_sqrsp_col,      1, vecs->data_ + n-c-1, n);
+            C_DCOPY(n, vecs->data().data() + c,     n, Temp_sqrsp_col,      1);
+            C_DCOPY(n, vecs->data().data() + n-c-1, n, vecs->data().data() + c,     n);
+            C_DCOPY(n, Temp_sqrsp_col,      1, vecs->data().data() + n-c-1, n);
 
             //Swap eigenvalues
-            w_Temp_sqrsp = vals->data_[c];
-            vals->data_[c] = vals->data_[n-c-1];
-            vals->data_[n-c-1] = w_Temp_sqrsp;
+            w_Temp_sqrsp = vals->data().data()[c];
+            vals->data().data()[c] = vals->data().data()[n-c-1];
+            vals->data().data()[n-c-1] = w_Temp_sqrsp;
 
         }
 
@@ -968,8 +953,8 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
     std::map<std::string, TensorImplPtr> diag = syev(kAscending);
 
     size_t n = diag["eigenvalues"]->dims()[0];
-    double *a = dynamic_cast<CoreTensorImplPtr>(diag["eigenvalues"])->data();
-    double *a1 = dynamic_cast<CoreTensorImplPtr>(diag["eigenvectors"])->data();
+    double *a = dynamic_cast<CoreTensorImplPtr>(diag["eigenvalues"])->data().data();
+    double *a1 = dynamic_cast<CoreTensorImplPtr>(diag["eigenvectors"])->data().data();
     double *a2 = memory::allocate<double>(n*n);
 
     memcpy(a2, a1, sizeof(double)*n*n);
@@ -994,7 +979,7 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
 
     CoreTensorImpl *powered = new CoreTensorImpl(name() + "^" + std::to_string(alpha), dims());
 
-    C_DGEMM('T','N',n,n,n,1.0,a2,n,a1,n,0.0,powered->data_,n);
+    C_DGEMM('T','N',n,n,n,1.0,a2,n,a1,n,0.0,powered->data_.data(),n);
 
     memory::free(a2);
 
@@ -1004,11 +989,6 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
     }
 
     return powered;
-}
-
-void CoreTensorImpl::givens(int /*dim*/, int /*i*/, int /*j*/, double /*s*/, double /*c*/)
-{
-    ThrowNotImplementedException;
 }
 
 }

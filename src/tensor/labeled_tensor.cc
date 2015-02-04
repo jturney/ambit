@@ -298,7 +298,7 @@ void LabeledTensor::operator-=(const LabeledTensorProduct &rhs)
 
 void LabeledTensor::operator=(const LabeledTensorAddition &rhs)
 {
-    T().zero();
+    T_.zero();
     for (size_t ind = 0, end = rhs.size(); ind < end; ++ind) {
         const LabeledTensor &labeledTensor = rhs[ind];
 

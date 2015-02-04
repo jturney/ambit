@@ -9,19 +9,17 @@ class CoreTensorImpl : public TensorImpl
 {
 public:
     CoreTensorImpl(const std::string& name, const Dimension& dims);
-    ~CoreTensorImpl();
 
     void set_data(double* data, const IndexRange& ranges = IndexRange());
     void get_data(double* data, const IndexRange& ranges = IndexRange()) const;
 
-    double* data() const { return data_; }
+    std::vector<double>& data() { return data_; }
+    const std::vector<double>& data() const { return data_; }
 
     // => Simple Single Tensor Operations <= //
 
     void zero();
     void scale(const double& a);
-    double norm(double power = 2.0) const;
-    double rms(double power = 2.0) const;
 
     // => Simple Double TensorImpl Operations <= //
 
@@ -69,10 +67,8 @@ public:
     TensorImplPtr inverse() const;
     TensorImplPtr power(double power, double condition = 1.0E-12) const;
 
-    void givens(int dim, int i, int j, double s, double c);
-
 private:
-    double* data_;
+    std::vector<double> data_;
 };
 
 typedef CoreTensorImpl* CoreTensorImplPtr;
