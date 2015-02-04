@@ -44,3 +44,5 @@ target_link_libraries(tensor ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
 install(TARGETS tensor ARCHIVE DESTINATION lib)
 
+add_subdirectory(python)
+

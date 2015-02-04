@@ -7,7 +7,7 @@ else()
    set(PYTHONINTERP_FOUND TRUE)
    set(PYTHON_EXECUTABLE "${PYTHON_INTERPRETER}")
    find_package(PythonInterp 2.6 REQUIRED)
-endif()	
+endif()
 
 # Now find Python libraries and headers of the EXACT SAME VERSION
 # Set variables to help find Python library with the EXACT SAME VERSION as the interpreter
@@ -23,6 +23,11 @@ if(PYTHONINTERP_FOUND)
                         "import os, sys, inspect; sys.stdout.write(os.path.split(os.path.split(inspect.getfile(inspect))[0])[0])"
                   OUTPUT_VARIABLE _PYTHON_LIB_PATH
                   RESULT_VARIABLE _PYTHON_LIB_RESULT)
+   # Get Python module extension
+   execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c
+                        "import distutils.sysconfig, sys; sys.stdout.write(distutils.sysconfig.get_config_var('SO'))"
+                   OUTPUT_VARIABLE PYTHON_MODULE_EXTENSION
+                   RESULT_VARIABLE _PYTHON_MODULE_EXTENSION)
    # Set include path, if returned by interpreter
    if("${_PYTHON_INCLUDE_RESULT}" STREQUAL "0")
       set(PYTHON_INCLUDE_DIR ${_PYTHON_INCLUDE_PATH} CACHE PATH "Path to a file")
