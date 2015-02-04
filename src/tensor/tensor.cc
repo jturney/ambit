@@ -73,7 +73,7 @@ Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& 
     return newObject;
 }
 
-Tensor Tensor::build(TensorType type, const Tensor& other)
+Tensor Tensor::build_from(TensorType type, const Tensor& other)
 {
     ThrowNotImplementedException;
 }

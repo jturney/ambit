@@ -90,7 +90,7 @@ public:
 
     static Tensor build(TensorType type, const std::string& name, const Dimension& dims);
 
-    static Tensor build(TensorType type, const Tensor& other);
+    static Tensor build_from(TensorType type, const Tensor& other);
 
     Tensor();
 
