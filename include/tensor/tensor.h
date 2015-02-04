@@ -80,7 +80,7 @@ int initialize(int argc, char** argv);
 void finalize();
 
 /**
- * Class Tensor is 
+ * Class Tensor is
  **/
 class Tensor {
 
@@ -132,7 +132,7 @@ public:
      *
      * This routine is intended to facilitate rapid filling of data into a
      * kCore buffer tensor, following which the user may stripe the buffer
-     * tensor into a kDisk or kDistributed tensor via slice operations. 
+     * tensor into a kDisk or kDistributed tensor via slice operations.
      *
      * If a vector is successfully returned, it points to the unrolled
      * data of the tensor, with the right-most dimensions running fastest
@@ -164,20 +164,19 @@ public:
     /**
      * Perform the permutation:
      *  C(Cinds) = alpha * A(Ainds) + beta * C(Cinds)
-     *   
+     *
      * Note: Most users should instead use the operator overloading
      * routines, e.g.,
      *  C2("ij") += 0.5 * A2("ji");
      *
      * Parameters:
-     *  @param A: The source tensor, e.g., A2
-     *  @param Cinds: The indices of tensor C, e.g., "ij"
-     *  @param Ainds: The indices of tensor A, e.g., "ji"
-     *  @param alpha: The scale applied to the tensor A, e.g., 0.5
-     *  @param beta: The scale applied to the tensor C, e.g., 1.0
+     *  @param A The source tensor, e.g., A2
+     *  @param Cinds The indices of tensor C, e.g., "ij"
+     *  @param Ainds The indices of tensor A, e.g., "ji"
+     *  @param alpha The scale applied to the tensor A, e.g., 0.5
+     *  @param beta The scale applied to the tensor C, e.g., 1.0
      *
      * Results:
-     *  @return void
      *  C is the current tensor, whose data is overwritten. e.g., C2
      **/
     void permute(
@@ -190,20 +189,19 @@ public:
     /**
      * Perform the slice:
      *  C(Cinds) = alpha * A(Ainds) + beta * C(Cinds)
-     *   
+     *
      * Note: Most users should instead use the operator overloading
      * routines, e.g.,
      *  C2({{0,m},{0,n}}) += 0.5 * A2({{1,m+1},{1,n+1}});
      *
      * Parameters:
-     *  @param A: The source tensor, e.g., A2
-     *  @param Cinds: The slices of indices of tensor C, e.g., {{0,m},{0,n}}
-     *  @param Ainds: The indices of tensor A, e.g., {{1,m+1},{1,n+1}}
-     *  @param alpha: The scale applied to the tensor A, e.g., 0.5
-     *  @param beta: The scale applied to the tensor C, e.g., 1.0
+     *  @param A The source tensor, e.g., A2
+     *  @param Cinds The slices of indices of tensor C, e.g., {{0,m},{0,n}}
+     *  @param Ainds The indices of tensor A, e.g., {{1,m+1},{1,n+1}}
+     *  @param alpha The scale applied to the tensor A, e.g., 0.5
+     *  @param beta The scale applied to the tensor C, e.g., 1.0
      *
      * Results:
-     *  @return void
      *  C is the current tensor, whose data is overwritten. e.g., C2
      *  All elements outside of the IndexRange in C are untouched, alpha and beta
      *  scales are applied only to elements indices of the IndexRange
@@ -214,26 +212,25 @@ public:
         const IndexRange& Ainds,
         double alpha = 1.0,
         double beta = 0.0);
-   
+
     /**
      * Perform the contraction:
      *  C(Cinds) = alpha * A(Ainds) * B(Binds) + beta * C(Cinds)
-     *   
+     *
      * Note: Most users should instead use the operator overloading
      * routines, e.g.,
      *  C2("ij") += 0.5 * A2("ik") * B2("jk");
      *
      * Parameters:
-     *  @param A: The left-side factor tensor, e.g., A2
-     *  @param B: The right-side factor tensor, e.g., B2
-     *  @param Cinds: The indices of tensor C, e.g., "ij"
-     *  @param Ainds: The indices of tensor A, e.g., "ik"
-     *  @param Binds: The indices of tensor B, e.g., "jk"
-     *  @param alpha: The scale applied to the product A*B, e.g., 0.5
-     *  @param beta: The scale applied to the tensor C, e.g., 1.0
+     *  @param A The left-side factor tensor, e.g., A2
+     *  @param B The right-side factor tensor, e.g., B2
+     *  @param Cinds The indices of tensor C, e.g., "ij"
+     *  @param Ainds The indices of tensor A, e.g., "ik"
+     *  @param Binds The indices of tensor B, e.g., "jk"
+     *  @param alpha The scale applied to the product A*B, e.g., 0.5
+     *  @param beta The scale applied to the tensor C, e.g., 1.0
      *
      * Results:
-     *  @return void
      *  C is the current tensor, whose data is overwritten. e.g., C2
      **/
     void contract(
@@ -258,7 +255,7 @@ public:
     Tensor cholesky_inverse() const;
     Tensor inverse() const;
     Tensor power(double power, double condition = 1.0E-12) const;
-    
+
     // => Utility Operations <= //
 
     static Tensor cat(const std::vector<Tensor>, int dim);

@@ -7,14 +7,14 @@ SlicedTensor::SlicedTensor(Tensor T, const IndexRange& range, double factor) :
 {
     if (T_.rank() != range_.size())
         throw std::runtime_error("Sliced tensor does not have correct number of indices for underlying tensor's rank");
-    for (int ind = 0; ind < T.rank(); ind++) {
+    for (size_t ind = 0; ind < T.rank(); ind++) {
         if (range_[ind].size() != 2L)
             throw std::runtime_error("Each index of an IndexRange should have two elements {start,end+1} in it.");
         if (range_[ind][0] > range_[ind][1])
             throw std::runtime_error("Each index of an IndexRange should end+1>=start in it.");
-        if (range_[ind][1] > T_.dims()[ind]) 
+        if (range_[ind][1] > T_.dims()[ind])
             throw std::runtime_error("IndexRange exceeds size of tensor.");
-    }    
+    }
 }
 
 void SlicedTensor::operator=(const SlicedTensor &rhs)

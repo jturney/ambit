@@ -10,11 +10,11 @@ namespace tensor {
 void TensorImpl::copy(ConstTensorImplPtr other, const double& s)
 {
     TensorImpl::dimensionCheck(this, other);
-   
+
     IndexRange ranges;
-    for (int ind = 0; ind < rank(); ind++) {
+    for (size_t ind = 0; ind < rank(); ind++) {
         ranges.push_back({0L,dims()[ind]});
-    } 
+    }
     slice(other,ranges,ranges,s,0.0);
 }
 TensorImplPtr TensorImpl::clone(TensorType t)
@@ -131,11 +131,11 @@ void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int 
 }
 std::vector<double>& TensorImpl::data()
 {
-    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + type());
+    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type()));
 }
 const std::vector<double>& TensorImpl::data() const
 {
-    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + type());
+    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type()));
 }
 bool TensorImpl::typeCheck(TensorType type, ConstTensorImplPtr A, bool throwIfDiff)
 {
