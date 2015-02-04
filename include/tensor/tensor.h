@@ -126,17 +126,17 @@ public:
     // => Data Access <= //
 
     /**
-     * Returns the raw data vector underlying the tensor object
-     * if the underlying tensor object supports a raw data vector.
-     * This is only the case if the underlying tensor is of type kCore.
+     * Returns the raw data vector underlying the tensor object if the
+     * underlying tensor object supports a raw data vector.  This is only the
+     * case if the underlying tensor is of type kCore.
      *
      * This routine is intended to facilitate rapid filling of data into a
      * kCore buffer tensor, following which the user may stripe the buffer
      * tensor into a kDisk or kDistributed tensor via slice operations.
      *
-     * If a vector is successfully returned, it points to the unrolled
-     * data of the tensor, with the right-most dimensions running fastest
-     * and left-most dimensions running slowest.
+     * If a vector is successfully returned, it points to the unrolled data of
+     * the tensor, with the right-most dimensions running fastest and left-most
+     * dimensions running slowest.
      *
      * Example successful use case:
      *  Tensor A = Tensor::build(kCore, "A3", {4,5,6});
@@ -156,8 +156,14 @@ public:
     // => BLAS-Type Tensor Operations <= //
 
     /**
-     * Scales the tensor by scalar beta, e.g.,
-     * C = beta * C
+     * Sets the data of the tensor to zeros.  
+     * Note: this is guaranteed, even if non-finite data is present.
+     **/
+    void zero();
+
+    /**
+     * Scales the tensor by scalar beta, e.g.:
+     *  C = beta * C
      **/
     void scale(double beta = 0.0);
 
@@ -284,27 +290,8 @@ public:
 
     // => Functions proposed for deletion <= //
 
-    /// Fully covered by scale
-    Tensor& zero();
     /// Fully covered by permute
     void copy(const Tensor& other, const double& scale = 1.0);
-    /// Fully covered by contract
-    double dot(const Tensor& x) const;
-    /// Fully covered by permute
-    /**
-    * Performs: C["ij"] += 2.0 * A["ij"];
-    */
-    Tensor& scale_and_add(const double& a, const Tensor& x);
-    /// Technically covered by contract
-    /**
-    * Performs: C["ij"] *= A["ij"];
-     */
-    Tensor& pointwise_multiplication(const Tensor& x);
-    /// Technically covered by contract and proper data setting
-    /**
-    * Performs: C["ij"] /= A["ij"];
-    */
-    Tensor& pointwise_division(const Tensor& x);
 
 };
 
@@ -327,6 +314,7 @@ public:
     void operator=(const LabeledTensor& rhs);
     void operator+=(const LabeledTensor& rhs);
     void operator-=(const LabeledTensor& rhs);
+
     void operator=(const LabeledTensorDistributive& rhs);
     void operator+=(const LabeledTensorDistributive& rhs);
     void operator-=(const LabeledTensorDistributive& rhs);
@@ -339,8 +327,8 @@ public:
     void operator+=(const LabeledTensorAddition& rhs);
     void operator-=(const LabeledTensorAddition& rhs);
 
-    void operator*=(const double& scale);
-    void operator/=(const double& scale);
+    void operator*=(double scale);
+    void operator/=(double scale);
 
 //    bool operator==(const LabeledTensor& other) const;
 //    bool operator!=(const LabeledTensor& other) const;
@@ -426,7 +414,7 @@ public:
 
     LabeledTensorDistributive operator*(const LabeledTensor& other);
 
-    LabeledTensorAddition& operator*(const double& scalar);
+    LabeledTensorAddition& operator*(double scalar);
 
     // negation
     LabeledTensorAddition& operator-();
@@ -477,6 +465,10 @@ public:
     void operator+=(const SlicedTensor& rhs);
     void operator-=(const SlicedTensor& rhs);
 
+    // negation
+    SlicedTensor operator-() const {
+        return SlicedTensor(T_, range_, -factor_);
+    }
 private:
     Tensor T_;
     IndexRange range_;

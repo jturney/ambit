@@ -74,14 +74,7 @@ public:
     // => Simple Single Tensor Operations <= //
 
     virtual void zero() = 0;
-    virtual void scale(const double& a) = 0;
-
-    // => Simple Double Tensor Operations <= //
-
-    virtual void scale_and_add(const double& a, ConstTensorImplPtr x) = 0;
-    virtual void pointwise_multiplication(ConstTensorImplPtr x) = 0;
-    virtual void pointwise_division(ConstTensorImplPtr x) = 0;
-    virtual double dot(ConstTensorImplPtr x) const = 0;
+    virtual void scale(double beta) = 0;
 
     // => Contraction Type Operations <= //
 

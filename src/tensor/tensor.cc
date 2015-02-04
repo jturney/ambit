@@ -160,38 +160,14 @@ Tensor Tensor::cat(std::vector<Tensor> const, int dim)
     ThrowNotImplementedException;
 }
 
-Tensor& Tensor::zero()
+void Tensor::zero()
 {
     tensor_->zero();
-    return *this;
 }
 
 void Tensor::scale(double a)
 {
     tensor_->scale(a);
-}
-
-Tensor& Tensor::scale_and_add(const double& a, const Tensor &x)
-{
-    tensor_->scale_and_add(a, x.tensor_.get());
-    return *this;
-}
-
-Tensor& Tensor::pointwise_multiplication(const Tensor &x)
-{
-    tensor_->pointwise_multiplication(x.tensor_.get());
-    return *this;
-}
-
-Tensor& Tensor::pointwise_division(const Tensor &x)
-{
-    tensor_->pointwise_division(x.tensor_.get());
-    return *this;
-}
-
-double Tensor::dot(const Tensor& x) const
-{
-    return tensor_->dot(x.tensor_.get());
 }
 
 std::map<std::string, Tensor> Tensor::map_to_tensor(const std::map<std::string, TensorImplPtr>& x)

@@ -15,80 +15,18 @@ CoreTensorImpl::CoreTensorImpl(const std::string& name, const Dimension& dims)
 {
     data_.resize(numel(),0L);
 }
-void CoreTensorImpl::set_data(double* data, const IndexRange& range)
-{
-    if (range.size() == 0) {
-        memcpy(data_.data(),data,sizeof(double)*numel());
-        return;
-    }
-    // TODO
-}
-void CoreTensorImpl::get_data(double* data, const IndexRange& range) const
-{
-    if (range.size() == 0) {
-        memcpy(data,data_.data(),sizeof(double)*numel());
-        return;
-    }
-    // TODO
-}
 void CoreTensorImpl::zero()
 {
     memset(data_.data(),'\0', sizeof(double)*numel());
 }
 
-void CoreTensorImpl::scale(const double& a)
+void CoreTensorImpl::scale(double beta)
 {
-    C_DSCAL(numel(), a, data_.data(), 1);
-}
-
-void CoreTensorImpl::scale_and_add(const double& a, ConstTensorImplPtr x)
-{
-    if (numel() != x->numel()) {
-        throw std::runtime_error("Tensors must have the same number of elements.");
+    if (beta == 0.0) { 
+        zero();
+        return; 
     }
-
-    C_DAXPY(numel(),
-            a,
-            const_cast<double*>(((ConstCoreTensorImplPtr)x)->data().data()),
-            1,
-            data_.data(),
-            1);
-}
-
-void CoreTensorImpl::pointwise_multiplication(ConstTensorImplPtr x)
-{
-    if (numel() != x->numel()) {
-        throw std::runtime_error("Tensors must have the same number of elements.");
-    }
-
-    const double* rhs = ((ConstCoreTensorImplPtr)x)->data().data();
-    OMP_VECTORIZED_STATIC_LOOP
-    for (size_t ind=0, end=numel(); ind < end; ++ind) {
-        data_[ind] *= rhs[ind];
-    }
-}
-
-void CoreTensorImpl::pointwise_division(ConstTensorImplPtr x)
-{
-    if (numel() != x->numel()) {
-        throw std::runtime_error("Tensors must have the same number of elements.");
-    }
-
-    const double* rhs = ((ConstCoreTensorImplPtr)x)->data().data();
-    OMP_VECTORIZED_STATIC_LOOP
-    for (size_t ind=0, end=numel(); ind < end; ++ind) {
-        data_[ind] /= rhs[ind];
-    }
-}
-
-double CoreTensorImpl::dot(ConstTensorImplPtr x) const
-{
-    if (numel() != x->numel()) {
-        throw std::runtime_error("Tensors must have the same number of elements.");
-    }
-    dimensionCheck(this, x, true);
-
-    return C_DDOT(numel(), const_cast<double*>(data_.data()), 1, const_cast<double*>(((ConstCoreTensorImplPtr)x)->data().data()), 1);
+    C_DSCAL(numel(), beta, data_.data(), 1);
 }
 
 void CoreTensorImpl::contract(
