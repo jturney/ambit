@@ -15,6 +15,7 @@ namespace tensor {
 
     /*
      * If we have C++11 then we don't need Boost for shared_ptr, tuple, and unique_ptr.
+     * TODO: We should just have C++11
      */
     using std::tuple;
     using std::shared_ptr;
@@ -40,6 +41,7 @@ namespace tensor {
 
 namespace tensor {
 
+// TODO: Why is this here?
 static constexpr double numerical_zero__ = 1.0e-15;
 
 class TensorImpl;
@@ -90,19 +92,30 @@ public:
 
     static Tensor build(TensorType type, const Tensor& other);
 
-    void copy(const Tensor& other, const double& scale = 1.0);
-
     Tensor();
 
-    // => Reflectors <= //
+    // => Accessors <= //
 
+    /// @return The tensor type enum, one of kCore, kDisk, kDistributed
     TensorType type() const;
+    /// @return The name of the tensor for use in printing
     std::string name() const;
+    /// @return The dimension of each index in the tensor
     const Dimension& dims() const;
-    size_t dim(size_t index) const;
+    /// @return The dimension of the ind-th index
+    size_t dim(size_t ind) const;
+    /// @return The number of indices in the tensor
     size_t rank() const;
-    /// \return Total number of elements in the tensor.
+    /// @return The total number of elements in the tensor (product of dims)
     size_t numel() const;
+
+    /// Set the name of the tensor to name
+    void set_name(const std::string& name);
+
+    /// @return Does this Tensor point to the same underlying tensor as Tensor other?
+    bool operator==(const Tensor& other) const;
+    /// @return !Does this Tensor point to the same underlying tensor as Tensor other?
+    bool operator!=(const Tensor& other) const;
 
     /**
      * Print some tensor information to fh
@@ -110,17 +123,7 @@ public:
      **/
     void print(FILE* fh, bool level = false, const std::string& format = std::string("%11.6f"), int maxcols = 5) const;
 
-    // => Labelers <= //
-
-    LabeledTensor operator()(const std::string& indices);
-    LabeledTensor operator[](const std::string& indices);
-
-    // => Slicers <= //
-
-    SlicedTensor operator()(const IndexRange& indices);
-    SlicedTensor operator[](const IndexRange& indices);
-
-    // => Setters/Getters <= //
+    // => Data Access <= //
 
     /**
      * Returns the raw data vector underlying the tensor object
@@ -141,7 +144,6 @@ public:
      *  double* Ap = Av.data(); // In case the raw pointer is needed
      *  In this case, Av[0] = A(0,0,0), Av[1] = A(0,0,1), etc.
      *
-     * Example unsuccessful use case:
      *  Tensor B = Tensor::build(kDisk, "B3", {4,5,6});
      *  std::vector<double>& Bv = B.data(); // throws
      *
@@ -151,78 +153,13 @@ public:
     std::vector<double>& data();
     const std::vector<double>& data() const;
 
-    // => Slicers <= //
-
-//    static Tensor slice(const Tensor& tensor, const IndexRange& ranges);
-    static Tensor cat(const std::vector<Tensor>, int dim);
-
-    // => Simple Single Tensor Operations <= //
-
-    Tensor& zero();
-    Tensor& scale(double a);
-    double norm(double power = 2.0) const;
-
-    // => Simple Double Tensor Operations <= //
+    // => BLAS-Type Tensor Operations <= //
 
     /**
-    * Performs: C["ij"] += 2.0 * A["ij"];
-    */
-    Tensor& scale_and_add(const double& a, const Tensor& x);
-    /**
-    * Performs: C["ij"] *= A["ij"];
-     */
-    Tensor& pointwise_multiplication(const Tensor& x);
-    /**
-    * Performs: C["ij"] /= A["ij"];
-    */
-    Tensor& pointwise_division(const Tensor& x);
-    double dot(const Tensor& x) const;
-
-    // => Order-2 Operations <= //
-
-    std::map<std::string, Tensor> syev(EigenvalueOrder order);
-    std::map<std::string, Tensor> geev(EigenvalueOrder order);
-    std::map<std::string, Tensor> svd();
-
-    Tensor cholesky();
-    std::map<std::string, Tensor> lu();
-    std::map<std::string, Tensor> qr();
-
-    Tensor cholesky_inverse();
-    Tensor inverse();
-    Tensor power(double power, double condition = 1.0E-12);
-
-    // => Contraction Type Operations <= //
-
-    /**
-     * Perform the contraction:
-     *  C(Cinds) = alpha * A(Ainds) * B(Binds) + beta * C(Cinds)
-     *   
-     * Note: Most users should instead use the operator overloading
-     * routines, e.g.,
-     *  C2("ij") += 0.5 * A2("ik") * B2("jk");
-     *
-     * Parameters:
-     *  @param A: The left-side factor tensor, e.g., A2
-     *  @param B: The right-side factor tensor, e.g., B2
-     *  @param Cinds: The indices of tensor C, e.g., "ij"
-     *  @param Ainds: The indices of tensor A, e.g., "ik"
-     *  @param Binds: The indices of tensor B, e.g., "jk"
-     *  @param alpha: The scale applied to the product A*B, e.g., 0.5
-     *  @param beta: The scale applied to the tensor C, e.g., 1.0
-     *
-     * Results:
-     *  @return void
-     *  C is the current tensor, whose data is overwritten. e.g., C2
+     * Scales the tensor by scalar beta, e.g.,
+     * C = beta * C
      **/
-    void contract(
-        const Tensor& A,
-        const Tensor& B,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
-        const std::vector<std::string>& Binds,
-        double alpha = 1.0,
-        double beta = 0.0);
+    void scale(double beta = 0.0);
 
     /**
      * Perform the permutation:
@@ -257,7 +194,6 @@ public:
      * Note: Most users should instead use the operator overloading
      * routines, e.g.,
      *  C2({{0,m},{0,n}}) += 0.5 * A2({{1,m+1},{1,n+1}});
-     *  TODO: This must be coded. Possibly IndexRange should be changed to vector<vector<size_t>> for brevity
      *
      * Parameters:
      *  @param A: The source tensor, e.g., A2
@@ -278,9 +214,54 @@ public:
         const IndexRange& Ainds,
         double alpha = 1.0,
         double beta = 0.0);
+   
+    /**
+     * Perform the contraction:
+     *  C(Cinds) = alpha * A(Ainds) * B(Binds) + beta * C(Cinds)
+     *   
+     * Note: Most users should instead use the operator overloading
+     * routines, e.g.,
+     *  C2("ij") += 0.5 * A2("ik") * B2("jk");
+     *
+     * Parameters:
+     *  @param A: The left-side factor tensor, e.g., A2
+     *  @param B: The right-side factor tensor, e.g., B2
+     *  @param Cinds: The indices of tensor C, e.g., "ij"
+     *  @param Ainds: The indices of tensor A, e.g., "ik"
+     *  @param Binds: The indices of tensor B, e.g., "jk"
+     *  @param alpha: The scale applied to the product A*B, e.g., 0.5
+     *  @param beta: The scale applied to the tensor C, e.g., 1.0
+     *
+     * Results:
+     *  @return void
+     *  C is the current tensor, whose data is overwritten. e.g., C2
+     **/
+    void contract(
+        const Tensor& A,
+        const Tensor& B,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds,
+        const std::vector<std::string>& Binds,
+        double alpha = 1.0,
+        double beta = 0.0);
 
-    bool operator==(const Tensor& other) const;
-    bool operator!=(const Tensor& other) const;
+    // => Rank-2 LAPACK-Type Tensor Operations <= //
+
+    std::map<std::string, Tensor> syev(EigenvalueOrder order) const;
+    std::map<std::string, Tensor> geev(EigenvalueOrder order) const;
+    std::map<std::string, Tensor> svd() const;
+
+    Tensor cholesky() const;
+    std::map<std::string, Tensor> lu() const;
+    std::map<std::string, Tensor> qr() const;
+
+    Tensor cholesky_inverse() const;
+    Tensor inverse() const;
+    Tensor power(double power, double condition = 1.0E-12) const;
+    
+    // => Utility Operations <= //
+
+    static Tensor cat(const std::vector<Tensor>, int dim);
 
 private:
 
@@ -290,7 +271,44 @@ protected:
 
     Tensor(shared_ptr<TensorImpl> tensor);
 
-    std::map<std::string, Tensor> map_to_tensor(const std::map<std::string, TensorImpl*>& x);
+    static std::map<std::string, Tensor> map_to_tensor(const std::map<std::string, TensorImpl*>& x);
+
+public:
+
+    // => Operator Overloading API <= //
+
+    LabeledTensor operator()(const std::string& indices);
+    LabeledTensor operator[](const std::string& indices);
+
+    SlicedTensor operator()(const IndexRange& range);
+    SlicedTensor operator[](const IndexRange& range);
+
+public:
+
+    // => Functions proposed for deletion <= //
+
+    /// Fully covered by scale
+    Tensor& zero();
+    /// Fully covered by permute
+    void copy(const Tensor& other, const double& scale = 1.0);
+    /// Fully covered by contract
+    double dot(const Tensor& x) const;
+    /// Fully covered by permute
+    /**
+    * Performs: C["ij"] += 2.0 * A["ij"];
+    */
+    Tensor& scale_and_add(const double& a, const Tensor& x);
+    /// Technically covered by contract
+    /**
+    * Performs: C["ij"] *= A["ij"];
+     */
+    Tensor& pointwise_multiplication(const Tensor& x);
+    /// Technically covered by contract and proper data setting
+    /**
+    * Performs: C["ij"] /= A["ij"];
+    */
+    Tensor& pointwise_division(const Tensor& x);
+
 };
 
 class LabeledTensor {

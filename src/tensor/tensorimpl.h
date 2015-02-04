@@ -51,12 +51,14 @@ public:
 
     // => Reflectors <= //
 
-    virtual TensorType type() const { return type_; }
+    TensorType type() const { return type_; }
     std::string name() const { return name_; }
-    virtual const Dimension& dims() const { return dims_; }
-    virtual size_t dim(size_t ind) const { return dims_[ind]; }
-    virtual size_t rank() const { return dims_.size(); }
+    const Dimension& dims() const { return dims_; }
+    size_t dim(size_t ind) const { return dims_[ind]; }
+    size_t rank() const { return dims_.size(); }
     size_t numel() const;
+
+    void set_name(const std::string& name) { name_ = name; } 
 
     /**
      * Print some tensor information to fh
@@ -73,8 +75,6 @@ public:
 
     virtual void zero() = 0;
     virtual void scale(const double& a) = 0;
-    virtual double norm(double power = 2.0) const = 0;
-    virtual double rms(double power = 2.0) const = 0;
 
     // => Simple Double Tensor Operations <= //
 

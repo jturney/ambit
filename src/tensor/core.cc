@@ -41,15 +41,6 @@ void CoreTensorImpl::scale(const double& a)
     C_DSCAL(numel(), a, data_.data(), 1);
 }
 
-double CoreTensorImpl::norm(double /*power*/) const
-{
-    ThrowNotImplementedException;
-}
-double CoreTensorImpl::rms(double /*power*/) const
-{
-    ThrowNotImplementedException;
-}
-
 void CoreTensorImpl::scale_and_add(const double& a, ConstTensorImplPtr x)
 {
     if (numel() != x->numel()) {
@@ -663,13 +654,16 @@ void CoreTensorImpl::slice(
 
     // => Index Logic <= //
 
-    // TODO Validity checks
     // TODO This is not valid for rank() == 0
     
     /// Sizes of stripes
     std::vector<size_t> sizes(rank(),0L);
     for (size_t ind = 0L; ind < rank(); ind++) {
-        sizes[ind] = Cinds[ind][1] - Cinds[ind][0];
+        size_t Asize = Ainds[ind][1] - Ainds[ind][0];
+        size_t Csize = Cinds[ind][1] - Cinds[ind][0];
+        if (Asize != Csize) 
+            throw std::runtime_error("Slice range sizes must agree between tensors A and C.");
+        sizes[ind] = Asize;
     }
 
     /// Size of contiguous DAXPY call

@@ -96,6 +96,11 @@ std::string Tensor::name() const
     return tensor_->name();
 }
 
+void Tensor::set_name(const std::string& name)
+{
+    tensor_->set_name(name);
+}
+
 const std::vector<size_t>& Tensor::dims() const
 {
     return tensor_->dims();
@@ -161,15 +166,9 @@ Tensor& Tensor::zero()
     return *this;
 }
 
-Tensor& Tensor::scale(double a)
+void Tensor::scale(double a)
 {
     tensor_->scale(a);
-    return *this;
-}
-
-double Tensor::norm(double power) const
-{
-    return tensor_->norm(power);
 }
 
 Tensor& Tensor::scale_and_add(const double& a, const Tensor &x)
@@ -207,47 +206,47 @@ std::map<std::string, Tensor> Tensor::map_to_tensor(const std::map<std::string, 
     return result;
 }
 
-std::map<std::string, Tensor> Tensor::syev(EigenvalueOrder order)
+std::map<std::string, Tensor> Tensor::syev(EigenvalueOrder order) const
 {
     return map_to_tensor(tensor_->syev(order));
 }
 
-std::map<std::string, Tensor> Tensor::geev(EigenvalueOrder order)
+std::map<std::string, Tensor> Tensor::geev(EigenvalueOrder order) const
 {
     return map_to_tensor(tensor_->geev(order));
 }
 
-std::map<std::string, Tensor> Tensor::svd()
+std::map<std::string, Tensor> Tensor::svd() const
 {
     return map_to_tensor(tensor_->svd());
 }
 
-Tensor Tensor::cholesky()
+Tensor Tensor::cholesky() const
 {
     return Tensor(shared_ptr<TensorImpl>(tensor_->cholesky()));
 }
 
-std::map<std::string, Tensor> Tensor::lu()
+std::map<std::string, Tensor> Tensor::lu() const
 {
     return map_to_tensor(tensor_->lu());
 }
 
-std::map<std::string, Tensor> Tensor::qr()
+std::map<std::string, Tensor> Tensor::qr() const
 {
     return map_to_tensor(tensor_->qr());
 }
 
-Tensor Tensor::cholesky_inverse()
+Tensor Tensor::cholesky_inverse() const
 {
     return Tensor(shared_ptr<TensorImpl>(tensor_->cholesky_inverse()));
 }
 
-Tensor Tensor::inverse()
+Tensor Tensor::inverse() const
 {
     return Tensor(shared_ptr<TensorImpl>(tensor_->inverse()));
 }
 
-Tensor Tensor::power(double alpha, double condition)
+Tensor Tensor::power(double alpha, double condition) const
 {
     return Tensor(shared_ptr<TensorImpl>(tensor_->power(alpha, condition)));
 }

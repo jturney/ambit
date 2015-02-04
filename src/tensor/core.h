@@ -20,8 +20,6 @@ public:
 
     void zero();
     void scale(const double& a);
-    double norm(double power = 2.0) const;
-    double rms(double power = 2.0) const;
 
     // => Simple Double TensorImpl Operations <= //
 
