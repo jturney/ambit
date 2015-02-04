@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
         C("i,j") = Smhalf("k,j") * Feigen["eigenvectors"]("i,k");
 
         // Form new density matrix
-        Cdocc.slice(C, CtoCdocc, CtoCdocc);
+        Cdocc(CtoCdocc) = C(CtoCdocc);
         D("mu,nu") = Cdocc("i,mu") * Cdocc("i,nu");
 //        D.print(stdout, true);
 
