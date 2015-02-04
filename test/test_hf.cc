@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
     Tensor Cdocc = build("C", {5, (size_t)nso});
 
     size_t ndocc = 5;
-    IndexRange CtoCdocc = { {0,ndocc}, {0,nso}};
+    IndexRange CtoCdocc = { {0,ndocc}, {0,(size_t)nso}};
     //Cdocc.slice(C, CtoCdocc, CtoCdocc);
     Cdocc(CtoCdocc) = C(CtoCdocc);
 
