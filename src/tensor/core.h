@@ -18,12 +18,10 @@ public:
     void scale(
         double beta = 0.0);
 
-    void contract(
+    void slice(
         ConstTensorImplPtr A,
-        ConstTensorImplPtr B,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
-        const std::vector<std::string>& Binds,
+        const IndexRange& Cinds,
+        const IndexRange& Ainds,
         double alpha = 1.0,
         double beta = 0.0);
 
@@ -34,25 +32,27 @@ public:
         double alpha = 1.0,
         double beta = 0.0);
 
-    void slice(
+    void contract(
         ConstTensorImplPtr A,
-        const IndexRange& Cinds,
-        const IndexRange& Ainds,
+        ConstTensorImplPtr B,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds,
+        const std::vector<std::string>& Binds,
         double alpha = 1.0,
         double beta = 0.0);
 
     // => Order-2 Operations <= //
 
     std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const;
-    std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const;
-    std::map<std::string, TensorImplPtr> svd() const;
+    //std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const;
+    //std::map<std::string, TensorImplPtr> svd() const;
 
-    TensorImplPtr cholesky() const;
-    std::map<std::string, TensorImplPtr> lu() const;
-    std::map<std::string, TensorImplPtr> qr() const;
+    //TensorImplPtr cholesky() const;
+    //std::map<std::string, TensorImplPtr> lu() const;
+    //std::map<std::string, TensorImplPtr> qr() const;
 
-    TensorImplPtr cholesky_inverse() const;
-    TensorImplPtr inverse() const;
+    //TensorImplPtr cholesky_inverse() const;
+    //TensorImplPtr inverse() const;
     TensorImplPtr power(double power, double condition = 1.0E-12) const;
 
 private:

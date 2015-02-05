@@ -90,9 +90,9 @@ public:
 
     static Tensor build(TensorType type, const std::string& name, const Dimension& dims);
 
-    static Tensor build_from(TensorType type, const Tensor& other);
-
     Tensor();
+
+    Tensor clone(TensorType = kCurrent) const;
 
     // => Accessors <= //
 
@@ -157,15 +157,22 @@ public:
 
     /**
      * Sets the data of the tensor to zeros.  
-     * Note: this is guaranteed, even if non-finite data is present.
+     * Note: this just drops down to scale(0.0);
      **/
     void zero();
+
+    /**
+     * Cope the data of other into this tensor.
+     * Note: this just drops into slice
+     **/ 
+    void copy(const Tensor& other);
 
     /**
      * Scales the tensor by scalar beta, e.g.:
      *  C = beta * C
      *
-     * Note, this calls zero
+     * Note: If beta is 0.0, a memset is performed rather than a scale to clamp
+     * NaNs and other garbage out.
      **/
     void scale(double beta = 0.0);
 
@@ -253,16 +260,27 @@ public:
     // => Rank-2 LAPACK-Type Tensor Operations <= //
 
     std::map<std::string, Tensor> syev(EigenvalueOrder order) const;
-    std::map<std::string, Tensor> geev(EigenvalueOrder order) const;
-    std::map<std::string, Tensor> svd() const;
-
-    Tensor cholesky() const;
-    std::map<std::string, Tensor> lu() const;
-    std::map<std::string, Tensor> qr() const;
-
-    Tensor cholesky_inverse() const;
-    Tensor inverse() const;
     Tensor power(double power, double condition = 1.0E-12) const;
+
+    //std::map<std::string, Tensor> geev(EigenvalueOrder order) const;
+    //std::map<std::string, Tensor> svd() const;
+
+    //void potrf();
+    //void potri();
+    //void potrs(const Tensor& L);
+    //void posv(const Tensor& A);
+
+    //void trtrs(const Tensor& L, 
+
+    //void getrf();
+    //void getri();
+    //void getrs(const Tensor& LU);
+    //void gesv(const Tensor& A);
+
+    //std::map<std::string, Tensor> lu() const;
+    //std::map<std::string, Tensor> qr() const;
+
+    //Tensor inverse() const;
 
     // => Utility Operations <= //
 
@@ -292,8 +310,6 @@ public:
 
     // => Functions proposed for deletion <= //
 
-    /// Fully covered by permute
-    void copy(const Tensor& other, const double& scale = 1.0);
 
 };
 

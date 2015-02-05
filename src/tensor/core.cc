@@ -368,7 +368,7 @@ void CoreTensorImpl::permute(
     double* Ap = ((const CoreTensorImplPtr)A)->data().data();
 
     /// Beta scale 
-    C_DSCAL(numel(),beta,Cp,1);
+    scale(beta);
 
     // => Index Logic <= //
 
@@ -396,8 +396,6 @@ void CoreTensorImpl::permute(
         C_DAXPY(fast_size,alpha,Ap,1,Cp,1);
         return;
     }
-
-    assert(slow_dims > 1); // slow_dims != 1
 
     /// Number of collapsed indices in permutation traverse
     size_t slow_size = 1L;
@@ -585,10 +583,15 @@ void CoreTensorImpl::slice(
     double* Cp = data().data();
     double* Ap = ((const CoreTensorImplPtr)A)->data().data();
 
+    // => Special Case: Rank-0 <= //
+    
+    if (rank() == 0) {
+        Cp[0] = alpha * Ap[0] + beta * Cp[0];
+        return;
+    }
+
     // => Index Logic <= //
 
-    // TODO This is not valid for rank() == 0
-    
     /// Sizes of stripes
     std::vector<size_t> sizes(rank(),0L);
     for (size_t ind = 0L; ind < rank(); ind++) {
@@ -600,8 +603,8 @@ void CoreTensorImpl::slice(
     }
 
     /// Size of contiguous DAXPY call
-    int fast_dims = (rank() == 0 ? 0 : 1);
-    size_t fast_size = (rank() == 0 ? 1L : sizes[rank() - 1]);
+    int fast_dims = 1;
+    size_t fast_size = sizes[rank() - 1];
     for (int ind = ((int) rank()) - 2; ind >= 0; ind--) {
         if (sizes[ind+1] == A->dims()[ind+1] && sizes[ind+1] == C->dims()[ind+1]) {
             fast_dims++;
@@ -809,7 +812,7 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
     CoreTensorImpl *vecs = new CoreTensorImpl("Eigenvectors of " + name(), dims());
     CoreTensorImpl *vals = new CoreTensorImpl("Eigenvalues of " + name(), {dims()[0]});
 
-    vecs->copy(this, 1.0);
+    vecs->copy(this);
 
     size_t n = dims()[0];
     size_t lwork = 3 * dims()[0];
@@ -846,39 +849,39 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
     return result;
 }
 
-std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder /*order*/) const
-{
-    ThrowNotImplementedException;
-}
-
-std::map<std::string, TensorImplPtr> CoreTensorImpl::svd() const
-{
-    ThrowNotImplementedException;
-}
-
-TensorImplPtr CoreTensorImpl::cholesky() const
-{
-    ThrowNotImplementedException;
-}
-
-std::map<std::string, TensorImplPtr> CoreTensorImpl::lu() const
-{
-    ThrowNotImplementedException;
-}
-std::map<std::string, TensorImplPtr> CoreTensorImpl::qr() const
-{
-    ThrowNotImplementedException;
-}
-
-TensorImplPtr CoreTensorImpl::cholesky_inverse() const
-{
-    ThrowNotImplementedException;
-}
-
-TensorImplPtr CoreTensorImpl::inverse() const
-{
-    ThrowNotImplementedException;
-}
+//std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder /*order*/) const
+//{
+//    ThrowNotImplementedException;
+//}
+//
+//std::map<std::string, TensorImplPtr> CoreTensorImpl::svd() const
+//{
+//    ThrowNotImplementedException;
+//}
+//
+//TensorImplPtr CoreTensorImpl::cholesky() const
+//{
+//    ThrowNotImplementedException;
+//}
+//
+//std::map<std::string, TensorImplPtr> CoreTensorImpl::lu() const
+//{
+//    ThrowNotImplementedException;
+//}
+//std::map<std::string, TensorImplPtr> CoreTensorImpl::qr() const
+//{
+//    ThrowNotImplementedException;
+//}
+//
+//TensorImplPtr CoreTensorImpl::cholesky_inverse() const
+//{
+//    ThrowNotImplementedException;
+//}
+//
+//TensorImplPtr CoreTensorImpl::inverse() const
+//{
+//    ThrowNotImplementedException;
+//}
 
 TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
 {

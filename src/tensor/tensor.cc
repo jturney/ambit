@@ -73,14 +73,16 @@ Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& 
     return newObject;
 }
 
-Tensor Tensor::build_from(TensorType type, const Tensor& other)
+Tensor Tensor::clone(TensorType type) const
 {
-    ThrowNotImplementedException;
+    Tensor current = Tensor::build(type, name(), dims());
+    current.copy(*this);
+    return current;
 }
 
-void Tensor::copy(const Tensor& other, const double& scale)
+void Tensor::copy(const Tensor& other)
 {
-    tensor_->copy(other.tensor_.get(), scale);
+    tensor_->copy(other.tensor_.get());
 }
 
 Tensor::Tensor()
@@ -187,40 +189,40 @@ std::map<std::string, Tensor> Tensor::syev(EigenvalueOrder order) const
     return map_to_tensor(tensor_->syev(order));
 }
 
-std::map<std::string, Tensor> Tensor::geev(EigenvalueOrder order) const
-{
-    return map_to_tensor(tensor_->geev(order));
-}
-
-std::map<std::string, Tensor> Tensor::svd() const
-{
-    return map_to_tensor(tensor_->svd());
-}
-
-Tensor Tensor::cholesky() const
-{
-    return Tensor(shared_ptr<TensorImpl>(tensor_->cholesky()));
-}
-
-std::map<std::string, Tensor> Tensor::lu() const
-{
-    return map_to_tensor(tensor_->lu());
-}
-
-std::map<std::string, Tensor> Tensor::qr() const
-{
-    return map_to_tensor(tensor_->qr());
-}
-
-Tensor Tensor::cholesky_inverse() const
-{
-    return Tensor(shared_ptr<TensorImpl>(tensor_->cholesky_inverse()));
-}
-
-Tensor Tensor::inverse() const
-{
-    return Tensor(shared_ptr<TensorImpl>(tensor_->inverse()));
-}
+//std::map<std::string, Tensor> Tensor::geev(EigenvalueOrder order) const
+//{
+//    return map_to_tensor(tensor_->geev(order));
+//}
+//
+//std::map<std::string, Tensor> Tensor::svd() const
+//{
+//    return map_to_tensor(tensor_->svd());
+//}
+//
+//Tensor Tensor::cholesky() const
+//{
+//    return Tensor(shared_ptr<TensorImpl>(tensor_->cholesky()));
+//}
+//
+//std::map<std::string, Tensor> Tensor::lu() const
+//{
+//    return map_to_tensor(tensor_->lu());
+//}
+//
+//std::map<std::string, Tensor> Tensor::qr() const
+//{
+//    return map_to_tensor(tensor_->qr());
+//}
+//
+//Tensor Tensor::cholesky_inverse() const
+//{
+//    return Tensor(shared_ptr<TensorImpl>(tensor_->cholesky_inverse()));
+//}
+//
+//Tensor Tensor::inverse() const
+//{
+//    return Tensor(shared_ptr<TensorImpl>(tensor_->inverse()));
+//}
 
 Tensor Tensor::power(double alpha, double condition) const
 {

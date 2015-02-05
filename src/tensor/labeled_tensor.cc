@@ -397,7 +397,7 @@ LabeledTensorProduct::operator double() const
         1.0);
 
     Tensor C = Tensor::build(kCore, "C", {});
-    C.permute(
+    C.slice(
         R,
         {},
         {});
@@ -508,7 +508,7 @@ LabeledTensorDistributive::operator double() const
     }
 
     Tensor C = Tensor::build(kCore, "C", {});
-    C.permute(
+    C.slice(
         R,
         {},
         {});

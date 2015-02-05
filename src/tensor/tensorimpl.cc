@@ -7,7 +7,11 @@
 
 namespace tensor {
 
-void TensorImpl::copy(ConstTensorImplPtr other, const double& s)
+void TensorImpl::zero()
+{
+    scale(0.0);
+}
+void TensorImpl::copy(ConstTensorImplPtr other)
 {
     TensorImpl::dimensionCheck(this, other);
 
@@ -15,9 +19,9 @@ void TensorImpl::copy(ConstTensorImplPtr other, const double& s)
     for (size_t ind = 0; ind < rank(); ind++) {
         ranges.push_back({0L,dims()[ind]});
     }
-    slice(other,ranges,ranges,s,0.0);
+    slice(other,ranges,ranges,1.0,0.0);
 }
-TensorImplPtr TensorImpl::clone(TensorType t)
+TensorImplPtr TensorImpl::clone(TensorType t) const
 {
     if (t == kCurrent) {
         t = type();
@@ -55,8 +59,14 @@ void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int 
     }
 
     if (level > 0) {
-        double* temp = const_cast<double*>(data().data());
-        // TODO: Slicing
+        double* temp;
+        boost::shared_ptr<TensorImpl> T;
+        if (type() == kCore) {
+            temp = const_cast<double*>(data().data());
+        } else {
+            T = boost::shared_ptr<TensorImpl>(clone(kCore));
+            temp = const_cast<double*>(data().data()); 
+        }
 
         int order = rank();
         size_t nelem = numel();
