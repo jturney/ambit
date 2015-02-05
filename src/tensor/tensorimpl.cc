@@ -1,6 +1,7 @@
 #include "tensorimpl.h"
 #include "core.h"
 #include "disk.h"
+#include "slice.h"
 
 #if defined(HAVE_ELEMENTAL)
 #include "cyclops/cyclops.h"
@@ -8,6 +9,15 @@
 
 namespace tensor {
 
+void TensorImpl::slice(
+    ConstTensorImplPtr A,
+    const IndexRange& Cinds,
+    const IndexRange& Ainds,
+    double alpha,
+    double beta)
+{
+    tensor::slice(this,A,Cinds,Ainds,alpha,beta);
+}
 void TensorImpl::zero()
 {
     scale(0.0);
@@ -68,7 +78,7 @@ void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int 
             temp = const_cast<double*>(data().data());
         } else {
             T = boost::shared_ptr<TensorImpl>(clone(kCore));
-            temp = const_cast<double*>(data().data()); 
+            temp = const_cast<double*>(T->data().data()); 
         }
 
         int order = rank();

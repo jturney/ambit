@@ -14,7 +14,7 @@ DiskTensorImpl::DiskTensorImpl(const std::string& name, const Dimension& dims)
         : TensorImpl(kDisk, name, dims)
 {
     filename_ = "dummy.dat"; // TODO
-    fh_ = fopen(filename_.c_str(),"wb");  
+    fh_ = fopen(filename_.c_str(),"wb+");  
     scale(0.0); // Prestripe
 }
 DiskTensorImpl::~DiskTensorImpl()
@@ -25,8 +25,13 @@ DiskTensorImpl::~DiskTensorImpl()
 void DiskTensorImpl::scale(double beta)
 {
     size_t fast_size = 1L;
-    if (rank() > 0) fast_size *= dims()[rank()-1];
-    if (rank() > 1) fast_size *= dims()[rank()-2];
+    for (int ind = ((int) rank()) - 1; ind >= 0; ind--) {
+        if (fast_size * dims()[ind] <= disk_buffer__) {
+            fast_size *= dims()[ind]; 
+        } else {
+            break;
+        }
+    }
 
     size_t slow_size = numel() / fast_size;
 
@@ -57,15 +62,6 @@ void DiskTensorImpl::permute(
     ConstTensorImplPtr A,
     const Indices& CindsS,
     const Indices& AindsS,
-    double alpha,
-    double beta)
-{
-    // TODO
-}
-void DiskTensorImpl::slice(
-    ConstTensorImplPtr A,
-    const IndexRange& Cinds,
-    const IndexRange& Ainds,
     double alpha,
     double beta)
 {

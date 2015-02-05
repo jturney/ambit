@@ -89,8 +89,7 @@ public:
         const IndexRange& Cinds,
         const IndexRange& Ainds,
         double alpha = 1.0,
-        double beta = 0.0)
-        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
+        double beta = 0.0);
 
     virtual void permute(
         ConstTensorImplPtr A,
