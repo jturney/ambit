@@ -306,10 +306,16 @@ public:
     SlicedTensor operator()(const IndexRange& range);
     SlicedTensor operator[](const IndexRange& range);
 
+    // => Environment <= //
+
+private:
+
+    static std::string scratch_path__;
+
 public:
 
-    // => Functions proposed for deletion <= //
-
+    static void set_scratch_path(const std::string& path) { scratch_path__ = path; }
+    static std::string scratch_path() { return scratch_path__; }
 
 };
 

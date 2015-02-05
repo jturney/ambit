@@ -3,17 +3,31 @@
 #include "memory.h"
 #include "math/math.h"
 #include "indices.h"
+#include <sstream>
 #include <string.h>
 #include <cmath>
+#include <unistd.h>
 
 #include <boost/timer/timer.hpp>
 
 namespace tensor {
 
+static size_t disk_next_id__ = 0L;
+size_t disk_next_id() { return disk_next_id__++; }
+
 DiskTensorImpl::DiskTensorImpl(const std::string& name, const Dimension& dims)
         : TensorImpl(kDisk, name, dims)
 {
-    filename_ = "dummy.dat"; // TODO
+    std::stringstream ss;
+    ss << Tensor::scratch_path();
+    ss << "/";
+    ss << "kDisk.";
+    ss << getpid();
+    ss << ".";
+    ss << disk_next_id();
+    ss << ".dat";
+
+    filename_ = ss.str();
     fh_ = fopen(filename_.c_str(),"wb+");  
     scale(0.0); // Prestripe
 }

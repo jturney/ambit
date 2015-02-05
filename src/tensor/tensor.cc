@@ -9,6 +9,7 @@
 #   include "cyclops/cyclops.h"
 #endif
 
+#include <cstdlib>
 #include <list>
 #include <algorithm>
 
@@ -16,6 +17,15 @@ namespace tensor {
 
 int initialize(int argc, char** argv)
 {
+    /// Set the scratch path for disk files
+    const char* scratch_env = std::getenv("TENSOR_SCRATCH");
+    if (scratch_env != NULL) {
+        std::string scratch_str(scratch_env);
+        Tensor::set_scratch_path(scratch_str);
+    } else {
+        Tensor::set_scratch_path(".");
+    }
+
 #if defined(HAVE_CYCLOPS)
     cyclops::initialize(argc, argv);
 #endif
@@ -29,6 +39,8 @@ void finalize()
     cyclops::finalize();
 #endif
 }
+
+std::string Tensor::scratch_path__ = ".";
 
 Tensor::Tensor(shared_ptr<TensorImpl> tensor)
     : tensor_(tensor)
