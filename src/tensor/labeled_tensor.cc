@@ -45,30 +45,21 @@ void LabeledTensor::operator=(const LabeledTensor &rhs)
 {
     if (T() == rhs.T()) throw std::runtime_error("Self assignment is not allowed.");
     if (T_.rank() != rhs.T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
-    T_.permute(rhs.T(), indices_, rhs.indices_);
-    T_.scale(rhs.factor());
+    T_.permute(rhs.T(), indices_, rhs.indices(), rhs.factor(), 0.0);
 }
 
 void LabeledTensor::operator+=(const LabeledTensor &rhs)
 {
-    if (indices::equivalent(indices_, rhs.indices_) == true) {
-        T_.scale_and_add(rhs.factor(), rhs.T());
-    }
-    else {
-        // TODO: Sort and scaling.
-        ThrowNotImplementedException;
-    }
+    if (T() == rhs.T()) throw std::runtime_error("Self assignment is not allowed.");
+    if (T_.rank() != rhs.T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+    T_.permute(rhs.T(), indices_, rhs.indices(), rhs.factor(), 1.0);
 }
 
 void LabeledTensor::operator-=(const LabeledTensor &rhs)
 {
-    if (indices::equivalent(indices_, rhs.indices_) == true) {
-        T_.scale_and_add(-rhs.factor(), rhs.T());
-    }
-    else {
-        // TODO: Sort and scaling.
-        ThrowNotImplementedException;
-    }
+    if (T() == rhs.T()) throw std::runtime_error("Self assignment is not allowed.");
+    if (T_.rank() != rhs.T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+    T_.permute(rhs.T(), indices_, rhs.indices(), -rhs.factor(), 1.0);
 }
 
 LabeledTensorProduct LabeledTensor::operator*(const LabeledTensor &rhs)
@@ -301,13 +292,9 @@ void LabeledTensor::operator=(const LabeledTensorAddition &rhs)
     T_.zero();
     for (size_t ind = 0, end = rhs.size(); ind < end; ++ind) {
         const LabeledTensor &labeledTensor = rhs[ind];
-
-        if (T() == labeledTensor.T()) throw std::runtime_error("Self assignment is not allowed.");
-        if (indices::equivalent(indices_, labeledTensor.indices()) == false) {
-            throw std::runtime_error("Indices must be equivalent.");
-        }
-
-        T_.scale_and_add(labeledTensor.factor(), labeledTensor.T());
+        if (T_ == rhs[ind].T()) throw std::runtime_error("Self assignment is not allowed.");
+        if (T_.rank() != rhs[ind].T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+        T_.permute(rhs[ind].T(), indices_, rhs[ind].indices(), rhs[ind].factor(), 1.0);
     }
 }
 
@@ -315,13 +302,9 @@ void LabeledTensor::operator+=(const LabeledTensorAddition &rhs)
 {
     for (size_t ind = 0, end = rhs.size(); ind < end; ++ind) {
         const LabeledTensor &labeledTensor = rhs[ind];
-
-        if (T() == labeledTensor.T()) throw std::runtime_error("Self assignment is not allowed.");
-        if (indices::equivalent(indices_, labeledTensor.indices()) == false) {
-            throw std::runtime_error("Indices must be equivalent.");
-        }
-
-        T_.scale_and_add(labeledTensor.factor(), labeledTensor.T());
+        if (T_ == rhs[ind].T()) throw std::runtime_error("Self assignment is not allowed.");
+        if (T_.rank() != rhs[ind].T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+        T_.permute(rhs[ind].T(), indices_, rhs[ind].indices(), rhs[ind].factor(), 1.0);
     }
 }
 
@@ -329,22 +312,18 @@ void LabeledTensor::operator-=(const LabeledTensorAddition &rhs)
 {
     for (size_t ind = 0, end = rhs.size(); ind < end; ++ind) {
         const LabeledTensor &labeledTensor = rhs[ind];
-
-        if (T() == labeledTensor.T()) throw std::runtime_error("Self assignment is not allowed.");
-        if (indices::equivalent(indices_, labeledTensor.indices()) == false) {
-            throw std::runtime_error("Indices must be equivalent.");
-        }
-
-        T_.scale_and_add(-labeledTensor.factor(), labeledTensor.T());
+        if (T_ == rhs[ind].T()) throw std::runtime_error("Self assignment is not allowed.");
+        if (T_.rank() != rhs[ind].T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+        T_.permute(rhs[ind].T(), indices_, rhs[ind].indices(), -rhs[ind].factor(), 1.0);
     }
 }
 
-void LabeledTensor::operator*=(const double &scale)
+void LabeledTensor::operator*=(double scale)
 {
     T_.scale(scale);
 }
 
-void LabeledTensor::operator/=(const double &scale)
+void LabeledTensor::operator/=(double scale)
 {
     T_.scale(1.0 / scale);
 }
@@ -382,7 +361,7 @@ LabeledTensorDistributive LabeledTensorAddition::operator*(const LabeledTensor &
     return LabeledTensorDistributive(other, *this);
 }
 
-LabeledTensorAddition &LabeledTensorAddition::operator*(const double &scalar)
+LabeledTensorAddition &LabeledTensorAddition::operator*(double scalar)
 {
     // distribute the scalar to each term
     for (LabeledTensor &T : tensors_) {
@@ -406,11 +385,24 @@ LabeledTensorProduct::operator double() const
     // Only handles binary expressions.
     if (size() == 0 || size() > 2)
         throw std::runtime_error("Conversion operator only supports binary expressions at the moment.");
-    if (indices::equivalent(tensors_[0].indices(), tensors_[1].indices()) == false) {
-        throw std::runtime_error("Conversion operator implies dot product and thus equivalent indices.");
-    }
 
-    return tensors_[0].T().dot(tensors_[1].T());
+    Tensor R = Tensor::build(tensors_[0].T().type(), "R", {});
+    R.contract(
+        tensors_[0].T(),
+        tensors_[1].T(),
+        {},
+        tensors_[0].indices(),
+        tensors_[1].indices(),
+        tensors_[0].factor() * tensors_[1].factor(),
+        1.0);
+
+    Tensor C = Tensor::build(kCore, "C", {});
+    C.slice(
+        R,
+        {},
+        {});
+
+    return C.data()[0];
 }
 
 std::pair<double, double> LabeledTensorProduct::compute_contraction_cost(const std::vector<size_t> &perm) const
@@ -501,15 +493,27 @@ std::pair<double, double> LabeledTensorProduct::compute_contraction_cost(const s
 
 LabeledTensorDistributive::operator double() const
 {
-    double result = 0.0;
-    for (const LabeledTensor& tensor : B_) {
-        if (indices::equivalent(tensor.indices(), A_.indices()) == false) {
-            throw std::runtime_error("Conversion operator implies dot product and thus equivalent indices.");
-        }
+    Tensor R = Tensor::build(A_.T().type(), "R", {});
 
-        result += tensor.T().dot(A_.T());
+    for (size_t ind = 0L; ind < B_.size(); ind++) {
+
+        R.contract(
+            A_.T(),
+            B_[ind].T(),
+            {},
+            A_.indices(),
+            B_[ind].indices(),
+            B_[ind].factor() * B_[ind].factor(),
+            1.0);
     }
-    return result;
+
+    Tensor C = Tensor::build(kCore, "C", {});
+    C.slice(
+        R,
+        {},
+        {});
+
+    return C.data()[0];
 }
 
 }

@@ -90,9 +90,9 @@ public:
 
     static Tensor build(TensorType type, const std::string& name, const Dimension& dims);
 
-    static Tensor build_from(TensorType type, const Tensor& other);
-
     Tensor();
+
+    Tensor clone(TensorType = kCurrent) const;
 
     // => Accessors <= //
 
@@ -126,17 +126,17 @@ public:
     // => Data Access <= //
 
     /**
-     * Returns the raw data vector underlying the tensor object
-     * if the underlying tensor object supports a raw data vector.
-     * This is only the case if the underlying tensor is of type kCore.
+     * Returns the raw data vector underlying the tensor object if the
+     * underlying tensor object supports a raw data vector. This is only the
+     * case if the underlying tensor is of type kCore.
      *
      * This routine is intended to facilitate rapid filling of data into a
      * kCore buffer tensor, following which the user may stripe the buffer
      * tensor into a kDisk or kDistributed tensor via slice operations.
      *
-     * If a vector is successfully returned, it points to the unrolled
-     * data of the tensor, with the right-most dimensions running fastest
-     * and left-most dimensions running slowest.
+     * If a vector is successfully returned, it points to the unrolled data of
+     * the tensor, with the right-most dimensions running fastest and left-most
+     * dimensions running slowest.
      *
      * Example successful use case:
      *  Tensor A = Tensor::build(kCore, "A3", {4,5,6});
@@ -156,8 +156,23 @@ public:
     // => BLAS-Type Tensor Operations <= //
 
     /**
-     * Scales the tensor by scalar beta, e.g.,
-     * C = beta * C
+     * Sets the data of the tensor to zeros.  
+     * Note: this just drops down to scale(0.0);
+     **/
+    void zero();
+
+    /**
+     * Cope the data of other into this tensor.
+     * Note: this just drops into slice
+     **/ 
+    void copy(const Tensor& other);
+
+    /**
+     * Scales the tensor by scalar beta, e.g.:
+     *  C = beta * C
+     *
+     * Note: If beta is 0.0, a memset is performed rather than a scale to clamp
+     * NaNs and other garbage out.
      **/
     void scale(double beta = 0.0);
 
@@ -245,16 +260,27 @@ public:
     // => Rank-2 LAPACK-Type Tensor Operations <= //
 
     std::map<std::string, Tensor> syev(EigenvalueOrder order) const;
-    std::map<std::string, Tensor> geev(EigenvalueOrder order) const;
-    std::map<std::string, Tensor> svd() const;
-
-    Tensor cholesky() const;
-    std::map<std::string, Tensor> lu() const;
-    std::map<std::string, Tensor> qr() const;
-
-    Tensor cholesky_inverse() const;
-    Tensor inverse() const;
     Tensor power(double power, double condition = 1.0E-12) const;
+
+    //std::map<std::string, Tensor> geev(EigenvalueOrder order) const;
+    //std::map<std::string, Tensor> svd() const;
+
+    //void potrf();
+    //void potri();
+    //void potrs(const Tensor& L);
+    //void posv(const Tensor& A);
+
+    //void trtrs(const Tensor& L, 
+
+    //void getrf();
+    //void getri();
+    //void getrs(const Tensor& LU);
+    //void gesv(const Tensor& A);
+
+    //std::map<std::string, Tensor> lu() const;
+    //std::map<std::string, Tensor> qr() const;
+
+    //Tensor inverse() const;
 
     // => Utility Operations <= //
 
@@ -280,31 +306,16 @@ public:
     SlicedTensor operator()(const IndexRange& range);
     SlicedTensor operator[](const IndexRange& range);
 
+    // => Environment <= //
+
+private:
+
+    static std::string scratch_path__;
+
 public:
 
-    // => Functions proposed for deletion <= //
-
-    /// Fully covered by scale
-    Tensor& zero();
-    /// Fully covered by permute
-    void copy(const Tensor& other, const double& scale = 1.0);
-    /// Fully covered by contract
-    double dot(const Tensor& x) const;
-    /// Fully covered by permute
-    /**
-    * Performs: C["ij"] += 2.0 * A["ij"];
-    */
-    Tensor& scale_and_add(const double& a, const Tensor& x);
-    /// Technically covered by contract
-    /**
-    * Performs: C["ij"] *= A["ij"];
-     */
-    Tensor& pointwise_multiplication(const Tensor& x);
-    /// Technically covered by contract and proper data setting
-    /**
-    * Performs: C["ij"] /= A["ij"];
-    */
-    Tensor& pointwise_division(const Tensor& x);
+    static void set_scratch_path(const std::string& path) { scratch_path__ = path; }
+    static std::string scratch_path() { return scratch_path__; }
 
 };
 
@@ -327,6 +338,7 @@ public:
     void operator=(const LabeledTensor& rhs);
     void operator+=(const LabeledTensor& rhs);
     void operator-=(const LabeledTensor& rhs);
+
     void operator=(const LabeledTensorDistributive& rhs);
     void operator+=(const LabeledTensorDistributive& rhs);
     void operator-=(const LabeledTensorDistributive& rhs);
@@ -339,8 +351,8 @@ public:
     void operator+=(const LabeledTensorAddition& rhs);
     void operator-=(const LabeledTensorAddition& rhs);
 
-    void operator*=(const double& scale);
-    void operator/=(const double& scale);
+    void operator*=(double scale);
+    void operator/=(double scale);
 
 //    bool operator==(const LabeledTensor& other) const;
 //    bool operator!=(const LabeledTensor& other) const;
@@ -426,7 +438,7 @@ public:
 
     LabeledTensorDistributive operator*(const LabeledTensor& other);
 
-    LabeledTensorAddition& operator*(const double& scalar);
+    LabeledTensorAddition& operator*(double scalar);
 
     // negation
     LabeledTensorAddition& operator-();
@@ -477,6 +489,10 @@ public:
     void operator+=(const SlicedTensor& rhs);
     void operator-=(const SlicedTensor& rhs);
 
+    // negation
+    SlicedTensor operator-() const {
+        return SlicedTensor(T_, range_, -factor_);
+    }
 private:
     Tensor T_;
     IndexRange range_;

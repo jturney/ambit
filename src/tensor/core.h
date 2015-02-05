@@ -10,25 +10,20 @@ class CoreTensorImpl : public TensorImpl
 public:
     CoreTensorImpl(const std::string& name, const Dimension& dims);
 
-    void set_data(double* data, const IndexRange& ranges = IndexRange());
-    void get_data(double* data, const IndexRange& ranges = IndexRange()) const;
-
     std::vector<double>& data() { return data_; }
     const std::vector<double>& data() const { return data_; }
 
     // => Simple Single Tensor Operations <= //
 
-    void zero();
-    void scale(const double& a);
+    void scale(
+        double beta = 0.0);
 
-    // => Simple Double TensorImpl Operations <= //
-
-    void scale_and_add(const double& a, ConstTensorImplPtr x);
-    void pointwise_multiplication(ConstTensorImplPtr x);
-    void pointwise_division(ConstTensorImplPtr x);
-    double dot(ConstTensorImplPtr x) const;
-
-    // => Contraction Type Operations <= //
+    void permute(
+        ConstTensorImplPtr A,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds,
+        double alpha = 1.0,
+        double beta = 0.0);
 
     void contract(
         ConstTensorImplPtr A,
@@ -39,32 +34,18 @@ public:
         double alpha = 1.0,
         double beta = 0.0);
 
-    void permute(
-        ConstTensorImplPtr A,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
-        double alpha = 1.0,
-        double beta = 0.0);
-
-    void slice(
-        ConstTensorImplPtr A,
-        const IndexRange& Cinds,
-        const IndexRange& Ainds,
-        double alpha = 1.0,
-        double beta = 0.0);
-
     // => Order-2 Operations <= //
 
     std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const;
-    std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const;
-    std::map<std::string, TensorImplPtr> svd() const;
+    //std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const;
+    //std::map<std::string, TensorImplPtr> svd() const;
 
-    TensorImplPtr cholesky() const;
-    std::map<std::string, TensorImplPtr> lu() const;
-    std::map<std::string, TensorImplPtr> qr() const;
+    //TensorImplPtr cholesky() const;
+    //std::map<std::string, TensorImplPtr> lu() const;
+    //std::map<std::string, TensorImplPtr> qr() const;
 
-    TensorImplPtr cholesky_inverse() const;
-    TensorImplPtr inverse() const;
+    //TensorImplPtr cholesky_inverse() const;
+    //TensorImplPtr inverse() const;
     TensorImplPtr power(double power, double condition = 1.0E-12) const;
 
 private:

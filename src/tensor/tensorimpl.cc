@@ -1,5 +1,7 @@
 #include "tensorimpl.h"
 #include "core.h"
+#include "disk.h"
+#include "slice.h"
 
 #if defined(HAVE_ELEMENTAL)
 #include "cyclops/cyclops.h"
@@ -7,7 +9,20 @@
 
 namespace tensor {
 
-void TensorImpl::copy(ConstTensorImplPtr other, const double& s)
+void TensorImpl::slice(
+    ConstTensorImplPtr A,
+    const IndexRange& Cinds,
+    const IndexRange& Ainds,
+    double alpha,
+    double beta)
+{
+    tensor::slice(this,A,Cinds,Ainds,alpha,beta);
+}
+void TensorImpl::zero()
+{
+    scale(0.0);
+}
+void TensorImpl::copy(ConstTensorImplPtr other)
 {
     TensorImpl::dimensionCheck(this, other);
 
@@ -15,9 +30,9 @@ void TensorImpl::copy(ConstTensorImplPtr other, const double& s)
     for (size_t ind = 0; ind < rank(); ind++) {
         ranges.push_back({0L,dims()[ind]});
     }
-    slice(other,ranges,ranges,s,0.0);
+    slice(other,ranges,ranges,1.0,0.0);
 }
-TensorImplPtr TensorImpl::clone(TensorType t)
+TensorImplPtr TensorImpl::clone(TensorType t) const
 {
     if (t == kCurrent) {
         t = type();
@@ -25,6 +40,8 @@ TensorImplPtr TensorImpl::clone(TensorType t)
     TensorImpl* tensor;
     if (t == kCore) {
         tensor = new CoreTensorImpl(name(), dims());
+    } else if (t == kDisk) {
+        tensor = new DiskTensorImpl(name(), dims());
     }
 #if defined(HAVE_ELEMENTAL)
     else if (t == kDistributed) {
@@ -55,8 +72,14 @@ void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int 
     }
 
     if (level > 0) {
-        double* temp = const_cast<double*>(data().data());
-        // TODO: Slicing
+        double* temp;
+        boost::shared_ptr<TensorImpl> T;
+        if (type() == kCore) {
+            temp = const_cast<double*>(data().data());
+        } else {
+            T = boost::shared_ptr<TensorImpl>(clone(kCore));
+            temp = const_cast<double*>(T->data().data()); 
+        }
 
         int order = rank();
         size_t nelem = numel();
@@ -128,14 +151,6 @@ void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int 
             }
         }
     }
-}
-std::vector<double>& TensorImpl::data()
-{
-    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type()));
-}
-const std::vector<double>& TensorImpl::data() const
-{
-    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type()));
 }
 bool TensorImpl::typeCheck(TensorType type, ConstTensorImplPtr A, bool throwIfDiff)
 {
