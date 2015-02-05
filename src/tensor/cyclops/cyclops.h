@@ -18,22 +18,38 @@ public:
     CyclopsTensorImpl(const std::string& name, const Dimension& dims);
     ~CyclopsTensorImpl();
 
-    void set_data(double* data, const IndexRange& ranges = IndexRange());
-    void get_data(double* data, const IndexRange& ranges = IndexRange()) const;
+    // => Setters/Getters <= //
+
+    std::vector<double>& data();
+    const std::vector<double>& data() const;
 
     // => Simple Single Tensor Operations <= //
 
     void zero();
-    void scale(double a);
+    void scale(const double& a);
     double norm(double power = 2.0) const;
     double rms(double power = 2.0) const;
 
     // => Simple Double TensorImpl Operations <= //
 
-    void scale_and_add(double a, ConstTensorImplPtr x);
+    void scale_and_add(const double& a, ConstTensorImplPtr x);
     void pointwise_multiplication(ConstTensorImplPtr x);
     void pointwise_division(ConstTensorImplPtr x);
     double dot(ConstTensorImplPtr x) const;
+
+    void permute(
+            ConstTensorImplPtr A,
+            const std::vector<std::string>& Cinds,
+            const std::vector<std::string>& Ainds,
+            double alpha = 1.0,
+            double beta = 0.0);
+
+    void slice(
+            ConstTensorImplPtr A,
+            const IndexRange& Cinds,
+            const IndexRange& Ainds,
+            double alpha = 1.0,
+            double beta = 0.0);
 
     // => Contraction Type Operations <= //
 

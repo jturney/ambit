@@ -89,9 +89,23 @@ double test_wrapper();
 
 double zero = 1.0e-12;
 
+TensorType tensor_type = kCore;
+
 int main(int argc, char* argv[])
 {
     srand (time(NULL));
+
+    if (argc > 1) {
+        if (strcmp(argv[1], "cyclops") == 0) {
+            tensor_type = kDistributed;
+            printf("  *** Testing distributed tensors. ***\n");
+        }
+        else {
+            printf("  *** Unknown parameter given ***\n");
+            printf("  *** Testing core tensors.   ***\n");
+        }
+    }
+
     tensor::initialize(argc, argv);
 
     auto test_functions = {
@@ -214,7 +228,7 @@ int main(int argc, char* argv[])
 
 Tensor build_and_fill(const std::string& name, const Dimension& dims, double matrix[MAXTWO])
 {
-    Tensor T = Tensor::build(kCore, name, dims);
+    Tensor T = Tensor::build(tensor_type, name, dims);
     initialize_random(T, matrix);
     std::pair<double,double> a_diff = difference(T, matrix);
     if (std::fabs(a_diff.second) > zero) throw std::runtime_error("Tensor and standard matrix don't match.");
@@ -223,7 +237,7 @@ Tensor build_and_fill(const std::string& name, const Dimension& dims, double mat
 
 Tensor build_and_fill(const std::string& name, const Dimension& dims, double matrix[MAXTWO][MAXTWO])
 {
-    Tensor T = Tensor::build(kCore, name, dims);
+    Tensor T = Tensor::build(tensor_type, name, dims);
     initialize_random(T, matrix);
     std::pair<double,double> a_diff = difference(T, matrix);
     if (std::fabs(a_diff.second) > zero) throw std::runtime_error("Tensor and standard matrix don't match.");
@@ -232,7 +246,7 @@ Tensor build_and_fill(const std::string& name, const Dimension& dims, double mat
 
 Tensor build_and_fill(const std::string& name, const Dimension& dims, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR])
 {
-    Tensor T = Tensor::build(kCore, name, dims);
+    Tensor T = Tensor::build(tensor_type, name, dims);
     initialize_random(T, matrix);
     std::pair<double,double> a_diff = difference(T, matrix);
     if (std::fabs(a_diff.second) > zero) throw std::runtime_error("Tensor and standard matrix don't match.");

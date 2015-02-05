@@ -36,7 +36,7 @@ endif()
 add_library(tensor STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
 
 if(ENABLE_CYCLOPS)
-    target_link_libraries(tensor ${CYCLOPS}/lib/libctf.a ${MPI_LIBRARIES})
+    target_link_libraries(tensor ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
     set_target_properties(tensor PROPERTIES COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
     set_target_properties(tensor PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()

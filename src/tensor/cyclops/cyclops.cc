@@ -25,7 +25,7 @@ std::string generateGenericLabels(const Dimension& dims)
     std::copy(dims.begin(), dims.end(), labels.begin());
     return labels;
 }
-    
+
 }
 
 int initialize(int argc, char* argv[])
@@ -59,7 +59,7 @@ void finalize()
 
 CyclopsTensorImpl::CyclopsTensorImpl(const std::string& name,
                                      const Dimension& dims)
-    : TensorImpl(Distributed, name, dims)
+    : TensorImpl(kDistributed, name, dims)
 {
     int *local_sym = new int[dims.size()];
     std::fill(local_sym, local_sym+dims.size(), NS);
@@ -120,9 +120,9 @@ double CyclopsTensorImpl::rms(double /*power*/) const
     return data_->norm2();
 }
 
-void CyclopsTensorImpl::scale_and_add(double a, ConstTensorImplPtr x)
+void CyclopsTensorImpl::scale_and_add(const double& a, ConstTensorImplPtr x)
 {
-    typeCheck(Distributed, x);
+    typeCheck(kDistributed, x);
     dimensionCheck(this, x);
 
     const CyclopsTensorImpl* cX = dynamic_cast<const CyclopsTensorImpl*>(x);
@@ -132,9 +132,29 @@ void CyclopsTensorImpl::scale_and_add(double a, ConstTensorImplPtr x)
     (*data_)[labels.c_str()] += a * (*tX)[labels.c_str()];
 }
 
+void CyclopsTensorImpl::permute(
+        ConstTensorImplPtr A,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds,
+        double alpha,
+        double beta)
+{
+
+}
+
+void CyclopsTensorImpl::slice(
+        ConstTensorImplPtr A,
+        const IndexRange& Cinds,
+        const IndexRange& Ainds,
+        double alpha,
+        double beta)
+{
+
+}
+
 void CyclopsTensorImpl::pointwise_multiplication(ConstTensorImplPtr x)
 {
-    typeCheck(Distributed, x);
+    typeCheck(kDistributed, x);
     dimensionCheck(this, x);
 
     // ensure this and x are aligned the same
@@ -157,7 +177,7 @@ void CyclopsTensorImpl::pointwise_multiplication(ConstTensorImplPtr x)
 
 void CyclopsTensorImpl::pointwise_division(ConstTensorImplPtr x)
 {
-    typeCheck(Distributed, x);
+    typeCheck(kDistributed, x);
     dimensionCheck(this, x);
 
     // ensure this and x are aligned the same
@@ -182,7 +202,7 @@ void CyclopsTensorImpl::pointwise_division(ConstTensorImplPtr x)
 
 double CyclopsTensorImpl::dot(ConstTensorImplPtr x) const
 {
-    typeCheck(Distributed, x);
+    typeCheck(kDistributed, x);
     dimensionCheck(this, x);
 
     // ensure this and x are aligned the same
@@ -214,8 +234,8 @@ void CyclopsTensorImpl::contract(
         const std::vector<std::string>& Cinds,
         const std::vector<std::string>& Ainds,
         const std::vector<std::string>& Binds,
-        double alpha = 1.0,
-        double beta = 0.0)
+        double alpha,
+        double beta)
 {
 
 }
@@ -237,7 +257,7 @@ std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder ord
     // construct elemental storage for values and vectors
     El::DistMatrix<double,El::VR,El::STAR> w;
     El::DistMatrix<double> X;
-    El::SortType sort = order == Ascending ? El::ASCENDING : El::DESCENDING;
+    El::SortType sort = order == kAscending ? El::ASCENDING : El::DESCENDING;
     El::HermitianEig(El::LOWER, H, w, X, sort);
 
     El::Print(H, "H");

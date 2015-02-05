@@ -27,7 +27,7 @@ TensorImplPtr TensorImpl::clone(TensorType t)
         tensor = new CoreTensorImpl(name(), dims());
     }
 #if defined(HAVE_ELEMENTAL)
-    else if (t == Distributed) {
+    else if (t == kDistributed) {
         tensor = new cyclops::CyclopsTensorImpl(name(), dims());
     }
 #endif
