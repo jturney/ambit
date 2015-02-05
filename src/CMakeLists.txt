@@ -19,6 +19,7 @@ set(TENSOR_SOURCES
     math/blas.cc
     math/lapack.cc
     tensor/core.cc
+    tensor/disk.cc
     tensor/indices.cc
     tensor/labeled_tensor.cc
     tensor/sliced_tensor.cc

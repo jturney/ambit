@@ -1,6 +1,7 @@
 #include <tensor/tensor.h>
 #include "tensorimpl.h"
 #include "core.h"
+#include "disk.h"
 #include "indices.h"
 
 // include header files to specific tensor types supported.
@@ -52,7 +53,7 @@ Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& 
 
         case kDisk:
 //            printf("Constructing disk tensor.\n");
-            // TODO: Construct disk tensor object
+            newObject.tensor_.reset(new DiskTensorImpl(name, dims));
             break;
 
         case kDistributed:

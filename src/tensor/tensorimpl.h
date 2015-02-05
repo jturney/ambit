@@ -67,8 +67,10 @@ public:
 
     // => Setters/Getters <= //
 
-    virtual std::vector<double>& data();
-    virtual const std::vector<double>& data() const;
+    virtual std::vector<double>& data() 
+        { throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type())); }
+    virtual const std::vector<double>& data() const
+        { throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type())); }
 
     // => Simple Single Tensor Operations <= //
 
@@ -76,7 +78,8 @@ public:
 
     /// This function must clamp to zero (no *= 0.0) for beta = 0.0
     virtual void scale(
-        double beta = 0.0) = 0;
+        double beta = 0.0)
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
     virtual void copy(
         ConstTensorImplPtr other);
@@ -86,14 +89,16 @@ public:
         const IndexRange& Cinds,
         const IndexRange& Ainds,
         double alpha = 1.0,
-        double beta = 0.0) = 0;
+        double beta = 0.0)
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
     virtual void permute(
         ConstTensorImplPtr A,
         const std::vector<std::string>& Cinds,
         const std::vector<std::string>& Ainds,
         double alpha = 1.0,
-        double beta = 0.0) = 0;
+        double beta = 0.0)
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
     virtual void contract(
         ConstTensorImplPtr A,
@@ -102,11 +107,13 @@ public:
         const std::vector<std::string>& Ainds,
         const std::vector<std::string>& Binds,
         double alpha = 1.0,
-        double beta = 0.0) = 0;
+        double beta = 0.0) 
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
     // => Rank-2 Operations <= //
 
-    virtual std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const = 0;
+    virtual std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
     //virtual std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const = 0;
     //virtual std::map<std::string, TensorImplPtr> svd() const = 0;
 
@@ -116,7 +123,8 @@ public:
 
     //virtual TensorImplPtr cholesky_inverse() const = 0;
     //virtual TensorImplPtr inverse() const = 0;
-    virtual TensorImplPtr power(double power, double condition = 1.0E-12) const = 0;
+    virtual TensorImplPtr power(double power, double condition = 1.0E-12) const
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
 protected:
 

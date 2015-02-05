@@ -1,5 +1,6 @@
 #include "tensorimpl.h"
 #include "core.h"
+#include "disk.h"
 
 #if defined(HAVE_ELEMENTAL)
 #include "cyclops/cyclops.h"
@@ -29,6 +30,8 @@ TensorImplPtr TensorImpl::clone(TensorType t) const
     TensorImpl* tensor;
     if (t == kCore) {
         tensor = new CoreTensorImpl(name(), dims());
+    } else if (t == kDisk) {
+        tensor = new DiskTensorImpl(name(), dims());
     }
 #if defined(HAVE_ELEMENTAL)
     else if (t == Distributed) {
@@ -138,14 +141,6 @@ void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int 
             }
         }
     }
-}
-std::vector<double>& TensorImpl::data()
-{
-    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type()));
-}
-const std::vector<double>& TensorImpl::data() const
-{
-    throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type()));
 }
 bool TensorImpl::typeCheck(TensorType type, ConstTensorImplPtr A, bool throwIfDiff)
 {
