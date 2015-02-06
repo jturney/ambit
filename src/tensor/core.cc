@@ -28,7 +28,7 @@ double CoreTensorImpl::norm(
     } else if (type == 1) {
         double val = 0.0;
         for (size_t ind = 0L; ind < numel(); ind++) {
-            val += std::max(val, fabs(data_[ind]));
+            val += fabs(data_[ind]);
         }
         return val;
     } else if (type == 2) {
