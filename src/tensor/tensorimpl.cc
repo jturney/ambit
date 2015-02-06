@@ -9,6 +9,19 @@
 
 namespace tensor {
 
+TensorImpl::TensorImpl(
+    TensorType type,
+    const std::string& name,
+    const Dimension& dims) :
+    type_(type),
+    name_(name),
+    dims_(dims)
+{
+    numel_ = 1L;
+    for (size_t ind = 0; ind < dims_.size(); ind++) {
+        numel_ *= dims_[ind];
+    }
+}
 void TensorImpl::slice(
     ConstTensorImplPtr A,
     const IndexRange& Cinds,
@@ -53,14 +66,6 @@ TensorImplPtr TensorImpl::clone(TensorType t) const
     }
     tensor->copy(this);
     return tensor;
-}
-size_t TensorImpl::numel() const
-{
-    size_t numel = 1L;
-    for (size_t ind = 0; ind < dims_.size(); ind++) {
-        numel *= dims_[ind];
-    }
-    return numel;
 }
 void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int maxcols) const
 {

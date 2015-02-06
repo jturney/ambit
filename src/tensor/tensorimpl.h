@@ -41,9 +41,7 @@ public:
 
     // => Constructors <= //
 
-    TensorImpl(TensorType type, const std::string& name, const Dimension& dims)
-        : type_(type), name_(name), dims_(dims)
-    {}
+    TensorImpl(TensorType type, const std::string& name, const Dimension& dims);
     virtual ~TensorImpl() {}
 
     virtual TensorImplPtr clone(TensorType type = kCurrent) const;
@@ -55,7 +53,7 @@ public:
     const Dimension& dims() const { return dims_; }
     size_t dim(size_t ind) const { return dims_[ind]; }
     size_t rank() const { return dims_.size(); }
-    size_t numel() const;
+    size_t numel() const { return numel_; }
 
     void set_name(const std::string& name) { name_ = name; } 
 
@@ -69,6 +67,10 @@ public:
         { throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type())); }
 
     // => Simple Single Tensor Operations <= //
+
+    virtual double norm(
+        int type = 2) const
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
     virtual void zero();
 
@@ -149,6 +151,7 @@ private:
     TensorType type_;
     std::string name_;
     Dimension dims_;
+    size_t numel_;
 };
 
 }

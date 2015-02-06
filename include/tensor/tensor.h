@@ -156,6 +156,17 @@ public:
     // => BLAS-Type Tensor Operations <= //
 
     /**
+     * Returns the norm of the tensor
+     *
+     * Parameters:
+     * @param type the type of norm desired:
+     *  0 - Infinity-norm, maximum absolute value of elements
+     *  1 - One-norm, sum of absolute values of elements
+     *  2 - Two-norm, square root of sum of squares
+     **/
+    double norm(int type = 2) const;
+
+    /**
      * Sets the data of the tensor to zeros.  
      * Note: this just drops down to scale(0.0);
      **/

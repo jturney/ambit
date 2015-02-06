@@ -175,6 +175,10 @@ Tensor Tensor::cat(std::vector<Tensor> const, int dim)
     ThrowNotImplementedException;
 }
 
+double Tensor::norm(int type) const
+{
+    return tensor_->norm(type);
+}
 void Tensor::zero()
 {
     tensor_->scale(0.0);

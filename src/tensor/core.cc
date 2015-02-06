@@ -16,6 +16,31 @@ CoreTensorImpl::CoreTensorImpl(const std::string& name, const Dimension& dims)
     data_.resize(numel(),0L);
 }
 
+double CoreTensorImpl::norm(
+    int type) const
+{
+    if (type == 0) {
+        double val = 0.0;
+        for (size_t ind = 0L; ind < numel(); ind++) {
+            val = std::max(val, fabs(data_[ind]));
+        }
+        return val;
+    } else if (type == 1) {
+        double val = 0.0;
+        for (size_t ind = 0L; ind < numel(); ind++) {
+            val += std::max(val, fabs(data_[ind]));
+        }
+        return val;
+    } else if (type == 2) {
+        double val = 0.0;
+        for (size_t ind = 0L; ind < numel(); ind++) {
+            val += data_[ind] * data_[ind];
+        }
+        return sqrt(val);
+    } else {
+        throw std::runtime_error("Norm must be 0 (infty-norm), 1 (1-norm), or 2 (2-norm)");
+    }
+}
 void CoreTensorImpl::scale(double beta)
 {
     if (beta == 0.0) 
