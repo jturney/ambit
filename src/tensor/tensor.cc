@@ -146,17 +146,17 @@ LabeledTensor Tensor::operator()(const std::string& indices)
     return LabeledTensor(*this, indices::split(indices));
 }
 
-LabeledTensor Tensor::operator[](const std::string& indices)
-{
-    return LabeledTensor(*this, indices::split(indices));
-}
 SlicedTensor Tensor::operator()(const IndexRange& range)
 {
     return SlicedTensor(*this, range);
 }
 
-SlicedTensor Tensor::operator[](const IndexRange& range)
+SlicedTensor Tensor::operator()()
 {
+    IndexRange range;
+    for (size_t ind = 0L; ind < rank(); ind++) {
+        range.push_back({0L,dim(ind)});
+    }
     return SlicedTensor(*this, range);
 }
 
