@@ -59,10 +59,6 @@ public:
 
     void set_name(const std::string& name) { name_ = name; } 
 
-    /**
-     * Print some tensor information to fh
-     * \param level If level = false, just print name and dimensions.  If level = true, print the entire tensor.
-     **/
     void print(FILE* fh, bool level = false, const std::string& format = "%12.7f", int maxcols = 5) const;
 
     // => Setters/Getters <= //
@@ -76,7 +72,6 @@ public:
 
     virtual void zero();
 
-    /// This function must clamp to zero (no *= 0.0) for beta = 0.0
     virtual void scale(
         double beta = 0.0)
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
@@ -107,6 +102,24 @@ public:
         const std::vector<std::string>& Binds,
         double alpha = 1.0,
         double beta = 0.0) 
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
+
+    virtual void gemm(
+        ConstTensorImplPtr A,
+        ConstTensorImplPtr B,
+        bool transA,
+        bool transB,
+        size_t nrow,
+        size_t ncol,
+        size_t nzip,
+        size_t ldaA,
+        size_t ldaB,
+        size_t ldaC,
+        size_t offA = 0L,
+        size_t offB = 0L,
+        size_t offC = 0L,
+        double alpha = 1.0,
+        double beta = 0.0)
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
     // => Rank-2 Operations <= //

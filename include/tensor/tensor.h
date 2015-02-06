@@ -162,12 +162,6 @@ public:
     void zero();
 
     /**
-     * Cope the data of other into this tensor.
-     * Note: this just drops into slice
-     **/ 
-    void copy(const Tensor& other);
-
-    /**
      * Scales the tensor by scalar beta, e.g.:
      *  C = beta * C
      *
@@ -177,29 +171,10 @@ public:
     void scale(double beta = 0.0);
 
     /**
-     * Perform the permutation:
-     *  C(Cinds) = alpha * A(Ainds) + beta * C(Cinds)
-     *
-     * Note: Most users should instead use the operator overloading
-     * routines, e.g.,
-     *  C2("ij") += 0.5 * A2("ji");
-     *
-     * Parameters:
-     *  @param A The source tensor, e.g., A2
-     *  @param Cinds The indices of tensor C, e.g., "ij"
-     *  @param Ainds The indices of tensor A, e.g., "ji"
-     *  @param alpha The scale applied to the tensor A, e.g., 0.5
-     *  @param beta The scale applied to the tensor C, e.g., 1.0
-     *
-     * Results:
-     *  C is the current tensor, whose data is overwritten. e.g., C2
-     **/
-    void permute(
-        const Tensor& A,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
-        double alpha = 1.0,
-        double beta = 0.0);
+     * Copy the data of other into this tensor.
+     * Note: this just drops into slice
+     **/ 
+    void copy(const Tensor& other);
 
     /**
      * Perform the slice:
@@ -229,6 +204,31 @@ public:
         double beta = 0.0);
 
     /**
+     * Perform the permutation:
+     *  C(Cinds) = alpha * A(Ainds) + beta * C(Cinds)
+     *
+     * Note: Most users should instead use the operator overloading
+     * routines, e.g.,
+     *  C2("ij") += 0.5 * A2("ji");
+     *
+     * Parameters:
+     *  @param A The source tensor, e.g., A2
+     *  @param Cinds The indices of tensor C, e.g., "ij"
+     *  @param Ainds The indices of tensor A, e.g., "ji"
+     *  @param alpha The scale applied to the tensor A, e.g., 0.5
+     *  @param beta The scale applied to the tensor C, e.g., 1.0
+     *
+     * Results:
+     *  C is the current tensor, whose data is overwritten. e.g., C2
+     **/
+    void permute(
+        const Tensor& A,
+        const std::vector<std::string>& Cinds,
+        const std::vector<std::string>& Ainds,
+        double alpha = 1.0,
+        double beta = 0.0);
+
+    /**
      * Perform the contraction:
      *  C(Cinds) = alpha * A(Ainds) * B(Binds) + beta * C(Cinds)
      *
@@ -254,6 +254,69 @@ public:
         const std::vector<std::string>& Cinds,
         const std::vector<std::string>& Ainds,
         const std::vector<std::string>& Binds,
+        double alpha = 1.0,
+        double beta = 0.0);
+
+    /**
+     * Perform the GEMM call equivalent to:
+     *  C_DGEMM(
+     *      (transA ? 'T' : 'N'), 
+     *      (transB ? 'T' : 'N'), 
+     *      nrow,
+     *      ncol,
+     *      nzip,
+     *      alpha,
+     *      Ap + offA,
+     *      ldaA,
+     *      Bp + offB,
+     *      ldaB,
+     *      beta,
+     *      Cp + offC,
+     *      ldaC);
+     *  where, e.g., Ap = A.data().data();
+     *
+     * Notes:
+     *  - This is only implemented for kCore
+     *  - No bounds checking on the GEMM is performed
+     *  - This function is intended to help advanced users get optimal
+     *  performance from single-node codes.
+     *
+     * Parameters:
+     *  @param A the left-side factor tensor
+     *  @param B the right-side factor tensor
+     *  @param transA transpose A or not
+     *  @param transA transpose A or not
+     *  @param nrow number of rows in the GEMM call
+     *  @param ncol number of columns in the GEMM call
+     *  @param nzip number of zip indices in the GEMM call
+     *  @param ldaA leading dimension of A:
+     *   Must be >= nzip if transA == false
+     *   Must be >= nrow if transA == true
+     *  @param ldaB leading dimension of B:
+     *   Must be >= ncol if transB == false
+     *   Must be >= nzip if transB == true
+     *  @param ldaC leading dimension of C:
+     *   Must be >= ncol 
+     *  @param offA the offset of the A data pointer to apply
+     *  @param offB the offset of the B data pointer to apply
+     *  @param offC the offset of the C data pointer to apply
+     *  @param alpha the scale to apply to A*B
+     *  @param beta the scale to apply to C
+     **/
+    void gemm(
+        const Tensor& A,
+        const Tensor& B,
+        bool transA,
+        bool transB,
+        size_t nrow,
+        size_t ncol,
+        size_t nzip,
+        size_t ldaA,
+        size_t ldaB,
+        size_t ldaC,
+        size_t offA = 0L,
+        size_t offB = 0L,
+        size_t offC = 0L,
         double alpha = 1.0,
         double beta = 0.0);
 

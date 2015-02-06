@@ -570,6 +570,43 @@ void CoreTensorImpl::permute(
         }
     }
 }
+void CoreTensorImpl::gemm(
+    ConstTensorImplPtr A,
+    ConstTensorImplPtr B,
+    bool transA,
+    bool transB,
+    size_t nrow,
+    size_t ncol,
+    size_t nzip,
+    size_t ldaA,
+    size_t ldaB,
+    size_t ldaC,
+    size_t offA,
+    size_t offB,
+    size_t offC,
+    double alpha,
+    double beta)
+{
+    double* Cp = data().data();
+    double* Ap = ((const CoreTensorImplPtr)A)->data().data();
+    double* Bp = ((const CoreTensorImplPtr)B)->data().data();
+    
+    C_DGEMM(
+        (transA ? 'T' : 'N'), 
+        (transB ? 'T' : 'N'), 
+        nrow,
+        ncol,
+        nzip,
+        alpha,
+        Ap + offA,
+        ldaA,
+        Bp + offB,
+        ldaB,
+        beta,
+        Cp + offC,
+        ldaC);
+}
+
 std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
 {
     squareCheck(this, true);

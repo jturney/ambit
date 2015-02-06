@@ -278,6 +278,40 @@ void Tensor::slice(
 {
     tensor_->slice(A.tensor_.get(),Cinds,Ainds,alpha,beta);
 }
+void Tensor::gemm(
+    const Tensor& A,
+    const Tensor& B,
+    bool transA,
+    bool transB,
+    size_t nrow,
+    size_t ncol,
+    size_t nzip,
+    size_t ldaA,
+    size_t ldaB,
+    size_t ldaC,
+    size_t offA,
+    size_t offB,
+    size_t offC,
+    double alpha,
+    double beta)
+{
+    tensor_->gemm(
+        A.tensor_.get(),
+        B.tensor_.get(),
+        transA,
+        transB,
+        nrow,
+        ncol,
+        nzip,
+        ldaA,
+        ldaB,
+        ldaC,
+        offA,
+        offB,
+        offC,
+        alpha,
+        beta);
+}
 
 bool Tensor::operator==(const Tensor& other) const
 {
