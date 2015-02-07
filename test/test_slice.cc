@@ -66,7 +66,7 @@ bool test_function(
         else observed = kDeviation;
     } catch (std::exception& e) {
         observed = kException;
-        if (expected != kException) exception = e.what(); 
+        exception = e.what(); 
     }  
 
     bool pass = observed == expected;
@@ -758,6 +758,65 @@ double try_permute_rank4_lkji()
     return relative_difference(C1,C2);
 }
 
+double try_permute_label_fail()
+{
+    Dimension Cdims = {3,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {3,4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    C("ij") = A("i");
+
+    return 0.0;
+}
+
+double try_permute_rank_fail()
+{
+    Dimension Cdims = {3,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    C("ij") = A("i");
+
+    return 0.0;
+}
+
+double try_permute_index_fail()
+{
+    Dimension Cdims = {3,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {3,4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    C("ij") = A("jk");
+
+    return 0.0;
+}
+
+double try_permute_size_fail()
+{
+    Dimension Cdims = {3,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {3,4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    C("ij") = A("ji");
+
+    return 0.0;
+}
 
 int main(int argc, char* argv[])
 {
@@ -892,6 +951,21 @@ int main(int argc, char* argv[])
     success &= test_function(try_permute_rank4_jikl , "Permute Rank-4 jikl" , kExact);
     success &= test_function(try_permute_rank4_ikjl , "Permute Rank-4 ikjl" , kExact);
     success &= test_function(try_permute_rank4_lkji , "Permute Rank-4 lkji" , kExact);
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
+
+    printf("==> Permute Exceptions <==\n\n"); 
+    success = true;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("%-50s %-9s %-9s %11s\n", "Description", "Expected", "Observed", "Delta");
+    mode = 0; alpha = 1.0; beta = 0.0;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_permute_label_fail  , "Permute Label Fail"   , kException);
+    success &= test_function(try_permute_rank_fail   , "Permute Rank Fail"    , kException);
+    success &= test_function(try_permute_index_fail  , "Permute Index Fail"   , kException);
+    success &= test_function(try_permute_size_fail   , "Permute Size Fail"    , kException);
     printf("%s\n",std::string(82,'-').c_str());
     printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
     
