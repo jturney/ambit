@@ -16,6 +16,31 @@ CoreTensorImpl::CoreTensorImpl(const std::string& name, const Dimension& dims)
     data_.resize(numel(),0L);
 }
 
+double CoreTensorImpl::norm(
+    int type) const
+{
+    if (type == 0) {
+        double val = 0.0;
+        for (size_t ind = 0L; ind < numel(); ind++) {
+            val = std::max(val, fabs(data_[ind]));
+        }
+        return val;
+    } else if (type == 1) {
+        double val = 0.0;
+        for (size_t ind = 0L; ind < numel(); ind++) {
+            val += fabs(data_[ind]);
+        }
+        return val;
+    } else if (type == 2) {
+        double val = 0.0;
+        for (size_t ind = 0L; ind < numel(); ind++) {
+            val += data_[ind] * data_[ind];
+        }
+        return sqrt(val);
+    } else {
+        throw std::runtime_error("Norm must be 0 (infty-norm), 1 (1-norm), or 2 (2-norm)");
+    }
+}
 void CoreTensorImpl::scale(double beta)
 {
     if (beta == 0.0) 
@@ -570,6 +595,43 @@ void CoreTensorImpl::permute(
         }
     }
 }
+void CoreTensorImpl::gemm(
+    ConstTensorImplPtr A,
+    ConstTensorImplPtr B,
+    bool transA,
+    bool transB,
+    size_t nrow,
+    size_t ncol,
+    size_t nzip,
+    size_t ldaA,
+    size_t ldaB,
+    size_t ldaC,
+    size_t offA,
+    size_t offB,
+    size_t offC,
+    double alpha,
+    double beta)
+{
+    double* Cp = data().data();
+    double* Ap = ((const CoreTensorImplPtr)A)->data().data();
+    double* Bp = ((const CoreTensorImplPtr)B)->data().data();
+    
+    C_DGEMM(
+        (transA ? 'T' : 'N'), 
+        (transB ? 'T' : 'N'), 
+        nrow,
+        ncol,
+        nzip,
+        alpha,
+        Ap + offA,
+        ldaA,
+        Bp + offB,
+        ldaB,
+        beta,
+        Cp + offC,
+        ldaC);
+}
+
 std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
 {
     squareCheck(this, true);

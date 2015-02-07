@@ -146,17 +146,17 @@ LabeledTensor Tensor::operator()(const std::string& indices)
     return LabeledTensor(*this, indices::split(indices));
 }
 
-LabeledTensor Tensor::operator[](const std::string& indices)
-{
-    return LabeledTensor(*this, indices::split(indices));
-}
 SlicedTensor Tensor::operator()(const IndexRange& range)
 {
     return SlicedTensor(*this, range);
 }
 
-SlicedTensor Tensor::operator[](const IndexRange& range)
+SlicedTensor Tensor::operator()()
 {
+    IndexRange range;
+    for (size_t ind = 0L; ind < rank(); ind++) {
+        range.push_back({0L,dim(ind)});
+    }
     return SlicedTensor(*this, range);
 }
 
@@ -175,6 +175,10 @@ Tensor Tensor::cat(std::vector<Tensor> const, int dim)
     ThrowNotImplementedException;
 }
 
+double Tensor::norm(int type) const
+{
+    return tensor_->norm(type);
+}
 void Tensor::zero()
 {
     tensor_->scale(0.0);
@@ -277,6 +281,40 @@ void Tensor::slice(
     double beta)
 {
     tensor_->slice(A.tensor_.get(),Cinds,Ainds,alpha,beta);
+}
+void Tensor::gemm(
+    const Tensor& A,
+    const Tensor& B,
+    bool transA,
+    bool transB,
+    size_t nrow,
+    size_t ncol,
+    size_t nzip,
+    size_t ldaA,
+    size_t ldaB,
+    size_t ldaC,
+    size_t offA,
+    size_t offB,
+    size_t offC,
+    double alpha,
+    double beta)
+{
+    tensor_->gemm(
+        A.tensor_.get(),
+        B.tensor_.get(),
+        transA,
+        transB,
+        nrow,
+        ncol,
+        nzip,
+        ldaA,
+        ldaB,
+        ldaC,
+        offA,
+        offB,
+        offC,
+        alpha,
+        beta);
 }
 
 bool Tensor::operator==(const Tensor& other) const

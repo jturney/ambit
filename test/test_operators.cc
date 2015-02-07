@@ -221,6 +221,9 @@ int main(int argc, char* argv[])
     printf("\n %s",std::string(73,'-').c_str());
     printf("\n Tests: %s\n",success ? "All passed" : "Some failed");
 
+    Tensor T = Tensor::build(kDisk, "Disk", {4,5});
+    T.print(stdout,true);
+
     tensor::finalize();
 
     return success ? EXIT_SUCCESS : EXIT_FAILURE;

@@ -97,7 +97,7 @@ LabeledTensor tensor_product_get_temp_AB(const LabeledTensor &A, const LabeledTe
     }
 
     Tensor T = Tensor::build(A.T().type(), A.T().name() + " * " + B.T().name(), dims);
-    return T[indices::to_string(indices)];
+    return T(indices::to_string(indices));
 }
 
 }

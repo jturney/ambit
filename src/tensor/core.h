@@ -15,6 +15,9 @@ public:
 
     // => Simple Single Tensor Operations <= //
 
+    double norm(
+        int type = 2) const;
+
     void scale(
         double beta = 0.0);
 
@@ -31,6 +34,23 @@ public:
         const std::vector<std::string>& Cinds,
         const std::vector<std::string>& Ainds,
         const std::vector<std::string>& Binds,
+        double alpha = 1.0,
+        double beta = 0.0);
+
+    void gemm(
+        ConstTensorImplPtr A,
+        ConstTensorImplPtr B,
+        bool transA,
+        bool transB,
+        size_t nrow,
+        size_t ncol,
+        size_t nzip,
+        size_t ldaA,
+        size_t ldaB,
+        size_t ldaC,
+        size_t offA = 0L,
+        size_t offB = 0L,
+        size_t offC = 0L,
         double alpha = 1.0,
         double beta = 0.0);
 

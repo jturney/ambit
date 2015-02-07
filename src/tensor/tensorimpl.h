@@ -41,9 +41,7 @@ public:
 
     // => Constructors <= //
 
-    TensorImpl(TensorType type, const std::string& name, const Dimension& dims)
-        : type_(type), name_(name), dims_(dims)
-    {}
+    TensorImpl(TensorType type, const std::string& name, const Dimension& dims);
     virtual ~TensorImpl() {}
 
     virtual TensorImplPtr clone(TensorType type = kCurrent) const;
@@ -55,14 +53,10 @@ public:
     const Dimension& dims() const { return dims_; }
     size_t dim(size_t ind) const { return dims_[ind]; }
     size_t rank() const { return dims_.size(); }
-    size_t numel() const;
+    size_t numel() const { return numel_; }
 
     void set_name(const std::string& name) { name_ = name; } 
 
-    /**
-     * Print some tensor information to fh
-     * \param level If level = false, just print name and dimensions.  If level = true, print the entire tensor.
-     **/
     void print(FILE* fh, bool level = false, const std::string& format = "%12.7f", int maxcols = 5) const;
 
     // => Setters/Getters <= //
@@ -74,9 +68,12 @@ public:
 
     // => Simple Single Tensor Operations <= //
 
+    virtual double norm(
+        int type = 2) const
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
+
     virtual void zero();
 
-    /// This function must clamp to zero (no *= 0.0) for beta = 0.0
     virtual void scale(
         double beta = 0.0)
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
@@ -109,6 +106,24 @@ public:
         double beta = 0.0) 
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
+    virtual void gemm(
+        ConstTensorImplPtr A,
+        ConstTensorImplPtr B,
+        bool transA,
+        bool transB,
+        size_t nrow,
+        size_t ncol,
+        size_t nzip,
+        size_t ldaA,
+        size_t ldaB,
+        size_t ldaC,
+        size_t offA = 0L,
+        size_t offB = 0L,
+        size_t offC = 0L,
+        double alpha = 1.0,
+        double beta = 0.0)
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
+
     // => Rank-2 Operations <= //
 
     virtual std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const
@@ -136,6 +151,7 @@ private:
     TensorType type_;
     std::string name_;
     Dimension dims_;
+    size_t numel_;
 };
 
 }
