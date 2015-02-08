@@ -98,6 +98,39 @@ double test_add_mo_space_repeated_space2()
     return 0.0;
 }
 
+double test_block_creation1()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+    BlockedTensor::build(kCore,"T",{"oo","vv"});
+    return 0.0;
+}
+
+double test_block_creation2()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g","p,q,r,s",{"o","v"});
+    BlockedTensor::build(kCore,"F",{"gg"});
+    BlockedTensor::build(kCore,"V",{"gggg"});
+    return 0.0;
+}
+
+double test_block_creation3()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("c","m,n",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("a","u,v",{0,1},AlphaSpin);
+    BlockedTensor::add_mo_space("v","e,f",{5,6,7,8,9},AlphaSpin);
+    BlockedTensor::add_composite_mo_space("h","i,j,k,l",{"c","a"});
+    BlockedTensor::add_composite_mo_space("p","a,b,c,d",{"a","v"});
+    BlockedTensor::build(kCore,"T1",{"hp"});
+    BlockedTensor::build(kCore,"T2",{"hhpp"});
+    return 0.0;
+}
+
 int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
@@ -118,7 +151,10 @@ int main(int argc, char* argv[])
             std::make_tuple(kException, test_add_mo_space_repeated_index2,  "Testing adding repeated orbital indices (2)"),
             std::make_tuple(kException, test_add_mo_space_repeated_index3,  "Testing adding repeated orbital indices (3)"),
             std::make_tuple(kException, test_add_mo_space_repeated_space1,  "Testing adding repeated orbital spaces (1)"),
-            std::make_tuple(kException, test_add_mo_space_repeated_space2,  "Testing adding repeated orbital spaces (2)")
+            std::make_tuple(kException, test_add_mo_space_repeated_space2,  "Testing adding repeated orbital spaces (2)"),
+            std::make_tuple(kPass,      test_block_creation1,               "Testing blocked tensor creation (1)"),
+            std::make_tuple(kPass,      test_block_creation2,               "Testing blocked tensor creation (2)"),
+            std::make_tuple(kPass,      test_block_creation3,               "Testing blocked tensor creation (3)")
     };
 
     std::vector<std::tuple<std::string,TestResult,double>> results;

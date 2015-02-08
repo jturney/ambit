@@ -100,48 +100,6 @@ void BlockedTensor::reset_mo_spaces()
     index_to_mo_spaces_.clear();
 }
 
-//void BlockedTensor::add_primitive_mo_space(std::string label, std::string indices, std::vector<size_t> mo, MOSetSpinType spin)
-//{
-//    // Input format 1: a series of characters ""
-//    std::vector<std::string> i_vec;
-//    for (char c : indices){
-//        i_vec.push_back(std::string(1,c));
-//    }
-//    MOSet ms(label, i_vec, mo, spin);
-//    // Add a map from the MOSet label to the object
-//    label_to_prim_set_[label] = prim_set_.size();
-//    prim_set_.push_back(ms);
-//    // Add a map from the label of this set to the list of all its subsets
-//    label_to_prim_set_label_[label] = {label};
-//    // Add a map from the indices of this set to the list of all its subsets
-//    for (std::string index : i_vec){
-//        indices_to_prim_set_label_[index] = {label};
-//    }
-//}
-
-//void BlockedTensor::add_composite_mo_space(const std::string& label,const std::string& indices,const std::vector<std::string>& subspaces)
-//{
-//    // Input format 1: a series of characters ""
-//    std::vector<std::string> i_vec;
-//    for (char c : indices){
-//        i_vec.push_back(std::string(1,c));
-//    }
-//    // Add a map from the label of this set to the list of all its subsets
-//    for (std::string subspace : subspaces){
-//        if (label_to_prim_set_.count(subspace) == 0){
-//            outfile->Printf("\n\nERROR in BlockedTensor::add_composite_mo_space:");
-//            outfile->Printf("\nSubspace [%s] is not defined",subspace.c_str());
-//            outfile->Flush();
-//            exit(1);
-//        }
-//    }
-//    label_to_prim_set_label_[label] = subspaces;
-//    // Add a map from the indices of this set to the list of all its subsets
-//    for (std::string index : i_vec){
-//        indices_to_prim_set_label_[index] = subspaces;
-//    }
-//}
-
 BlockedTensor::BlockedTensor()
 {
 }
@@ -150,7 +108,9 @@ BlockedTensor BlockedTensor::build(TensorType type, const std::string& name, con
 {
     BlockedTensor newObject;
 
-    std::vector<std::vector<int>> tensor_blocks;
+    newObject.set_name(name);
+
+    std::vector<std::vector<size_t>> tensor_blocks;
 
     // This algorithm takes a vector of strings that define the blocks of this tensor and unpacks them.
     // This may require taking composite spaces ("G" = {"O","V"}) and expanding the string
@@ -158,23 +118,23 @@ BlockedTensor BlockedTensor::build(TensorType type, const std::string& name, con
     // The way we proceed is by forming partial strings that we keep expanding as we
     // process all the indices.
 
-    // Loop over blocks given to us
+    // Transform composite indices into simple indices
     for (const std::string& this_block: blocks){
-        std::vector<std::vector<int>> final_blocks;
+        std::vector<std::vector<size_t>> final_blocks;
 
         std::vector<std::string> this_block_vec = indices::split(this_block);
         // Loop over indices of this block
         for (std::string mo_space_name : this_block_vec){
-            std::vector<std::vector<int>> partial_blocks;
+            std::vector<std::vector<size_t>> partial_blocks;
             // How does this MO space name map to the MOSpace objects contained in mo_spaces_? (e.g. "G" -> {0,1})
-            for (int mo_space_idx : composite_name_to_mo_spaces_[mo_space_name]){
+            for (size_t mo_space_idx : composite_name_to_mo_spaces_[mo_space_name]){
                 // Special case
                 if(final_blocks.size() == 0){
                     partial_blocks.push_back({mo_space_idx});
                 }else{
                     // Add each this primitive set to all the partial block labels
-                    for (std::vector<int>& block : final_blocks){
-                        std::vector<int> new_block(block);
+                    for (std::vector<size_t>& block : final_blocks){
+                        std::vector<size_t> new_block(block);
                         new_block.push_back(mo_space_idx);
                         partial_blocks.push_back(new_block);
                     }
@@ -182,30 +142,53 @@ BlockedTensor BlockedTensor::build(TensorType type, const std::string& name, con
             }
             final_blocks = partial_blocks;
         }
-        for (std::vector<int>& block : final_blocks) tensor_blocks.push_back(block);
+        for (std::vector<size_t>& block : final_blocks) tensor_blocks.push_back(block);
     }
 
     // Create the blocks
-    printf("\n  Tensor name: %s",name.c_str());
-    for (std::vector<int>& this_block : tensor_blocks){
-        printf("\n  Creating block:");
-        for (int ms : this_block){
-               printf(" %s",mo_spaces_[ms].name().c_str());
+    for (std::vector<size_t>& this_block : tensor_blocks){
+        // Grab the dims
+        std::vector<size_t> dims;
+        for (size_t ms : this_block){
+            size_t dim = mo_spaces_[ms].dim();
+            dims.push_back(dim);
         }
-//        if(print_level_ > 1){
-//            outfile->Printf("\n    - Block %5d: [%s]",++k,boost::algorithm::join(block, ",").c_str());
-//        }
-//        std::vector<size_t> dims;
-//        for (std::string set_label : block){
-//            size_t dim = prim_set_[label_to_prim_set_[set_label]].dim();
-//            dims.push_back(dim);
-//        }
-//        blocks_[block] = SharedTensor(new Tensor(label_,dims));
+        // Grab the orbital spaces names
+        std::string mo_names;
+        for (size_t ms : this_block){
+            mo_names += mo_spaces_[ms].name();
+        }
+        newObject.blocks_[this_block] = Tensor::build(type,name + "[" + mo_names + "]",dims);
     }
 
-//    newObject.tensor_.reset(new DiskTensorImpl(name, dims));
-
+//    newObject.print(stdout);
     return newObject;
+}
+
+size_t BlockedTensor::numblocks() const
+{
+    return blocks_.size();
+}
+
+std::string BlockedTensor::name() const
+{
+    return name_;
+}
+
+void BlockedTensor::set_name(const std::string& name)
+{
+    name_ = name;
+}
+
+
+void BlockedTensor::print(FILE *fh, bool level, std::string const &format, int maxcols) const
+{
+    fprintf(fh, "  ## Blocked Tensor %s ##\n\n", name().c_str());
+    fprintf(fh, "  Number of blocks = %zu\n", numblocks());
+    for (auto kv : blocks_){
+        fprintf(fh, "\n");
+        kv.second.print(fh, level, format, maxcols);
+    }
 }
 
 }

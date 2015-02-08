@@ -46,6 +46,9 @@ public:
     /// @return The list of molecular orbitals that belong to this space
     std::vector<size_t> mos() const {return mos_;}
 
+    /// @return The dimension of the molecular orbital space
+    size_t dim() const {return mos_.size();}
+
     /// @return The spin of this set of molecular orbitals
     MOSpaceSpinType spin() const {return spin_;}
 
@@ -109,10 +112,10 @@ public:
 
     // => Accessors <= //
 
-    /// @return The tensor type enum, one of kCore, kDisk, kDistributed
-    TensorType type() const;
     /// @return The name of the tensor for use in printing
     std::string name() const;
+    /// @return The number of blocks
+    size_t numblocks() const;
 
     /// Set the name of the tensor to name
     void set_name(const std::string& name);
@@ -157,7 +160,7 @@ public:
     bool is_block(const std::string& block_indices);
 
     /// @return The
-    std::map<std::string,Tensor>& blocks() {return blocks_;}
+    std::map<std::vector<size_t>,Tensor>& blocks() {return blocks_;}
 
     // => BLAS-Type Tensor Operations <= //
 
@@ -224,7 +227,23 @@ public:
 
 private:
 
-    std::map<std::string,Tensor> blocks_;
+    std::string name_;
+    std::map<std::vector<size_t>,Tensor> blocks_;
+
+    /// A vector of MOSpace objects
+    size_t add_mo_space(MOSpace mo_space);
+    bool map_name_to_mo_space(const std::string& index,size_t mo_space_idx);
+    bool map_composite_name_to_mo_spaces(const std::string& index,const std::vector<size_t>& mo_spaces_idx);
+    bool map_index_to_mo_spaces(const std::string& index,const std::vector<size_t>& mo_spaces_idx);
+
+    /// @return The n-th MOSpace
+    size_t mo_space(size_t n);
+    /// @return The MOSpace corresponding to the name of a space
+    size_t name_to_mo_space(const std::string& index) ;
+    /// @return The MOSpace objects corresponding to the name of a space
+    std::vector<size_t>& composite_name_to_mo_spaces(const std::string& index);
+    /// @return The MOSpace objects corresponding to an orbital index
+    std::vector<size_t>& index_to_mo_spaces(const std::string& index);
 
     /// A vector of MOSpace objects
     static std::vector<MOSpace> mo_spaces_;
