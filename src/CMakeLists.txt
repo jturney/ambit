@@ -18,6 +18,7 @@ set(TENSOR_SOURCES
     io/manager.cc
     math/blas.cc
     math/lapack.cc
+    tensor/blocked_tensor.cc
     tensor/core.cc
     tensor/disk.cc
     tensor/slice.cc
