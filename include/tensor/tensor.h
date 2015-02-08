@@ -296,7 +296,7 @@ public:
      *  @param A the left-side factor tensor
      *  @param B the right-side factor tensor
      *  @param transA transpose A or not
-     *  @param transA transpose A or not
+     *  @param transB transpose B or not
      *  @param nrow number of rows in the GEMM call
      *  @param ncol number of columns in the GEMM call
      *  @param nzip number of zip indices in the GEMM call

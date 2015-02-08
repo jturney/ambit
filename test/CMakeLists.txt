@@ -25,6 +25,15 @@ add_executable(test_hf ${TEST_HF_SOURCES})
 add_dependencies(test_hf tensor)
 target_link_libraries(test_hf tensor ${Boost_LIBRARIES})
 
+set(TEST_BLOCKS_SOURCES
+    test_blocks.cc
+)
+
+# build static libray
+add_executable(test_blocks ${TEST_BLOCKS_SOURCES})
+add_dependencies(test_blocks tensor)
+target_link_libraries(test_blocks tensor ${Boost_LIBRARIES})
+
 configure_file(test.32 test.32 COPYONLY)
 configure_file(test.33 test.33 COPYONLY)
 configure_file(test.34 test.34 COPYONLY)
