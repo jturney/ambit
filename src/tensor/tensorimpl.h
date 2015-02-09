@@ -25,15 +25,15 @@ public:
     }
 };
 
-}
-
-#define ThrowNotImplementedException throw detail::NotImplementedException(std::string("Function not yet implemented: ") + CURRENT_FUNCTION)
-
 class OutOfMemoryException : public std::runtime_error
 {
 public:
     OutOfMemoryException() : std::runtime_error("Out of memory") {}
 };
+
+}
+
+#define ThrowNotImplementedException throw detail::NotImplementedException(std::string("Function not yet implemented: ") + CURRENT_FUNCTION)
 
 class TensorImpl
 {
@@ -55,13 +55,13 @@ public:
     size_t rank() const { return dims_.size(); }
     size_t numel() const { return numel_; }
 
-    void set_name(const std::string& name) { name_ = name; } 
+    void set_name(const std::string& name) { name_ = name; }
 
     void print(FILE* fh, bool level = false, const std::string& format = "%12.7f", int maxcols = 5) const;
 
     // => Setters/Getters <= //
 
-    virtual std::vector<double>& data() 
+    virtual std::vector<double>& data()
         { throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type())); }
     virtual const std::vector<double>& data() const
         { throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type())); }
@@ -103,7 +103,7 @@ public:
         const std::vector<std::string>& Ainds,
         const std::vector<std::string>& Binds,
         double alpha = 1.0,
-        double beta = 0.0) 
+        double beta = 0.0)
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
     virtual void gemm(

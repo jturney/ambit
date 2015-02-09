@@ -21,7 +21,7 @@ DataType* allocate(size_t size)
     DataType *tmp = (DataType*)_mm_malloc(size * sizeof(DataType), kMemoryAlignmentBytes);
 
     if (tmp == NULL) {
-        throw OutOfMemoryException();
+        throw tensor::detail::OutOfMemoryException();
     }
 
     return tmp;
