@@ -4,12 +4,12 @@
 
 #define GET_CTF_TENSOR(X) \
     const CyclopsTensorImpl* c##X = dynamic_cast<const CyclopsTensorImpl*>((X)); \
-    CTF_Tensor* t##X = c##X->data_;
+    CTF_Tensor* t##X = c##X->cyclops_;
 
 namespace tensor { namespace cyclops {
 
 namespace globals {
-    CTF_World *world = NULL;
+    CTF_World *world = nullptr;
     int rank = -1;
     int nprocess = -1;
 
@@ -24,6 +24,33 @@ std::string generateGenericLabels(const Dimension& dims)
     std::string labels(dims.size(), 0);
     std::copy(dims.begin(), dims.end(), labels.begin());
     return labels;
+}
+
+std::vector<std::string> generateCyclopsLabels(const std::vector<Indices>& inds)
+{
+    static const char* cyclops_index_set = "abcdefghijklmnopqrstuvwyxzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    int index = 0;
+    std::map<std::string, std::string> index_map;
+    for (size_t k = 0L; k < inds.size(); k++) {
+        const std::vector<std::string>& ind = inds[k];
+        for (size_t l = 0; l < ind.size(); l++) {
+            std::string token = ind[l];
+            if (index_map.count(token)) continue;
+            index_map[token] = cyclops_index_set[index++];
+        }
+    }
+
+    std::vector<std::string> cyclops_inds;
+    for (size_t k = 0L; k < inds.size(); k++) {
+        std::stringstream ss;
+        const std::vector<std::string>& ind = inds[k];
+        for (size_t l = 0; l < ind.size(); l++) {
+            ss << index_map[ind[l]];
+        }
+        cyclops_inds.push_back(ss.str());
+    }
+    return cyclops_inds;
 }
 
 }
@@ -50,7 +77,7 @@ int initialize(int argc, char* argv[])
 void finalize()
 {
     delete globals::world;
-    globals::world = NULL;
+    globals::world = nullptr;
 
     // if we initialized MPI then we finalize it.
     if (!globals::initialized_mpi)
@@ -61,12 +88,17 @@ CyclopsTensorImpl::CyclopsTensorImpl(const std::string& name,
                                      const Dimension& dims)
     : TensorImpl(kDistributed, name, dims)
 {
+    if (dims.size() == 0) {
+        cyclops_ = new CTF_Scalar(0.0, *globals::world);
+        return;
+    }
+
     int *local_sym = new int[dims.size()];
     std::fill(local_sym, local_sym+dims.size(), NS);
     int *local_dims = new int[dims.size()];
     std::copy(dims.begin(), dims.end(), local_dims);
 
-    data_ = new CTF_Tensor(dims.size(),
+    cyclops_ = new CTF_Tensor(dims.size(),
                            local_dims,
                            local_sym,
                            *globals::world);
@@ -77,59 +109,25 @@ CyclopsTensorImpl::CyclopsTensorImpl(const std::string& name,
 
 CyclopsTensorImpl::~CyclopsTensorImpl()
 {
-    delete data_;
+    delete cyclops_;
 }
 
-void CyclopsTensorImpl::set_data(double *data, const IndexRange& ranges)
+void CyclopsTensorImpl::scale(double beta)
 {
-
-}
-
-void CyclopsTensorImpl::get_data(double *data, const IndexRange& ranges) const
-{
-
-}
-
-void CyclopsTensorImpl::zero()
-{
-    *data_ = 0;
-}
-
-void CyclopsTensorImpl::scale(const double& a)
-{
-    long_int local_size;
-    double* local_data;
-
-    local_data = data_->get_raw_data(&local_size);
-
-    VECTORIZED_LOOP
-    for (long_int i=0; i<local_size; ++i) {
-        local_data[i] *= a;
+    if (beta == 0.0) {
+        *cyclops_ = 0.0;
     }
-}
+    else {
+        long_int local_size;
+        double* local_data;
 
-double CyclopsTensorImpl::norm(double /*power*/) const
-{
-    // not sure what power is for
-    return data_->norm1();
-}
+        local_data = cyclops_->get_raw_data(&local_size);
 
-double CyclopsTensorImpl::rms(double /*power*/) const
-{
-    // not sure what power is for
-    return data_->norm2();
-}
-
-void CyclopsTensorImpl::scale_and_add(const double& a, ConstTensorImplPtr x)
-{
-    typeCheck(kDistributed, x);
-    dimensionCheck(this, x);
-
-    const CyclopsTensorImpl* cX = dynamic_cast<const CyclopsTensorImpl*>(x);
-    CTF_Tensor* tX = cX->data_;
-
-    std::string labels = generateGenericLabels(dims());
-    (*data_)[labels.c_str()] += a * (*tX)[labels.c_str()];
+        VECTORIZED_LOOP
+        for (long_int i=0; i<local_size; ++i) {
+            local_data[i] *= beta;
+        }
+    }
 }
 
 void CyclopsTensorImpl::permute(
@@ -139,93 +137,14 @@ void CyclopsTensorImpl::permute(
         double alpha,
         double beta)
 {
+    GET_CTF_TENSOR(A);
 
-}
+    std::vector<std::string> cyclops_inds = generateCyclopsLabels({Cinds,Ainds});
+    std::string Ccyclops = cyclops_inds[0];
+    std::string Acyclops = cyclops_inds[1];
 
-void CyclopsTensorImpl::slice(
-        ConstTensorImplPtr A,
-        const IndexRange& Cinds,
-        const IndexRange& Ainds,
-        double alpha,
-        double beta)
-{
-
-}
-
-void CyclopsTensorImpl::pointwise_multiplication(ConstTensorImplPtr x)
-{
-    typeCheck(kDistributed, x);
-    dimensionCheck(this, x);
-
-    // ensure this and x are aligned the same
-    // since we'll be dealing with raw data
-
-    GET_CTF_TENSOR(x);
-    tx->align(*data_);
-
-    long_int local_size, x_size;
-    double* local_data, *x_data;
-
-    local_data = data_->get_raw_data(&local_size);
-    x_data = tx->get_raw_data(&x_size);
-
-    assert(x_size == local_size);
-    for (long_int i=0; i<local_size; ++i) {
-        local_data[i] *= x_data[i];
-    }
-}
-
-void CyclopsTensorImpl::pointwise_division(ConstTensorImplPtr x)
-{
-    typeCheck(kDistributed, x);
-    dimensionCheck(this, x);
-
-    // ensure this and x are aligned the same
-    // since we'll be dealing with raw data
-    // cyclops does not inheritly support
-    // pointwise_division ... well any division
-
-    GET_CTF_TENSOR(x);
-    tx->align(*data_);
-
-    long_int local_size, x_size;
-    double* local_data, *x_data;
-
-    local_data = data_->get_raw_data(&local_size);
-    x_data = tx->get_raw_data(&x_size);
-
-    assert(x_size == local_size);
-    for (long_int i=0; i<local_size; ++i) {
-        local_data[i] /= x_data[i];
-    }
-}
-
-double CyclopsTensorImpl::dot(ConstTensorImplPtr x) const
-{
-    typeCheck(kDistributed, x);
-    dimensionCheck(this, x);
-
-    // ensure this and x are aligned the same
-    // since we'll be dealing with raw data
-
-    GET_CTF_TENSOR(x);
-    tx->align(*data_);
-
-    long_int local_size, x_size;
-    double* local_data, *x_data;
-    double local_total = 0, global_total = 0;
-
-    local_data = data_->get_raw_data(&local_size);
-    x_data = tx->get_raw_data(&x_size);
-
-    assert(x_size == local_size);
-    for (long_int i=0; i<local_size; ++i) {
-        local_total += local_data[i] * x_data[i];
-    }
-
-    MPI_Allreduce(&local_total, &global_total, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-    return global_total;
+    scale(beta);
+    (*cyclops_)[Ccyclops.c_str()] += alpha * (*tA)[Acyclops.c_str()];
 }
 
 void CyclopsTensorImpl::contract(
@@ -237,7 +156,16 @@ void CyclopsTensorImpl::contract(
         double alpha,
         double beta)
 {
+    GET_CTF_TENSOR(A);
+    GET_CTF_TENSOR(B);
 
+    std::vector<std::string> cyclops_inds = generateCyclopsLabels({Cinds,Ainds,Binds});
+    std::string Ccyclops = cyclops_inds[0];
+    std::string Acyclops = cyclops_inds[1];
+    std::string Bcyclops = cyclops_inds[2];
+
+    scale(beta);
+    (*cyclops_)[Ccyclops.c_str()] += alpha * (*tA)[Acyclops.c_str()] * (*tB)[Bcyclops.c_str()];
 }
 
 std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder order) const
@@ -293,132 +221,6 @@ std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder ord
 #endif
 }
 
-std::map<std::string, TensorImplPtr> CyclopsTensorImpl::geev(EigenvalueOrder order) const
-{
-    TensorImpl::squareCheck(this);
-}
-
-std::map<std::string, TensorImplPtr> CyclopsTensorImpl::svd() const
-{
-    TensorImpl::rankCheck(2, this);
-    size_t rows = dims()[0];
-    size_t cols = dims()[1];
-
-#if defined(HAVE_ELEMENTAL)
-    // since elemental and cyclops distribute their data
-    // differently. construct an elemental matrix and
-    // use its data layout to pull remote data from
-    // cyclops.
-
-    std::vector<kv_pair> pairs;
-    El::DistMatrix<double> U(rows, cols);
-    El::DistMatrix<double> V;
-    El::DistMatrix<double, El::VR, El::STAR> s;
-
-    copyToElemental2(U);
-
-    El::SVD(U, s, V);
-
-    Dimension sdim(1);
-    sdim[0] = dims()[0];
-    Dimension Vtdim(2);
-    Vtdim[0] = dims()[1];
-    Vtdim[1] = dims()[0];
-
-    CyclopsTensorImpl* tU = new CyclopsTensorImpl("U", dims());
-    CyclopsTensorImpl* ts = new CyclopsTensorImpl("s", sdim);
-    CyclopsTensorImpl* tVt = new CyclopsTensorImpl("Vt", Vtdim);
-
-    tU->copyFromElemental2(U);
-    ts->copyFromElemental1(s);
-    tVt->copyFromElemental2(V);
-
-    std::map<std::string, TensorImplPtr> results;
-    results["U"] = tU;
-    results["s"] = ts;
-    results["Vt"] = tVt;
-
-    return results;
-#endif
-}
-
-TensorImplPtr CyclopsTensorImpl::cholesky() const
-{
-
-}
-
-std::map<std::string, TensorImplPtr> CyclopsTensorImpl::lu() const
-{
-    TensorImpl::rankCheck(2, this);
-    size_t rows = dims()[0];
-    size_t cols = dims()[1];
-
-#if defined(HAVE_ELEMENTAL)
-    // since elemental and cyclops distribute their data
-    // differently. construct an elemental matrix and
-    // use its data layout to pull remote data from
-    // cyclops.
-
-    std::vector<kv_pair> pairs;
-    El::DistMatrix<double> A(rows, cols);
-    copyToElemental2(A);
-
-    El::LU(A);
-
-    CyclopsTensorImpl* result = new CyclopsTensorImpl("A", dims());
-    result->copyFromElemental2(A);
-
-    std::map<std::string, TensorImplPtr> results;
-    results["A"] = result;
-    return results;
-#endif
-}
-
-std::map<std::string, TensorImplPtr> CyclopsTensorImpl::qr() const
-{
-
-}
-
-TensorImplPtr CyclopsTensorImpl::cholesky_inverse() const
-{
-
-}
-
-TensorImplPtr CyclopsTensorImpl::inverse() const
-{
-    TensorImpl::rankCheck(2, this);
-    size_t rows = dims()[0];
-    size_t cols = dims()[1];
-
-#if defined(HAVE_ELEMENTAL)
-    // since elemental and cyclops distribute their data
-    // differently. construct an elemental matrix and
-    // use its data layout to pull remote data from
-    // cyclops.
-
-    std::vector<kv_pair> pairs;
-    El::DistMatrix<double> A(rows, cols);
-    copyToElemental2(A);
-
-    El::Inverse(A);
-
-    CyclopsTensorImpl* result = new CyclopsTensorImpl("A", dims());
-    result->copyFromElemental2(A);
-
-    return result;
-#endif
-}
-
-TensorImplPtr CyclopsTensorImpl::power(double power, double condition) const
-{
-
-}
-
-void CyclopsTensorImpl::givens(int dim, int i, int j, double s, double c)
-{
-
-}
-
 #if defined(HAVE_ELEMENTAL)
 void CyclopsTensorImpl::copyToElemental2(El::DistMatrix<double> &U) const
 {
@@ -442,7 +244,7 @@ void CyclopsTensorImpl::copyToElemental2(El::DistMatrix<double> &U) const
     }
 
     // gather data from cyclops
-    data_->read(pairs.size(), pairs.data());
+    cyclops_->read(pairs.size(), pairs.data());
 
     // populate elemental
     for (size_t p=0; p<pairs.size(); p++) {
@@ -472,7 +274,7 @@ void CyclopsTensorImpl::copyFromElemental2(const El::DistMatrix<double> &X)
             pairs.push_back(kv_pair(r*length+c, X.GetLocal(i, j)));
         }
     }
-    data_->write(pairs.size(), pairs.data());
+    cyclops_->write(pairs.size(), pairs.data());
 }
 
 void CyclopsTensorImpl::copyFromElemental1(const El::DistMatrix<double, El::VR, El::STAR>& w)
@@ -482,7 +284,7 @@ void CyclopsTensorImpl::copyFromElemental1(const El::DistMatrix<double, El::VR, 
     for (int i=0; i<w.LocalHeight(); i++) {
         pairs.push_back(kv_pair(i+cshift, w.GetLocal(i, 0)));
     }
-    data_->write(pairs.size(), pairs.data());
+    cyclops_->write(pairs.size(), pairs.data());
 }
 #endif
 

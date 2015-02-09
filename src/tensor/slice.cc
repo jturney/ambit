@@ -13,11 +13,11 @@ void slice(
     double beta)
 {
     // => Error Checking <= //
-    
+
     for (size_t ind = 0L; ind < C->rank(); ind++) {
         size_t Asize = Ainds[ind][1] - Ainds[ind][0];
         size_t Csize = Cinds[ind][1] - Cinds[ind][0];
-        if (Asize != Csize) 
+        if (Asize != Csize)
             throw std::runtime_error("Slice range sizes must agree between tensors A and C.");
     }
 
@@ -25,12 +25,23 @@ void slice(
 
     if (C->type() == kCore and A->type() == kCore) {
         slice((CoreTensorImplPtr) C, (ConstCoreTensorImplPtr) A, Cinds, Ainds, alpha, beta);
-    } else if (C->type() == kCore and A->type() == kDisk) { 
+
+    } else if (C->type() == kCore and A->type() == kDisk) {
         slice((CoreTensorImplPtr) C, (ConstDiskTensorImplPtr) A, Cinds, Ainds, alpha, beta);
-    } else if (C->type() == kDisk and A->type() == kCore) { 
+    } else if (C->type() == kDisk and A->type() == kCore) {
         slice((DiskTensorImplPtr) C, (ConstCoreTensorImplPtr) A, Cinds, Ainds, alpha, beta);
-    } else if (C->type() == kDisk and A->type() == kDisk) { 
+    } else if (C->type() == kDisk and A->type() == kDisk) {
         slice((DiskTensorImplPtr) C, (ConstDiskTensorImplPtr) A, Cinds, Ainds, alpha, beta);
+
+#ifdef HAVE_CYCLOPS
+    } else if (C->type() == kCore and A->type() == kDistributed) {
+        slice((CoreTensorImplPtr) C, (ConstCyclopsTensorImplPtr) A, Cinds, Ainds, alpha, beta);
+    } else if (C->type() == kDistributed and A->type() == kCore) {
+        slice((CyclopsTensorImplPtr) C, (ConstCoreTensorImplPtr) A, Cinds, Ainds, alpha, beta);
+    } else if (C->type() == kDistributed and A->type() == kDistributed) {
+        slice((CyclopsTensorImplPtr) C, (ConstCyclopsTensorImplPtr) A, Cinds, Ainds, alpha, beta);
+#endif
+
     } else {
         throw std::runtime_error("Slice cannot handle this type pairing.");
     }
@@ -49,7 +60,7 @@ void slice(
     double* Ap = ((CoreTensorImplPtr)A)->data().data();
 
     // => Special Case: Rank-0 <= //
-    
+
     if (C->rank() == 0) {
         Cp[0] = alpha * Ap[0] + beta * Cp[0];
         return;
@@ -96,21 +107,21 @@ void slice(
     // => Slice Operation <= //
 
     if (slow_dims == 0) {
-        double* Atp = Ap 
-            + Ainds[slow_dims][0] * Astrides[slow_dims]; 
-        double* Ctp = Cp 
-            + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
+        double* Atp = Ap
+            + Ainds[slow_dims][0] * Astrides[slow_dims];
+        double* Ctp = Cp
+            + Cinds[slow_dims][0] * Cstrides[slow_dims];
         C_DSCAL(fast_size,beta,Ctp,1);
         C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
     } else if (slow_dims == 1) {
         #pragma omp parallel for
         for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
-            double* Atp = Ap 
+            double* Atp = Ap
                 + (Ainds[0][0] + ind0) * Astrides[0]
-                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
-            double* Ctp = Cp 
+                + Ainds[slow_dims][0] * Astrides[slow_dims];
+            double* Ctp = Cp
                 + (Cinds[0][0] + ind0) * Cstrides[0]
-                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
+                + Cinds[slow_dims][0] * Cstrides[slow_dims];
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }
@@ -118,14 +129,14 @@ void slice(
         #pragma omp parallel for
         for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
         for (size_t ind1 = 0L; ind1 < sizes[1]; ind1++) {
-            double* Atp = Ap 
+            double* Atp = Ap
                 + (Ainds[0][0] + ind0) * Astrides[0]
                 + (Ainds[1][0] + ind1) * Astrides[1]
-                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
-            double* Ctp = Cp 
+                + Ainds[slow_dims][0] * Astrides[slow_dims];
+            double* Ctp = Cp
                 + (Cinds[0][0] + ind0) * Cstrides[0]
                 + (Cinds[1][0] + ind1) * Cstrides[1]
-                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
+                + Cinds[slow_dims][0] * Cstrides[slow_dims];
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}
@@ -134,16 +145,16 @@ void slice(
         for (size_t ind0 = 0L; ind0 < sizes[0]; ind0++) {
         for (size_t ind1 = 0L; ind1 < sizes[1]; ind1++) {
         for (size_t ind2 = 0L; ind2 < sizes[2]; ind2++) {
-            double* Atp = Ap 
+            double* Atp = Ap
                 + (Ainds[0][0] + ind0) * Astrides[0]
                 + (Ainds[1][0] + ind1) * Astrides[1]
                 + (Ainds[2][0] + ind2) * Astrides[2]
-                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
-            double* Ctp = Cp 
+                + Ainds[slow_dims][0] * Astrides[slow_dims];
+            double* Ctp = Cp
                 + (Cinds[0][0] + ind0) * Cstrides[0]
                 + (Cinds[1][0] + ind1) * Cstrides[1]
                 + (Cinds[2][0] + ind2) * Cstrides[2]
-                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
+                + Cinds[slow_dims][0] * Cstrides[slow_dims];
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}}
@@ -153,18 +164,18 @@ void slice(
         for (size_t ind1 = 0L; ind1 < sizes[1]; ind1++) {
         for (size_t ind2 = 0L; ind2 < sizes[2]; ind2++) {
         for (size_t ind3 = 0L; ind3 < sizes[3]; ind3++) {
-            double* Atp = Ap 
+            double* Atp = Ap
                 + (Ainds[0][0] + ind0) * Astrides[0]
                 + (Ainds[1][0] + ind1) * Astrides[1]
                 + (Ainds[2][0] + ind2) * Astrides[2]
                 + (Ainds[3][0] + ind3) * Astrides[3]
-                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
-            double* Ctp = Cp 
+                + Ainds[slow_dims][0] * Astrides[slow_dims];
+            double* Ctp = Cp
                 + (Cinds[0][0] + ind0) * Cstrides[0]
                 + (Cinds[1][0] + ind1) * Cstrides[1]
                 + (Cinds[2][0] + ind2) * Cstrides[2]
                 + (Cinds[3][0] + ind3) * Cstrides[3]
-                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
+                + Cinds[slow_dims][0] * Cstrides[slow_dims];
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}}}
@@ -175,20 +186,20 @@ void slice(
         for (size_t ind2 = 0L; ind2 < sizes[2]; ind2++) {
         for (size_t ind3 = 0L; ind3 < sizes[3]; ind3++) {
         for (size_t ind4 = 0L; ind4 < sizes[4]; ind4++) {
-            double* Atp = Ap 
+            double* Atp = Ap
                 + (Ainds[0][0] + ind0) * Astrides[0]
                 + (Ainds[1][0] + ind1) * Astrides[1]
                 + (Ainds[2][0] + ind2) * Astrides[2]
                 + (Ainds[3][0] + ind3) * Astrides[3]
                 + (Ainds[4][0] + ind4) * Astrides[4]
-                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
-            double* Ctp = Cp 
+                + Ainds[slow_dims][0] * Astrides[slow_dims];
+            double* Ctp = Cp
                 + (Cinds[0][0] + ind0) * Cstrides[0]
                 + (Cinds[1][0] + ind1) * Cstrides[1]
                 + (Cinds[2][0] + ind2) * Cstrides[2]
                 + (Cinds[3][0] + ind3) * Cstrides[3]
                 + (Cinds[4][0] + ind4) * Cstrides[4]
-                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
+                + Cinds[slow_dims][0] * Cstrides[slow_dims];
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}}}}
@@ -200,22 +211,22 @@ void slice(
         for (size_t ind3 = 0L; ind3 < sizes[3]; ind3++) {
         for (size_t ind4 = 0L; ind4 < sizes[4]; ind4++) {
         for (size_t ind5 = 0L; ind5 < sizes[5]; ind5++) {
-            double* Atp = Ap 
+            double* Atp = Ap
                 + (Ainds[0][0] + ind0) * Astrides[0]
                 + (Ainds[1][0] + ind1) * Astrides[1]
                 + (Ainds[2][0] + ind2) * Astrides[2]
                 + (Ainds[3][0] + ind3) * Astrides[3]
                 + (Ainds[4][0] + ind4) * Astrides[4]
                 + (Ainds[5][0] + ind5) * Astrides[5]
-                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
-            double* Ctp = Cp 
+                + Ainds[slow_dims][0] * Astrides[slow_dims];
+            double* Ctp = Cp
                 + (Cinds[0][0] + ind0) * Cstrides[0]
                 + (Cinds[1][0] + ind1) * Cstrides[1]
                 + (Cinds[2][0] + ind2) * Cstrides[2]
                 + (Cinds[3][0] + ind3) * Cstrides[3]
                 + (Cinds[4][0] + ind4) * Cstrides[4]
                 + (Cinds[5][0] + ind5) * Cstrides[5]
-                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
+                + Cinds[slow_dims][0] * Cstrides[slow_dims];
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}}}}}
@@ -228,7 +239,7 @@ void slice(
         for (size_t ind4 = 0L; ind4 < sizes[4]; ind4++) {
         for (size_t ind5 = 0L; ind5 < sizes[5]; ind5++) {
         for (size_t ind6 = 0L; ind6 < sizes[6]; ind6++) {
-            double* Atp = Ap 
+            double* Atp = Ap
                 + (Ainds[0][0] + ind0) * Astrides[0]
                 + (Ainds[1][0] + ind1) * Astrides[1]
                 + (Ainds[2][0] + ind2) * Astrides[2]
@@ -236,8 +247,8 @@ void slice(
                 + (Ainds[4][0] + ind4) * Astrides[4]
                 + (Ainds[5][0] + ind5) * Astrides[5]
                 + (Ainds[6][0] + ind6) * Astrides[6]
-                + Ainds[slow_dims][0] * Astrides[slow_dims]; 
-            double* Ctp = Cp 
+                + Ainds[slow_dims][0] * Astrides[slow_dims];
+            double* Ctp = Cp
                 + (Cinds[0][0] + ind0) * Cstrides[0]
                 + (Cinds[1][0] + ind1) * Cstrides[1]
                 + (Cinds[2][0] + ind2) * Cstrides[2]
@@ -245,7 +256,7 @@ void slice(
                 + (Cinds[4][0] + ind4) * Cstrides[4]
                 + (Cinds[5][0] + ind5) * Cstrides[5]
                 + (Cinds[6][0] + ind6) * Cstrides[6]
-                + Cinds[slow_dims][0] * Cstrides[slow_dims]; 
+                + Cinds[slow_dims][0] * Cstrides[slow_dims];
             C_DSCAL(fast_size,beta,Ctp,1);
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }}}}}}}
@@ -281,7 +292,7 @@ void slice(
     FILE* Af = ((DiskTensorImplPtr)A)->fh();
 
     // => Special Case: Rank-0 <= //
-    
+
     if (C->rank() == 0) {
         double Ap = 0.0;
         fseek(Af,0L,SEEK_SET);
@@ -335,7 +346,7 @@ void slice(
 
     /// Buffer of A
     double* Ap = new double[fast_size];
-    memset(Ap,'\0', sizeof(double) * fast_size);    
+    memset(Ap,'\0', sizeof(double) * fast_size);
 
     // => Slice Operation <= //
 
@@ -377,7 +388,7 @@ void slice(
     double* Ap = ((CoreTensorImplPtr)A)->data().data();
 
     // => Special Case: Rank-0 <= //
-    
+
     if (C->rank() == 0) {
         double Cp = 0.0;
         if (beta != 0.0) {
@@ -435,7 +446,7 @@ void slice(
 
     /// Buffer of C
     double* Cp = new double[fast_size];
-    memset(Cp,'\0', sizeof(double) * fast_size);    
+    memset(Cp,'\0', sizeof(double) * fast_size);
 
     // => Slice Operation <= //
 
@@ -458,7 +469,7 @@ void slice(
         if (beta != 0.0) {
             fseek(Cf,sizeof(double)*Coff,SEEK_SET);
             fread(Ctp,sizeof(double),fast_size,Cf);
-        } 
+        }
 
         C_DSCAL(fast_size,beta,Ctp,1);
         C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
@@ -483,7 +494,7 @@ void slice(
     FILE* Af = A->fh();
 
     // => Special Case: Rank-0 <= //
-    
+
     if (C->rank() == 0) {
         double Cp = 0.0;
         double Ap;
@@ -545,10 +556,10 @@ void slice(
 
     /// Buffer of A
     double* Ap = new double[fast_size];
-    memset(Ap,'\0', sizeof(double) * fast_size);    
+    memset(Ap,'\0', sizeof(double) * fast_size);
     /// Buffer of C
     double* Cp = new double[fast_size];
-    memset(Cp,'\0', sizeof(double) * fast_size);    
+    memset(Cp,'\0', sizeof(double) * fast_size);
 
     // => Slice Operation <= //
 
@@ -571,7 +582,7 @@ void slice(
         if (beta != 0.0) {
             fseek(Cf,sizeof(double)*Coff,SEEK_SET);
             fread(Ctp,sizeof(double),fast_size,Cf);
-        } 
+        }
 
         fseek(Af,sizeof(double)*Aoff,SEEK_SET);
         fread(Atp,sizeof(double),fast_size,Af);
@@ -588,5 +599,134 @@ void slice(
     fseek(Af,0L,SEEK_SET);
     fseek(Cf,0L,SEEK_SET);
 }
+
+#ifdef HAVE_CYCLOPS
+void slice(
+    CoreTensorImplPtr C,
+    ConstCyclopsTensorImplPtr A,
+    const IndexRange& Cinds,
+    const IndexRange& Ainds,
+    double alpha,
+    double beta)
+{
+    if (C->rank() == 0) {
+        double Av = ((CTF_Scalar*)A->cyclops())->get_val();
+        double Cv = C->data()[0];
+        C->data()[0] = alpha * Av + beta * Cv;
+        return;
+    }
+
+    long_int numel = 1L;
+    Dimension sizes(C->rank());
+    IndexRange C2inds(C->rank());
+    for (size_t ind = 0; ind < Cinds.size(); ind++) {
+        sizes[ind] = Cinds[ind][1] - Cinds[ind][0];
+        C2inds[ind] = {0L, (size_t)sizes[ind]};
+        numel *= sizes[ind];
+    }
+
+    std::shared_ptr<CoreTensorImpl> C2(new CoreTensorImpl("C2", sizes));
+    double* C2p = C2->data().data();
+
+    std::vector<long_int> Aidx(numel);
+    std::vector<size_t> Astrides(A->rank());
+    Astrides[0] = 1L;
+    for (size_t ind = 1L; ind < A->rank(); ind++) {
+        Astrides[ind] = Astrides[ind-1] * A->dim(ind-1);
+    }
+
+    for (size_t ind = 0L; ind < numel; ind++) {
+        size_t num = ind;
+        size_t Aoff = 0L;
+        for (int dim = ((int)A->rank()) - 1; dim >= 0; dim--) {
+            size_t val = num % sizes[dim]; // value of the dim-th index
+            num /= sizes[dim];
+            Aoff += (Ainds[dim][0] + val) * Astrides[dim];
+        }
+        Aidx[ind] = Aoff;
+    }
+
+    (A->cyclops())->read(numel, 1.0, 0.0, Aidx.data(), C2p);
+
+    C->slice(C2.get(),Cinds,C2inds,alpha,beta);
+}
+
+void slice(
+    CyclopsTensorImplPtr C,
+    ConstCoreTensorImplPtr A,
+    const IndexRange& Cinds,
+    const IndexRange& Ainds,
+    double alpha,
+    double beta)
+{
+    if (C->rank() == 0) {
+        double Cv = ((CTF_Scalar*)C->cyclops())->get_val();
+        double Av = A->data()[0];
+        Cv = alpha * Av + beta * Cv;
+        ((CTF_Scalar*)C->cyclops())->set_val(Cv);
+        return;
+    }
+
+    long_int numel = 1L;
+    Dimension sizes(C->rank());
+    IndexRange A2inds(C->rank());
+    for (size_t ind = 0; ind < Cinds.size(); ind++) {
+        sizes[ind] = Cinds[ind][1] - Cinds[ind][0];
+        A2inds[ind] = {0L, (size_t)sizes[ind]};
+        numel *= sizes[ind];
+    }
+
+    std::shared_ptr<CoreTensorImpl> A2(new CoreTensorImpl("A2", sizes));
+    A2->slice(A,A2inds,Ainds,1.0,0.0);
+    double* A2p = A2->data().data();
+
+    std::vector<long_int> Cidx(numel);
+    std::vector<size_t> Cstrides(C->rank());
+    Cstrides[0] = 1L;
+    for (size_t ind = 1L; ind < C->rank(); ind++) {
+        Cstrides[ind] = Cstrides[ind-1] * C->dim(ind-1);
+    }
+
+    for (size_t ind = 0L; ind < numel; ind++) {
+        size_t num = ind;
+        size_t Coff = 0L;
+        for (int dim = ((int)C->rank()) - 1; dim >= 0; dim--) {
+            size_t val = num % sizes[dim]; // value of the dim-th index
+            num /= sizes[dim];
+            Coff += (Cinds[dim][0] + val) * Cstrides[dim];
+        }
+        Cidx[ind] = Coff;
+    }
+
+    (C->cyclops())->write(numel, alpha, beta, Cidx.data(), A2p);
+}
+
+void slice(
+    CyclopsTensorImplPtr C,
+    ConstCyclopsTensorImplPtr A,
+    const IndexRange& Cinds,
+    const IndexRange& Ainds,
+    double alpha,
+    double beta)
+{
+    CTF_Tensor* tC = C->cyclops();
+    CTF_Tensor* tA = A->cyclops();
+
+    std::vector<int> Coffs(Cinds.size());
+    std::vector<int> Cends(Cinds.size());
+    std::vector<int> Aoffs(Cinds.size());
+    std::vector<int> Aends(Cinds.size());
+
+    for (size_t ind = 0L; ind < Cinds.size(); ind++) {
+        Coffs[ind] = Cinds[ind][0];
+        Cends[ind] = Cinds[ind][1];
+        Aoffs[ind] = Ainds[ind][0];
+        Aends[ind] = Ainds[ind][1];
+     }
+
+    tC->slice(Coffs.data(),Cends.data(),beta,*tA,Aoffs.data(),Aends.data(),alpha);
+}
+
+#endif
 
 }

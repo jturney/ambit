@@ -70,13 +70,13 @@ public:
         int type = 2) const
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
-    virtual void zero();
+    void zero();
 
     virtual void scale(
         double beta = 0.0)
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
-    virtual void copy(
+    void copy(
         ConstTensorImplPtr other);
 
     virtual void slice(

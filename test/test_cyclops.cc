@@ -14,7 +14,7 @@ using namespace tensor;
 /// Expected relative accuracy for numerical exactness
 const double epsilon = 1.0E-14;
 
-/// Scheme to categorize expected vs. actual op behavior
+/// Sc/haheme to categorize expected vs. actual op behavior
 enum TestResult {
     kExact,     // Some op occurred and the results match exactly
     kEpsilon,   // Some op occurred and the results match to something proportional to epsilon
@@ -265,10 +265,14 @@ double try_slice_rank0()
     Dimension Adims = {};
     Tensor A1 = Tensor::build(kCore, "A1", Adims);
     Tensor A2 = Tensor::build(kCore, "A2", Adims);
-    initialize_random(A1, A2);
+    Tensor A3 = Tensor::build(kDistributed, "A3", Adims);
+    initialize_random(A1);
+
+    A3() += 0.5 * A1();
+    A2() += 0.5 * A1();
 
     A1.zero();
-    A1.slice(A2,{},{});
+    A1() = A3();
 
     return relative_difference(A1,A2);
 }
@@ -277,14 +281,66 @@ double try_slice_rank3()
     Dimension Adims = {4,5,6};
     Tensor A1 = Tensor::build(kCore, "A1", Adims);
     Tensor A2 = Tensor::build(kCore, "A2", Adims);
-    initialize_random(A1, A2);
+    Tensor A3 = Tensor::build(kDistributed, "A3", Adims);
+    initialize_random(A1);
 
-    A1.zero();
-    A1.slice(A2,{{0,4},{0,5},{0,6}},{{0,4},{0,5},{0,6}});
+    A3() = A1();
+    A2() = A3();
 
     return relative_difference(A1,A2);
 }
+double try_slice_hard1_rank3()
+{
+    Dimension Adims = {4,5,6};
+    Tensor A1 = Tensor::build(kCore, "A1", Adims);
+    Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor A3 = Tensor::build(kDistributed, "A3", Adims);
+    initialize_random(A1);
 
+    A3({{1,3},{2,4},{3,5}}) += A1({{1,3},{1,3},{1,3}});
+
+    A2({{1,3},{2,4},{3,5}}) += A1({{1,3},{1,3},{1,3}});
+
+    A1.zero();
+    A1() = A3();
+
+    return relative_difference(A1,A2);
+}
+double try_slice_hard2_rank3()
+{
+    Dimension Adims = {4,5,6};
+    Tensor A1 = Tensor::build(kCore, "A1", Adims);
+    Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor A3 = Tensor::build(kDistributed, "A3", Adims);
+
+    initialize_random(A1);
+
+    A3() = A1();
+    A2({{1,3},{2,4},{3,5}}) += 0.5* A1({{1,3},{1,3},{1,3}});
+
+    A1.zero();
+    A1({{1,3},{2,4},{3,5}}) += 0.5 * A3({{1,3},{1,3},{1,3}});
+
+    return relative_difference(A1,A2);
+}
+double try_slice_hard3_rank3()
+{
+    Dimension Adims = {4,5,6};
+    Tensor A1 = Tensor::build(kCore, "A1", Adims);
+    Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor A3 = Tensor::build(kDistributed, "A3", Adims);
+    Tensor A4 = Tensor::build(kDistributed, "A4", Adims);
+    initialize_random(A1);
+
+    A2({{1,3},{2,4},{3,5}}) -= 0.5 * A1({{1,3},{1,3},{1,3}});
+
+    A3() = A1();
+    A4({{1,3},{2,4},{3,5}}) -= 0.5 * A3({{1,3},{1,3},{1,3}});
+    A1.zero();
+    A1() = A4();
+
+    return relative_difference(A1,A2);
+}
 double try_permute_rank0()
 {
     Dimension Cdims = {};
@@ -821,7 +877,7 @@ double try_permute_size_fail()
 int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
-    srand (time(NULL));
+    srand (time(nullptr));
     tensor::initialize(argc, argv);
 
     bool success;
@@ -848,6 +904,10 @@ int main(int argc, char* argv[])
     success = true;
     success &= test_function(try_slice_rank0        , "Full Slice Rank-0"  , kExact);
     success &= test_function(try_slice_rank3        , "Full Slice Rank-3"  , kExact);
+    success &= test_function(try_slice_hard1_rank3  , "Hard Slice Rank-3 1", kExact);
+    success &= test_function(try_slice_hard2_rank3  , "Hard Slice Rank-3 2", kExact);
+    success &= test_function(try_slice_hard3_rank3  , "Hard Slice Rank-3 3", kExact);
+
     printf("%s\n",std::string(82,'-').c_str());
     printf("Tests: %s\n\n",success ? "All passed" : "Some failed");
 

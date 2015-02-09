@@ -93,7 +93,7 @@ TensorType tensor_type = kCore;
 
 int main(int argc, char* argv[])
 {
-    srand (time(NULL));
+    srand (time(nullptr));
 
     if (argc > 1) {
         if (strcmp(argv[1], "cyclops") == 0) {

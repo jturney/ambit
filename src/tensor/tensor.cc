@@ -19,7 +19,7 @@ int initialize(int argc, char** argv)
 {
     /// Set the scratch path for disk files
     const char* scratch_env = std::getenv("TENSOR_SCRATCH");
-    if (scratch_env != NULL) {
+    if (scratch_env != nullptr) {
         std::string scratch_str(scratch_env);
         Tensor::set_scratch_path(scratch_str);
     } else {

@@ -48,7 +48,7 @@ Tensor load_2e(const Dimension& AO)
 
 int main(int argc, char* argv[])
 {
-    srand(time(NULL));
+    srand(time(nullptr));
     tensor::initialize(argc, argv);
 
     // psi checkpoint file

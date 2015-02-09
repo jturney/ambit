@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <functional>
 
 #if defined(CXX11)
 #include <memory>
@@ -167,7 +168,7 @@ public:
     double norm(int type = 2) const;
 
     /**
-     * Sets the data of the tensor to zeros.  
+     * Sets the data of the tensor to zeros.
      * Note: this just drops down to scale(0.0);
      **/
     void zero();
@@ -184,7 +185,7 @@ public:
     /**
      * Copy the data of other into this tensor.
      * Note: this just drops into slice
-     **/ 
+     **/
     void copy(const Tensor& other);
 
     /**
@@ -271,8 +272,8 @@ public:
     /**
      * Perform the GEMM call equivalent to:
      *  C_DGEMM(
-     *      (transA ? 'T' : 'N'), 
-     *      (transB ? 'T' : 'N'), 
+     *      (transA ? 'T' : 'N'),
+     *      (transB ? 'T' : 'N'),
      *      nrow,
      *      ncol,
      *      nzip,
@@ -307,7 +308,7 @@ public:
      *   Must be >= ncol if transB == false
      *   Must be >= nzip if transB == true
      *  @param ldaC leading dimension of C:
-     *   Must be >= ncol 
+     *   Must be >= ncol
      *  @param offA the offset of the A data pointer to apply
      *  @param offB the offset of the B data pointer to apply
      *  @param offC the offset of the C data pointer to apply
@@ -344,7 +345,7 @@ public:
     //void potrs(const Tensor& L);
     //void posv(const Tensor& A);
 
-    //void trtrs(const Tensor& L, 
+    //void trtrs(const Tensor& L,
 
     //void getrf();
     //void getri();
@@ -359,6 +360,11 @@ public:
     // => Utility Operations <= //
 
     static Tensor cat(const std::vector<Tensor>, int dim);
+
+    // => Iterators <= //
+
+    void iterate(std::function<void (std::vector<size_t>, double&)> func);
+    void iterate(std::function<void (std::vector<size_t>, const double&)> func) const;
 
 private:
 
@@ -399,6 +405,7 @@ public:
 
     double factor() const { return factor_; }
     const Indices& indices() const { return indices_; }
+    Indices& indices() { return indices_; }
     const Tensor& T() const { return T_; }
 
     LabeledTensorProduct operator*(const LabeledTensor& rhs);

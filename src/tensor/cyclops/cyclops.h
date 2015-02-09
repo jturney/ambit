@@ -18,24 +18,11 @@ public:
     CyclopsTensorImpl(const std::string& name, const Dimension& dims);
     ~CyclopsTensorImpl();
 
-    // => Setters/Getters <= //
-
-    std::vector<double>& data();
-    const std::vector<double>& data() const;
+    CTF_Tensor* cyclops() const { return cyclops_; }
 
     // => Simple Single Tensor Operations <= //
 
-    void zero();
-    void scale(const double& a);
-    double norm(double power = 2.0) const;
-    double rms(double power = 2.0) const;
-
-    // => Simple Double TensorImpl Operations <= //
-
-    void scale_and_add(const double& a, ConstTensorImplPtr x);
-    void pointwise_multiplication(ConstTensorImplPtr x);
-    void pointwise_division(ConstTensorImplPtr x);
-    double dot(ConstTensorImplPtr x) const;
+    void scale(double beta = 0.0);
 
     void permute(
             ConstTensorImplPtr A,
@@ -43,15 +30,6 @@ public:
             const std::vector<std::string>& Ainds,
             double alpha = 1.0,
             double beta = 0.0);
-
-    void slice(
-            ConstTensorImplPtr A,
-            const IndexRange& Cinds,
-            const IndexRange& Ainds,
-            double alpha = 1.0,
-            double beta = 0.0);
-
-    // => Contraction Type Operations <= //
 
     void contract(
             ConstTensorImplPtr A,
@@ -65,18 +43,6 @@ public:
     // => Order-2 Operations <= //
 
     std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const;
-    std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const;
-    std::map<std::string, TensorImplPtr> svd() const;
-
-    TensorImplPtr cholesky() const;
-    std::map<std::string, TensorImplPtr> lu() const;
-    std::map<std::string, TensorImplPtr> qr() const;
-
-    TensorImplPtr cholesky_inverse() const;
-    TensorImplPtr inverse() const;
-    TensorImplPtr power(double power, double condition = 1.0E-12) const;
-
-    void givens(int dim, int i, int j, double s, double c);
 
 private:
 
@@ -89,10 +55,13 @@ private:
     void copyFromElemental1(const El::DistMatrix<double, El::VR, El::STAR>& x);
 #endif
 
-    CTF_Tensor *data_;
+    CTF_Tensor *cyclops_;
 };
 
 }
+
+typedef cyclops::CyclopsTensorImpl* CyclopsTensorImplPtr;
+typedef const cyclops::CyclopsTensorImpl* ConstCyclopsTensorImplPtr;
 }
 
 #endif

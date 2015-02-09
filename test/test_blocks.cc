@@ -248,7 +248,7 @@ double test_block_labels1()
 int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
-    srand (time(NULL));
+    srand (time(nullptr));
     tensor::initialize(argc, argv);
 
 

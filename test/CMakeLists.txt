@@ -11,10 +11,20 @@ set(TEST_SLICE_SOURCES
     test_slice.cc
 )
 
-# build static libray
+
 add_executable(test_slice ${TEST_SLICE_SOURCES})
 add_dependencies(test_slice tensor)
 target_link_libraries(test_slice tensor ${Boost_LIBRARIES})
+
+if(ENABLE_CYCLOPS)
+    set(TEST_CYCLOPS_SOURCES
+        test_cyclops.cc
+    )
+
+    add_executable(test_cyclops ${TEST_CYCLOPS_SOURCES})
+    add_dependencies(test_cyclops tensor)
+    target_link_libraries(test_cyclops tensor ${Boost_LIBRARIES})
+endif()
 
 set(TEST_HF_SOURCES
     test_hf.cc
