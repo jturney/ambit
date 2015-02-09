@@ -116,6 +116,8 @@ public:
 
     /// @return The name of the tensor for use in printing
     std::string name() const;
+    /// @return The number of indices in the tensor
+    size_t rank() const;
     /// @return The number of blocks
     size_t numblocks() const;
 
@@ -219,6 +221,7 @@ public:
 private:
 
     std::string name_;
+    std::size_t rank_;
     std::map<std::vector<size_t>,Tensor> blocks_;
 
     /// A vector of MOSpace objects

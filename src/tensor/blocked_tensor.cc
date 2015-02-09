@@ -6,7 +6,7 @@
 
 namespace tensor {
 
-// Static members
+// Static members of BlockedTensor
 std::vector<MOSpace> BlockedTensor::mo_spaces_;
 std::map<std::string,size_t> BlockedTensor::name_to_mo_space_;
 std::map<std::string,std::vector<size_t>> BlockedTensor::composite_name_to_mo_spaces_;
@@ -27,7 +27,6 @@ void MOSpace::print()
            boost::algorithm::join(mo_indices_, ",").c_str(),
            boost::algorithm::join(mo_list, ",").c_str());
 }
-
 
 void BlockedTensor::add_mo_space(const std::string& name,const std::string& mo_indices,std::vector<size_t> mos,MOSpaceSpinType spin)
 {
@@ -100,7 +99,7 @@ void BlockedTensor::reset_mo_spaces()
     index_to_mo_spaces_.clear();
 }
 
-BlockedTensor::BlockedTensor()
+BlockedTensor::BlockedTensor() : rank_(0)
 {
 }
 
@@ -109,6 +108,7 @@ BlockedTensor BlockedTensor::build(TensorType type, const std::string& name, con
     BlockedTensor newObject;
 
     newObject.set_name(name);
+    newObject.rank_ = 0;
 
     std::vector<std::vector<size_t>> tensor_blocks;
 
@@ -159,6 +159,15 @@ BlockedTensor BlockedTensor::build(TensorType type, const std::string& name, con
             mo_names += mo_spaces_[ms].name();
         }
         newObject.blocks_[this_block] = Tensor::build(type,name + "[" + mo_names + "]",dims);
+
+        // Set or check the rank
+        if (newObject.rank_ > 0){
+            if (newObject.rank_ != this_block.size()){
+                throw std::runtime_error("Attempting to create the BlockedTensor \"" + name + "\" with nonunique rank.");
+            }
+        }else{
+            newObject.rank_ = this_block.size();
+        }
     }
 
 //    newObject.print(stdout);
@@ -173,6 +182,11 @@ size_t BlockedTensor::numblocks() const
 std::string BlockedTensor::name() const
 {
     return name_;
+}
+
+size_t BlockedTensor::rank() const
+{
+    return rank_;
 }
 
 void BlockedTensor::set_name(const std::string& name)
@@ -246,9 +260,11 @@ LabeledBlockedTensor BlockedTensor::operator()(const std::string& indices)
     return LabeledBlockedTensor(*this, indices::split(indices));
 }
 
-LabeledBlockedTensor::LabeledBlockedTensor(BlockedTensor T, const std::vector<std::string>& indices, double factor)
+LabeledBlockedTensor::LabeledBlockedTensor(BlockedTensor BT, const std::vector<std::string>& indices, double factor)
+    : BT_(BT), indices_(indices), factor_(factor)
 {
-
+    if (BT_.rank() != indices.size())
+    throw std::runtime_error("Labeled tensor does not have correct number of indices for underlying tensor's rank");
 }
 
 }

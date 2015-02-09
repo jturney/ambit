@@ -170,6 +170,14 @@ double test_block_creation3()
     return 0.0;
 }
 
+double test_block_creation_bad_rank()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+    BlockedTensor::build(kCore,"T",{"oo","ovv"});
+    return 0.0;
+}
 
 double test_block_norm_1()
 {
@@ -227,6 +235,16 @@ double test_block_scale()
     return diff;
 }
 
+double test_block_labels1()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+    BlockedTensor T = BlockedTensor::build(kCore,"T",{"oo","vv"});
+    T("ij");
+    return 0.0;
+}
+
 int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
@@ -254,11 +272,13 @@ int main(int argc, char* argv[])
             std::make_tuple(kPass,      test_block_creation1,               "Testing blocked tensor creation (1)"),
             std::make_tuple(kPass,      test_block_creation2,               "Testing blocked tensor creation (2)"),
             std::make_tuple(kPass,      test_block_creation3,               "Testing blocked tensor creation (3)"),
+            std::make_tuple(kException, test_block_creation_bad_rank,       "Testing blocked tensor creation with variable rank"),
             std::make_tuple(kPass,      test_block_norm_1,                  "Testing blocked tensor 1-norm"),
             std::make_tuple(kPass,      test_block_norm_2,                  "Testing blocked tensor 2-norm"),
             std::make_tuple(kPass,      test_block_norm_3,                  "Testing blocked tensor inf-norm"),
             std::make_tuple(kPass,      test_block_zero,                    "Testing blocked tensor zero"),
             std::make_tuple(kPass,      test_block_scale,                   "Testing blocked tensor scale"),
+            std::make_tuple(kPass,      test_block_labels1,                 "Testing blocked tensor labeling (1)"),
     };
 
     std::vector<std::tuple<std::string,TestResult,double>> results;
