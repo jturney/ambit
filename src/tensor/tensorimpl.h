@@ -8,8 +8,6 @@
 #include <tensor/tensor.h>
 #include "macros.h"
 
-#include <boost/shared_ptr.hpp>
-
 namespace tensor {
 
 typedef TensorImpl* TensorImplPtr;
