@@ -24,14 +24,14 @@ public:
     /**
      * Constructor.
      *
-     * @param name            The MO space label.
+     * @param name            The MO space name.
      * @param mo_indices      The MO indices that identify this space.
      * @param mos             The list of MOs that belong to this space.
      * @param spin            The spin of this MO space.
      *
      * Example of use:
      *  // Create a space of alpha occupied orbitals.
-     *  MOSpace alpha_occupied("o","i,j,k,l",{0,1,2,3,4},Alpha);
+     *  MOSpace alpha_occupied("o","i,j,k,l",{0,1,2,3,4},AlphaSpin);
      */
     MOSpace(std::string name,std::string mo_indices,std::vector<size_t> mos,MOSpaceSpinType spin);
 
@@ -72,11 +72,11 @@ private:
  * This class holds several tensors, blocked according to spin and MO spaces.
  *
  * Sample usage:
- *  BlockedTensor::add_mo_space("O" ,"i,j,k,l"    ,{0,1,2,3,4});
- *  BlockedTensor::add_mo_space("V" ,"a,b,c,d"    ,{7,8,9});
- *  BlockedTensor::add_mo_space("I" ,"p,q,r,s,t"  ,{"O","A","V"}); // create a composite space
- *  BlockedTensor::add_mo_space("A" ,"u,v,w,x,y,z",{5,6});
- *  BlockedTensor::add_mo_space("H" ,"m,n"        ,{"O","A"});
+ *  BlockedTensor::add_mo_space("O" ,"i,j,k,l"    ,{0,1,2,3,4},AlphaSpin);
+ *  BlockedTensor::add_mo_space("V" ,"a,b,c,d"    ,{7,8,9},AlphaSpin);
+ *  BlockedTensor::add_mo_space("I" ,"p,q,r,s,t"  ,{"O","A","V"});          // create a composite space
+ *  BlockedTensor::add_mo_space("A" ,"u,v,w,x,y,z",{5,6},AlphaSpin);
+ *  BlockedTensor::add_mo_space("H" ,"m,n"        ,{"O","A"});              // BlockedTensor can deal with redundant spaces
  *  BlockedTensor::add_mo_space("P" ,"e,f"        ,{"A","V"});
  *
  *  BlockedTensor T("T","O,O,V,V");
@@ -88,6 +88,9 @@ class BlockedTensor {
 public:
 
     // => Constructors <= //
+
+    /// Default constructor.  Does nothing.
+    BlockedTensor();
 
     /**
      * Build a BlockedTensor object
@@ -108,7 +111,6 @@ public:
     static void reset_mo_spaces();
     static void print_mo_spaces();
 
-    BlockedTensor();
 
     // => Accessors <= //
 
@@ -133,34 +135,17 @@ public:
      * underlying tensor object supports a raw data vector. This is only the
      * case if the underlying tensor is of type kCore.
      *
-     * This routine is intended to facilitate rapid filling of data into a
-     * kCore buffer tensor, following which the user may stripe the buffer
-     * tensor into a kDisk or kDistributed tensor via slice operations.
-     *
-     * If a vector is successfully returned, it points to the unrolled data of
-     * the tensor, with the right-most dimensions running fastest and left-most
-     * dimensions running slowest.
-     *
-     * Example successful use case:
-     *  Tensor A = Tensor::build(kCore, "A3", {4,5,6});
-     *  std::vector<double>& Av = A.data();
-     *  double* Ap = Av.data(); // In case the raw pointer is needed
-     *  In this case, Av[0] = A(0,0,0), Av[1] = A(0,0,1), etc.
-     *
-     *  Tensor B = Tensor::build(kDisk, "B3", {4,5,6});
-     *  std::vector<double>& Bv = B.data(); // throws
-     *
      * Results:
      *  @return data pointer, if tensor object supports it
      **/
-    /// Return a Tensor object that corresponds to a given orbital class
-    Tensor block(const std::string& block_indices);
+//    /// Return a Tensor object that corresponds to a given orbital class
+//    Tensor block(const std::string& block_indices);
 
-    /// Is this block present?
-    bool is_block(const std::string& block_indices);
+//    /// Is this block present?
+//    bool is_block(const std::string& block_indices);
 
-    /// @return The
-    std::map<std::vector<size_t>,Tensor>& blocks() {return blocks_;}
+//    /// @return The
+//    std::map<std::vector<size_t>,Tensor>& blocks() {return blocks_;}
 
     // => BLAS-Type Tensor Operations <= //
 
@@ -191,10 +176,16 @@ public:
     void scale(double beta = 0.0);
 
     /**
-     * Copy the data of other into this tensor.
-     * Note: this just drops into slice
+     * Set the tensor elemets to gamma, e.g.:
+     *  C = gamma
      **/
-    void copy(const BlockedTensor& other);
+    void set(double gamma);
+
+//    /**
+//     * Copy the data of other into this tensor.
+//     * Note: this just drops into slice
+//     **/
+//    void copy(const BlockedTensor& other);
 
     /**
      * Perform the contraction:

@@ -180,6 +180,56 @@ void BlockedTensor::set_name(const std::string& name)
     name_ = name;
 }
 
+double BlockedTensor::norm(int type) const
+{
+    if (type == 0) {
+        double val = 0.0;
+        for (auto block_tensor : blocks_){
+            val = std::max(val, std::fabs(block_tensor.second.norm(type)));
+        }
+        return val;
+    } else if (type == 1) {
+        double val = 0.0;
+        for (auto block_tensor : blocks_){
+            val += std::fabs(block_tensor.second.norm(type));
+        }
+        return val;
+    } else if (type == 2) {
+        double val = 0.0;
+        for (auto block_tensor : blocks_){
+            val += std::pow(block_tensor.second.norm(type),2.0);
+        }
+        return sqrt(val);
+    } else {
+        throw std::runtime_error("Norm must be 0 (infty-norm), 1 (1-norm), or 2 (2-norm)");
+    }
+    return 0.0;
+}
+
+
+void BlockedTensor::zero()
+{
+    for (auto block_tensor : blocks_){
+        block_tensor.second.zero();
+    }
+}
+
+void BlockedTensor::scale(double beta)
+{
+    for (auto block_tensor : blocks_){
+        block_tensor.second.scale(beta);
+    }
+}
+
+void BlockedTensor::set(double gamma)
+{
+    for (auto block_tensor : blocks_){
+        std::vector<double>& data = block_tensor.second.data();
+        for (size_t i = 0L; i < data.size(); ++i){
+            data[i] = gamma;
+        }
+    }
+}
 
 void BlockedTensor::print(FILE *fh, bool level, std::string const &format, int maxcols) const
 {
@@ -189,6 +239,16 @@ void BlockedTensor::print(FILE *fh, bool level, std::string const &format, int m
         fprintf(fh, "\n");
         kv.second.print(fh, level, format, maxcols);
     }
+}
+
+LabeledBlockedTensor BlockedTensor::operator()(const std::string& indices)
+{
+    return LabeledBlockedTensor(*this, indices::split(indices));
+}
+
+LabeledBlockedTensor::LabeledBlockedTensor(BlockedTensor T, const std::vector<std::string>& indices, double factor)
+{
+
 }
 
 }
