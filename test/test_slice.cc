@@ -1439,6 +1439,133 @@ double try_permute_size_fail()
     return 0.0;
 }
 
+double try_contract_label_fail()
+{
+    Dimension Cdims = {3,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("i") = A("ik") * B("jk");
+
+    return 0.0;
+}
+double try_contract_einsum_fail1()
+{
+    Dimension Cdims = {3};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("i") = A("ik") * B("jk");
+
+    return 0.0;
+}
+double try_contract_einsum_fail2()
+{
+    Dimension Cdims = {3};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("ij") = A("ji") * B("jj");
+
+    return 0.0;
+}
+double try_contract_size_fail1()
+{
+    Dimension Cdims = {2,2,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {2,3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {2,4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("Pij") = A("Pik") * B("Pjk");
+
+    return 0.0;
+}
+double try_contract_size_fail2()
+{
+    Dimension Cdims = {2,3,3};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {2,3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {2,4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("Pij") = A("Pik") * B("Pjk");
+
+    return 0.0;
+}
+double try_contract_size_fail3()
+{
+    Dimension Cdims = {2,3,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {2,3,4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {2,4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("Pij") = A("Pik") * B("Pjk");
+
+    return 0.0;
+}
+double try_contract_size_fail4()
+{
+    Dimension Cdims = {1,3,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {2,3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {2,4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("Pij") = A("Pik") * B("Pjk");
+
+    return 0.0;
+}
+
 int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
@@ -1717,6 +1844,23 @@ int main(int argc, char* argv[])
     printf("%s\n",std::string(82,'-').c_str());
     printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
 
+    printf("==> Contract Exceptions <==\n\n");
+    success = true;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("%-50s %-9s %-9s %11s\n", "Description", "Expected", "Observed", "Delta");
+    mode = 0; alpha = 1.0; beta = 0.0;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_contract_label_fail  , "Contract Label Fail"   , kException);
+    success &= test_function(try_contract_einsum_fail1, "Contract Einsum Fail 1", kException);
+    success &= test_function(try_contract_einsum_fail2, "Contract Einsum Fail 2", kException);
+    success &= test_function(try_contract_size_fail1,   "Contract Size Fail 1"  , kException);
+    success &= test_function(try_contract_size_fail2,   "Contract Size Fail 2"  , kException);
+    success &= test_function(try_contract_size_fail3,   "Contract Size Fail 3"  , kException);
+    success &= test_function(try_contract_size_fail4,   "Contract Size Fail 4"  , kException);
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
 
     tensor::finalize();
 
