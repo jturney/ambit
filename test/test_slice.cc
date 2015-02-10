@@ -260,7 +260,7 @@ double try_scale()
     return relative_difference(A1,A2);
 }
 
-double try_slice_rank0()
+double try_slice_rank0_same1()
 {
     Dimension Cdims = {};
     Tensor C1 = Tensor::build(kCore, "C1", Cdims);
@@ -269,6 +269,7 @@ double try_slice_rank0()
 
     Dimension Adims = {};
     Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
 
     if (mode == 0) C1.slice(A,{},{},alpha,beta);
     else if (mode == 1) C1() = A();
@@ -282,18 +283,627 @@ double try_slice_rank0()
 
     return relative_difference(C1,C2);
 }
-double try_slice_rank3()
+
+double try_slice_rank1_same1()
 {
-    Dimension Adims = {4,5,6};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
-    Tensor A2 = Tensor::build(kCore, "A2", Adims);
-    initialize_random(A1, A2);
+    Dimension Cdims = {4};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
 
-    A1.zero();
-    A1.slice(A2,{{0,4},{0,5},{0,6}},{{0,4},{0,5},{0,6}});
+    Dimension Adims = {4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
 
-    return relative_difference(A1,A2);
+    IndexRange Cinds = {{0L,4L}};
+    IndexRange Ainds = {{0L,4L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1() = A();
+    else if (mode == 2) C1() += A();
+    else if (mode == 3) C1() -= A();
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        Cv[(i + Cinds[0][0])] =
+        alpha * Av[(i + Ainds[0][0])] +
+        beta * Cv[(i + Cinds[0][0])];
+    } 
+
+    return relative_difference(C1,C2);
 }
+double try_slice_rank1_same2()
+{
+    Dimension Cdims = {4};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{1L,3L}};
+    IndexRange Ainds = {{2L,4L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        Cv[(i + Cinds[0][0])] =
+        alpha * Av[(i + Ainds[0][0])] +
+        beta * Cv[(i + Cinds[0][0])];
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank1_diff1()
+{
+    Dimension Cdims = {4};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {3};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{1L,4L}};
+    IndexRange Ainds = {{0L,3L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        Cv[(i + Cinds[0][0])] =
+        alpha * Av[(i + Ainds[0][0])] +
+        beta * Cv[(i + Cinds[0][0])];
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank1_diff2()
+{
+    Dimension Cdims = {4};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {3};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{2L,4L}};
+    IndexRange Ainds = {{1L,3L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        Cv[(i + Cinds[0][0])] =
+        alpha * Av[(i + Ainds[0][0])] +
+        beta * Cv[(i + Cinds[0][0])];
+    } 
+
+    return relative_difference(C1,C2);
+}
+
+double try_slice_rank2_same1()
+{
+    Dimension Cdims = {4,5};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{0L,4L},{0L,5L}};
+    IndexRange Ainds = {{0L,4L},{0L,5L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1() = A();
+    else if (mode == 2) C1() += A();
+    else if (mode == 3) C1() -= A();
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])] =
+            alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
+            beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank2_same2()
+{
+    Dimension Cdims = {4,5};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{1L,3L},{0L,5L}};
+    IndexRange Ainds = {{2L,4L},{0L,5L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])] = 
+            alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
+            beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank2_same3()
+{
+    Dimension Cdims = {4,5};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{1L,3L},{2L,5L}};
+    IndexRange Ainds = {{2L,4L},{1L,4L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])] =
+            alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
+            beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank2_diff1()
+{
+    Dimension Cdims = {4,5};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {3,4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{1L,4L},{1L,5L}};
+    IndexRange Ainds = {{0L,3L},{0L,4L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])] =
+            alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
+            beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank2_diff2()
+{
+    Dimension Cdims = {4,5};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {3,4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{2L,4L},{1L,5L}};
+    IndexRange Ainds = {{1L,3L},{0L,4L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])] =
+            alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
+            beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank2_diff3()
+{
+    Dimension Cdims = {4,5};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {3,4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{2L,4L},{2L,5L}};
+    IndexRange Ainds = {{1L,3L},{1L,4L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])] =
+            alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
+            beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+
+double try_slice_rank3_same1()
+{
+    Dimension Cdims = {4,5,6};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4,5,6};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{0L,4L},{0L,5L},{0L,6L}};
+    IndexRange Ainds = {{0L,4L},{0L,5L},{0L,6L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1() = A();
+    else if (mode == 2) C1() += A();
+    else if (mode == 3) C1() -= A();
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            for (size_t k = 0; k < Cinds[2][1] - Cinds[2][0]; k++) {
+                Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])] =
+                alpha * Av[(i + Ainds[0][0]) * Adims[1] * Adims[2] + (j + Ainds[1][0]) * Adims[2] + (k + Ainds[2][0])] +
+                beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
+            }
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank3_same2()
+{
+    Dimension Cdims = {4,5,6};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4,5,6};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{1L,3L},{0L,5L},{0L,6L}};
+    IndexRange Ainds = {{2L,4L},{0L,5L},{0L,6L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            for (size_t k = 0; k < Cinds[2][1] - Cinds[2][0]; k++) {
+                Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])] =
+                alpha * Av[(i + Ainds[0][0]) * Adims[1] * Adims[2] + (j + Ainds[1][0]) * Adims[2] + (k + Ainds[2][0])] +
+                beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
+            }
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank3_same3()
+{
+    Dimension Cdims = {4,5,6};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4,5,6};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{1L,3L},{2L,5L},{0L,6L}};
+    IndexRange Ainds = {{2L,4L},{1L,4L},{0L,6L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            for (size_t k = 0; k < Cinds[2][1] - Cinds[2][0]; k++) {
+                Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])] =
+                alpha * Av[(i + Ainds[0][0]) * Adims[1] * Adims[2] + (j + Ainds[1][0]) * Adims[2] + (k + Ainds[2][0])] +
+                beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
+            }
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank3_same4()
+{
+    Dimension Cdims = {4,5,6};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4,5,6};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{1L,3L},{2L,5L},{2L,4L}};
+    IndexRange Ainds = {{2L,4L},{1L,4L},{3L,5L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            for (size_t k = 0; k < Cinds[2][1] - Cinds[2][0]; k++) {
+                Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])] =
+                alpha * Av[(i + Ainds[0][0]) * Adims[1] * Adims[2] + (j + Ainds[1][0]) * Adims[2] + (k + Ainds[2][0])] +
+                beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
+            }
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank3_diff1()
+{
+    Dimension Cdims = {4,5,6};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {3,4,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{1L,4L},{1L,5L},{1L,6L}};
+    IndexRange Ainds = {{0L,3L},{0L,4L},{0L,5L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            for (size_t k = 0; k < Cinds[2][1] - Cinds[2][0]; k++) {
+                Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])] =
+                alpha * Av[(i + Ainds[0][0]) * Adims[1] * Adims[2] + (j + Ainds[1][0]) * Adims[2] + (k + Ainds[2][0])] +
+                beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
+            }
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank3_diff2()
+{
+    Dimension Cdims = {4,5,6};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {3,4,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{2L,4L},{1L,5L},{1L,6L}};
+    IndexRange Ainds = {{1L,3L},{0L,4L},{0L,5L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            for (size_t k = 0; k < Cinds[2][1] - Cinds[2][0]; k++) {
+                Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])] =
+                alpha * Av[(i + Ainds[0][0]) * Adims[1] * Adims[2] + (j + Ainds[1][0]) * Adims[2] + (k + Ainds[2][0])] +
+                beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
+            }
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank3_diff3()
+{
+    Dimension Cdims = {4,5,6};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {3,4,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{2L,4L},{2L,5L},{1L,6L}};
+    IndexRange Ainds = {{1L,3L},{1L,4L},{0L,5L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            for (size_t k = 0; k < Cinds[2][1] - Cinds[2][0]; k++) {
+                Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])] =
+                alpha * Av[(i + Ainds[0][0]) * Adims[1] * Adims[2] + (j + Ainds[1][0]) * Adims[2] + (k + Ainds[2][0])] +
+                beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
+            }
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+double try_slice_rank3_diff4()
+{
+    Dimension Cdims = {4,5,6};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {3,4,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+
+    IndexRange Cinds = {{2L,4L},{2L,5L},{2L,6L}};
+    IndexRange Ainds = {{1L,3L},{1L,4L},{1L,5L}};
+
+    if (mode == 0) C1.slice(A,Cinds,Ainds,alpha,beta);
+    else if (mode == 1) C1(Cinds) = A(Ainds);
+    else if (mode == 2) C1(Cinds) += A(Ainds);
+    else if (mode == 3) C1(Cinds) -= A(Ainds);
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
+        for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
+            for (size_t k = 0; k < Cinds[2][1] - Cinds[2][0]; k++) {
+                Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])] =
+                alpha * Av[(i + Ainds[0][0]) * Adims[1] * Adims[2] + (j + Ainds[1][0]) * Adims[2] + (k + Ainds[2][0])] +
+                beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
+            }
+        }
+    } 
+
+    return relative_difference(C1,C2);
+}
+
+double try_slice_label_fail()
+{
+    Tensor C1 = Tensor::build(kCore, "C1", {4,5});
+    Tensor C2 = Tensor::build(kCore, "C2", {4,5});
+
+    C1((IndexRange){{0L,4L}}) = C2(); 
+    return 0.0;
+}
+double try_slice_rank_fail()
+{
+    Tensor C1 = Tensor::build(kCore, "C1", {4,5});
+    Tensor C2 = Tensor::build(kCore, "C2", {4});
+   
+    C1() = C2(); 
+    return 0.0;
+}
+double try_slice_size_fail()
+{
+    Tensor C1 = Tensor::build(kCore, "C1", {4,5});
+    Tensor C2 = Tensor::build(kCore, "C2", {4,5});
+   
+    C1({{0,4},{0,4}}) = C2(); 
+    return 0.0;
+}
+double try_slice_bounds_fail()
+{
+    Tensor C1 = Tensor::build(kCore, "C1", {4,5});
+    Tensor C2 = Tensor::build(kCore, "C2", {4,5});
+   
+    C1({{0,6},{0,5}}) = C2({{0,6},{0,5}}); 
+    return 0.0;
+}
+
 
 double try_permute_rank0()
 {
@@ -304,6 +914,7 @@ double try_permute_rank0()
 
     Dimension Adims = {};
     Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
 
     if (mode == 0) C1.permute(A,{},{},alpha,beta);
     else if (mode == 1) C1("") = A("");
@@ -859,27 +1470,132 @@ int main(int argc, char* argv[])
     printf("%s\n",std::string(82,'-').c_str());
     printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
     printf("%s\n",std::string(82,'-').c_str());
-    success &= test_function(try_slice_rank0        , "Slice Rank-0"      , kExact);
+    success &= test_function(try_slice_rank0_same1  , "Slice Rank-0 Same 1", kExact);
+    success &= test_function(try_slice_rank1_same1  , "Slice Rank-1 Same 1", kExact);
+    success &= test_function(try_slice_rank1_same2  , "Slice Rank-1 Same 2", kExact);
+    success &= test_function(try_slice_rank1_diff1  , "Slice Rank-1 Diff 1", kExact);
+    success &= test_function(try_slice_rank1_diff2  , "Slice Rank-1 Diff 2", kExact);
+    success &= test_function(try_slice_rank2_same1  , "Slice Rank-2 Same 1", kExact);
+    success &= test_function(try_slice_rank2_same2  , "Slice Rank-2 Same 2", kExact);
+    success &= test_function(try_slice_rank2_same3  , "Slice Rank-2 Same 3", kExact);
+    success &= test_function(try_slice_rank2_diff1  , "Slice Rank-2 Diff 1", kExact);
+    success &= test_function(try_slice_rank2_diff2  , "Slice Rank-2 Diff 2", kExact);
+    success &= test_function(try_slice_rank2_diff3  , "Slice Rank-2 Diff 3", kExact);
+    success &= test_function(try_slice_rank3_same1  , "Slice Rank-3 Same 1", kExact);
+    success &= test_function(try_slice_rank3_same2  , "Slice Rank-3 Same 2", kExact);
+    success &= test_function(try_slice_rank3_same3  , "Slice Rank-3 Same 3", kExact);
+    success &= test_function(try_slice_rank3_same4  , "Slice Rank-3 Same 4", kExact);
+    success &= test_function(try_slice_rank3_diff1  , "Slice Rank-3 Diff 1", kExact);
+    success &= test_function(try_slice_rank3_diff2  , "Slice Rank-3 Diff 2", kExact);
+    success &= test_function(try_slice_rank3_diff3  , "Slice Rank-3 Diff 3", kExact);
+    success &= test_function(try_slice_rank3_diff4  , "Slice Rank-3 Diff 4", kExact);
     mode = 0; alpha = random_double(); beta = random_double();
     printf("%s\n",std::string(82,'-').c_str());
     printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
     printf("%s\n",std::string(82,'-').c_str());
-    success &= test_function(try_slice_rank0        , "Slice Rank-0"      , kExact);
+    success &= test_function(try_slice_rank0_same1  , "Slice Rank-0 Same 1", kExact);
+    success &= test_function(try_slice_rank1_same1  , "Slice Rank-1 Same 1", kExact);
+    success &= test_function(try_slice_rank1_same2  , "Slice Rank-1 Same 2", kExact);
+    success &= test_function(try_slice_rank1_diff1  , "Slice Rank-1 Diff 1", kExact);
+    success &= test_function(try_slice_rank1_diff2  , "Slice Rank-1 Diff 2", kExact);
+    success &= test_function(try_slice_rank2_same1  , "Slice Rank-2 Same 1", kExact);
+    success &= test_function(try_slice_rank2_same2  , "Slice Rank-2 Same 2", kExact);
+    success &= test_function(try_slice_rank2_same3  , "Slice Rank-2 Same 3", kExact);
+    success &= test_function(try_slice_rank2_diff1  , "Slice Rank-2 Diff 1", kExact);
+    success &= test_function(try_slice_rank2_diff2  , "Slice Rank-2 Diff 2", kExact);
+    success &= test_function(try_slice_rank2_diff3  , "Slice Rank-2 Diff 3", kExact);
+    success &= test_function(try_slice_rank3_same1  , "Slice Rank-3 Same 1", kExact);
+    success &= test_function(try_slice_rank3_same2  , "Slice Rank-3 Same 2", kExact);
+    success &= test_function(try_slice_rank3_same3  , "Slice Rank-3 Same 3", kExact);
+    success &= test_function(try_slice_rank3_same4  , "Slice Rank-3 Same 4", kExact);
+    success &= test_function(try_slice_rank3_diff1  , "Slice Rank-3 Diff 1", kExact);
+    success &= test_function(try_slice_rank3_diff2  , "Slice Rank-3 Diff 2", kExact);
+    success &= test_function(try_slice_rank3_diff3  , "Slice Rank-3 Diff 3", kExact);
+    success &= test_function(try_slice_rank3_diff4  , "Slice Rank-3 Diff 4", kExact);
     mode = 1; alpha = 1.0; beta = 0.0;
     printf("%s\n",std::string(82,'-').c_str());
     printf("Operator Overloading: =\n");
     printf("%s\n",std::string(82,'-').c_str());
-    success &= test_function(try_slice_rank0        , "Slice Rank-0"      , kExact);
+    success &= test_function(try_slice_rank0_same1  , "Slice Rank-0 Same 1", kExact);
+    success &= test_function(try_slice_rank1_same1  , "Slice Rank-1 Same 1", kExact);
+    success &= test_function(try_slice_rank1_same2  , "Slice Rank-1 Same 2", kExact);
+    success &= test_function(try_slice_rank1_diff1  , "Slice Rank-1 Diff 1", kExact);
+    success &= test_function(try_slice_rank1_diff2  , "Slice Rank-1 Diff 2", kExact);
+    success &= test_function(try_slice_rank2_same1  , "Slice Rank-2 Same 1", kExact);
+    success &= test_function(try_slice_rank2_same2  , "Slice Rank-2 Same 2", kExact);
+    success &= test_function(try_slice_rank2_same3  , "Slice Rank-2 Same 3", kExact);
+    success &= test_function(try_slice_rank2_diff1  , "Slice Rank-2 Diff 1", kExact);
+    success &= test_function(try_slice_rank2_diff2  , "Slice Rank-2 Diff 2", kExact);
+    success &= test_function(try_slice_rank2_diff3  , "Slice Rank-2 Diff 3", kExact);
+    success &= test_function(try_slice_rank3_same1  , "Slice Rank-3 Same 1", kExact);
+    success &= test_function(try_slice_rank3_same2  , "Slice Rank-3 Same 2", kExact);
+    success &= test_function(try_slice_rank3_same3  , "Slice Rank-3 Same 3", kExact);
+    success &= test_function(try_slice_rank3_same4  , "Slice Rank-3 Same 4", kExact);
+    success &= test_function(try_slice_rank3_diff1  , "Slice Rank-3 Diff 1", kExact);
+    success &= test_function(try_slice_rank3_diff2  , "Slice Rank-3 Diff 2", kExact);
+    success &= test_function(try_slice_rank3_diff3  , "Slice Rank-3 Diff 3", kExact);
+    success &= test_function(try_slice_rank3_diff4  , "Slice Rank-3 Diff 4", kExact);
     mode = 2; alpha = 1.0; beta = 1.0;
     printf("%s\n",std::string(82,'-').c_str());
     printf("Operator Overloading: +=\n");
     printf("%s\n",std::string(82,'-').c_str());
-    success &= test_function(try_slice_rank0        , "Slice Rank-0"      , kExact);
+    success &= test_function(try_slice_rank0_same1  , "Slice Rank-0 Same 1", kExact);
+    success &= test_function(try_slice_rank1_same1  , "Slice Rank-1 Same 1", kExact);
+    success &= test_function(try_slice_rank1_same2  , "Slice Rank-1 Same 2", kExact);
+    success &= test_function(try_slice_rank1_diff1  , "Slice Rank-1 Diff 1", kExact);
+    success &= test_function(try_slice_rank1_diff2  , "Slice Rank-1 Diff 2", kExact);
+    success &= test_function(try_slice_rank2_same1  , "Slice Rank-2 Same 1", kExact);
+    success &= test_function(try_slice_rank2_same2  , "Slice Rank-2 Same 2", kExact);
+    success &= test_function(try_slice_rank2_same3  , "Slice Rank-2 Same 3", kExact);
+    success &= test_function(try_slice_rank2_diff1  , "Slice Rank-2 Diff 1", kExact);
+    success &= test_function(try_slice_rank2_diff2  , "Slice Rank-2 Diff 2", kExact);
+    success &= test_function(try_slice_rank2_diff3  , "Slice Rank-2 Diff 3", kExact);
+    success &= test_function(try_slice_rank3_same1  , "Slice Rank-3 Same 1", kExact);
+    success &= test_function(try_slice_rank3_same2  , "Slice Rank-3 Same 2", kExact);
+    success &= test_function(try_slice_rank3_same3  , "Slice Rank-3 Same 3", kExact);
+    success &= test_function(try_slice_rank3_same4  , "Slice Rank-3 Same 4", kExact);
+    success &= test_function(try_slice_rank3_diff1  , "Slice Rank-3 Diff 1", kExact);
+    success &= test_function(try_slice_rank3_diff2  , "Slice Rank-3 Diff 2", kExact);
+    success &= test_function(try_slice_rank3_diff3  , "Slice Rank-3 Diff 3", kExact);
+    success &= test_function(try_slice_rank3_diff4  , "Slice Rank-3 Diff 4", kExact);
     mode = 3; alpha = -1.0; beta = 1.0;
     printf("%s\n",std::string(82,'-').c_str());
     printf("Operator Overloading: -=\n");
     printf("%s\n",std::string(82,'-').c_str());
-    success &= test_function(try_slice_rank0        , "Slice Rank-0"      , kExact);
+    success &= test_function(try_slice_rank0_same1  , "Slice Rank-0 Same 1", kExact);
+    success &= test_function(try_slice_rank1_same1  , "Slice Rank-1 Same 1", kExact);
+    success &= test_function(try_slice_rank1_same2  , "Slice Rank-1 Same 2", kExact);
+    success &= test_function(try_slice_rank1_diff1  , "Slice Rank-1 Diff 1", kExact);
+    success &= test_function(try_slice_rank1_diff2  , "Slice Rank-1 Diff 2", kExact);
+    success &= test_function(try_slice_rank2_same1  , "Slice Rank-2 Same 1", kExact);
+    success &= test_function(try_slice_rank2_same2  , "Slice Rank-2 Same 2", kExact);
+    success &= test_function(try_slice_rank2_same3  , "Slice Rank-2 Same 3", kExact);
+    success &= test_function(try_slice_rank2_diff1  , "Slice Rank-2 Diff 1", kExact);
+    success &= test_function(try_slice_rank2_diff2  , "Slice Rank-2 Diff 2", kExact);
+    success &= test_function(try_slice_rank2_diff3  , "Slice Rank-2 Diff 3", kExact);
+    success &= test_function(try_slice_rank3_same1  , "Slice Rank-3 Same 1", kExact);
+    success &= test_function(try_slice_rank3_same2  , "Slice Rank-3 Same 2", kExact);
+    success &= test_function(try_slice_rank3_same3  , "Slice Rank-3 Same 3", kExact);
+    success &= test_function(try_slice_rank3_same4  , "Slice Rank-3 Same 4", kExact);
+    success &= test_function(try_slice_rank3_diff1  , "Slice Rank-3 Diff 1", kExact);
+    success &= test_function(try_slice_rank3_diff2  , "Slice Rank-3 Diff 2", kExact);
+    success &= test_function(try_slice_rank3_diff3  , "Slice Rank-3 Diff 3", kExact);
+    success &= test_function(try_slice_rank3_diff4  , "Slice Rank-3 Diff 4", kExact);
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
+
+    printf("==> Slice Exceptions <==\n\n");
+    success = true;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("%-50s %-9s %-9s %11s\n", "Description", "Expected", "Observed", "Delta");
+    mode = 0; alpha = 1.0; beta = 0.0;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_slice_label_fail  , "Slice Label Fail"   , kException);
+    success &= test_function(try_slice_rank_fail   , "Slice Rank Fail"    , kException);
+    success &= test_function(try_slice_size_fail   , "Slice Size Fail"    , kException);
+    success &= test_function(try_slice_bounds_fail , "Slice Bounds Fail"  , kException);
     printf("%s\n",std::string(82,'-').c_str());
     printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
 
