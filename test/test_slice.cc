@@ -1703,6 +1703,42 @@ double try_contract_gemv1()
 }
 double try_contract_gemv2()
 {
+    Dimension Cdims = {4};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {5,4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{"i"},{"j","i"},{"j"},alpha,beta);
+    else if (mode == 1) C1("i") =  A("ji") * B("j");
+    else if (mode == 2) C1("i") += A("ji") * B("j");
+    else if (mode == 3) C1("i") -= A("ji") * B("j");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (int i = 0; i < Adims[1]; i++) {
+        Cv[i] = beta * Cv[i];
+        for (int j = 0; j < Adims[0]; j++) {
+            Cv[i] += alpha * 
+            Av[j * Adims[1] + i] * 
+            Bv[j];
+        }
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_contract_gemv3()
+{
     Dimension Cdims = {5};
     Tensor C1 = Tensor::build(kCore, "C1", Cdims);
     Tensor C2 = Tensor::build(kCore, "C2", Cdims);
@@ -1732,6 +1768,42 @@ double try_contract_gemv2()
             Cv[j] += alpha * 
             Av[i] * 
             Bv[i*Bdims[1] + j];
+        }
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_contract_gemv4()
+{
+    Dimension Cdims = {5};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {5,4};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{"j"},{"i"},{"j","i"},alpha,beta);
+    else if (mode == 1) C1("j") =  A("i") * B("ji");
+    else if (mode == 2) C1("j") += A("i") * B("ji");
+    else if (mode == 3) C1("j") -= A("i") * B("ji");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (int j = 0; j < Bdims[0]; j++) {
+        Cv[j] = beta * Cv[j];
+        for (int i = 0; i < Bdims[1]; i++) {
+            Cv[j] += alpha * 
+            Av[i] * 
+            Bv[j*Bdims[1] + i];
         }
     }
     
@@ -2244,6 +2316,8 @@ int main(int argc, char* argv[])
     success &= test_function(try_contract_ger2      , "Contract ger 2"       , kEpsilon);
     success &= test_function(try_contract_gemv1     , "Contract gemv 1"      , kEpsilon);
     success &= test_function(try_contract_gemv2     , "Contract gemv 2"      , kEpsilon);
+    success &= test_function(try_contract_gemv3     , "Contract gemv 3"      , kEpsilon);
+    success &= test_function(try_contract_gemv4     , "Contract gemv 4"      , kEpsilon);
     success &= test_function(try_contract_gemm1     , "Contract gemm 1"      , kEpsilon);
     success &= test_function(try_contract_gemm2     , "Contract gemm 2"      , kEpsilon);
     success &= test_function(try_contract_gemm3     , "Contract gemm 3"      , kEpsilon);
@@ -2265,6 +2339,8 @@ int main(int argc, char* argv[])
     success &= test_function(try_contract_ger2      , "Contract ger 2"       , kEpsilon);
     success &= test_function(try_contract_gemv1     , "Contract gemv 1"      , kEpsilon);
     success &= test_function(try_contract_gemv2     , "Contract gemv 2"      , kEpsilon);
+    success &= test_function(try_contract_gemv3     , "Contract gemv 3"      , kEpsilon);
+    success &= test_function(try_contract_gemv4     , "Contract gemv 4"      , kEpsilon);
     success &= test_function(try_contract_gemm1     , "Contract gemm 1"      , kEpsilon);
     success &= test_function(try_contract_gemm2     , "Contract gemm 2"      , kEpsilon);
     success &= test_function(try_contract_gemm3     , "Contract gemm 3"      , kEpsilon);
@@ -2286,6 +2362,8 @@ int main(int argc, char* argv[])
     success &= test_function(try_contract_ger2      , "Contract ger 2"       , kEpsilon);
     success &= test_function(try_contract_gemv1     , "Contract gemv 1"      , kEpsilon);
     success &= test_function(try_contract_gemv2     , "Contract gemv 2"      , kEpsilon);
+    success &= test_function(try_contract_gemv3     , "Contract gemv 3"      , kEpsilon);
+    success &= test_function(try_contract_gemv4     , "Contract gemv 4"      , kEpsilon);
     success &= test_function(try_contract_gemm1     , "Contract gemm 1"      , kEpsilon);
     success &= test_function(try_contract_gemm2     , "Contract gemm 2"      , kEpsilon);
     success &= test_function(try_contract_gemm3     , "Contract gemm 3"      , kEpsilon);
@@ -2307,6 +2385,8 @@ int main(int argc, char* argv[])
     success &= test_function(try_contract_ger2      , "Contract ger 2"       , kEpsilon);
     success &= test_function(try_contract_gemv1     , "Contract gemv 1"      , kEpsilon);
     success &= test_function(try_contract_gemv2     , "Contract gemv 2"      , kEpsilon);
+    success &= test_function(try_contract_gemv3     , "Contract gemv 3"      , kEpsilon);
+    success &= test_function(try_contract_gemv4     , "Contract gemv 4"      , kEpsilon);
     success &= test_function(try_contract_gemm1     , "Contract gemm 1"      , kEpsilon);
     success &= test_function(try_contract_gemm2     , "Contract gemm 2"      , kEpsilon);
     success &= test_function(try_contract_gemm3     , "Contract gemm 3"      , kEpsilon);
@@ -2328,6 +2408,8 @@ int main(int argc, char* argv[])
     success &= test_function(try_contract_ger2      , "Contract ger 2"       , kEpsilon);
     success &= test_function(try_contract_gemv1     , "Contract gemv 1"      , kEpsilon);
     success &= test_function(try_contract_gemv2     , "Contract gemv 2"      , kEpsilon);
+    success &= test_function(try_contract_gemv3     , "Contract gemv 3"      , kEpsilon);
+    success &= test_function(try_contract_gemv4     , "Contract gemv 4"      , kEpsilon);
     success &= test_function(try_contract_gemm1     , "Contract gemm 1"      , kEpsilon);
     success &= test_function(try_contract_gemm2     , "Contract gemm 2"      , kEpsilon);
     success &= test_function(try_contract_gemm3     , "Contract gemm 3"      , kEpsilon);

@@ -300,7 +300,6 @@ void CoreTensorImpl::contract(
     double* A2p = Ap;
     double* B2p = Bp;
 
-    /// TODO: This is ugly. Overall, where do we use shared pointers, references, const references, or object copy?
     shared_ptr<CoreTensorImpl> C2;
     shared_ptr<CoreTensorImpl> B2;
     shared_ptr<CoreTensorImpl> A2;
@@ -361,7 +360,37 @@ void CoreTensorImpl::contract(
         size_t nzip = AB_size;
         size_t ldaC = (C_transpose ? AC_size : BC_size);
 
-        C_DGEMM(transL,transR,nrow,ncol,nzip,alpha,Lp,ldaL,Rp,ldaR,beta,C2p,ldaC);
+        if (nrow == 1L && ncol == 1L && nzip == 1L) {
+            (*C2p) = alpha * (*Lp) * (*Rp) + beta * (*C2p); 
+        } else if (nrow == 1L && ncol == 1L && nzip > 1L) {
+            (*C2p) *= beta;
+            (*C2p) += alpha * C_DDOT(nzip,Lp,1,Rp,1);
+        } else if (nrow == 1L && ncol > 1L && nzip == 1L) {
+            C_DSCAL(ncol,beta,C2p,1);
+            C_DAXPY(ncol,alpha*(*Lp),Rp,1,C2p,1);
+        } else if (nrow > 1L && ncol == 1L && nzip == 1L) {
+            C_DSCAL(nrow,beta,C2p,1);
+            C_DAXPY(nrow,alpha*(*Rp),Lp,1,C2p,1);
+        } else if (nrow > 1L && ncol > 1L && nzip == 1L) {
+            for (size_t row = 0L; row < nrow; row++) {
+                C_DSCAL(ncol,beta,C2p + row * ldaC, 1);
+            }
+            C_DGER(nrow,ncol,alpha,Lp,1,Rp,1,C2p,ldaC);
+        } else if (nrow == 1 && ncol > 1 && nzip > 1) {
+            if (transR == 'N') {
+                C_DGEMV('T',nzip,ncol,alpha,Rp,ldaR,Lp,1,beta,C2p,1);
+            } else {
+                C_DGEMV('N',ncol,nzip,alpha,Rp,ldaR,Lp,1,beta,C2p,1);
+            }
+        } else if (nrow > 1 && ncol == 1 && nzip > 1) {
+            if (transL == 'N') {
+                C_DGEMV('N',nrow,nzip,alpha,Lp,ldaL,Rp,1,beta,C2p,1);
+            } else {
+                C_DGEMV('T',nzip,nrow,alpha,Lp,ldaL,Rp,1,beta,C2p,1);
+            }
+        } else {
+            C_DGEMM(transL,transR,nrow,ncol,nzip,alpha,Lp,ldaL,Rp,ldaR,beta,C2p,ldaC);
+        }
 
         C2p += AC_size * BC_size;
         A2p += AB_size * AC_size;
