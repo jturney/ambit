@@ -35,7 +35,7 @@ void SlicedTensor::operator-=(const SlicedTensor &rhs)
 {
     if (T() == rhs.T()) throw std::runtime_error("Self assignment is not allowed.");
     if (T_.rank() != rhs.T().rank()) throw std::runtime_error("Sliced tensors do not have same rank");
-    T_.slice(rhs.T(), range_, rhs.range_, rhs.factor_, -1.0);
+    T_.slice(rhs.T(), range_, rhs.range_, -rhs.factor_, 1.0);
 }
 
 }

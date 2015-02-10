@@ -262,15 +262,25 @@ double try_scale()
 
 double try_slice_rank0()
 {
+    Dimension Cdims = {};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
     Dimension Adims = {};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
-    Tensor A2 = Tensor::build(kCore, "A2", Adims);
-    initialize_random(A1, A2);
+    Tensor A = Tensor::build(kCore, "A", Adims);
 
-    A1.zero();
-    A1.slice(A2,{},{});
+    if (mode == 0) C1.slice(A,{},{},alpha,beta);
+    else if (mode == 1) C1() = A();
+    else if (mode == 2) C1() += A();
+    else if (mode == 3) C1() -= A();
+    else throw std::runtime_error("Bad mode.");
 
-    return relative_difference(A1,A2);
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Cv = C2.data();
+    Cv[0] = alpha * Av[0] + beta * Cv[0];
+
+    return relative_difference(C1,C2);
 }
 double try_slice_rank3()
 {
@@ -842,14 +852,36 @@ int main(int argc, char* argv[])
     printf("Tests: %s\n\n",success ? "All passed" : "Some failed");
 
     printf("==> Slice Operations <==\n\n");
+    success = true;
     printf("%s\n",std::string(82,'-').c_str());
     printf("%-50s %-9s %-9s %11s\n", "Description", "Expected", "Observed", "Delta");
+    mode = 0; alpha = 1.0; beta = 0.0;
     printf("%s\n",std::string(82,'-').c_str());
-    success = true;
-    success &= test_function(try_slice_rank0        , "Full Slice Rank-0"  , kExact);
-    success &= test_function(try_slice_rank3        , "Full Slice Rank-3"  , kExact);
+    printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
     printf("%s\n",std::string(82,'-').c_str());
-    printf("Tests: %s\n\n",success ? "All passed" : "Some failed");
+    success &= test_function(try_slice_rank0        , "Slice Rank-0"      , kExact);
+    mode = 0; alpha = random_double(); beta = random_double();
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_slice_rank0        , "Slice Rank-0"      , kExact);
+    mode = 1; alpha = 1.0; beta = 0.0;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Operator Overloading: =\n");
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_slice_rank0        , "Slice Rank-0"      , kExact);
+    mode = 2; alpha = 1.0; beta = 1.0;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Operator Overloading: +=\n");
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_slice_rank0        , "Slice Rank-0"      , kExact);
+    mode = 3; alpha = -1.0; beta = 1.0;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Operator Overloading: -=\n");
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_slice_rank0        , "Slice Rank-0"      , kExact);
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
 
     printf("==> Permute Operations <==\n\n");
     success = true;
