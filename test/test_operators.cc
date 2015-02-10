@@ -1,4 +1,5 @@
 #include <tensor/tensor.h>
+#include <cstring>
 //#include <cstdio>
 #include <cmath>
 //#include <utility>
