@@ -1440,6 +1440,588 @@ double try_permute_size_fail()
     return 0.0;
 }
 
+double try_contract_scalar()
+{
+    Dimension Cdims = {};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{},{},{},alpha,beta);
+    else if (mode == 1) C1("") =  A("") * B("");
+    else if (mode == 2) C1("") += A("") * B("");
+    else if (mode == 3) C1("") -= A("") * B("");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+    
+    Cv[0] = alpha * Av[0] * Bv[0] + beta * Cv[0];
+
+    return relative_difference(C1,C2);
+}
+double try_contract_hadamard()
+{
+    Dimension Cdims = {4};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {4};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{"i"},{"i"},{"i"},alpha,beta);
+    else if (mode == 1) C1("i") =  A("i") * B("i");
+    else if (mode == 2) C1("i") += A("i") * B("i");
+    else if (mode == 3) C1("i") -= A("i") * B("i");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (int i = 0; i < Cdims[0]; i++) {
+        Cv[i] = alpha * Av[i] * Bv[i] + beta * Cv[i];
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_contract_dot()
+{
+    Dimension Cdims = {};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {4};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{},{"i"},{"i"},alpha,beta);
+    else if (mode == 1) C1("") =  A("i") * B("i");
+    else if (mode == 2) C1("") += A("i") * B("i");
+    else if (mode == 3) C1("") -= A("i") * B("i");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    Cv[0] = beta * Cv[0];
+    for (int i = 0; i < Adims[0]; i++) {
+        Cv[0] += alpha * Av[i] * Bv[i];
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_contract_axpy1()
+{
+    Dimension Cdims = {4};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {4};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{"i"},{},{"i"},alpha,beta);
+    else if (mode == 1) C1("i") =  A("") * B("i");
+    else if (mode == 2) C1("i") += A("") * B("i");
+    else if (mode == 3) C1("i") -= A("") * B("i");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (int i = 0; i < Cdims[0]; i++) {
+        Cv[i] = alpha * Av[0] * Bv[i] + beta * Cv[i];
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_contract_axpy2()
+{
+    Dimension Cdims = {4};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{"i"},{"i"},{},alpha,beta);
+    else if (mode == 1) C1("i") =  A("i") * B("");
+    else if (mode == 2) C1("i") += A("i") * B("");
+    else if (mode == 3) C1("i") -= A("i") * B("");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (int i = 0; i < Cdims[0]; i++) {
+        Cv[i] = alpha * Av[i] * Bv[0] + beta * Cv[i];
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_contract_ger1()
+{
+    Dimension Cdims = {4,5};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{"i","j"},{"i"},{"j"},alpha,beta);
+    else if (mode == 1) C1("ij") =  A("i") * B("j");
+    else if (mode == 2) C1("ij") += A("i") * B("j");
+    else if (mode == 3) C1("ij") -= A("i") * B("j");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (int i = 0; i < Cdims[0]; i++) {
+        for (int j = 0; j < Cdims[1]; j++) {
+            Cv[i*Cdims[1] + j] = alpha * 
+            Av[i] * 
+            Bv[j] + beta * 
+            Cv[i*Cdims[1] + j];
+        }
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_contract_ger2()
+{
+    Dimension Cdims = {4,5};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {4};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{"i","j"},{"j"},{"i"},alpha,beta);
+    else if (mode == 1) C1("ij") =  A("j") * B("i");
+    else if (mode == 2) C1("ij") += A("j") * B("i");
+    else if (mode == 3) C1("ij") -= A("j") * B("i");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (int i = 0; i < Cdims[0]; i++) {
+        for (int j = 0; j < Cdims[1]; j++) {
+            Cv[i*Cdims[1] + j] = alpha * 
+            Av[j] * 
+            Bv[i] + beta * 
+            Cv[i*Cdims[1] + j];
+        }
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_contract_gemv1()
+{
+    Dimension Cdims = {4};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{"i"},{"i","j"},{"j"},alpha,beta);
+    else if (mode == 1) C1("i") =  A("ij") * B("j");
+    else if (mode == 2) C1("i") += A("ij") * B("j");
+    else if (mode == 3) C1("i") -= A("ij") * B("j");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (int i = 0; i < Adims[0]; i++) {
+        Cv[i] = beta * Cv[i];
+        for (int j = 0; j < Adims[1]; j++) {
+            Cv[i] += alpha * 
+            Av[i * Adims[1] + j] * 
+            Bv[j];
+        }
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_contract_gemv2()
+{
+    Dimension Cdims = {4};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {5,4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{"i"},{"j","i"},{"j"},alpha,beta);
+    else if (mode == 1) C1("i") =  A("ji") * B("j");
+    else if (mode == 2) C1("i") += A("ji") * B("j");
+    else if (mode == 3) C1("i") -= A("ji") * B("j");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (int i = 0; i < Adims[1]; i++) {
+        Cv[i] = beta * Cv[i];
+        for (int j = 0; j < Adims[0]; j++) {
+            Cv[i] += alpha * 
+            Av[j * Adims[1] + i] * 
+            Bv[j];
+        }
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_contract_gemv3()
+{
+    Dimension Cdims = {5};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{"j"},{"i"},{"i","j"},alpha,beta);
+    else if (mode == 1) C1("j") =  A("i") * B("ij");
+    else if (mode == 2) C1("j") += A("i") * B("ij");
+    else if (mode == 3) C1("j") -= A("i") * B("ij");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (int j = 0; j < Bdims[1]; j++) {
+        Cv[j] = beta * Cv[j];
+        for (int i = 0; i < Bdims[0]; i++) {
+            Cv[j] += alpha * 
+            Av[i] * 
+            Bv[i*Bdims[1] + j];
+        }
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_contract_gemv4()
+{
+    Dimension Cdims = {5};
+    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
+    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    initialize_random(C1, C2);
+
+    Dimension Adims = {4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {5,4};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    if (mode == 0) C1.contract(A,B,{"j"},{"i"},{"j","i"},alpha,beta);
+    else if (mode == 1) C1("j") =  A("i") * B("ji");
+    else if (mode == 2) C1("j") += A("i") * B("ji");
+    else if (mode == 3) C1("j") -= A("i") * B("ji");
+    else throw std::runtime_error("Bad mode.");
+
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+
+    for (int j = 0; j < Bdims[0]; j++) {
+        Cv[j] = beta * Cv[j];
+        for (int i = 0; i < Bdims[1]; i++) {
+            Cv[j] += alpha * 
+            Av[i] * 
+            Bv[j*Bdims[1] + i];
+        }
+    }
+    
+    return relative_difference(C1,C2);
+}
+double try_C_equal_A_B(std::string c_ind, std::string a_ind, std::string b_ind,
+                        std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim)
+{
+    std::vector<size_t> dims;
+    dims.push_back(3);
+    dims.push_back(4);
+    dims.push_back(5);
+
+    size_t ni = 3;
+    size_t nj = 4;
+    size_t nk = 5;
+
+    Tensor A = Tensor::build(kCore, "A", {dims[a_dim[0]], dims[a_dim[1]]});
+    initialize_random(A);
+    Tensor B = Tensor::build(kCore, "B", {dims[b_dim[0]], dims[b_dim[1]]});
+    initialize_random(B);
+    Tensor C1 = Tensor::build(kCore, "C1", {dims[c_dim[0]], dims[c_dim[1]]});
+    Tensor C2 = Tensor::build(kCore, "C2", {dims[c_dim[0]], dims[c_dim[1]]});
+    initialize_random(C1,C2);
+
+    std::vector<std::string> c_inds = {std::string(1,c_ind[0]), std::string(1,c_ind[1])};
+    std::vector<std::string> a_inds = {std::string(1,a_ind[0]), std::string(1,a_ind[1])};
+    std::vector<std::string> b_inds = {std::string(1,b_ind[0]), std::string(1,b_ind[1])};
+
+    if (mode == 0) C1.contract(A,B,c_inds,a_inds,b_inds,alpha,beta);
+    else if (mode == 1) C1(c_ind) =  A(a_ind) * B(b_ind);
+    else if (mode == 2) C1(c_ind) += A(a_ind) * B(b_ind);
+    else if (mode == 3) C1(c_ind) -= A(a_ind) * B(b_ind);
+    else throw std::runtime_error("Bad mode.");
+
+    C2.scale(beta);
+    std::vector<double>& Av = A.data();
+    std::vector<double>& Bv = B.data();
+    std::vector<double>& Cv = C2.data();
+    std::vector<size_t> n(3);
+    for (n[0] = 0; n[0] < ni; ++n[0]){
+        for (n[1] = 0; n[1] < nj; ++n[1]){
+            for (n[2] = 0; n[2] < nk; ++n[2]){
+                size_t aind1 = n[a_dim[0]];
+                size_t aind2 = n[a_dim[1]];
+                size_t bind1 = n[b_dim[0]];
+                size_t bind2 = n[b_dim[1]];
+                size_t cind1 = n[c_dim[0]];
+                size_t cind2 = n[c_dim[1]];
+                Cv[cind1 * dims[c_dim[1]] + cind2] += alpha * 
+                Av[aind1 * dims[a_dim[1]] + aind2] *
+                Bv[bind1 * dims[b_dim[1]] + bind2];
+            }
+        }
+    }
+
+    return relative_difference(C1,C2);
+}
+double try_contract_gemm1()
+{
+    return try_C_equal_A_B("ij","ik","jk",{0,1},{0,2},{1,2});
+}
+double try_contract_gemm2()
+{
+    return try_C_equal_A_B("ij","ik","kj",{0,1},{0,2},{2,1});
+}
+double try_contract_gemm3()
+{
+    return try_C_equal_A_B("ij","ki","jk",{0,1},{2,0},{1,2});
+}
+double try_contract_gemm4()
+{
+    return try_C_equal_A_B("ij","ki","kj",{0,1},{2,0},{2,1});
+}
+double try_contract_gemm5()
+{
+    return try_C_equal_A_B("ji","ik","jk",{1,0},{0,2},{1,2});
+}
+double try_contract_gemm6()
+{
+    return try_C_equal_A_B("ji","ik","kj",{1,0},{0,2},{2,1});
+}
+double try_contract_gemm7()
+{
+    return try_C_equal_A_B("ji","ki","jk",{1,0},{2,0},{1,2});
+}
+double try_contract_gemm8()
+{
+    return try_C_equal_A_B("ji","ki","kj",{1,0},{2,0},{2,1});
+}
+double try_contract_label_fail()
+{
+    Dimension Cdims = {3,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("i") = A("ik") * B("jk");
+
+    return 0.0;
+}
+double try_contract_einsum_fail1()
+{
+    Dimension Cdims = {3};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("i") = A("ik") * B("jk");
+
+    return 0.0;
+}
+double try_contract_einsum_fail2()
+{
+    Dimension Cdims = {3};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("ij") = A("ji") * B("jj");
+
+    return 0.0;
+}
+double try_contract_size_fail1()
+{
+    Dimension Cdims = {2,2,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {2,3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {2,4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("Pij") = A("Pik") * B("Pjk");
+
+    return 0.0;
+}
+double try_contract_size_fail2()
+{
+    Dimension Cdims = {2,3,3};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {2,3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {2,4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("Pij") = A("Pik") * B("Pjk");
+
+    return 0.0;
+}
+double try_contract_size_fail3()
+{
+    Dimension Cdims = {2,3,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {2,3,4};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {2,4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("Pij") = A("Pik") * B("Pjk");
+
+    return 0.0;
+}
+double try_contract_size_fail4()
+{
+    Dimension Cdims = {1,3,4};
+    Tensor C = Tensor::build(kCore, "C", Cdims);
+    initialize_random(C);
+
+    Dimension Adims = {2,3,5};
+    Tensor A = Tensor::build(kCore, "A", Adims);
+    initialize_random(A);
+
+    Dimension Bdims = {2,4,5};
+    Tensor B = Tensor::build(kCore, "B", Bdims);
+    initialize_random(B);
+
+    C("Pij") = A("Pik") * B("Pjk");
+
+    return 0.0;
+}
+
 int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
@@ -1718,6 +2300,145 @@ int main(int argc, char* argv[])
     printf("%s\n",std::string(82,'-').c_str());
     printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
 
+    printf("==> Contract Operations <==\n\n");
+    success = true;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("%-50s %-9s %-9s %11s\n", "Description", "Expected", "Observed", "Delta");
+    mode = 0; alpha = 1.0; beta = 0.0;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_contract_scalar    , "Contract scalar"      , kEpsilon);
+    success &= test_function(try_contract_hadamard  , "Contract hadamard"    , kEpsilon);
+    success &= test_function(try_contract_dot       , "Contract dot"         , kEpsilon);
+    success &= test_function(try_contract_axpy1    ,  "Contract axpy 1"      , kEpsilon);
+    success &= test_function(try_contract_axpy2     , "Contract axpy 2"      , kEpsilon);
+    success &= test_function(try_contract_ger1      , "Contract ger 1"       , kEpsilon);
+    success &= test_function(try_contract_ger2      , "Contract ger 2"       , kEpsilon);
+    success &= test_function(try_contract_gemv1     , "Contract gemv 1"      , kEpsilon);
+    success &= test_function(try_contract_gemv2     , "Contract gemv 2"      , kEpsilon);
+    success &= test_function(try_contract_gemv3     , "Contract gemv 3"      , kEpsilon);
+    success &= test_function(try_contract_gemv4     , "Contract gemv 4"      , kEpsilon);
+    success &= test_function(try_contract_gemm1     , "Contract gemm 1"      , kEpsilon);
+    success &= test_function(try_contract_gemm2     , "Contract gemm 2"      , kEpsilon);
+    success &= test_function(try_contract_gemm3     , "Contract gemm 3"      , kEpsilon);
+    success &= test_function(try_contract_gemm4     , "Contract gemm 4"      , kEpsilon);
+    success &= test_function(try_contract_gemm5     , "Contract gemm 5"      , kEpsilon);
+    success &= test_function(try_contract_gemm6     , "Contract gemm 6"      , kEpsilon);
+    success &= test_function(try_contract_gemm7     , "Contract gemm 7"      , kEpsilon);
+    success &= test_function(try_contract_gemm8     , "Contract gemm 8"      , kEpsilon);
+    mode = 0; alpha = random_double(); beta = random_double();
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_contract_scalar    , "Contract scalar"      , kEpsilon);
+    success &= test_function(try_contract_hadamard  , "Contract hadamard"    , kEpsilon);
+    success &= test_function(try_contract_dot       , "Contract dot"         , kEpsilon);
+    success &= test_function(try_contract_axpy1    ,  "Contract axpy 1"      , kEpsilon);
+    success &= test_function(try_contract_axpy2     , "Contract axpy 2"      , kEpsilon);
+    success &= test_function(try_contract_ger1      , "Contract ger 1"       , kEpsilon);
+    success &= test_function(try_contract_ger2      , "Contract ger 2"       , kEpsilon);
+    success &= test_function(try_contract_gemv1     , "Contract gemv 1"      , kEpsilon);
+    success &= test_function(try_contract_gemv2     , "Contract gemv 2"      , kEpsilon);
+    success &= test_function(try_contract_gemv3     , "Contract gemv 3"      , kEpsilon);
+    success &= test_function(try_contract_gemv4     , "Contract gemv 4"      , kEpsilon);
+    success &= test_function(try_contract_gemm1     , "Contract gemm 1"      , kEpsilon);
+    success &= test_function(try_contract_gemm2     , "Contract gemm 2"      , kEpsilon);
+    success &= test_function(try_contract_gemm3     , "Contract gemm 3"      , kEpsilon);
+    success &= test_function(try_contract_gemm4     , "Contract gemm 4"      , kEpsilon);
+    success &= test_function(try_contract_gemm5     , "Contract gemm 5"      , kEpsilon);
+    success &= test_function(try_contract_gemm6     , "Contract gemm 6"      , kEpsilon);
+    success &= test_function(try_contract_gemm7     , "Contract gemm 7"      , kEpsilon);
+    success &= test_function(try_contract_gemm8     , "Contract gemm 8"      , kEpsilon);
+    mode = 1; alpha = 1.0; beta = 0.0;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Operator Overloading: =\n");
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_contract_scalar    , "Contract scalar"      , kEpsilon);
+    success &= test_function(try_contract_hadamard  , "Contract hadamard"    , kEpsilon);
+    success &= test_function(try_contract_dot       , "Contract dot"         , kEpsilon);
+    success &= test_function(try_contract_axpy1    ,  "Contract axpy 1"      , kEpsilon);
+    success &= test_function(try_contract_axpy2     , "Contract axpy 2"      , kEpsilon);
+    success &= test_function(try_contract_ger1      , "Contract ger 1"       , kEpsilon);
+    success &= test_function(try_contract_ger2      , "Contract ger 2"       , kEpsilon);
+    success &= test_function(try_contract_gemv1     , "Contract gemv 1"      , kEpsilon);
+    success &= test_function(try_contract_gemv2     , "Contract gemv 2"      , kEpsilon);
+    success &= test_function(try_contract_gemv3     , "Contract gemv 3"      , kEpsilon);
+    success &= test_function(try_contract_gemv4     , "Contract gemv 4"      , kEpsilon);
+    success &= test_function(try_contract_gemm1     , "Contract gemm 1"      , kEpsilon);
+    success &= test_function(try_contract_gemm2     , "Contract gemm 2"      , kEpsilon);
+    success &= test_function(try_contract_gemm3     , "Contract gemm 3"      , kEpsilon);
+    success &= test_function(try_contract_gemm4     , "Contract gemm 4"      , kEpsilon);
+    success &= test_function(try_contract_gemm5     , "Contract gemm 5"      , kEpsilon);
+    success &= test_function(try_contract_gemm6     , "Contract gemm 6"      , kEpsilon);
+    success &= test_function(try_contract_gemm7     , "Contract gemm 7"      , kEpsilon);
+    success &= test_function(try_contract_gemm8     , "Contract gemm 8"      , kEpsilon);
+    mode = 2; alpha = 1.0; beta = 1.0;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Operator Overloading: +=\n");
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_contract_scalar    , "Contract scalar"      , kEpsilon);
+    success &= test_function(try_contract_hadamard  , "Contract hadamard"    , kEpsilon);
+    success &= test_function(try_contract_dot       , "Contract dot"         , kEpsilon);
+    success &= test_function(try_contract_axpy1    ,  "Contract axpy 1"      , kEpsilon);
+    success &= test_function(try_contract_axpy2     , "Contract axpy 2"      , kEpsilon);
+    success &= test_function(try_contract_ger1      , "Contract ger 1"       , kEpsilon);
+    success &= test_function(try_contract_ger2      , "Contract ger 2"       , kEpsilon);
+    success &= test_function(try_contract_gemv1     , "Contract gemv 1"      , kEpsilon);
+    success &= test_function(try_contract_gemv2     , "Contract gemv 2"      , kEpsilon);
+    success &= test_function(try_contract_gemv3     , "Contract gemv 3"      , kEpsilon);
+    success &= test_function(try_contract_gemv4     , "Contract gemv 4"      , kEpsilon);
+    success &= test_function(try_contract_gemm1     , "Contract gemm 1"      , kEpsilon);
+    success &= test_function(try_contract_gemm2     , "Contract gemm 2"      , kEpsilon);
+    success &= test_function(try_contract_gemm3     , "Contract gemm 3"      , kEpsilon);
+    success &= test_function(try_contract_gemm4     , "Contract gemm 4"      , kEpsilon);
+    success &= test_function(try_contract_gemm5     , "Contract gemm 5"      , kEpsilon);
+    success &= test_function(try_contract_gemm6     , "Contract gemm 6"      , kEpsilon);
+    success &= test_function(try_contract_gemm7     , "Contract gemm 7"      , kEpsilon);
+    success &= test_function(try_contract_gemm8     , "Contract gemm 8"      , kEpsilon);
+    mode = 3; alpha = -1.0; beta = 1.0;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Operator Overloading: -=\n");
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_contract_scalar    , "Contract scalar"      , kEpsilon);
+    success &= test_function(try_contract_hadamard  , "Contract hadamard"    , kEpsilon);
+    success &= test_function(try_contract_dot       , "Contract dot"         , kEpsilon);
+    success &= test_function(try_contract_axpy1    ,  "Contract axpy 1"      , kEpsilon);
+    success &= test_function(try_contract_axpy2     , "Contract axpy 2"      , kEpsilon);
+    success &= test_function(try_contract_ger1      , "Contract ger 1"       , kEpsilon);
+    success &= test_function(try_contract_ger2      , "Contract ger 2"       , kEpsilon);
+    success &= test_function(try_contract_gemv1     , "Contract gemv 1"      , kEpsilon);
+    success &= test_function(try_contract_gemv2     , "Contract gemv 2"      , kEpsilon);
+    success &= test_function(try_contract_gemv3     , "Contract gemv 3"      , kEpsilon);
+    success &= test_function(try_contract_gemv4     , "Contract gemv 4"      , kEpsilon);
+    success &= test_function(try_contract_gemm1     , "Contract gemm 1"      , kEpsilon);
+    success &= test_function(try_contract_gemm2     , "Contract gemm 2"      , kEpsilon);
+    success &= test_function(try_contract_gemm3     , "Contract gemm 3"      , kEpsilon);
+    success &= test_function(try_contract_gemm4     , "Contract gemm 4"      , kEpsilon);
+    success &= test_function(try_contract_gemm5     , "Contract gemm 5"      , kEpsilon);
+    success &= test_function(try_contract_gemm6     , "Contract gemm 6"      , kEpsilon);
+    success &= test_function(try_contract_gemm7     , "Contract gemm 7"      , kEpsilon);
+    success &= test_function(try_contract_gemm8     , "Contract gemm 8"      , kEpsilon);
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
+
+    printf("==> Contract Exceptions <==\n\n");
+    success = true;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("%-50s %-9s %-9s %11s\n", "Description", "Expected", "Observed", "Delta");
+    mode = 0; alpha = 1.0; beta = 0.0;
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
+    printf("%s\n",std::string(82,'-').c_str());
+    success &= test_function(try_contract_label_fail  , "Contract Label Fail"   , kException);
+    success &= test_function(try_contract_einsum_fail1, "Contract Einsum Fail 1", kException);
+    success &= test_function(try_contract_einsum_fail2, "Contract Einsum Fail 2", kException);
+    success &= test_function(try_contract_size_fail1,   "Contract Size Fail 1"  , kException);
+    success &= test_function(try_contract_size_fail2,   "Contract Size Fail 2"  , kException);
+    success &= test_function(try_contract_size_fail3,   "Contract Size Fail 3"  , kException);
+    success &= test_function(try_contract_size_fail4,   "Contract Size Fail 4"  , kException);
+    printf("%s\n",std::string(82,'-').c_str());
+    printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
 
     tensor::finalize();
 
