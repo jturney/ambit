@@ -8,41 +8,16 @@
 #include <string>
 #include <functional>
 
-#if defined(CXX11)
 #include <memory>
 #include <tuple>
 
 namespace tensor {
 
-    /*
-     * If we have C++11 then we don't need Boost for shared_ptr, tuple, and unique_ptr.
-     * TODO: We should just have C++11
-     */
-    using std::tuple;
-    using std::shared_ptr;
-    using std::unique_ptr;
+using std::tuple;
+using std::shared_ptr;
+using std::unique_ptr;
 
-}
-
-#else
-#include <boost/shared_ptr.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/tuple/tuple.hpp>
-
-namespace tensor {
-
-    using boost::tuple;
-    using boost::make_tuple;
-    using boost::shared_ptr;
-    template<class T> using unique_ptr = boost::scoped_ptr<T>;
-
-}
-
-#endif
-
-namespace tensor {
-
-// TODO: Why is this here?
+//
 static constexpr double numerical_zero__ = 1.0e-15;
 
 class TensorImpl;

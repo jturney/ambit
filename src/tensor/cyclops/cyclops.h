@@ -62,6 +62,7 @@ private:
 
 typedef cyclops::CyclopsTensorImpl* CyclopsTensorImplPtr;
 typedef const cyclops::CyclopsTensorImpl* ConstCyclopsTensorImplPtr;
+
 }
 
 #endif

@@ -3,6 +3,8 @@
 
 #include <string>
 #include <cmath>
+#include <cstdlib>
+#include <assert.h>
 
 using namespace tensor;
 

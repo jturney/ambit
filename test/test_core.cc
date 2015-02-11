@@ -1,5 +1,6 @@
 #include <tensor/tensor.h>
 #include <cmath>
+#include <cstdlib>
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -310,7 +311,7 @@ double try_slice_rank1_same1()
         Cv[(i + Cinds[0][0])] =
         alpha * Av[(i + Ainds[0][0])] +
         beta * Cv[(i + Cinds[0][0])];
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -340,7 +341,7 @@ double try_slice_rank1_same2()
         Cv[(i + Cinds[0][0])] =
         alpha * Av[(i + Ainds[0][0])] +
         beta * Cv[(i + Cinds[0][0])];
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -370,7 +371,7 @@ double try_slice_rank1_diff1()
         Cv[(i + Cinds[0][0])] =
         alpha * Av[(i + Ainds[0][0])] +
         beta * Cv[(i + Cinds[0][0])];
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -400,7 +401,7 @@ double try_slice_rank1_diff2()
         Cv[(i + Cinds[0][0])] =
         alpha * Av[(i + Ainds[0][0])] +
         beta * Cv[(i + Cinds[0][0])];
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -433,7 +434,7 @@ double try_slice_rank2_same1()
             alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
             beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -461,11 +462,11 @@ double try_slice_rank2_same2()
 
     for (size_t i = 0; i < Cinds[0][1] - Cinds[0][0]; i++) {
         for (size_t j = 0; j < Cinds[1][1] - Cinds[1][0]; j++) {
-            Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])] = 
+            Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])] =
             alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
             beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -497,7 +498,7 @@ double try_slice_rank2_same3()
             alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
             beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -529,7 +530,7 @@ double try_slice_rank2_diff1()
             alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
             beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -561,7 +562,7 @@ double try_slice_rank2_diff2()
             alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
             beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -593,7 +594,7 @@ double try_slice_rank2_diff3()
             alpha * Av[(i + Ainds[0][0]) * Adims[1] + (j + Ainds[1][0])] +
             beta * Cv[(i + Cinds[0][0]) * Cdims[1] + (j + Cinds[1][0])];
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -628,7 +629,7 @@ double try_slice_rank3_same1()
                 beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
             }
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -662,7 +663,7 @@ double try_slice_rank3_same2()
                 beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
             }
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -696,7 +697,7 @@ double try_slice_rank3_same3()
                 beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
             }
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -730,7 +731,7 @@ double try_slice_rank3_same4()
                 beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
             }
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -764,7 +765,7 @@ double try_slice_rank3_diff1()
                 beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
             }
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -798,7 +799,7 @@ double try_slice_rank3_diff2()
                 beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
             }
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -832,7 +833,7 @@ double try_slice_rank3_diff3()
                 beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
             }
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -866,7 +867,7 @@ double try_slice_rank3_diff4()
                 beta * Cv[(i + Cinds[0][0]) * Cdims[1] * Cdims[2] + (j + Cinds[1][0]) * Cdims[2] + (k + Cinds[2][0])];
             }
         }
-    } 
+    }
 
     return relative_difference(C1,C2);
 }
@@ -876,31 +877,31 @@ double try_slice_label_fail()
     Tensor C1 = Tensor::build(kCore, "C1", {4,5});
     Tensor C2 = Tensor::build(kCore, "C2", {4,5});
 
-    C1((IndexRange){{0L,4L}}) = C2(); 
+    C1((IndexRange){{0L,4L}}) = C2();
     return 0.0;
 }
 double try_slice_rank_fail()
 {
     Tensor C1 = Tensor::build(kCore, "C1", {4,5});
     Tensor C2 = Tensor::build(kCore, "C2", {4});
-   
-    C1() = C2(); 
+
+    C1() = C2();
     return 0.0;
 }
 double try_slice_size_fail()
 {
     Tensor C1 = Tensor::build(kCore, "C1", {4,5});
     Tensor C2 = Tensor::build(kCore, "C2", {4,5});
-   
-    C1({{0,4},{0,4}}) = C2(); 
+
+    C1({{0,4},{0,4}}) = C2();
     return 0.0;
 }
 double try_slice_bounds_fail()
 {
     Tensor C1 = Tensor::build(kCore, "C1", {4,5});
     Tensor C2 = Tensor::build(kCore, "C2", {4,5});
-   
-    C1({{0,6},{0,5}}) = C2({{0,6},{0,5}}); 
+
+    C1({{0,6},{0,5}}) = C2({{0,6},{0,5}});
     return 0.0;
 }
 
