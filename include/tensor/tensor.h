@@ -80,20 +80,57 @@ int initialize(int argc, char** argv);
  */
 void finalize();
 
-/**
- * Class Tensor is
- **/
 class Tensor {
 
 public:
 
     // => Constructors <= //
 
-    static Tensor build(TensorType type, const std::string& name, const Dimension& dims);
+    /**
+     * Factory constructor. Builds a Tensor of TensorType type
+     * with given name and dimensions dims
+     *
+     * Parameters:
+     *  @param type the TensorType to build
+     *  @param name the name of the Tensor
+     *  @param dims the dimensions of the indices of the tensor 
+     *    (dims.size() is the tensor rank)
+     *
+     * Results:
+     *  @return new Tensor of TensorType type with name and dims
+     *   The returned Tensor is set to zero.
+     **/
+    static Tensor build(
+        TensorType type, 
+        const std::string& name, 
+        const Dimension& dims);
 
+    /**
+     * Return a new Tensor of TensorType type which copies the name,
+     * dimensions, and data of this tensor. 
+     *
+     * E.g.:
+     *  Tensor A = C.clone(kDisk);
+     * is equivalent to: 
+     *  Tensor A = Tensor::build(kDisk, C.name(), C.dims());
+     *  A->copy(C);
+     *
+     * Parameters:
+     *  @param type the TensorType to use for the clone 
+     *
+     * Results:
+     *  @return new Tensor of TensorType type with the name and contents of this
+     **/
+    Tensor clone(TensorType type = kCurrent) const;
+
+    /**
+     * Default constructor, builds a Tensor with a null underlying
+     * implementation.
+     *
+     * Calling any methods of such a Tensor will result in exceptions being
+     * thrown.
+     **/
     Tensor();
-
-    Tensor clone(TensorType = kCurrent) const;
 
     // => Accessors <= //
 
@@ -164,12 +201,20 @@ public:
      *  0 - Infinity-norm, maximum absolute value of elements
      *  1 - One-norm, sum of absolute values of elements
      *  2 - Two-norm, square root of sum of squares
+     * 
+     * Results:
+     *  @return computed norm
      **/
     double norm(int type = 2) const;
 
     /**
-     * Sets the data of the tensor to zeros.
+     * Sets the data of the tensor to zeros
+     *  C = 0.0
+     *
      * Note: this just drops down to scale(0.0);
+     *
+     * Results:
+     *  C is the current tensor, whose data is overwritten
      **/
     void zero();
 
@@ -179,12 +224,25 @@ public:
      *
      * Note: If beta is 0.0, a memset is performed rather than a scale to clamp
      * NaNs and other garbage out.
+     *
+     * Parameters:
+     *  @param beta the scale to apply
+     *
+     * Results:
+     *  C is the current tensor, whose data is overwritten
      **/
     void scale(double beta = 0.0);
 
     /**
-     * Copy the data of other into this tensor.
+     * Copy the data of other into this tensor:
+     *  C() = other()
      * Note: this just drops into slice
+     * 
+     * Parameters:
+     *  @param other the tensor to copy data from
+     *
+     * Results 
+     *  C is the current tensor, whose data is overwritten
      **/
     void copy(const Tensor& other);
 
@@ -291,7 +349,7 @@ public:
      *  - This is only implemented for kCore
      *  - No bounds checking on the GEMM is performed
      *  - This function is intended to help advanced users get optimal
-     *  performance from single-node codes.
+     *    performance from single-node codes.
      *
      * Parameters:
      *  @param A the left-side factor tensor
@@ -314,6 +372,11 @@ public:
      *  @param offC the offset of the C data pointer to apply
      *  @param alpha the scale to apply to A*B
      *  @param beta the scale to apply to C
+     *
+     * Results:
+     *  C is the current tensor, whose data is overwritten. 
+     *  All elements in C outside of the range traversed by gemm are
+     *  untouched.
      **/
     void gemm(
         const Tensor& A,
@@ -356,6 +419,8 @@ public:
     //std::map<std::string, Tensor> qr() const;
 
     //Tensor inverse() const;
+        
+
 
     // => Utility Operations <= //
 
@@ -363,8 +428,8 @@ public:
 
     // => Iterators <= //
 
-    void iterate(std::function<void (std::vector<size_t>, double&)> func);
-    void iterate(std::function<void (std::vector<size_t>, const double&)> func) const;
+    void iterate(std::function<void (const std::vector<size_t>&, double&)> func);
+    void iterate(std::function<void (const std::vector<size_t>&, const double&)> func) const;
 
 private:
 
