@@ -78,12 +78,12 @@ void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int 
 
     if (level > 0) {
         double* temp;
-        boost::shared_ptr<TensorImpl> T;
+        std::shared_ptr<TensorImpl> T;
         if (type() == kCore) {
             temp = const_cast<double*>(data().data());
         } else {
-            T = boost::shared_ptr<TensorImpl>(clone(kCore));
-            temp = const_cast<double*>(T->data().data()); 
+            T = std::shared_ptr<TensorImpl>(clone(kCore));
+            temp = const_cast<double*>(T->data().data());
         }
 
         int order = rank();
