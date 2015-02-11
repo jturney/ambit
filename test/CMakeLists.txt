@@ -7,14 +7,14 @@ add_executable(test_operators ${TEST_OPERATORS_SOURCES})
 add_dependencies(test_operators tensor)
 target_link_libraries(test_operators tensor ${Boost_LIBRARIES})
 
-set(TEST_SLICE_SOURCES
-    test_slice.cc
+set(TEST_CORE_SOURCES
+    test_core.cc
 )
 
-
-add_executable(test_slice ${TEST_SLICE_SOURCES})
-add_dependencies(test_slice tensor)
-target_link_libraries(test_slice tensor ${Boost_LIBRARIES})
+# build static libray
+add_executable(test_core ${TEST_CORE_SOURCES})
+add_dependencies(test_core tensor)
+target_link_libraries(test_core tensor ${Boost_LIBRARIES})
 
 if(ENABLE_CYCLOPS)
     set(TEST_CYCLOPS_SOURCES
