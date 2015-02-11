@@ -60,12 +60,12 @@ init_FCMangle()
 find_package(Threads REQUIRED)
 link_libraries("${CMAKE_THREAD_LIBS_INIT}")
 
-# Python Detection 
+# Python Detection
 include(ConfigPython)
 link_libraries("${PYTHON_LIBRARIES}")
 include_directories(SYSTEM "${PYTHON_INCLUDE_DIRS}")
 
-# Boost Detection 
+# Boost Detection
 # We need Boost.Python, so this has to come _after_ Python detection
 include(ConfigBoost)
 link_directories("${Boost_LIBRARY_DIRS}")
@@ -88,14 +88,13 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include
 )
 
-if(ENABLE_CYCLOPS)
+if(ENABLE_CYCLOPS AND CYCLOPS)
     include_directories(${CYCLOPS}/include)
     add_definitions(-DHAVE_CYCLOPS)
-
-    if (ENABLE_ELEMENTAL)
-        include_directories(${ELEMENTAL}/include)
-        add_definitions(-DHAVE_ELEMENTAL)
-    endif()
+endif()
+if (ENABLE_ELEMENTAL AND ELEMENTAL)
+    include_directories(${ELEMENTAL}/include)
+    add_definitions(-DHAVE_ELEMENTAL)
 endif()
 
 # recursively add source directories

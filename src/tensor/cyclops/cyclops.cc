@@ -1,3 +1,7 @@
+#if !defined(HAVE_CYCLOPS)
+#error The Cyclops interface is being compiled without Cyclops present.
+#endif
+
 #include "cyclops.h"
 #include "../macros.h"
 #include <El.hpp>
@@ -10,8 +14,6 @@ namespace tensor { namespace cyclops {
 
 namespace globals {
     CTF_World *world = nullptr;
-    int rank = -1;
-    int nprocess = -1;
 
     // did we initialize MPI or did the user?
     int initialized_mpi = 0;
@@ -66,10 +68,14 @@ int initialize(int argc, char* argv[])
         }
     }
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &globals::rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &globals::nprocess);
+    MPI_Comm_rank(MPI_COMM_WORLD, &settings::rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &settings::nprocess);
 
     globals::world = new CTF_World(argc, argv);
+
+    if (settings::debug) {
+        printf("Cyclops interface initialized.\nrank: %d; nprocess: %d\n", settings::rank, settings::nprocess);
+    }
 
     return 0;
 }
@@ -110,6 +116,20 @@ CyclopsTensorImpl::CyclopsTensorImpl(const std::string& name,
 CyclopsTensorImpl::~CyclopsTensorImpl()
 {
     delete cyclops_;
+}
+
+double CyclopsTensorImpl::norm(int type) const
+{
+    switch(type) {
+    case 0:
+        return cyclops_->norm_infty();
+    case 1:
+        return cyclops_->norm1();
+    case 2:
+        return cyclops_->norm2();
+    default:
+        throw std::runtime_error("Unknown norm type passed to Cyclops tensor.");
+    }
 }
 
 void CyclopsTensorImpl::scale(double beta)

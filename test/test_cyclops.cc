@@ -143,24 +143,32 @@ double try_relative_difference()
     Dimension Adims = {4,5,6};
     Tensor A1 = Tensor::build(kCore, "A1", Adims);
     Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor A3 = Tensor::build(kCore, "A3", Adims);
+    Tensor D1 = Tensor::build(kDistributed, "D1", Adims);
     initialize_random(A1, A2);
-    return relative_difference(A1,A2);
+
+    D1() = A1();
+    A3() = D1();
+
+    return relative_difference(A1,A3);
 }
 
 double try_1_norm()
 {
     Dimension Adims = {4,5,6};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
-    Tensor A2 = Tensor::build(kCore, "A2", Adims);
-    initialize_random(A1, A2);
+    Tensor A1 = Tensor::build(kCore, "A2", Adims);
+    Tensor D1 = Tensor::build(kDistributed, "D1", Adims);
+    initialize_random(A1);
 
-    double normA1 = A2.norm(1);
+    D1() = A1();
+
+    double normA1 = D1.norm(1);
 
     double normA2 = 0.0;
-    size_t numel = A2.numel();
-    std::vector<double>& A2v = A2.data();
+    size_t numel = A1.numel();
+    std::vector<double>& A1v = A1.data();
     for (size_t ind = 0L; ind < numel; ind++) {
-        normA2 += fabs(A2v[ind]);
+        normA2 += fabs(A1v[ind]);
     }
 
     double delta = fabs(normA1 - normA2);
@@ -171,11 +179,13 @@ double try_1_norm()
 double try_2_norm()
 {
     Dimension Adims = {4,5,6};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
     Tensor A2 = Tensor::build(kCore, "A2", Adims);
-    initialize_random(A1, A2);
+    Tensor D2 = Tensor::build(kDistributed, "D2", Adims);
+    initialize_random(A2);
 
-    double normA1 = A2.norm(2);
+    D2() = A2();
+
+    double normA1 = D2.norm(2);
 
     double normA2 = 0.0;
     size_t numel = A2.numel();
@@ -193,11 +203,13 @@ double try_2_norm()
 double try_inf_norm()
 {
     Dimension Adims = {4,5,6};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
     Tensor A2 = Tensor::build(kCore, "A2", Adims);
-    initialize_random(A1, A2);
+    Tensor D2 = Tensor::build(kDistributed, "D2", Adims);
+    initialize_random(A2);
 
-    double normA1 = A2.norm(0);
+    D2() = A2();
+
+    double normA1 = D2.norm(0);
 
     double normA2 = 0.0;
     size_t numel = A2.numel();
@@ -215,10 +227,13 @@ double try_zero()
 {
     Dimension Adims = {4,5,6};
     Tensor A1 = Tensor::build(kCore, "A1", Adims);
+    Tensor D1 = Tensor::build(kDistributed, "D2", Adims);
     Tensor A2 = Tensor::build(kCore, "A2", Adims);
     initialize_random(A1, A2);
 
-    A1.zero();
+    D1() = A1();
+    D1.zero();
+    A1() = D1();
 
     size_t numel = A2.numel();
     std::vector<double>& A2v = A2.data();
@@ -234,10 +249,14 @@ double try_copy()
     Dimension Adims = {4,5,6};
     Tensor A1 = Tensor::build(kCore, "A1", Adims);
     Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor D1 = Tensor::build(kDistributed, "D1", Adims);
+    Tensor D2 = Tensor::build(kDistributed, "D2", Adims);
     initialize_random(A1, A2);
 
-    A1.zero();
-    A1.copy(A2);
+    D2() = A2();
+    D1.zero();
+    D1.copy(D2);
+    A1() = D1();
 
     return relative_difference(A1,A2);
 }
@@ -246,11 +265,14 @@ double try_scale()
 {
     Dimension Adims = {4,5,6};
     Tensor A1 = Tensor::build(kCore, "A1", Adims);
+    Tensor D1 = Tensor::build(kDistributed, "D1", Adims);
     Tensor A2 = Tensor::build(kCore, "A2", Adims);
     initialize_random(A1, A2);
 
+    D1() = A1();
     double s = random_double();
-    A1.scale(s);
+    D1.scale(s);
+    A1() = D1();
 
     size_t numel = A2.numel();
     std::vector<double>& A2v = A2.data();
@@ -384,7 +406,7 @@ double try_permute_rank1_i()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
          Cv[i] =
          alpha * Av[i] +
          beta * Cv[i];
@@ -412,8 +434,8 @@ double try_permute_rank2_ij()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
             Cv[i*Cdims[1] + j] =
             alpha * Av[i*Adims[1] + j] +
             beta * Cv[i*Cdims[1] + j];
@@ -442,8 +464,8 @@ double try_permute_rank2_ji()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
             Cv[i*Cdims[1] + j] =
             alpha * Av[j*Adims[1] + i] +
             beta * Cv[i*Cdims[1] + j];
@@ -472,9 +494,9 @@ double try_permute_rank3_ijk()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[i*Adims[1]*Adims[2] + j*Adims[2] + k] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -504,9 +526,9 @@ double try_permute_rank3_ikj()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[i*Adims[1]*Adims[2] + k*Adims[2] + j] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -536,9 +558,9 @@ double try_permute_rank3_jik()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[j*Adims[1]*Adims[2] + i*Adims[2] + k] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -568,9 +590,9 @@ double try_permute_rank3_jki()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[j*Adims[1]*Adims[2] + k*Adims[2] + i] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -600,9 +622,9 @@ double try_permute_rank3_kij()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[k*Adims[1]*Adims[2] + i*Adims[2] + j] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -632,9 +654,9 @@ double try_permute_rank3_kji()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[k*Adims[1]*Adims[2] + j*Adims[2] + i] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -664,10 +686,10 @@ double try_permute_rank4_ijkl()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
-                for (int l = 0; l < Cdims[3]; l++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
+                for (size_t l = 0; l < Cdims[3]; l++) {
                     Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l] =
                     alpha * Av[i*Adims[1]*Adims[2]*Adims[3] + j*Adims[2]*Adims[3] + k*Adims[3] + l] +
                     beta * Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l];
@@ -698,10 +720,10 @@ double try_permute_rank4_ijlk()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
-                for (int l = 0; l < Cdims[3]; l++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
+                for (size_t l = 0; l < Cdims[3]; l++) {
                     Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l] =
                     alpha * Av[i*Adims[1]*Adims[2]*Adims[3] + j*Adims[2]*Adims[3] + l*Adims[3] + k] +
                     beta * Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l];
@@ -732,10 +754,10 @@ double try_permute_rank4_jikl()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
-                for (int l = 0; l < Cdims[3]; l++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
+                for (size_t l = 0; l < Cdims[3]; l++) {
                     Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l] =
                     alpha * Av[j*Adims[1]*Adims[2]*Adims[3] + i*Adims[2]*Adims[3] + k*Adims[3] + l] +
                     beta * Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l];
@@ -766,10 +788,10 @@ double try_permute_rank4_ikjl()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
-                for (int l = 0; l < Cdims[3]; l++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
+                for (size_t l = 0; l < Cdims[3]; l++) {
                     Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l] =
                     alpha * Av[i*Adims[1]*Adims[2]*Adims[3] + k*Adims[2]*Adims[3] + j*Adims[3] + l] +
                     beta * Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l];
@@ -800,10 +822,10 @@ double try_permute_rank4_lkji()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
-                for (int l = 0; l < Cdims[3]; l++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
+                for (size_t l = 0; l < Cdims[3]; l++) {
                     Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l] =
                     alpha * Av[l*Adims[1]*Adims[2]*Adims[3] + k*Adims[2]*Adims[3] + j*Adims[3] + i] +
                     beta * Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l];
@@ -879,6 +901,7 @@ int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
     srand (time(nullptr));
+    tensor::settings::debug = true;
     tensor::initialize(argc, argv);
 
     bool success;

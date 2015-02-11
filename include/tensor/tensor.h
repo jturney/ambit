@@ -17,9 +17,9 @@ using std::tuple;
 using std::shared_ptr;
 using std::unique_ptr;
 
-//
 static constexpr double numerical_zero__ = 1.0e-15;
 
+// => Forward Declarations <=
 class TensorImpl;
 class LabeledTensor;
 class LabeledTensorProduct;
@@ -29,16 +29,40 @@ class LabeledTensorDistributive;
 class LabeledTensorSumOfProducts;
 class SlicedTensor;
 
+// => Tensor Types <=
 enum TensorType {
-    kCurrent, kCore, kDisk, kDistributed, kAgnostic
+    kCurrent,     // <= If cloning from existing tensor use its type.
+    kCore,        // <= In-core only tensor
+    kDisk,        // <= Disk cachable tensor
+    kDistributed, // <= Tensor suitable for parallel distributed
+    kAgnostic     // <= Let the library decide for you.
 };
+
 enum EigenvalueOrder {
     kAscending, kDescending
 };
 
+// => Typedefs <=
 typedef std::vector<size_t> Dimension;
 typedef std::vector<std::vector<size_t>> IndexRange;
 typedef std::vector<std::string> Indices;
+
+// => Settings Namespace <=
+namespace settings {
+
+/** Number of MPI processes.
+ *
+ * For single process runs this will always be 1.
+ */
+extern int nprocess;
+
+/// Rank of this process. (zero-based)
+extern int rank;
+
+/// Print debug information? true, or false
+extern bool debug;
+
+}
 
 /** Initializes the tensor library.
  *

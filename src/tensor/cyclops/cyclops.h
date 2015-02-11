@@ -22,6 +22,9 @@ public:
 
     // => Simple Single Tensor Operations <= //
 
+    double norm(
+            int type = 2) const;
+
     void scale(double beta = 0.0);
 
     void permute(
