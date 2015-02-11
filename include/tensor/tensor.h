@@ -62,6 +62,9 @@ extern int rank;
 /// Print debug information? true, or false
 extern bool debug;
 
+/// Memory usage limit. Default is 1GB.
+extern size_t memory_limit;
+
 }
 
 /** Initializes the tensor library.

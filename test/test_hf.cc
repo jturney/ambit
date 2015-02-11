@@ -82,6 +82,7 @@ int main(int argc, char* argv[])
 
     // Build tensors
     Tensor S = load_overlap(file35, AO);
+    printf("norm of S is %lf\n", S.norm());
     Tensor H = load_1e_hamiltonian(file35, AO);
     Tensor g = load_2e(AO4);
 
