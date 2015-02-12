@@ -4,7 +4,7 @@ set(TENSOR_HEADERS
     ${PROJECT_SOURCE_DIR}/include/tensor/io/io.h
     ${PROJECT_SOURCE_DIR}/include/tensor/io/iwl.h
     ${PROJECT_SOURCE_DIR}/include/tensor/io/manager.h
-    helpers/psi4/io.h
+    ${PROJECT_SOURCE_DIR}/include/tensor/helpers/psi4/io.h
     math/math.h
     tensor/core.h
     tensor/indices.h
