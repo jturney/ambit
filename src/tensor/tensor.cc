@@ -15,6 +15,18 @@
 
 namespace tensor {
 
+namespace settings {
+
+int nprocess = 1;
+
+int rank = 0;
+
+bool debug = false;
+
+size_t memory = 1 * 1024 * 1024 * 1024;
+
+}
+
 int initialize(int argc, char** argv)
 {
     /// Set the scratch path for disk files

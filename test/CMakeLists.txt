@@ -24,6 +24,14 @@ if(ENABLE_CYCLOPS)
     add_executable(test_cyclops ${TEST_CYCLOPS_SOURCES})
     add_dependencies(test_cyclops tensor)
     target_link_libraries(test_cyclops tensor ${Boost_LIBRARIES})
+
+    set(TEST_DISTRIBUTED_SOURCES
+        test_distributed.cc
+    )
+
+    add_executable(test_distributed ${TEST_DISTRIBUTED_SOURCES})
+    add_dependencies(test_distributed tensor)
+    target_link_libraries(test_distributed tensor ${Boost_LIBRARIES})
 endif()
 
 set(TEST_HF_SOURCES
