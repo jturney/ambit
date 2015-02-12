@@ -104,5 +104,8 @@ add_subdirectory(src)
 # test suite
 add_subdirectory(test)
 
+# sample suite
+add_subdirectory(samples)
+
 # this has to be the very last CMake module to be included
 include(ConfigInfo)
