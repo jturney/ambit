@@ -85,6 +85,7 @@ int main(int argc, char* argv[])
     printf("norm of S is %lf\n", S.norm());
     Tensor H = load_1e_hamiltonian(file35, AO);
     Tensor g = load_2e(AO4);
+    printf("norm of g is %lf\n", g.norm());
 
     Tensor Ft = build("Ft", AO);
 
