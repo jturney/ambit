@@ -36,6 +36,9 @@ option(ENABLE_ACCELERATE    "Enable use of Mac OS X Accelerate Framework" OFF)
 option(ENABLE_PYTHON        "Enable Python interface" OFF)
 option(ENABLE_CXX11_SUPPORT "Enable C++11 compiler support" ON)
 
+option(CYCLOPS              "Location of the Cyclops build directory" "")
+option(ELEMENTAL            "Location of the Elemental build directory" "")
+
 # include cmake modules as needed
 include(ConfigVersion)
 include(ConfigArchitecture)
