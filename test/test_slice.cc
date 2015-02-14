@@ -949,7 +949,7 @@ double try_permute_rank1_i()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
          Cv[i] =
          alpha * Av[i] +
          beta * Cv[i];
@@ -977,8 +977,8 @@ double try_permute_rank2_ij()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
             Cv[i*Cdims[1] + j] =
             alpha * Av[i*Adims[1] + j] +
             beta * Cv[i*Cdims[1] + j];
@@ -1007,8 +1007,8 @@ double try_permute_rank2_ji()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
             Cv[i*Cdims[1] + j] =
             alpha * Av[j*Adims[1] + i] +
             beta * Cv[i*Cdims[1] + j];
@@ -1037,9 +1037,9 @@ double try_permute_rank3_ijk()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[i*Adims[1]*Adims[2] + j*Adims[2] + k] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -1069,9 +1069,9 @@ double try_permute_rank3_ikj()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[i*Adims[1]*Adims[2] + k*Adims[2] + j] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -1101,9 +1101,9 @@ double try_permute_rank3_jik()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[j*Adims[1]*Adims[2] + i*Adims[2] + k] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -1133,9 +1133,9 @@ double try_permute_rank3_jki()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[j*Adims[1]*Adims[2] + k*Adims[2] + i] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -1165,9 +1165,9 @@ double try_permute_rank3_kij()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[k*Adims[1]*Adims[2] + i*Adims[2] + j] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -1197,9 +1197,9 @@ double try_permute_rank3_kji()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
                 Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k] =
                 alpha * Av[k*Adims[1]*Adims[2] + j*Adims[2] + i] +
                 beta * Cv[i*Cdims[1]*Cdims[2] + j*Cdims[2] + k];
@@ -1229,10 +1229,10 @@ double try_permute_rank4_ijkl()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
-                for (int l = 0; l < Cdims[3]; l++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
+                for (size_t l = 0; l < Cdims[3]; l++) {
                     Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l] =
                     alpha * Av[i*Adims[1]*Adims[2]*Adims[3] + j*Adims[2]*Adims[3] + k*Adims[3] + l] +
                     beta * Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l];
@@ -1263,10 +1263,10 @@ double try_permute_rank4_ijlk()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
-                for (int l = 0; l < Cdims[3]; l++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
+                for (size_t l = 0; l < Cdims[3]; l++) {
                     Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l] =
                     alpha * Av[i*Adims[1]*Adims[2]*Adims[3] + j*Adims[2]*Adims[3] + l*Adims[3] + k] +
                     beta * Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l];
@@ -1297,10 +1297,10 @@ double try_permute_rank4_jikl()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
-                for (int l = 0; l < Cdims[3]; l++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
+                for (size_t l = 0; l < Cdims[3]; l++) {
                     Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l] =
                     alpha * Av[j*Adims[1]*Adims[2]*Adims[3] + i*Adims[2]*Adims[3] + k*Adims[3] + l] +
                     beta * Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l];
@@ -1331,10 +1331,10 @@ double try_permute_rank4_ikjl()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
-                for (int l = 0; l < Cdims[3]; l++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
+                for (size_t l = 0; l < Cdims[3]; l++) {
                     Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l] =
                     alpha * Av[i*Adims[1]*Adims[2]*Adims[3] + k*Adims[2]*Adims[3] + j*Adims[3] + l] +
                     beta * Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l];
@@ -1365,10 +1365,10 @@ double try_permute_rank4_lkji()
 
     std::vector<double>& Av = A.data();
     std::vector<double>& Cv = C2.data();
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            for (int k = 0; k < Cdims[2]; k++) {
-                for (int l = 0; l < Cdims[3]; l++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            for (size_t k = 0; k < Cdims[2]; k++) {
+                for (size_t l = 0; l < Cdims[3]; l++) {
                     Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l] =
                     alpha * Av[l*Adims[1]*Adims[2]*Adims[3] + k*Adims[2]*Adims[3] + j*Adims[3] + i] +
                     beta * Cv[i*Cdims[1]*Cdims[2]*Cdims[3] + j*Cdims[2]*Cdims[3] + k*Cdims[3] + l];
@@ -1464,7 +1464,7 @@ double try_contract_scalar()
     std::vector<double>& Av = A.data();
     std::vector<double>& Bv = B.data();
     std::vector<double>& Cv = C2.data();
-    
+
     Cv[0] = alpha * Av[0] * Bv[0] + beta * Cv[0];
 
     return relative_difference(C1,C2);
@@ -1494,10 +1494,10 @@ double try_contract_hadamard()
     std::vector<double>& Bv = B.data();
     std::vector<double>& Cv = C2.data();
 
-    for (int i = 0; i < Cdims[0]; i++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
         Cv[i] = alpha * Av[i] * Bv[i] + beta * Cv[i];
     }
-    
+
     return relative_difference(C1,C2);
 }
 double try_contract_dot()
@@ -1526,10 +1526,10 @@ double try_contract_dot()
     std::vector<double>& Cv = C2.data();
 
     Cv[0] = beta * Cv[0];
-    for (int i = 0; i < Adims[0]; i++) {
+    for (size_t i = 0; i < Adims[0]; i++) {
         Cv[0] += alpha * Av[i] * Bv[i];
     }
-    
+
     return relative_difference(C1,C2);
 }
 double try_contract_axpy1()
@@ -1557,10 +1557,10 @@ double try_contract_axpy1()
     std::vector<double>& Bv = B.data();
     std::vector<double>& Cv = C2.data();
 
-    for (int i = 0; i < Cdims[0]; i++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
         Cv[i] = alpha * Av[0] * Bv[i] + beta * Cv[i];
     }
-    
+
     return relative_difference(C1,C2);
 }
 double try_contract_axpy2()
@@ -1588,10 +1588,10 @@ double try_contract_axpy2()
     std::vector<double>& Bv = B.data();
     std::vector<double>& Cv = C2.data();
 
-    for (int i = 0; i < Cdims[0]; i++) {
+    for (size_t i = 0; i < Cdims[0]; i++) {
         Cv[i] = alpha * Av[i] * Bv[0] + beta * Cv[i];
     }
-    
+
     return relative_difference(C1,C2);
 }
 double try_contract_ger1()
@@ -1619,15 +1619,15 @@ double try_contract_ger1()
     std::vector<double>& Bv = B.data();
     std::vector<double>& Cv = C2.data();
 
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            Cv[i*Cdims[1] + j] = alpha * 
-            Av[i] * 
-            Bv[j] + beta * 
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            Cv[i*Cdims[1] + j] = alpha *
+            Av[i] *
+            Bv[j] + beta *
             Cv[i*Cdims[1] + j];
         }
     }
-    
+
     return relative_difference(C1,C2);
 }
 double try_contract_ger2()
@@ -1655,15 +1655,15 @@ double try_contract_ger2()
     std::vector<double>& Bv = B.data();
     std::vector<double>& Cv = C2.data();
 
-    for (int i = 0; i < Cdims[0]; i++) {
-        for (int j = 0; j < Cdims[1]; j++) {
-            Cv[i*Cdims[1] + j] = alpha * 
-            Av[j] * 
-            Bv[i] + beta * 
+    for (size_t i = 0; i < Cdims[0]; i++) {
+        for (size_t j = 0; j < Cdims[1]; j++) {
+            Cv[i*Cdims[1] + j] = alpha *
+            Av[j] *
+            Bv[i] + beta *
             Cv[i*Cdims[1] + j];
         }
     }
-    
+
     return relative_difference(C1,C2);
 }
 double try_contract_gemv1()
@@ -1691,15 +1691,15 @@ double try_contract_gemv1()
     std::vector<double>& Bv = B.data();
     std::vector<double>& Cv = C2.data();
 
-    for (int i = 0; i < Adims[0]; i++) {
+    for (size_t i = 0; i < Adims[0]; i++) {
         Cv[i] = beta * Cv[i];
-        for (int j = 0; j < Adims[1]; j++) {
-            Cv[i] += alpha * 
-            Av[i * Adims[1] + j] * 
+        for (size_t j = 0; j < Adims[1]; j++) {
+            Cv[i] += alpha *
+            Av[i * Adims[1] + j] *
             Bv[j];
         }
     }
-    
+
     return relative_difference(C1,C2);
 }
 double try_contract_gemv2()
@@ -1727,15 +1727,15 @@ double try_contract_gemv2()
     std::vector<double>& Bv = B.data();
     std::vector<double>& Cv = C2.data();
 
-    for (int i = 0; i < Adims[1]; i++) {
+    for (size_t i = 0; i < Adims[1]; i++) {
         Cv[i] = beta * Cv[i];
-        for (int j = 0; j < Adims[0]; j++) {
-            Cv[i] += alpha * 
-            Av[j * Adims[1] + i] * 
+        for (size_t j = 0; j < Adims[0]; j++) {
+            Cv[i] += alpha *
+            Av[j * Adims[1] + i] *
             Bv[j];
         }
     }
-    
+
     return relative_difference(C1,C2);
 }
 double try_contract_gemv3()
@@ -1763,15 +1763,15 @@ double try_contract_gemv3()
     std::vector<double>& Bv = B.data();
     std::vector<double>& Cv = C2.data();
 
-    for (int j = 0; j < Bdims[1]; j++) {
+    for (size_t j = 0; j < Bdims[1]; j++) {
         Cv[j] = beta * Cv[j];
-        for (int i = 0; i < Bdims[0]; i++) {
-            Cv[j] += alpha * 
-            Av[i] * 
+        for (size_t i = 0; i < Bdims[0]; i++) {
+            Cv[j] += alpha *
+            Av[i] *
             Bv[i*Bdims[1] + j];
         }
     }
-    
+
     return relative_difference(C1,C2);
 }
 double try_contract_gemv4()
@@ -1799,15 +1799,15 @@ double try_contract_gemv4()
     std::vector<double>& Bv = B.data();
     std::vector<double>& Cv = C2.data();
 
-    for (int j = 0; j < Bdims[0]; j++) {
+    for (size_t j = 0; j < Bdims[0]; j++) {
         Cv[j] = beta * Cv[j];
-        for (int i = 0; i < Bdims[1]; i++) {
-            Cv[j] += alpha * 
-            Av[i] * 
+        for (size_t i = 0; i < Bdims[1]; i++) {
+            Cv[j] += alpha *
+            Av[i] *
             Bv[j*Bdims[1] + i];
         }
     }
-    
+
     return relative_difference(C1,C2);
 }
 double try_C_equal_A_B(std::string c_ind, std::string a_ind, std::string b_ind,
@@ -1854,7 +1854,7 @@ double try_C_equal_A_B(std::string c_ind, std::string a_ind, std::string b_ind,
                 size_t bind2 = n[b_dim[1]];
                 size_t cind1 = n[c_dim[0]];
                 size_t cind2 = n[c_dim[1]];
-                Cv[cind1 * dims[c_dim[1]] + cind2] += alpha * 
+                Cv[cind1 * dims[c_dim[1]] + cind2] += alpha *
                 Av[aind1 * dims[a_dim[1]] + aind2] *
                 Bv[bind1 * dims[b_dim[1]] + bind2];
             }
