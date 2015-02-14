@@ -287,7 +287,6 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO])
 {
     size_t n0 = tensor.dims()[0];
 
-    size_t numel = tensor.numel();
     const std::vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
@@ -305,7 +304,6 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO][MAXTWO
     size_t n0 = tensor.dims()[0];
     size_t n1 = tensor.dims()[1];
 
-    size_t numel = tensor.numel();
     const std::vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
@@ -347,9 +345,7 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXFOUR][MAXFO
     size_t n1 = tensor.dims()[1];
     size_t n2 = tensor.dims()[2];
     size_t n3 = tensor.dims()[3];
-
-    size_t numel = tensor.numel();
-
+    
     const std::vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
