@@ -155,13 +155,23 @@ int main(int argc, char* argv[])
         printf("nso = %d\n", nso);
     }
 
+    Dimension AO2 = {(size_t)nso, (size_t)nso};
+    Dimension AO4 = {(size_t)nso, (size_t)nso, (size_t)nso, (size_t)nso};
     {
-        Tensor S = Tensor::build(kDistributed, "Overlap", {(size_t)nso, (size_t)nso});
+        Tensor S = Tensor::build(kDistributed, "Overlap", AO2);
         helpers::psi4::load_matrix("test.35", "SO-basis Overlap Ints", S);
 
         double norm = S.norm();
         //if (settings::rank == 0)
-            printf("norm of S is %lf\n", norm);
+            printf("rank %d, norm of S is %lf\n", settings::rank, norm);
+    }
+
+    {
+        Tensor g = Tensor::build(kDistributed, "g", AO4);
+        helpers::psi4::load_iwl("test.33", g);
+
+        double norm = g.norm();
+        printf("rank %d, norm of g is %lf\n", settings::rank, norm);
     }
 
     tensor::finalize();

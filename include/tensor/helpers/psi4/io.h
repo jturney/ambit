@@ -18,6 +18,13 @@ namespace psi4 {
  */
 void load_matrix(const std::string& fn, const std::string& entry, Tensor& target);
 
+/** Loads two-electron integrals from an IWL file into the tensor.
+*
+* @param fn The filename to read from.
+* @param target The tensor to place data into.
+*/
+void load_iwl(const std::string& fn, Tensor& target);
+
 }
 }
 }
