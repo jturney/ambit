@@ -1,9 +1,9 @@
+#include <algorithm>
 #include "tensorimpl.h"
 #include "core.h"
 #include "memory.h"
 #include "math/math.h"
 #include "indices.h"
-#include <algorithm>
 #include <string.h>
 #include <cmath>
 
