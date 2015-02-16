@@ -3,8 +3,6 @@
 #endif
 
 #include "cyclops.h"
-#include "../macros.h"
-//#include <El.hpp>
 
 #define GET_CTF_TENSOR(X) \
     const CyclopsTensorImpl* c##X = dynamic_cast<const CyclopsTensorImpl*>((X)); \
@@ -237,14 +235,7 @@ std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder ord
     return results;
 #else
 
-    // Distributed LAPACK is not available.
-    // Copy all data to master node and use
-    // local LAPACK then broadcast the data
-    // back out to the nodes.
-    if (globals::rank() == 0) {
-        int info;
-
-    }
+    ThrowNotImplementedException;
 
 #endif
 }
