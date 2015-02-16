@@ -47,12 +47,15 @@ public:
 
     std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const;
 
+    TensorImplPtr power(double alpha, double condition) const;
+
 private:
 
 #if defined(HAVE_ELEMENTAL)
     // => Order-2 Helper Functions <=
     void copyToElemental2(El::DistMatrix<double>& x) const;
     void copyFromElemental2(const El::DistMatrix<double>& x);
+    void copyFromLowerElementalToFull2(const El::DistMatrix<double>& x);
 
     // => Order-1 Helper Functions <=
     void copyFromElemental1(const El::DistMatrix<double, El::VR, El::STAR>& x);

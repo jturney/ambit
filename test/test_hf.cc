@@ -5,28 +5,30 @@
 #include <cmath>
 #include <cstdlib>
 #include <assert.h>
+#include <tensor/helpers/psi4/io.h>
 
 using namespace tensor;
 
+TensorType tensor_type = kCore;
+
 Tensor build(const std::string& name, const Dimension& dims)
 {
-    return Tensor::build(kCore, name, dims);
+    return Tensor::build(tensor_type, name, dims);
 }
 
-Tensor build_and_load(io::File& file35, const std::string& toc, const Dimension& AO)
+Tensor build_and_load(const std::string& file35, const std::string& toc, const Dimension& AO)
 {
     Tensor X = build(toc, AO);
-    X.zero();
-    io::IWL::read_one(file35, toc, X);
+    helpers::psi4::load_matrix(file35, toc, X);
     return X;
 }
 
-Tensor load_overlap(io::File& file35, const Dimension& AO)
+Tensor load_overlap(const std::string& file35, const Dimension& AO)
 {
     return build_and_load(file35, "SO-basis Overlap Ints", AO);
 }
 
-Tensor load_1e_hamiltonian(io::File& file35, const Dimension& AO)
+Tensor load_1e_hamiltonian(const std::string& file35, const Dimension& AO)
 {
     Tensor H = build("H", AO);
 
@@ -40,62 +42,53 @@ Tensor load_1e_hamiltonian(io::File& file35, const Dimension& AO)
 
 Tensor load_2e(const Dimension& AO)
 {
-    // psi two-electron integral file
     Tensor g = build("g", AO);
-    io::IWL iwl("test.33", tensor::io::kOpenModeOpenExisting);
-    io::IWL::read_two(iwl, g);
-
+    helpers::psi4::load_iwl("test.33", g);
     return g;
 }
 
-int main(int argc, char* argv[])
+void hf()
 {
-    srand(time(nullptr));
-    tensor::initialize(argc, argv);
+    int nirrep, nso;
+    double Enuc = 0.0, Eref = 0.0;
 
-    // psi checkpoint file
-    tensor::io::File file32("test.32", tensor::io::kOpenModeOpenExisting);
+    {
+        tensor::io::File file32("test.32", tensor::io::kOpenModeOpenExisting);
 
-    // psi one-electron integral file
-    tensor::io::File file35("test.35", tensor::io::kOpenModeOpenExisting);
+        file32.read("::Num. irreps", &nirrep, 1);
+        printf("nirrep = %d\n", nirrep);
+        assert(nirrep == 1);
 
-    // Read information from checkpoint file
-    int nirrep = 0;
-    file32.read("::Num. irreps", &nirrep, 1);
-    printf("nirrep = %d\n", nirrep);
-    assert(nirrep == 1);
+        file32.read("::Num. SO", &nso, 1);
+        printf("nso = %d\n", nso);
 
-    int nso = 0;
-    file32.read("::Num. SO", &nso, 1);
-    printf("nso = %d\n", nso);
-
-    double Enuc = 0.0;
-    file32.read("::Nuclear rep. energy", &Enuc, 1);
-
-    // The value to compare to from Psi4.
-    double Eref = 0.0;
-    file32.read("::SCF energy", &Eref, 1);
+        file32.read("::Nuclear rep. energy", &Enuc, 1);
+        file32.read("::SCF energy", &Eref, 1);
+    }
 
     // Define dimension objects
-    Dimension AO = {(size_t)nso, (size_t)nso};
+    Dimension AO2 = {(size_t)nso, (size_t)nso};
     Dimension AO4 = {(size_t)nso, (size_t)nso, (size_t)nso, (size_t)nso};
 
     // Build tensors
-    Tensor S = load_overlap(file35, AO);
+    Tensor S = load_overlap("test.35", AO2);
     printf("norm of S is %lf\n", S.norm());
-    Tensor H = load_1e_hamiltonian(file35, AO);
+    Tensor H = load_1e_hamiltonian("test.35", AO2);
     Tensor g = load_2e(AO4);
     printf("norm of g is %lf\n", g.norm());
 
-    Tensor Ft = build("Ft", AO);
-
+    Tensor Ft = build("Ft", AO2);
     Tensor Smhalf = S.power(-0.5);
+//    Smhalf.print(stdout, true);
 
     Ft("i,j") = Smhalf("mu,i") * Smhalf("nu,j") * H("mu,nu");
+//    Ft.print(stdout, true);
     auto Feigen = Ft.syev(kAscending);
+//    Feigen["eigenvectors"].print(stdout, true);
 
-    Tensor C = build("C", AO);
+    Tensor C = build("C", AO2);
     C("i,j") = Smhalf("k,j") * Feigen["eigenvectors"]("i,k");
+//    C.print(stdout, true);
 
     Tensor Cdocc = build("C", {5, (size_t)nso});
 
@@ -105,10 +98,10 @@ int main(int argc, char* argv[])
     Cdocc(CtoCdocc) = C(CtoCdocc);
 
     // Form initial D
-    Tensor D = build("D", AO);
+    Tensor D = build("D", AO2);
     D("mu,nu") = Cdocc("i,mu") * Cdocc("i,nu");
 
-    Tensor F = build("F", AO);
+    Tensor F = build("F", AO2);
 
     // start SCF iteration
     bool converged = false;
@@ -121,7 +114,9 @@ int main(int argc, char* argv[])
 
         // Calculate energy
         Eelec = D("mu,nu") * (H("mu,nu") + F("mu,nu"));
-        printf("  @RHF iter %5d: %20.14lf\n", iter++, Enuc + Eelec);
+
+        if (settings::rank == 0)
+            printf("  @RHF iter %5d: %20.14lf\n", iter++, Enuc + Eelec);
 
         // Transform the Fock matrix
         Ft("i,j") = Smhalf("mu,i") * Smhalf("nu,j") * F("mu,nu");
@@ -140,7 +135,28 @@ int main(int argc, char* argv[])
         if (std::fabs(Eelec - Eold) < 1.0e-8) converged = true;
         Eold = Eelec;
 
+        if (iter > 15)
+            break;
     } while (!converged);
+}
+
+int main(int argc, char* argv[])
+{
+    srand(time(nullptr));
+    tensor::initialize(argc, argv);
+
+    if (argc > 1) {
+        if (strcmp(argv[1], "cyclops") == 0) {
+            tensor_type = kDistributed;
+            printf("  *** Testing distributed tensors. ***\n");
+        }
+        else {
+            printf("  *** Unknown parameter given ***\n");
+            printf("  *** Testing core tensors.   ***\n");
+        }
+    }
+
+    hf();
 
     tensor::finalize();
     return EXIT_SUCCESS;
