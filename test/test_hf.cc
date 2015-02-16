@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
     tensor::initialize(argc, argv);
 
     if (argc > 1) {
-        if (strcmp(argv[1], "cyclops") == 0) {
+        if (settings::distributed_capable && strcmp(argv[1], "cyclops") == 0) {
             tensor_type = kDistributed;
             printf("  *** Testing distributed tensors. ***\n");
         }
