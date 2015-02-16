@@ -25,6 +25,11 @@ bool debug = false;
 
 size_t memory = 1 * 1024 * 1024 * 1024;
 
+#if defined(HAVE_CYCLOPS)
+const bool distributed_capable = true;
+#else
+const bool distributed_capable = false;
+#endif
 }
 
 int initialize(int argc, char** argv)
