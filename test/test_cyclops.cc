@@ -96,7 +96,7 @@ double random_double()
 void initialize_random(Tensor& A1)
 {
     size_t numel1 = A1.numel();
-    std::vector<double>& A1v = A1.data();
+    aligned_vector<double>& A1v = A1.data();
     for (size_t ind = 0L; ind < numel1; ind++) {
         double randnum = double(std::rand())/double(RAND_MAX);
         A1v[ind] = randnum;
@@ -109,8 +109,8 @@ void initialize_random(Tensor& A1, Tensor& A2)
     size_t numel1 = A1.numel();
     size_t numel2 = A2.numel();
     if (numel1 != numel2) throw std::runtime_error("Tensors do not have same numel.");
-    std::vector<double>& A1v = A1.data();
-    std::vector<double>& A2v = A2.data();
+    aligned_vector<double>& A1v = A1.data();
+    aligned_vector<double>& A2v = A2.data();
     for (size_t ind = 0L; ind < numel1; ind++) {
         double randnum = double(std::rand())/double(RAND_MAX);
         A1v[ind] = randnum;
@@ -124,8 +124,8 @@ double relative_difference(const Tensor& A1, const Tensor& A2)
     size_t numel1 = A1.numel();
     size_t numel2 = A2.numel();
     if (numel1 != numel2) throw std::runtime_error("Tensors do not have same numel.");
-    const std::vector<double>& A1v = A1.data();
-    const std::vector<double>& A2v = A2.data();
+    const aligned_vector<double>& A1v = A1.data();
+    const aligned_vector<double>& A2v = A2.data();
     double dmax = 0.0;
     double Dmax = 0.0;
     for (size_t ind = 0L; ind < numel1; ind++) {
@@ -166,7 +166,7 @@ double try_1_norm()
 
     double normA2 = 0.0;
     size_t numel = A1.numel();
-    std::vector<double>& A1v = A1.data();
+    aligned_vector<double>& A1v = A1.data();
     for (size_t ind = 0L; ind < numel; ind++) {
         normA2 += fabs(A1v[ind]);
     }
@@ -189,7 +189,7 @@ double try_2_norm()
 
     double normA2 = 0.0;
     size_t numel = A2.numel();
-    std::vector<double>& A2v = A2.data();
+    aligned_vector<double>& A2v = A2.data();
     for (size_t ind = 0L; ind < numel; ind++) {
         normA2 += A2v[ind] * A2v[ind];
     }
@@ -213,7 +213,7 @@ double try_inf_norm()
 
     double normA2 = 0.0;
     size_t numel = A2.numel();
-    std::vector<double>& A2v = A2.data();
+    aligned_vector<double>& A2v = A2.data();
     for (size_t ind = 0L; ind < numel; ind++) {
         normA2 = std::max(normA2, A2v[ind]);
     }
@@ -236,7 +236,7 @@ double try_zero()
     A1() = D1();
 
     size_t numel = A2.numel();
-    std::vector<double>& A2v = A2.data();
+    aligned_vector<double>& A2v = A2.data();
     for (size_t ind = 0L; ind < numel; ind++) {
         A2v[ind] = 0.0;
     }
@@ -275,7 +275,7 @@ double try_scale()
     A1() = D1();
 
     size_t numel = A2.numel();
-    std::vector<double>& A2v = A2.data();
+    aligned_vector<double>& A2v = A2.data();
     for (size_t ind = 0L; ind < numel; ind++) {
         A2v[ind] *= s;
     }
@@ -380,8 +380,8 @@ double try_permute_rank0()
     else if (mode == 3) C1("") -= A("");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     Cv[0] = alpha * Av[0] + beta * Cv[0];
 
     return relative_difference(C1,C2);
@@ -404,8 +404,8 @@ double try_permute_rank1_i()
     else if (mode == 3) C1("i") -= A("i");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
          Cv[i] =
          alpha * Av[i] +
@@ -432,8 +432,8 @@ double try_permute_rank2_ij()
     else if (mode == 3) C1("ij") -= A("ij");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             Cv[i*Cdims[1] + j] =
@@ -462,8 +462,8 @@ double try_permute_rank2_ji()
     else if (mode == 3) C1("ij") -= A("ji");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             Cv[i*Cdims[1] + j] =
@@ -492,8 +492,8 @@ double try_permute_rank3_ijk()
     else if (mode == 3) C1("ijk") -= A("ijk");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             for (size_t k = 0; k < Cdims[2]; k++) {
@@ -524,8 +524,8 @@ double try_permute_rank3_ikj()
     else if (mode == 3) C1("ijk") -= A("ikj");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             for (size_t k = 0; k < Cdims[2]; k++) {
@@ -556,8 +556,8 @@ double try_permute_rank3_jik()
     else if (mode == 3) C1("ijk") -= A("jik");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             for (size_t k = 0; k < Cdims[2]; k++) {
@@ -588,8 +588,8 @@ double try_permute_rank3_jki()
     else if (mode == 3) C1("ijk") -= A("jki");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             for (size_t k = 0; k < Cdims[2]; k++) {
@@ -620,8 +620,8 @@ double try_permute_rank3_kij()
     else if (mode == 3) C1("ijk") -= A("kij");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             for (size_t k = 0; k < Cdims[2]; k++) {
@@ -652,8 +652,8 @@ double try_permute_rank3_kji()
     else if (mode == 3) C1("ijk") -= A("kji");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             for (size_t k = 0; k < Cdims[2]; k++) {
@@ -684,8 +684,8 @@ double try_permute_rank4_ijkl()
     else if (mode == 3) C1("ijkl") -= A("ijkl");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             for (size_t k = 0; k < Cdims[2]; k++) {
@@ -718,8 +718,8 @@ double try_permute_rank4_ijlk()
     else if (mode == 3) C1("ijkl") -= A("ijlk");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             for (size_t k = 0; k < Cdims[2]; k++) {
@@ -752,8 +752,8 @@ double try_permute_rank4_jikl()
     else if (mode == 3) C1("ijkl") -= A("jikl");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             for (size_t k = 0; k < Cdims[2]; k++) {
@@ -786,8 +786,8 @@ double try_permute_rank4_ikjl()
     else if (mode == 3) C1("ijkl") -= A("ikjl");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             for (size_t k = 0; k < Cdims[2]; k++) {
@@ -820,8 +820,8 @@ double try_permute_rank4_lkji()
     else if (mode == 3) C1("ijkl") -= A("lkji");
     else throw std::runtime_error("Bad mode.");
 
-    std::vector<double>& Av = A.data();
-    std::vector<double>& Cv = C2.data();
+    aligned_vector<double>& Av = A.data();
+    aligned_vector<double>& Cv = C2.data();
     for (size_t i = 0; i < Cdims[0]; i++) {
         for (size_t j = 0; j < Cdims[1]; j++) {
             for (size_t k = 0; k < Cdims[2]; k++) {

@@ -11,6 +11,8 @@
 #include <memory>
 #include <tuple>
 
+#include "aligned.h"
+
 namespace tensor {
 
 using std::tuple;
@@ -156,8 +158,8 @@ public:
      * Results:
      *  @return data pointer, if tensor object supports it
      **/
-    std::vector<double>& data();
-    const std::vector<double>& data() const;
+    aligned_vector<double>& data();
+    const aligned_vector<double>& data() const;
 
     // => BLAS-Type Tensor Operations <= //
 

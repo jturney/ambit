@@ -12,12 +12,12 @@ endif()
 
 string(TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_tolower)
 string(TOUPPER "${CMAKE_BUILD_TYPE}" cmake_build_type_toupper)
-if(    NOT cmake_build_type_tolower STREQUAL "debug"
-   AND NOT cmake_build_type_tolower STREQUAL "release"
-   AND NOT cmake_build_type_tolower STREQUAL "profile"
-   AND NOT cmake_build_type_tolower STREQUAL "relwithdebinfo")
-      message(FATAL_ERROR "Unknown build type \"${CMAKE_BUILD_TYPE}\". Allowed values are Debug, Release, Profile, RelWithDebInfo (case-insensitive).")
-endif()
+#if(    NOT cmake_build_type_tolower STREQUAL "debug"
+#   AND NOT cmake_build_type_tolower STREQUAL "release"
+#   AND NOT cmake_build_type_tolower STREQUAL "profile"
+#   AND NOT cmake_build_type_tolower STREQUAL "relwithdebinfo")
+#      message(FATAL_ERROR "Unknown build type \"${CMAKE_BUILD_TYPE}\". Allowed values are Debug, Release, Profile, RelWithDebInfo (case-insensitive).")
+#endif()
 
 # guard against math-less build
 if(MKL_FLAG_SET)
@@ -25,8 +25,8 @@ if(MKL_FLAG_SET)
    # also set BLAS_FOUND and LAPACK_FOUND to TRUE
    set(BLAS_FOUND TRUE)
    set(LAPACK_FOUND TRUE)
-endif()	
-if(NOT BLAS_FOUND OR NOT LAPACK_FOUND) 
+endif()
+if(NOT BLAS_FOUND OR NOT LAPACK_FOUND)
    if(NOT EXPLICIT_LIBS)
       message(FATAL_ERROR "No BLAS/LAPACK implementation found and no explicit libraries specified")
    else()

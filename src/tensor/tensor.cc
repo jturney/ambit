@@ -177,12 +177,12 @@ SlicedTensor Tensor::operator()()
     return SlicedTensor(*this, range);
 }
 
-std::vector<double>& Tensor::data()
+aligned_vector<double>& Tensor::data()
 {
     return tensor_->data();
 }
 
-const std::vector<double>& Tensor::data() const
+const aligned_vector<double>& Tensor::data() const
 {
     return tensor_->data();
 }

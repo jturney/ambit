@@ -1,4 +1,5 @@
 set(TENSOR_HEADERS
+    ${PROJECT_SOURCE_DIR}/include/tensor/aligned.h
     ${PROJECT_SOURCE_DIR}/include/tensor/tensor.h
     ${PROJECT_SOURCE_DIR}/include/tensor/io/file.h
     ${PROJECT_SOURCE_DIR}/include/tensor/io/io.h
@@ -9,7 +10,6 @@ set(TENSOR_HEADERS
     tensor/core.h
     tensor/indices.h
     tensor/macros.h
-    tensor/memory.h
     tensor/tensorimpl.h
 )
 

@@ -59,9 +59,9 @@ public:
 
     // => Setters/Getters <= //
 
-    virtual std::vector<double>& data()
+    virtual aligned_vector<double>& data()
         { throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type())); }
-    virtual const std::vector<double>& data() const
+    virtual const aligned_vector<double>& data() const
         { throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type())); }
 
     // => Simple Single Tensor Operations <= //

@@ -75,8 +75,8 @@ int initialize(int argc, char* argv[])
 
     globals::world = new CTF_World(argc, argv);
 
-    if (settings::debug) {
-        printf("Cyclops interface initialized.\nrank: %d; nprocess: %d\n", settings::rank, settings::nprocess);
+    if (settings::debug && settings::rank == 0) {
+        printf("Cyclops interface initialized.\nnprocess: %d\n", settings::nprocess);
     }
 
     return 0;
