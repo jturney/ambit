@@ -13,7 +13,7 @@ std::map<std::string,std::vector<size_t>> BlockedTensor::composite_name_to_mo_sp
 std::map<std::string,std::vector<size_t>> BlockedTensor::index_to_mo_spaces_;
 
 
-MOSpace::MOSpace(std::string name,std::string mo_indices,std::vector<size_t> mos,MOSpaceSpinType spin)
+MOSpace::MOSpace(const std::string& name, const std::string& mo_indices,std::vector<size_t> mos,MOSpaceSpinType spin)
     : name_(name), mo_indices_(indices::split(mo_indices)), mos_(mos), spin_(spin)
 {}
 

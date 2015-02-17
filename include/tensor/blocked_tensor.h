@@ -33,7 +33,7 @@ public:
      *  // Create a space of alpha occupied orbitals.
      *  MOSpace alpha_occupied("o","i,j,k,l",{0,1,2,3,4},AlphaSpin);
      */
-    MOSpace(std::string name,std::string mo_indices,std::vector<size_t> mos,MOSpaceSpinType spin);
+    MOSpace(const std::string& name, const std::string& mo_indices, std::vector<size_t> mos,MOSpaceSpinType spin);
 
     // => Accessors <= //
 
@@ -41,10 +41,10 @@ public:
     std::string name() const {return name_;}
 
     /// @return The indices used to label orbitals in this space
-    std::vector<std::string> mo_indices() const {return mo_indices_;}
+    const std::vector<std::string>& mo_indices() const {return mo_indices_;}
 
     /// @return The list of molecular orbitals that belong to this space
-    std::vector<size_t> mos() const {return mos_;}
+    const std::vector<size_t>& mos() const {return mos_;}
 
     /// @return The dimension of the molecular orbital space
     size_t dim() const {return mos_.size();}
