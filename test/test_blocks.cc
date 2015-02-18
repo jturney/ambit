@@ -1,4 +1,4 @@
-#include <tensor/blocked_tensor.h>
+#include <blocked_tensor/blocked_tensor.h>
 #include <cmath>
 #include <cstdlib>
 
@@ -10,10 +10,24 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
+#define MAXTWO 10
+#define MAXFOUR 10
+
+double a1[MAXTWO];
+double a2[MAXTWO][MAXTWO];
+double b2[MAXTWO][MAXTWO];
+double c2[MAXTWO][MAXTWO];
+double d2[MAXTWO][MAXTWO];
+double a4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
+double b4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
+double c4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
+double d4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
+
 using namespace tensor;
 
 /// Expected relative accuracy for numerical exactness
 const double epsilon = 1.0E-14;
+const double zero = 1.0E-14;
 
 /// Scheme to categorize expected vs. actual op behavior
 enum TestResult {
@@ -29,13 +43,146 @@ double beta = 0.0;
 /// 0 - explicit call, 1 - = OO, 2 - += OO, 3 - -= OO
 int mode = 0;
 
+TensorType tensor_type = kCore;
+
+void initialize_random(Tensor &tensor, double matrix[MAXTWO])
+{
+    size_t n0 = tensor.dims()[0];
+    aligned_vector<double>& vec = tensor.data();
+    for (size_t i = 0; i < n0; ++i){
+        double randnum = double(std::rand())/double(RAND_MAX);
+        matrix[i] = randnum;
+        vec[i] = randnum;
+    }
+}
+
+void initialize_random(Tensor &tensor, double matrix[MAXTWO][MAXTWO])
+{
+    size_t n0 = tensor.dims()[0];
+    size_t n1 = tensor.dims()[1];
+    aligned_vector<double>& vec = tensor.data();
+    for (size_t i = 0, ij = 0; i < n0; ++i){
+        for (size_t j = 0; j < n1; ++j, ++ij){
+            double randnum = double(std::rand())/double(RAND_MAX);
+            matrix[i][j] = randnum;
+            vec[ij] = randnum;
+        }
+    }
+}
+
+void initialize_random(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR])
+{
+    size_t n0 = tensor.dims()[0];
+    size_t n1 = tensor.dims()[1];
+    size_t n2 = tensor.dims()[2];
+    size_t n3 = tensor.dims()[3];
+
+    aligned_vector<double>& vec = tensor.data();
+    for (size_t i = 0, ijkl = 0; i < n0; ++i){
+        for (size_t j = 0; j < n1; ++j){
+            for (size_t k = 0; k < n2; ++k){
+                for (size_t l = 0; l < n3; ++l, ++ijkl){
+                    double randnum = double(std::rand())/double(RAND_MAX);
+                    matrix[i][j][k][l] = randnum;
+                    vec[ijkl] = randnum;
+                }
+            }
+        }
+    }
+}
+
+std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO])
+{
+    size_t n0 = tensor.dims()[0];
+
+    const aligned_vector<double>& result = tensor.data();
+
+    double sum_diff = 0.0;
+    double max_diff = 0.0;
+    for (size_t i = 0; i < n0; ++i){
+        double diff = std::fabs(matrix[i] - result[i]);
+        sum_diff += diff;
+        max_diff = std::max(diff,max_diff);
+    }
+    return std::make_pair(sum_diff,max_diff);
+}
+
+std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO][MAXTWO])
+{
+    size_t n0 = tensor.dims()[0];
+    size_t n1 = tensor.dims()[1];
+
+    const aligned_vector<double>& result = tensor.data();
+
+    double sum_diff = 0.0;
+    double max_diff = 0.0;
+    for (size_t i = 0, ij = 0; i < n0; ++i){
+        for (size_t j = 0; j < n1; ++j, ++ij){
+            double diff = std::fabs(matrix[i][j] - result[ij]);
+            sum_diff += diff;
+            max_diff = std::max(diff,max_diff);
+        }
+    }
+    return std::make_pair(sum_diff,max_diff);
+}
+
+std::pair<double,double> difference(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR])
+{
+    size_t n0 = tensor.dims()[0];
+    size_t n1 = tensor.dims()[1];
+    size_t n2 = tensor.dims()[2];
+    size_t n3 = tensor.dims()[3];
+
+    const aligned_vector<double>& result = tensor.data();
+
+    double sum_diff = 0.0;
+    double max_diff = 0.0;
+
+    for (size_t i = 0, ijkl = 0; i < n0; ++i){
+        for (size_t j = 0; j < n1; ++j){
+            for (size_t k = 0; k < n2; ++k){
+                for (size_t l = 0; l < n3; ++l, ++ijkl){
+                    double diff = std::fabs(matrix[i][j][k][l] - result[ijkl]);
+                    sum_diff += diff;
+                    max_diff = std::max(diff,max_diff);
+                }
+            }
+        }
+    }
+    return std::make_pair(sum_diff,max_diff);
+}
+
+Tensor build_and_fill(const std::string& name, const Dimension& dims, double matrix[MAXTWO])
+{
+    Tensor T = Tensor::build(tensor_type, name, dims);
+    initialize_random(T, matrix);
+    std::pair<double,double> a_diff = difference(T, matrix);
+    if (std::fabs(a_diff.second) > zero) throw std::runtime_error("Tensor and standard matrix don't match.");
+    return T;
+}
+
+Tensor build_and_fill(const std::string& name, const Dimension& dims, double matrix[MAXTWO][MAXTWO])
+{
+    Tensor T = Tensor::build(tensor_type, name, dims);
+    initialize_random(T, matrix);
+    std::pair<double,double> a_diff = difference(T, matrix);
+    if (std::fabs(a_diff.second) > zero) throw std::runtime_error("Tensor and standard matrix don't match.");
+    return T;
+}
+
+Tensor build_and_fill(const std::string& name, const Dimension& dims, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR])
+{
+    Tensor T = Tensor::build(tensor_type, name, dims);
+    initialize_random(T, matrix);
+    std::pair<double,double> a_diff = difference(T, matrix);
+    if (std::fabs(a_diff.second) > zero) throw std::runtime_error("Tensor and standard matrix don't match.");
+    return T;
+}
 
 double test_mo_space()
 {
     MOSpace alpha_occ("o","i,j,k,l",{0,1,2,3,4},AlphaSpin);
     MOSpace alpha_vir("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
-//    alpha_occ.print();
-//    alpha_vir.print();
     return 0.0;
 }
 
@@ -45,7 +192,6 @@ double test_add_mo_space()
     BlockedTensor::add_mo_space("o","i,j,k,l",{0,1,2,3,4},AlphaSpin);
     BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
     BlockedTensor::add_composite_mo_space("g","p,q,r,s,t",{"o","v"});
-//    BlockedTensor::print_mo_spaces();
     return 0.0;
 }
 
@@ -246,6 +392,120 @@ double test_block_labels1()
     return 0.0;
 }
 
+double test_block_retrive_block1()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+    BlockedTensor T = BlockedTensor::build(kCore,"T",{"oo","vv"});
+    T.block("oo");
+    return 0.0;
+}
+
+double test_block_retrive_block2()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g","p,q,r,s",{"o","v"});
+    BlockedTensor T = BlockedTensor::build(kCore,"T",{"oo","vv"});
+    T.block("og");
+    return 0.0;
+}
+
+double test_block_retrive_block3()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+    BlockedTensor T = BlockedTensor::build(kCore,"T",{"oo","vv"});
+    T.block("ov");
+    return 0.0;
+}
+
+double test_block_retrive_block4()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g","p,q,r,s",{"o","v"});
+    BlockedTensor T = BlockedTensor::build(kCore,"T",{"oo","vv"});
+    T.block("");
+    return 0.0;
+}
+
+double test_Cij_equal_Aji()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+
+    BlockedTensor A = BlockedTensor::build(kCore,"A",{"oo","vv","ov","vo"});
+    BlockedTensor C = BlockedTensor::build(kCore,"C",{"oo","vv","ov","vo"});
+
+    Tensor Aoo = A.block("oo");
+    Tensor Coo = C.block("oo");
+
+    size_t no = 3;
+    size_t nv = 5;
+
+    Tensor Aoo_t = build_and_fill("A", {no, no}, a2);
+    Tensor Coo_t = build_and_fill("C", {no, no}, c2);
+
+    Aoo("ij") = Aoo_t("ij");
+    Coo("ij") = Coo_t("ij");
+
+    C("ij") = A("ji");
+
+    for (size_t i = 0; i < no; ++i){
+        for (size_t j = 0; j < no; ++j){
+            c2[i][j] = a2[j][i];
+        }
+    }
+
+    double diff_oo = difference(Coo, c2).second;
+
+    Tensor Aov = A.block("ov");
+    Tensor Cvo = C.block("vo");
+
+    Tensor Aov_t = build_and_fill("A", {no, nv}, a2);
+    Tensor Cvo_t = build_and_fill("C", {nv, no}, c2);
+
+    Aov("ij") = Aov_t("ij");
+    Cvo("ij") = Cvo_t("ij");
+
+    C("ai") = A("ia");
+
+    for (size_t i = 0; i < no; ++i){
+        for (size_t a = 0; a < nv; ++a){
+            c2[a][i] = a2[i][a];
+        }
+    }
+
+    double diff_vo = difference(Cvo, c2).second;
+
+    Tensor Avv = A.block("vv");
+    Tensor Cvv = C.block("vv");
+
+    Tensor Avv_t = build_and_fill("A", {nv, nv}, a2);
+    Tensor Cvv_t = build_and_fill("C", {nv, nv}, c2);
+
+    Avv("ij") = Avv_t("ij");
+    Cvv("ij") = Cvv_t("ij");
+
+    C("ab") = A("ab");
+
+    for (size_t a = 0; a < nv; ++a){
+        for (size_t b = 0; b < nv; ++b){
+            c2[a][b] = a2[a][b];
+        }
+    }
+
+    double diff_vv = difference(Cvv, c2).second;
+
+    return diff_oo + diff_vo + diff_vv;
+}
+
 int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
@@ -280,6 +540,12 @@ int main(int argc, char* argv[])
             std::make_tuple(kPass,      test_block_zero,                    "Testing blocked tensor zero"),
             std::make_tuple(kPass,      test_block_scale,                   "Testing blocked tensor scale"),
             std::make_tuple(kPass,      test_block_labels1,                 "Testing blocked tensor labeling (1)"),
+            std::make_tuple(kPass,      test_block_retrive_block1,          "Testing blocked tensor retrieve existing block"),
+            std::make_tuple(kException, test_block_retrive_block2,          "Testing blocked tensor retrieve ambiguous block"),
+            std::make_tuple(kException, test_block_retrive_block3,          "Testing blocked tensor retrieve null block (1)"),
+            std::make_tuple(kException, test_block_retrive_block4,          "Testing blocked tensor retrieve null block (2)"),
+            std::make_tuple(kPass,      test_Cij_equal_Aji,                 "Testing blocked tensor C(\"ij\") = A(\"ji\")"),
+
     };
 
     std::vector<std::tuple<std::string,TestResult,double>> results;

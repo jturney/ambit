@@ -1,8 +1,8 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <tensor/blocked_tensor.h>
-#include "indices.h"
+#include <blocked_tensor/blocked_tensor.h>
+#include <tensor/indices.h>
 
 namespace tensor {
 
@@ -194,6 +194,50 @@ void BlockedTensor::set_name(const std::string& name)
     name_ = name;
 }
 
+bool BlockedTensor::is_valid_block(const std::vector<size_t>& key) const
+{
+    return (blocks_.count(key) != 0);
+}
+
+Tensor BlockedTensor::block(const std::string& indices)
+{
+//    std::vector<std::string> split_indices = indices::split(indices);
+    std::vector<size_t> key;
+    for (const std::string& index : indices::split(indices)){
+        if (name_to_mo_space_.count(index) != 0){
+            key.push_back(name_to_mo_space_[index]);
+        }else{
+            throw std::runtime_error("Cannot retrieve block " + indices + " of tensor " + name() +
+                                     ". The index " + index + " does not indentify a unique space");
+        }
+    }
+    return block(key);
+}
+
+Tensor BlockedTensor::block(std::vector<size_t>& key)
+{
+    if (! is_valid_block(key)){
+        std::string msg;
+        for (size_t k : key){
+            msg += boost::lexical_cast<std::string>(k);
+        }
+        throw std::runtime_error("Block \"" + msg + "\" is not contained in tensor " + name());
+    }
+    return blocks_.at(key);
+}
+
+const Tensor BlockedTensor::block(std::vector<size_t>& key) const
+{
+    if (! is_valid_block(key)){
+        std::string msg;
+        for (size_t k : key){
+            msg += boost::lexical_cast<std::string>(k);
+        }
+        throw std::runtime_error("Block " + msg + " is not contained in tensor " + name());
+    }
+    return blocks_.at(key);
+}
+
 double BlockedTensor::norm(int type) const
 {
     if (type == 0) {
@@ -260,11 +304,83 @@ LabeledBlockedTensor BlockedTensor::operator()(const std::string& indices)
     return LabeledBlockedTensor(*this, indices::split(indices));
 }
 
+std::vector<std::vector<size_t>> BlockedTensor::label_to_block_keys(const std::vector<std::string>& indices)
+{
+    // This function takes in the labels used to form a LabeledBlockedTensor and returns the keys
+    // to access the corresponding blocks.
+    // For example, suppose that indices "i,j,k" are reserved for occupied orbitals ("o") and that index "p"
+    // belongs to the composite space of occupied and virtual orbitals ("o" + "v").
+    // Then if this function is called with {"i","j","k","p"} it will return the vectors
+    // {0,0,0,0} and {0,0,0,1}, which stand for the "oooo" and "ooov" blocks, respectively.
+    // The way we proceed is by forming partial vectors that we keep expanding as we
+    // process all the indices.
+
+    std::vector<std::vector<size_t>> final_blocks;
+
+    // Loop over indices of this block
+    for (const std::string& index : indices){
+        std::vector<std::vector<size_t>> partial_blocks;
+        // How does this MO space name map to the MOSpace objects contained in mo_spaces_? (e.g. "G" -> {0,1})
+        for (size_t mo_space_idx : index_to_mo_spaces_[index]){
+            // Special case
+            if(final_blocks.size() == 0){
+                partial_blocks.push_back({mo_space_idx});
+            }else{
+                // Add each this primitive set to all the partial block labels
+                for (std::vector<size_t>& block : final_blocks){
+                    std::vector<size_t> new_block(block);
+                    new_block.push_back(mo_space_idx);
+                    partial_blocks.push_back(new_block);
+                }
+            }
+        }
+        final_blocks = partial_blocks;
+    }
+    return final_blocks;
+}
+
 LabeledBlockedTensor::LabeledBlockedTensor(BlockedTensor BT, const std::vector<std::string>& indices, double factor)
     : BT_(BT), indices_(indices), factor_(factor)
 {
     if (BT_.rank() != indices.size())
     throw std::runtime_error("Labeled tensor does not have correct number of indices for underlying tensor's rank");
+}
+
+void LabeledBlockedTensor::operator=(const LabeledBlockedTensor &rhs)
+{
+    std::vector<std::vector<size_t>> rhs_keys = rhs.label_to_block_keys();
+
+    std::vector<size_t> perm = indices::permutation_order(indices_,rhs.indices_);
+
+    // Loop over all keys of the rhs
+    for (std::vector<size_t>& rhs_key : rhs_keys){
+        // Map the rhs key to the lhs key
+        std::vector<size_t> lhs_key;
+        for (size_t p : perm){
+            lhs_key.push_back(rhs_key[p]);
+        }
+        // Call LabeledTensor's operation
+        Tensor LHS = BT().block(lhs_key);
+        const Tensor RHS = rhs.BT().block(rhs_key);
+
+        if (LHS == RHS) throw std::runtime_error("Self assignment is not allowed.");
+        if (LHS.rank() != RHS.rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+        LHS.permute(RHS,indices_, rhs.indices_, rhs.factor(), 0.0);
+    }
+}
+
+void LabeledBlockedTensor::operator+=(const LabeledBlockedTensor &rhs)
+{
+//    if (T() == rhs.T()) throw std::runtime_error("Self assignment is not allowed.");
+//    if (T_.rank() != rhs.T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+//    T_.permute(rhs.T(), indices_, rhs.indices(), rhs.factor(), 1.0);
+}
+
+void LabeledBlockedTensor::operator-=(const LabeledBlockedTensor &rhs)
+{
+//    if (T() == rhs.T()) throw std::runtime_error("Self assignment is not allowed.");
+//    if (T_.rank() != rhs.T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+//    T_.permute(rhs.T(), indices_, rhs.indices(), -rhs.factor(), 1.0);
 }
 
 }
