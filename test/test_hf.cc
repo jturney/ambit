@@ -139,11 +139,15 @@ void hf()
             break;
     } while (!converged);
 
-    C.print(stdout, true);
-    C.iterate([](const std::vector<size_t>& indices, double& value) {
+//    C.print(stdout, true);
+    C.iterate([](const std::vector<size_t>& /*indices*/, double& value) {
         value += 1.0;
     });
-    C.print(stdout, true);
+//    C.print(stdout, true);
+
+    C.citerate([](const std::vector<size_t>& indices, const double& value) {
+        printf("rank %d: C[%lu, %lu] %lf\n", settings::rank, indices[0], indices[1], value);
+    });
 
 //    g.citerate([](const std::vector<size_t>& indices, const double& value) {
 //        printf("g[%lu, %lu, %lu, %lu] %lf\n", indices[0], indices[1], indices[2], indices[3], value);
