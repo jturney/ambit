@@ -371,16 +371,48 @@ void LabeledBlockedTensor::operator=(const LabeledBlockedTensor &rhs)
 
 void LabeledBlockedTensor::operator+=(const LabeledBlockedTensor &rhs)
 {
-//    if (T() == rhs.T()) throw std::runtime_error("Self assignment is not allowed.");
-//    if (T_.rank() != rhs.T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
-//    T_.permute(rhs.T(), indices_, rhs.indices(), rhs.factor(), 1.0);
+    std::vector<std::vector<size_t>> rhs_keys = rhs.label_to_block_keys();
+
+    std::vector<size_t> perm = indices::permutation_order(indices_,rhs.indices_);
+
+    // Loop over all keys of the rhs
+    for (std::vector<size_t>& rhs_key : rhs_keys){
+        // Map the rhs key to the lhs key
+        std::vector<size_t> lhs_key;
+        for (size_t p : perm){
+            lhs_key.push_back(rhs_key[p]);
+        }
+        // Call LabeledTensor's operation
+        Tensor LHS = BT().block(lhs_key);
+        const Tensor RHS = rhs.BT().block(rhs_key);
+
+        if (LHS == RHS) throw std::runtime_error("Self assignment is not allowed.");
+        if (LHS.rank() != RHS.rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+        LHS.permute(RHS,indices_, rhs.indices_, rhs.factor(), 1.0);
+    }
 }
 
 void LabeledBlockedTensor::operator-=(const LabeledBlockedTensor &rhs)
 {
-//    if (T() == rhs.T()) throw std::runtime_error("Self assignment is not allowed.");
-//    if (T_.rank() != rhs.T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
-//    T_.permute(rhs.T(), indices_, rhs.indices(), -rhs.factor(), 1.0);
+    std::vector<std::vector<size_t>> rhs_keys = rhs.label_to_block_keys();
+
+    std::vector<size_t> perm = indices::permutation_order(indices_,rhs.indices_);
+
+    // Loop over all keys of the rhs
+    for (std::vector<size_t>& rhs_key : rhs_keys){
+        // Map the rhs key to the lhs key
+        std::vector<size_t> lhs_key;
+        for (size_t p : perm){
+            lhs_key.push_back(rhs_key[p]);
+        }
+        // Call LabeledTensor's operation
+        Tensor LHS = BT().block(lhs_key);
+        const Tensor RHS = rhs.BT().block(rhs_key);
+
+        if (LHS == RHS) throw std::runtime_error("Self assignment is not allowed.");
+        if (LHS.rank() != RHS.rank()) throw std::runtime_error("Permuted tensors do not have same rank");
+        LHS.permute(RHS,indices_, rhs.indices_, -rhs.factor(), 0.0);
+    }
 }
 
 }
