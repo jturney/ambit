@@ -206,6 +206,16 @@ void Tensor::scale(double a)
     tensor_->scale(a);
 }
 
+void Tensor::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
+{
+    tensor_->iterate(func);
+}
+
+void Tensor::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
+{
+    tensor_->citerate(func);
+}
+
 std::map<std::string, Tensor> Tensor::map_to_tensor(const std::map<std::string, TensorImplPtr>& x)
 {
     std::map<std::string, Tensor> result;

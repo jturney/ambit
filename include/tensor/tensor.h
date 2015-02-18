@@ -370,8 +370,8 @@ public:
 
     // => Iterators <= //
 
-    void iterate(std::function<void (std::vector<size_t>, double&)> func);
-    void iterate(std::function<void (std::vector<size_t>, const double&)> func) const;
+    void iterate(const std::function<void (const std::vector<size_t>&, double&)>& func);
+    void citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const;
 
 private:
 
