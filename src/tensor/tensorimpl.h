@@ -138,6 +138,14 @@ public:
     virtual TensorImplPtr power(double power, double condition = 1.0E-12) const
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
+    // => Iterators <= //
+
+    virtual void iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
+    { throw std::runtime_error("Operation not supported in this tensor implementation."); }
+    virtual void citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
+    { throw std::runtime_error("Operation not supported in this tensor implementation."); }
+
+
 protected:
 
     static bool typeCheck(TensorType type, ConstTensorImplPtr A, bool throwIfDiff = true);

@@ -43,9 +43,9 @@ double CoreTensorImpl::norm(
 }
 void CoreTensorImpl::scale(double beta)
 {
-    if (beta == 0.0) 
+    if (beta == 0.0)
         memset(data_.data(),'\0', sizeof(double)*numel());
-    else 
+    else
         C_DSCAL(numel(), beta, data_.data(), 1);
 }
 
@@ -361,7 +361,7 @@ void CoreTensorImpl::contract(
         size_t ldaC = (C_transpose ? AC_size : BC_size);
 
         if (nrow == 1L && ncol == 1L && nzip == 1L) {
-            (*C2p) = alpha * (*Lp) * (*Rp) + beta * (*C2p); 
+            (*C2p) = alpha * (*Lp) * (*Rp) + beta * (*C2p);
         } else if (nrow == 1L && ncol == 1L && nzip > 1L) {
             (*C2p) *= beta;
             (*C2p) += alpha * C_DDOT(nzip,Lp,1,Rp,1);
@@ -421,7 +421,7 @@ void CoreTensorImpl::permute(
     double* Cp = data().data();
     double* Ap = ((const CoreTensorImplPtr)A)->data().data();
 
-    /// Beta scale 
+    /// Beta scale
     scale(beta);
 
     // => Index Logic <= //
@@ -644,10 +644,10 @@ void CoreTensorImpl::gemm(
     double* Cp = data().data();
     double* Ap = ((const CoreTensorImplPtr)A)->data().data();
     double* Bp = ((const CoreTensorImplPtr)B)->data().data();
-    
+
     C_DGEMM(
-        (transA ? 'T' : 'N'), 
-        (transB ? 'T' : 'N'), 
+        (transA ? 'T' : 'N'),
+        (transB ? 'T' : 'N'),
         nrow,
         ncol,
         nzip,
@@ -781,6 +781,52 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
     }
 
     return powered;
+}
+
+void CoreTensorImpl::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
+{
+    std::vector<size_t> indices(rank(), 0);
+    std::vector<size_t> addressing(rank(), 1);
+
+    // form addressing array
+    for (int n=rank()-2; n >= 0; --n) {
+        addressing[n] = addressing[n+1] * dim(n+1);
+    }
+
+    size_t nelem = numel();
+    size_t nrank = rank();
+    for (size_t n=0; n < nelem; ++n) {
+        size_t d = n;
+        for (size_t k=0; k<nrank; ++k) {
+            indices[k] = d / addressing[k];
+            d = d % addressing[k];
+        }
+
+        func(indices, data_[n]);
+    }
+}
+
+void CoreTensorImpl::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
+{
+    std::vector<size_t> indices(rank(), 0);
+    std::vector<size_t> addressing(rank(), 1);
+
+    // form addressing array
+    for (int n=rank()-2; n >= 0; --n) {
+        addressing[n] = addressing[n+1] * dim(n+1);
+    }
+
+    size_t nelem = numel();
+    size_t nrank = rank();
+    for (size_t n=0; n < nelem; ++n) {
+        size_t d = n;
+        for (size_t k=0; k<nrank; ++k) {
+            indices[k] = d / addressing[k];
+            d = d % addressing[k];
+        }
+
+        func(indices, data_[n]);
+    }
 }
 
 }

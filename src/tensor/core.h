@@ -69,6 +69,9 @@ public:
     //TensorImplPtr inverse() const;
     TensorImplPtr power(double power, double condition = 1.0E-12) const;
 
+    void iterate(const std::function<void (const std::vector<size_t>&, double&)>& func);
+    void citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const;
+
 private:
     aligned_vector<double> data_;
 };

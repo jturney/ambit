@@ -138,6 +138,16 @@ void hf()
         if (iter > 15)
             break;
     } while (!converged);
+
+    C.print(stdout, true);
+    C.iterate([](const std::vector<size_t>& indices, double& value) {
+        value += 1.0;
+    });
+    C.print(stdout, true);
+
+//    g.citerate([](const std::vector<size_t>& indices, const double& value) {
+//        printf("g[%lu, %lu, %lu, %lu] %lf\n", indices[0], indices[1], indices[2], indices[3], value);
+//    });
 }
 
 int main(int argc, char* argv[])
