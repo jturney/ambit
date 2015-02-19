@@ -411,8 +411,13 @@ void LabeledBlockedTensor::operator-=(const LabeledBlockedTensor &rhs)
 
         if (LHS == RHS) throw std::runtime_error("Self assignment is not allowed.");
         if (LHS.rank() != RHS.rank()) throw std::runtime_error("Permuted tensors do not have same rank");
-        LHS.permute(RHS,indices_, rhs.indices_, -rhs.factor(), 0.0);
+        LHS.permute(RHS,indices_, rhs.indices_, -rhs.factor(), 1.0);
     }
+}
+
+LabeledBlockedTensorProduct LabeledBlockedTensor::operator*(const LabeledBlockedTensor &rhs)
+{
+    return LabeledBlockedTensorProduct(*this, rhs);
 }
 
 }

@@ -12,6 +12,7 @@
 namespace tensor {
 
 class LabeledBlockedTensor;
+class LabeledBlockedTensorProduct;
 
 enum MOSpaceSpinType {AlphaSpin,BetaSpin,NoSpin};
 
@@ -277,7 +278,7 @@ public:
     const Indices& indices() const { return indices_; }
     const BlockedTensor& BT() const { return BT_; }
 
-    //    LabeledBlockedTensorProduct operator*(const LabeledBlockedTensor& rhs);
+    LabeledBlockedTensorProduct operator*(const LabeledBlockedTensor& rhs);
 //    LabeledBlockedTensorAddition operator+(const LabeledBlockedTensor& rhs);
 //    LabeledBlockedTensorAddition operator-(const LabeledBlockedTensor& rhs);
 
@@ -326,33 +327,33 @@ inline LabeledBlockedTensor operator*(double factor, const LabeledBlockedTensor&
     return LabeledBlockedTensor(ti.BT(), ti.indices(), factor*ti.factor());
 };
 
-//class LabeledTensorProduct {
+class LabeledBlockedTensorProduct {
 
-//public:
-//    LabeledTensorProduct(const LabeledTensor& A, const LabeledTensor& B)
-//    {
-//        tensors_.push_back(A);
-//        tensors_.push_back(B);
-//    }
+public:
+    LabeledBlockedTensorProduct(const LabeledBlockedTensor& A, const LabeledBlockedTensor& B)
+    {
+        tensors_.push_back(A);
+        tensors_.push_back(B);
+    }
 
-//    size_t size() const { return tensors_.size(); }
+    size_t size() const { return tensors_.size(); }
 
-//    const LabeledTensor& operator[](size_t i) const { return tensors_[i]; }
+    const LabeledBlockedTensor& operator[](size_t i) const { return tensors_[i]; }
 
-//    LabeledTensorProduct& operator*(const LabeledTensor& other) {
-//        tensors_.push_back(other);
-//        return *this;
-//    }
+    LabeledBlockedTensorProduct& operator*(const LabeledBlockedTensor& other) {
+        tensors_.push_back(other);
+        return *this;
+    }
 
-//    // conversion operator
-//    operator double() const;
+    // conversion operator
+    operator double() const;
 
 //    std::pair<double, double> compute_contraction_cost(const std::vector<size_t>& perm) const;
 
-//private:
+private:
 
-//    std::vector<LabeledTensor> tensors_;
-//};
+    std::vector<LabeledBlockedTensor> tensors_;
+};
 
 //class LabeledTensorAddition
 //{

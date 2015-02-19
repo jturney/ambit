@@ -506,6 +506,78 @@ double test_Cij_equal_Aji()
     return diff_oo + diff_vo + diff_vv;
 }
 
+double test_Cijab_plus_equal_Aaibj()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+
+    BlockedTensor A = BlockedTensor::build(kCore,"A",{"vovo","ovvo","voov"});
+    BlockedTensor C = BlockedTensor::build(kCore,"C",{"oovv","ovvo","voov"});
+
+    size_t no = 3;
+    size_t nv = 5;
+
+    Tensor Avovo = A.block("vovo");
+    Tensor Coovv = C.block("oovv");
+
+    Tensor Avovo_t = build_and_fill("A", {nv, no, nv, no}, a4);
+    Tensor Coovv_t = build_and_fill("C", {no, no, nv, nv}, c4);
+
+    Avovo("pqrs") = Avovo_t("pqrs");
+    Coovv("pqrs") = Coovv_t("pqrs");
+
+    C("ijab") += A("aibj");
+
+    for (size_t i = 0; i < no; ++i){
+        for (size_t j = 0; j < no; ++j){
+            for (size_t a = 0; a < nv; ++a){
+                for (size_t b = 0; b < nv; ++b){
+                    c4[i][j][a][b] += a4[a][i][b][j];
+                }
+            }
+        }
+    }
+
+    return difference(Coovv, c4).second;
+}
+
+double test_Cbija_minus_equal_Ajabi()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+
+    BlockedTensor A = BlockedTensor::build(kCore,"A",{"vovo","ovvo","voov"});
+    BlockedTensor C = BlockedTensor::build(kCore,"C",{"oovv","ovvo","voov"});
+
+    size_t no = 3;
+    size_t nv = 5;
+
+    Tensor Aovvo = A.block("ovvo");
+    Tensor Cvoov = C.block("voov");
+
+    Tensor Aovvo_t = build_and_fill("A", {no, nv, nv, no}, a4);
+    Tensor Cvoov_t = build_and_fill("C", {nv, no, no, nv}, c4);
+
+    Aovvo("pqrs") = Aovvo_t("pqrs");
+    Cvoov("pqrs") = Cvoov_t("pqrs");
+
+    C("bija") -= A("jabi");
+
+    for (size_t i = 0; i < no; ++i){
+        for (size_t j = 0; j < no; ++j){
+            for (size_t a = 0; a < nv; ++a){
+                for (size_t b = 0; b < nv; ++b){
+                    c4[b][i][j][a] -= a4[j][a][b][i];
+                }
+            }
+        }
+    }
+
+    return difference(Cvoov, c4).second;
+}
+
 int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
@@ -545,6 +617,10 @@ int main(int argc, char* argv[])
             std::make_tuple(kException, test_block_retrive_block3,          "Testing blocked tensor retrieve null block (1)"),
             std::make_tuple(kException, test_block_retrive_block4,          "Testing blocked tensor retrieve null block (2)"),
             std::make_tuple(kPass,      test_Cij_equal_Aji,                 "Testing blocked tensor C(\"ij\") = A(\"ji\")"),
+            std::make_tuple(kPass,      test_Cijab_plus_equal_Aaibj,        "Testing blocked tensor C(\"ijab\") += A(\"aibj\")"),
+            std::make_tuple(kPass,      test_Cbija_minus_equal_Ajabi,       "Testing blocked tensor C(\"bija\") -= A(\"jabi\")"),
+
+
 
     };
 
