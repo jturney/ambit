@@ -299,6 +299,66 @@ TensorImplPtr CyclopsTensorImpl::power(double alpha, double condition) const
 #endif
 }
 
+void CyclopsTensorImpl::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
+{
+    std::vector<size_t> indices(rank(), 0);
+    std::vector<size_t> addressing(rank(), 1);
+
+    // form addressing array
+    for (int n=1; n < rank(); ++n) {
+        addressing[n] = addressing[n-1] * dim(n-1);
+    }
+
+    long_int nelem;
+    size_t nrank = rank();
+    kv_pair *pairs;
+
+    cyclops_->read_local(&nelem, &pairs);
+    for (size_t n=0; n < nelem; ++n) {
+        size_t d = pairs[n].k;
+        for (int k=nrank-1; k>=0; --k) {
+            indices[k] = d / addressing[k];
+            d = d % addressing[k];
+        }
+
+        func(indices, pairs[n].d);
+    }
+
+    // the user may have modified the data, must write to the tensor
+    cyclops_->write(nelem, pairs);
+
+    free(pairs);
+}
+
+void CyclopsTensorImpl::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
+{
+    std::vector<size_t> indices(rank(), 0);
+    std::vector<size_t> addressing(rank(), 1);
+
+    // form addressing array
+    for (int n=1; n < rank(); ++n) {
+        addressing[n] = addressing[n-1] * dim(n-1);
+    }
+
+    long_int nelem;
+    size_t nrank = rank();
+    kv_pair *pairs;
+
+    cyclops_->read_local(&nelem, &pairs);
+    for (size_t n=0; n < nelem; ++n) {
+        size_t d = pairs[n].k;
+        for (int k=nrank-1; k>=0; --k) {
+            indices[k] = d / addressing[k];
+            d = d % addressing[k];
+        }
+
+        func(indices, pairs[n].d);
+    }
+
+    free(pairs);
+}
+
+
 #if defined(HAVE_ELEMENTAL)
 void CyclopsTensorImpl::copyToElemental2(El::DistMatrix<double> &U) const
 {

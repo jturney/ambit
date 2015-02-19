@@ -49,6 +49,9 @@ public:
 
     TensorImplPtr power(double alpha, double condition) const;
 
+    void iterate(const std::function<void (const std::vector<size_t>&, double&)>& func);
+    void citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const;
+
 private:
 
 #if defined(HAVE_ELEMENTAL)
