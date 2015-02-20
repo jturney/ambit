@@ -3,8 +3,6 @@
 #endif
 
 #include "cyclops.h"
-#include "../macros.h"
-#include <El.hpp>
 
 #define GET_CTF_TENSOR(X) \
     const CyclopsTensorImpl* c##X = dynamic_cast<const CyclopsTensorImpl*>((X)); \
@@ -68,13 +66,17 @@ int initialize(int argc, char* argv[])
         }
     }
 
+#if defined(HAVE_ELEMENTAL)
+    El::Initialize(argc, argv);
+#endif
+
     MPI_Comm_rank(MPI_COMM_WORLD, &settings::rank);
     MPI_Comm_size(MPI_COMM_WORLD, &settings::nprocess);
 
     globals::world = new CTF_World(argc, argv);
 
-    if (settings::debug) {
-        printf("Cyclops interface initialized.\nrank: %d; nprocess: %d\n", settings::rank, settings::nprocess);
+    if (settings::debug && settings::rank == 0) {
+        printf("Cyclops interface initialized.\nnprocess: %d\n", settings::nprocess);
     }
 
     return 0;
@@ -84,6 +86,10 @@ void finalize()
 {
     delete globals::world;
     globals::world = nullptr;
+
+#if defined(HAVE_ELEMENTAL)
+    El::Finalize();
+#endif
 
     // if we initialized MPI then we finalize it.
     if (!globals::initialized_mpi)
@@ -208,9 +214,9 @@ std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder ord
     El::SortType sort = order == kAscending ? El::ASCENDING : El::DESCENDING;
     El::HermitianEig(El::LOWER, H, w, X, sort);
 
-    El::Print(H, "H");
-    El::Print(X, "X");
-    El::Print(w, "w");
+//    El::Print(H, "H");
+//    El::Print(X, "X");
+//    El::Print(w, "w");
 
     // construct cyclops tensors to hold eigen vectors and values.
     Dimension value_dims(1);
@@ -223,23 +229,135 @@ std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder ord
     values->copyFromElemental1(w);
 
     std::map<std::string, TensorImplPtr> results;
-    results["values"] = values;
-    results["vectors"] = vectors;
+    results["eigenvalues"] = values;
+    results["eigenvectors"] = vectors;
 
     return results;
 #else
 
-    // Distributed LAPACK is not available.
-    // Copy all data to master node and use
-    // local LAPACK then broadcast the data
-    // back out to the nodes.
-    if (globals::rank() == 0) {
-        int info;
-
-    }
+    ThrowNotImplementedException;
 
 #endif
 }
+
+TensorImplPtr CyclopsTensorImpl::power(double alpha, double condition) const
+{
+    TensorImpl::squareCheck(this);
+    size_t length = dims()[0];
+
+#if defined(HAVE_ELEMENTAL)
+    // since elemental and cyclops distribute their data
+    // differently. construct an elemental matrix and
+    // use its data layout to pull remote data from
+    // cyclops.
+
+    El::DistMatrix<double> H(length, length);
+    copyToElemental2(H);
+
+    // construct elemental storage for values and vectors
+    El::DistMatrix<double,El::VR,El::STAR> w;
+    El::DistMatrix<double> X;
+    El::SortType sort = El::ASCENDING;
+    El::HermitianEig(El::LOWER, H, w, X, sort);
+
+//    El::Print(H, "H");
+//    El::Print(X, "X");
+//    El::Print(w, "w");
+
+    const int numLocalEigs = w.LocalHeight();
+    double maxLocalEig = 0.0;
+    for(int iLoc=0; iLoc<numLocalEigs; ++iLoc)
+    {
+        const double omega = w.GetLocal(iLoc,0);
+        maxLocalEig = std::max(maxLocalEig, omega);
+    }
+    const double maxEig = El::mpi::AllReduce( maxLocalEig, El::mpi::MAX, El::mpi::COMM_WORLD);
+
+    // Overwrite the eigenvalues with f(w)
+    for( int iLoc=0; iLoc<numLocalEigs; ++iLoc ) {
+        const double omega = w.GetLocal(iLoc, 0);
+        double new_omega = 0.0;
+
+        if (alpha < 0.0 && fabs(omega) < condition * maxEig)
+            new_omega = 0.0;
+        else {
+            new_omega = pow(omega, alpha);
+            if (! std::isfinite(new_omega))
+                new_omega = 0.0;
+        }
+
+        w.SetLocal(iLoc, 0, new_omega);
+    }
+
+    El::HermitianFromEVD(El::LOWER, H, w, X);
+
+    CyclopsTensorImpl* result = new CyclopsTensorImpl(name() + "^" + std::to_string(alpha), dims());
+    result->copyFromLowerElementalToFull2(H);
+    return result;
+#else
+    ThrowNotImplementedException;
+#endif
+}
+
+void CyclopsTensorImpl::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
+{
+    std::vector<size_t> indices(rank(), 0);
+    std::vector<size_t> addressing(rank(), 1);
+
+    // form addressing array
+    for (int n=1; n < rank(); ++n) {
+        addressing[n] = addressing[n-1] * dim(n-1);
+    }
+
+    long_int nelem;
+    size_t nrank = rank();
+    kv_pair *pairs;
+
+    cyclops_->read_local(&nelem, &pairs);
+    for (size_t n=0; n < nelem; ++n) {
+        size_t d = pairs[n].k;
+        for (int k=nrank-1; k>=0; --k) {
+            indices[k] = d / addressing[k];
+            d = d % addressing[k];
+        }
+
+        func(indices, pairs[n].d);
+    }
+
+    // the user may have modified the data, must write to the tensor
+    cyclops_->write(nelem, pairs);
+
+    free(pairs);
+}
+
+void CyclopsTensorImpl::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
+{
+    std::vector<size_t> indices(rank(), 0);
+    std::vector<size_t> addressing(rank(), 1);
+
+    // form addressing array
+    for (int n=1; n < rank(); ++n) {
+        addressing[n] = addressing[n-1] * dim(n-1);
+    }
+
+    long_int nelem;
+    size_t nrank = rank();
+    kv_pair *pairs;
+
+    cyclops_->read_local(&nelem, &pairs);
+    for (size_t n=0; n < nelem; ++n) {
+        size_t d = pairs[n].k;
+        for (int k=nrank-1; k>=0; --k) {
+            indices[k] = d / addressing[k];
+            d = d % addressing[k];
+        }
+
+        func(indices, pairs[n].d);
+    }
+
+    free(pairs);
+}
+
 
 #if defined(HAVE_ELEMENTAL)
 void CyclopsTensorImpl::copyToElemental2(El::DistMatrix<double> &U) const
@@ -291,7 +409,35 @@ void CyclopsTensorImpl::copyFromElemental2(const El::DistMatrix<double> &X)
             const int c = cshift+i*cstride;
             const int r = rshift+j*rstride;
 
-            pairs.push_back(kv_pair(r*length+c, X.GetLocal(i, j)));
+            pairs.push_back(kv_pair(c*length+r, X.GetLocal(i, j)));
+        }
+    }
+    cyclops_->write(pairs.size(), pairs.data());
+}
+
+void CyclopsTensorImpl::copyFromLowerElementalToFull2(const El::DistMatrix<double>& X)
+{
+    size_t length = dims()[1];
+    std::vector<kv_pair> pairs;
+    const int cshift = X.ColShift();
+    const int rshift = X.RowShift();
+    const int cstride = X.ColStride();
+    const int rstride = X.RowStride();
+
+    for (int i=0; i<X.LocalHeight(); i++) {
+        for (int j=0; j<X.LocalWidth(); j++) {
+            const int c = cshift+i*cstride;
+            const int r = rshift+j*rstride;
+
+            // lower triangle
+            if (r < c) {
+                pairs.push_back(kv_pair(r * length + c, X.GetLocal(i, j)));
+                pairs.push_back(kv_pair(c * length + r, X.GetLocal(i, j)));
+            }
+            // diagonal
+            else if (c == r) {
+                pairs.push_back(kv_pair(r * length + c, X.GetLocal(i, j)));
+            }
         }
     }
     cyclops_->write(pairs.size(), pairs.data());

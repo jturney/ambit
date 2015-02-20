@@ -2,6 +2,7 @@
 #define TENSOR_CORE_H
 
 #include "tensorimpl.h"
+#include <tensor/aligned.h>
 
 namespace tensor {
 
@@ -10,8 +11,8 @@ class CoreTensorImpl : public TensorImpl
 public:
     CoreTensorImpl(const std::string& name, const Dimension& dims);
 
-    std::vector<double>& data() { return data_; }
-    const std::vector<double>& data() const { return data_; }
+    aligned_vector<double>& data() { return data_; }
+    const aligned_vector<double>& data() const { return data_; }
 
     // => Simple Single Tensor Operations <= //
 
@@ -68,8 +69,11 @@ public:
     //TensorImplPtr inverse() const;
     TensorImplPtr power(double power, double condition = 1.0E-12) const;
 
+    void iterate(const std::function<void (const std::vector<size_t>&, double&)>& func);
+    void citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const;
+
 private:
-    std::vector<double> data_;
+    aligned_vector<double> data_;
 };
 
 typedef CoreTensorImpl* CoreTensorImplPtr;

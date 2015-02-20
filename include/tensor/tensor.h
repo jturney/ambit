@@ -11,6 +11,8 @@
 #include <memory>
 #include <tuple>
 
+#include "aligned.h"
+
 namespace tensor {
 
 using std::tuple;
@@ -64,6 +66,9 @@ extern bool debug;
 
 /// Memory usage limit. Default is 1GB.
 extern size_t memory_limit;
+
+/// Distributed capable?
+extern const bool distributed_capable;
 
 }
 
@@ -190,8 +195,8 @@ public:
      * Results:
      *  @return data pointer, if tensor object supports it
      **/
-    std::vector<double>& data();
-    const std::vector<double>& data() const;
+    aligned_vector<double>& data();
+    const aligned_vector<double>& data() const;
 
     // => BLAS-Type Tensor Operations <= //
 
@@ -430,8 +435,8 @@ public:
 
     // => Iterators <= //
 
-    void iterate(std::function<void (const std::vector<size_t>&, double&)> func);
-    void iterate(std::function<void (const std::vector<size_t>&, const double&)> func) const;
+    void iterate(const std::function<void (const std::vector<size_t>&, double&)>& func);
+    void citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const;
 
 private:
 
@@ -535,6 +540,8 @@ public:
         tensors_.push_back(B);
     }
 
+    LabeledTensorProduct() {}
+
     size_t size() const { return tensors_.size(); }
 
     const LabeledTensor& operator[](size_t i) const { return tensors_[i]; }
@@ -542,6 +549,10 @@ public:
     LabeledTensorProduct& operator*(const LabeledTensor& other) {
         tensors_.push_back(other);
         return *this;
+    }
+
+    void operator*=(const LabeledTensor& other) {
+        tensors_.push_back(other);
     }
 
     // conversion operator

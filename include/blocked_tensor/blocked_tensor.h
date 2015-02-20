@@ -7,11 +7,12 @@
 #include <map>
 #include <string>
 
-#include "tensor.h"
+#include <tensor/tensor.h>
 
 namespace tensor {
 
 class LabeledBlockedTensor;
+class LabeledBlockedTensorProduct;
 
 enum MOSpaceSpinType {AlphaSpin,BetaSpin,NoSpin};
 
@@ -33,7 +34,7 @@ public:
      *  // Create a space of alpha occupied orbitals.
      *  MOSpace alpha_occupied("o","i,j,k,l",{0,1,2,3,4},AlphaSpin);
      */
-    MOSpace(std::string name,std::string mo_indices,std::vector<size_t> mos,MOSpaceSpinType spin);
+    MOSpace(const std::string& name, const std::string& mo_indices, std::vector<size_t> mos,MOSpaceSpinType spin);
 
     // => Accessors <= //
 
@@ -41,10 +42,10 @@ public:
     std::string name() const {return name_;}
 
     /// @return The indices used to label orbitals in this space
-    std::vector<std::string> mo_indices() const {return mo_indices_;}
+    const std::vector<std::string>& mo_indices() const {return mo_indices_;}
 
     /// @return The list of molecular orbitals that belong to this space
-    std::vector<size_t> mos() const {return mos_;}
+    const std::vector<size_t>& mos() const {return mos_;}
 
     /// @return The dimension of the molecular orbital space
     size_t dim() const {return mos_.size();}
@@ -84,7 +85,7 @@ private:
  *  E = 0.25 * T("ijab") * V("ijab")
  **/
 class BlockedTensor {
-
+    friend class LabeledBlockedTensor;
 public:
 
     // => Constructors <= //
@@ -124,6 +125,20 @@ public:
     /// Set the name of the tensor to name
     void set_name(const std::string& name);
 
+
+    /// Is this block present?
+//    bool is_valid_block(const std::vector<std::string>& key);
+    /// Is this block present?
+    bool is_valid_block(const std::vector<size_t>& key) const;
+
+    /// Return a Tensor object that corresponds to a given orbital class
+//    Tensor block(const std::vector<std::string>& key);
+    /// Return a Tensor object that corresponds to a given orbital class
+    Tensor block(std::vector<size_t>& key);
+    const Tensor block(std::vector<size_t>& key) const;
+    Tensor block(const std::string& indices);
+    std::map<std::vector<size_t>,Tensor>& blocks() {return blocks_;}
+
     /**
      * Print some tensor information to fh
      * \param level If level = false, just print name and dimensions.  If level = true, print the entire tensor.
@@ -140,11 +155,7 @@ public:
      * Results:
      *  @return data pointer, if tensor object supports it
      **/
-//    /// Return a Tensor object that corresponds to a given orbital class
-//    Tensor block(const std::string& block_indices);
 
-//    /// Is this block present?
-//    bool is_block(const std::string& block_indices);
 
 //    /// @return The
 //    std::map<std::vector<size_t>,Tensor>& blocks() {return blocks_;}
@@ -248,6 +259,9 @@ private:
     /// Maps an orbital index (e.g. "i","j") to the MOSpace objects that contain it
     static std::map<std::string,std::vector<size_t>> index_to_mo_spaces_;
 
+protected:
+    /// Maps tensor labels ({"i","j","k","p"}) to keys to the block map ({{0,0,0,0},{0,0,0,1}})
+    static std::vector<std::vector<size_t>> label_to_block_keys(const std::vector<std::string>& indices);
 
 public:
 
@@ -263,45 +277,48 @@ public:
 
     double factor() const { return factor_; }
     const Indices& indices() const { return indices_; }
-    const BlockedTensor& T() const { return BT_; }
+    const BlockedTensor& BT() const { return BT_; }
 
-//    LabeledBlockedTensorProduct operator*(const LabeledBlockedTensor& rhs);
+    LabeledBlockedTensorProduct operator*(const LabeledBlockedTensor& rhs);
 //    LabeledBlockedTensorAddition operator+(const LabeledBlockedTensor& rhs);
 //    LabeledBlockedTensorAddition operator-(const LabeledBlockedTensor& rhs);
 
 //    LabeledBlockedTensorDistributive operator*(const LabeledBlockedTensorAddition& rhs);
 
-//    /** Copies data from rhs to this sorting the data if needed. */
-//    void operator=(const LabeledTensor& rhs);
-//    void operator+=(const LabeledTensor& rhs);
-//    void operator-=(const LabeledTensor& rhs);
+    /** Copies data from rhs to this sorting the data if needed. */
+    void operator=(const LabeledBlockedTensor& rhs);
+    void operator+=(const LabeledBlockedTensor& rhs);
+    void operator-=(const LabeledBlockedTensor& rhs);
 
 //    void operator=(const LabeledTensorDistributive& rhs);
 //    void operator+=(const LabeledTensorDistributive& rhs);
 //    void operator-=(const LabeledTensorDistributive& rhs);
 
-//    void operator=(const LabeledTensorProduct& rhs);
-//    void operator+=(const LabeledTensorProduct& rhs);
-//    void operator-=(const LabeledTensorProduct& rhs);
+    void operator=(const LabeledBlockedTensorProduct& rhs);
+    void operator+=(const LabeledBlockedTensorProduct& rhs);
+    void operator-=(const LabeledBlockedTensorProduct& rhs);
 
 //    void operator=(const LabeledTensorAddition& rhs);
 //    void operator+=(const LabeledTensorAddition& rhs);
 //    void operator-=(const LabeledTensorAddition& rhs);
 
-//    void operator*=(double scale);
-//    void operator/=(double scale);
+    void operator*=(double scale);
+    void operator/=(double scale);
 
-//    size_t numdim() const { return indices_.size(); }
+    size_t numdim() const { return indices_.size(); }
 //    size_t dim_by_index(const std::string& idx) const;
 
-//    // negation
-//    LabeledTensor operator-() const {
-//        return LabeledTensor(T_, indices_, -factor_);
-//    }
+    // negation
+    LabeledBlockedTensor operator-() const {
+        return LabeledBlockedTensor(BT_, indices_, -factor_);
+    }
 
 private:
-
     void set(const LabeledBlockedTensor& to);
+
+    std::vector<std::vector<size_t>> label_to_block_keys() const {return BT_.label_to_block_keys(indices_);}
+
+    void contract(const LabeledBlockedTensorProduct &rhs,bool zero_result,bool add);
 
     BlockedTensor BT_;
     std::vector<std::string> indices_;
@@ -309,37 +326,37 @@ private:
 
 };
 
-//inline LabeledTensor operator*(double factor, const LabeledTensor& ti) {
-//    return LabeledTensor(ti.T(), ti.indices(), factor*ti.factor());
-//};
+inline LabeledBlockedTensor operator*(double factor, const LabeledBlockedTensor& ti) {
+    return LabeledBlockedTensor(ti.BT(), ti.indices(), factor*ti.factor());
+};
 
-//class LabeledTensorProduct {
+class LabeledBlockedTensorProduct {
 
-//public:
-//    LabeledTensorProduct(const LabeledTensor& A, const LabeledTensor& B)
-//    {
-//        tensors_.push_back(A);
-//        tensors_.push_back(B);
-//    }
+public:
+    LabeledBlockedTensorProduct(const LabeledBlockedTensor& A, const LabeledBlockedTensor& B)
+    {
+        tensors_.push_back(A);
+        tensors_.push_back(B);
+    }
 
-//    size_t size() const { return tensors_.size(); }
+    size_t size() const { return tensors_.size(); }
 
-//    const LabeledTensor& operator[](size_t i) const { return tensors_[i]; }
+    const LabeledBlockedTensor& operator[](size_t i) const { return tensors_[i]; }
 
-//    LabeledTensorProduct& operator*(const LabeledTensor& other) {
-//        tensors_.push_back(other);
-//        return *this;
-//    }
+    LabeledBlockedTensorProduct& operator*(const LabeledBlockedTensor& other) {
+        tensors_.push_back(other);
+        return *this;
+    }
 
-//    // conversion operator
-//    operator double() const;
+    // conversion operator
+    operator double() const;
 
 //    std::pair<double, double> compute_contraction_cost(const std::vector<size_t>& perm) const;
 
-//private:
+private:
 
-//    std::vector<LabeledTensor> tensors_;
-//};
+    std::vector<LabeledBlockedTensor> tensors_;
+};
 
 //class LabeledTensorAddition
 //{

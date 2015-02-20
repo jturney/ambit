@@ -25,6 +25,11 @@ bool debug = false;
 
 size_t memory = 1 * 1024 * 1024 * 1024;
 
+#if defined(HAVE_CYCLOPS)
+const bool distributed_capable = true;
+#else
+const bool distributed_capable = false;
+#endif
 }
 
 int initialize(int argc, char** argv)
@@ -172,12 +177,12 @@ SlicedTensor Tensor::operator()()
     return SlicedTensor(*this, range);
 }
 
-std::vector<double>& Tensor::data()
+aligned_vector<double>& Tensor::data()
 {
     return tensor_->data();
 }
 
-const std::vector<double>& Tensor::data() const
+const aligned_vector<double>& Tensor::data() const
 {
     return tensor_->data();
 }
@@ -199,6 +204,16 @@ void Tensor::zero()
 void Tensor::scale(double a)
 {
     tensor_->scale(a);
+}
+
+void Tensor::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
+{
+    tensor_->iterate(func);
+}
+
+void Tensor::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
+{
+    tensor_->citerate(func);
 }
 
 std::map<std::string, Tensor> Tensor::map_to_tensor(const std::map<std::string, TensorImplPtr>& x)

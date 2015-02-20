@@ -32,7 +32,7 @@ void load_iwl(const std::string& fn, Tensor& target)
 {
     if (settings::rank == 0) {
         Tensor local_data = Tensor::build(kCore, "g", target.dims());
-        io::IWL iwl("test.33", tensor::io::kOpenModeOpenExisting);
+        io::IWL iwl(fn, tensor::io::kOpenModeOpenExisting);
         io::IWL::read_two(iwl, local_data);
 
         target() = local_data();

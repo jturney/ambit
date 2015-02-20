@@ -261,7 +261,7 @@ Tensor build_and_fill(const std::string& name, const Dimension& dims, double mat
 void initialize_random(Tensor &tensor, double matrix[MAXTWO])
 {
     size_t n0 = tensor.dims()[0];
-    std::vector<double>& vec = tensor.data();
+    aligned_vector<double>& vec = tensor.data();
     for (size_t i = 0; i < n0; ++i){
         double randnum = double(std::rand())/double(RAND_MAX);
         matrix[i] = randnum;
@@ -273,7 +273,7 @@ void initialize_random(Tensor &tensor, double matrix[MAXTWO][MAXTWO])
 {
     size_t n0 = tensor.dims()[0];
     size_t n1 = tensor.dims()[1];
-    std::vector<double>& vec = tensor.data();
+    aligned_vector<double>& vec = tensor.data();
     for (size_t i = 0, ij = 0; i < n0; ++i){
         for (size_t j = 0; j < n1; ++j, ++ij){
             double randnum = double(std::rand())/double(RAND_MAX);
@@ -287,8 +287,7 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO])
 {
     size_t n0 = tensor.dims()[0];
 
-    size_t numel = tensor.numel();
-    const std::vector<double>& result = tensor.data();
+    const aligned_vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
     double max_diff = 0.0;
@@ -305,8 +304,7 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO][MAXTWO
     size_t n0 = tensor.dims()[0];
     size_t n1 = tensor.dims()[1];
 
-    size_t numel = tensor.numel();
-    const std::vector<double>& result = tensor.data();
+    const aligned_vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
     double max_diff = 0.0;
@@ -327,7 +325,7 @@ void initialize_random(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][
     size_t n2 = tensor.dims()[2];
     size_t n3 = tensor.dims()[3];
 
-    std::vector<double>& vec = tensor.data();
+    aligned_vector<double>& vec = tensor.data();
     for (size_t i = 0, ijkl = 0; i < n0; ++i){
         for (size_t j = 0; j < n1; ++j){
             for (size_t k = 0; k < n2; ++k){
@@ -348,9 +346,7 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXFOUR][MAXFO
     size_t n2 = tensor.dims()[2];
     size_t n3 = tensor.dims()[3];
 
-    size_t numel = tensor.numel();
-
-    const std::vector<double>& result = tensor.data();
+    const aligned_vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
     double max_diff = 0.0;

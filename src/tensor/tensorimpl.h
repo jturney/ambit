@@ -59,9 +59,9 @@ public:
 
     // => Setters/Getters <= //
 
-    virtual std::vector<double>& data()
+    virtual aligned_vector<double>& data()
         { throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type())); }
-    virtual const std::vector<double>& data() const
+    virtual const aligned_vector<double>& data() const
         { throw std::runtime_error("TensorImpl::data() not supported for tensor type " + std::to_string(type())); }
 
     // => Simple Single Tensor Operations <= //
@@ -137,6 +137,14 @@ public:
     //virtual TensorImplPtr inverse() const = 0;
     virtual TensorImplPtr power(double power, double condition = 1.0E-12) const
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
+
+    // => Iterators <= //
+
+    virtual void iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
+    { throw std::runtime_error("Operation not supported in this tensor implementation."); }
+    virtual void citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
+    { throw std::runtime_error("Operation not supported in this tensor implementation."); }
+
 
 protected:
 

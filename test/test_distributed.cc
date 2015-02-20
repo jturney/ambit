@@ -92,7 +92,7 @@ double random_double()
 void initialize_random(Tensor& A1)
 {
     size_t numel1 = A1.numel();
-    std::vector<double>& A1v = A1.data();
+    aligned_vector<double>& A1v = A1.data();
     for (size_t ind = 0L; ind < numel1; ind++) {
         double randnum = double(std::rand())/double(RAND_MAX);
         A1v[ind] = randnum;
@@ -105,8 +105,8 @@ void initialize_random(Tensor& A1, Tensor& A2)
     size_t numel1 = A1.numel();
     size_t numel2 = A2.numel();
     if (numel1 != numel2) throw std::runtime_error("Tensors do not have same numel.");
-    std::vector<double>& A1v = A1.data();
-    std::vector<double>& A2v = A2.data();
+    aligned_vector<double>& A1v = A1.data();
+    aligned_vector<double>& A2v = A2.data();
     for (size_t ind = 0L; ind < numel1; ind++) {
         double randnum = double(std::rand())/double(RAND_MAX);
         A1v[ind] = randnum;
@@ -120,8 +120,8 @@ double relative_difference(const Tensor& A1, const Tensor& A2)
     size_t numel1 = A1.numel();
     size_t numel2 = A2.numel();
     if (numel1 != numel2) throw std::runtime_error("Tensors do not have same numel.");
-    const std::vector<double>& A1v = A1.data();
-    const std::vector<double>& A2v = A2.data();
+    const aligned_vector<double>& A1v = A1.data();
+    const aligned_vector<double>& A2v = A2.data();
     double dmax = 0.0;
     double Dmax = 0.0;
     for (size_t ind = 0L; ind < numel1; ind++) {

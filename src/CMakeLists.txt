@@ -1,4 +1,5 @@
 set(TENSOR_HEADERS
+    ${PROJECT_SOURCE_DIR}/include/tensor/aligned.h
     ${PROJECT_SOURCE_DIR}/include/tensor/tensor.h
     ${PROJECT_SOURCE_DIR}/include/tensor/io/file.h
     ${PROJECT_SOURCE_DIR}/include/tensor/io/io.h
@@ -9,7 +10,6 @@ set(TENSOR_HEADERS
     tensor/core.h
     tensor/indices.h
     tensor/macros.h
-    tensor/memory.h
     tensor/tensorimpl.h
 )
 
@@ -20,7 +20,6 @@ set(TENSOR_SOURCES
     io/manager.cc
     math/blas.cc
     math/lapack.cc
-    tensor/blocked_tensor.cc
     tensor/core.cc
     tensor/disk.cc
     tensor/slice.cc
@@ -29,6 +28,7 @@ set(TENSOR_SOURCES
     tensor/sliced_tensor.cc
     tensor/tensor.cc
     tensor/tensorimpl.cc
+    blocked_tensor/blocked_tensor.cc
 )
 
 # if we have MPI and Cyclops is enabled
