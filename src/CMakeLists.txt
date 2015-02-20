@@ -49,6 +49,8 @@ endif()
 target_link_libraries(tensor ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
 install(TARGETS tensor ARCHIVE DESTINATION lib)
+install(FILES ${PROJECT_SOURCE_DIR}/include/tensor/tensor.h DESTINATION include/tensor)
+install(FILES ${PROJECT_SOURCE_DIR}/include/tensor/aligned.h DESTINATION include/tensor)
 
 if(ENABLE_PYTHON)
     add_subdirectory(python)
