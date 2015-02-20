@@ -1,3 +1,7 @@
+#include <cstdlib>
+#include <list>
+#include <algorithm>
+
 #include <tensor/tensor.h>
 #include "tensorimpl.h"
 #include "core.h"
@@ -8,10 +12,6 @@
 #if defined(HAVE_CYCLOPS)
 #   include "cyclops/cyclops.h"
 #endif
-
-#include <cstdlib>
-#include <list>
-#include <algorithm>
 
 namespace tensor {
 

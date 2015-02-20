@@ -16,12 +16,12 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-151 USA.
  */
 
+#include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include <tensor/io/io.h>
 
 //#include <util/print.h>
-
-#include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 
 #if defined(HAVE_MPI)
 #   include <mpi.h>

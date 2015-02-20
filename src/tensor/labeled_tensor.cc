@@ -1,3 +1,6 @@
+#include <list>
+#include <algorithm>
+#include <numeric>
 #include <tensor/tensor.h>
 #include "tensorimpl.h"
 #include "core.h"
@@ -8,9 +11,6 @@
 #   include "cyclops/cyclops.h"
 #endif
 
-#include <list>
-#include <algorithm>
-#include <numeric>
 
 namespace tensor {
 

@@ -1,6 +1,6 @@
-#include "indices.h"
 #include <algorithm>
 #include <iterator>
+#include "indices.h"
 
 namespace tensor {
 
