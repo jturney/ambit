@@ -137,6 +137,7 @@ public:
     Tensor block(std::vector<size_t>& key);
     const Tensor block(std::vector<size_t>& key) const;
     Tensor block(const std::string& indices);
+    std::map<std::vector<size_t>,Tensor>& blocks() {return blocks_;}
 
     /**
      * Print some tensor information to fh
@@ -293,18 +294,18 @@ public:
 //    void operator+=(const LabeledTensorDistributive& rhs);
 //    void operator-=(const LabeledTensorDistributive& rhs);
 
-//    void operator=(const LabeledTensorProduct& rhs);
-//    void operator+=(const LabeledTensorProduct& rhs);
-//    void operator-=(const LabeledTensorProduct& rhs);
+    void operator=(const LabeledBlockedTensorProduct& rhs);
+    void operator+=(const LabeledBlockedTensorProduct& rhs);
+    void operator-=(const LabeledBlockedTensorProduct& rhs);
 
 //    void operator=(const LabeledTensorAddition& rhs);
 //    void operator+=(const LabeledTensorAddition& rhs);
 //    void operator-=(const LabeledTensorAddition& rhs);
 
-//    void operator*=(double scale);
-//    void operator/=(double scale);
+    void operator*=(double scale);
+    void operator/=(double scale);
 
-//    size_t numdim() const { return indices_.size(); }
+    size_t numdim() const { return indices_.size(); }
 //    size_t dim_by_index(const std::string& idx) const;
 
     // negation
@@ -316,6 +317,8 @@ private:
     void set(const LabeledBlockedTensor& to);
 
     std::vector<std::vector<size_t>> label_to_block_keys() const {return BT_.label_to_block_keys(indices_);}
+
+    void contract(const LabeledBlockedTensorProduct &rhs,bool zero_result,bool add);
 
     BlockedTensor BT_;
     std::vector<std::string> indices_;

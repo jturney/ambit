@@ -475,6 +475,8 @@ public:
         tensors_.push_back(B);
     }
 
+    LabeledTensorProduct() {}
+
     size_t size() const { return tensors_.size(); }
 
     const LabeledTensor& operator[](size_t i) const { return tensors_[i]; }
@@ -482,6 +484,10 @@ public:
     LabeledTensorProduct& operator*(const LabeledTensor& other) {
         tensors_.push_back(other);
         return *this;
+    }
+
+    void operator*=(const LabeledTensor& other) {
+        tensors_.push_back(other);
     }
 
     // conversion operator
