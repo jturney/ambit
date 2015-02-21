@@ -672,9 +672,12 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
     vecs->copy(this);
 
     size_t n = dims()[0];
-    size_t lwork = 3 * dims()[0];
+    double dwork;
+    C_DSYEV('V', 'U', n, vecs->data().data(), n, vals->data().data(), &dwork, -1);
+    size_t lwork = (size_t) dwork;
     double *work = new double[lwork];
     C_DSYEV('V', 'U', n, vecs->data().data(), n, vals->data().data(), work, lwork);
+    delete[] work;
 
     //If descending is required, the canonical order must be reversed
     //Sort is stable
