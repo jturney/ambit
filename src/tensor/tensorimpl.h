@@ -55,7 +55,7 @@ public:
 
     void set_name(const std::string& name) { name_ = name; }
 
-    void print(FILE* fh, bool level = false, const std::string& format = "%12.7f", int maxcols = 5) const;
+    void print(FILE* fh = stdout, bool level = true, const std::string& format = "%12.7f", int maxcols = 5) const;
 
     // => Setters/Getters <= //
 
