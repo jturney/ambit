@@ -289,6 +289,16 @@ void BlockedTensor::set(double gamma)
     }
 }
 
+//void BlockedTensor::copy(const BlockedTensor& other)
+//{
+//    blocks_.clear();
+//    for (auto key_tensor : other.blocks_){
+//        Tensor T;
+//        T.copy(key_tensor.second);
+//        blocks_[key_tensor.first] = T;
+//    }
+//}
+
 void BlockedTensor::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
 {
     for (auto key_tensor : blocks_){
@@ -419,31 +429,6 @@ LabeledBlockedTensorAddition LabeledBlockedTensor::operator-(const LabeledBlocke
     return LabeledBlockedTensorAddition(*this, -rhs);
 }
 
-//namespace {
-
-//LabeledTensor tensor_product_get_temp_AB(const LabeledTensor &A, const LabeledTensor &B)
-//{
-//    std::vector<Indices> AB_indices = indices::determine_contraction_result(A, B);
-//    const Indices &A_fix_idx = AB_indices[1];
-//    const Indices &B_fix_idx = AB_indices[2];
-//    Dimension dims;
-//    Indices indices;
-
-//    for (size_t i = 0; i < A_fix_idx.size(); ++i) {
-//        dims.push_back(A.T().dim(i));
-//        indices.push_back(A_fix_idx[i]);
-//    }
-//    for (size_t i = 0; i < B_fix_idx.size(); ++i) {
-//        dims.push_back(B.T().dim(i));
-//        indices.push_back(B_fix_idx[i]);
-//    }
-
-//    Tensor T = Tensor::build(A.T().type(), A.T().name() + " * " + B.T().name(), dims);
-//    return T(indices::to_string(indices));
-//}
-
-//}
-
 void LabeledBlockedTensor::operator=(const LabeledBlockedTensorProduct &rhs)
 {
     contract(rhs,true,true);
@@ -566,57 +551,62 @@ void LabeledBlockedTensor::operator/=(double scale)
     }
 }
 
-//LabeledTensorDistributive LabeledTensor::operator*(const LabeledTensorAddition &rhs)
-//{
-//    return LabeledTensorDistributive(*this, rhs);
-//}
+LabeledBlockedTensorDistributive LabeledBlockedTensor::operator*(const LabeledBlockedTensorAddition &rhs)
+{
+    return LabeledBlockedTensorDistributive(*this, rhs);
+}
 
-//void LabeledTensor::operator=(const LabeledTensorDistributive &rhs)
-//{
-//    T_.zero();
+void LabeledBlockedTensor::operator=(const LabeledBlockedTensorDistributive &rhs)
+{
+    std::vector<std::vector<size_t>> lhs_keys = label_to_block_keys();
 
-//    for (const LabeledTensor &B : rhs.B()) {
-//        *this += const_cast<LabeledTensor &>(rhs.A()) * const_cast<LabeledTensor &>(B);
-//    }
-//}
+    // Loop over all keys of the rhs
+    for (std::vector<size_t>& lhs_key : lhs_keys){
+        BT_.block(lhs_key).zero();
+    }
 
-//void LabeledTensor::operator+=(const LabeledTensorDistributive &rhs)
-//{
-//    for (const LabeledTensor &B : rhs.B()) {
-//        *this += const_cast<LabeledTensor &>(rhs.A()) * const_cast<LabeledTensor &>(B);
-//    }
-//}
+    for (const LabeledBlockedTensor &B : rhs.B()) {
+        *this += const_cast<LabeledBlockedTensor &>(rhs.A()) * const_cast<LabeledBlockedTensor &>(B);
+    }
+}
 
-//void LabeledTensor::operator-=(const LabeledTensorDistributive &rhs)
-//{
-//    for (const LabeledTensor &B : rhs.B()) {
-//        *this -= const_cast<LabeledTensor &>(rhs.A()) * const_cast<LabeledTensor &>(B);
-//    }
-//}
+void LabeledBlockedTensor::operator+=(const LabeledBlockedTensorDistributive &rhs)
+{
+    for (const LabeledBlockedTensor &B : rhs.B()) {
+        *this += const_cast<LabeledBlockedTensor &>(rhs.A()) * const_cast<LabeledBlockedTensor &>(B);
+    }
+}
 
-//LabeledTensorDistributive LabeledTensorAddition::operator*(const LabeledTensor &other)
-//{
-//    return LabeledTensorDistributive(other, *this);
-//}
+void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorDistributive &rhs)
+{
+    for (const LabeledBlockedTensor &B : rhs.B()) {
+        *this -= const_cast<LabeledBlockedTensor &>(rhs.A()) * const_cast<LabeledBlockedTensor &>(B);
+    }
+}
 
-//LabeledTensorAddition &LabeledTensorAddition::operator*(double scalar)
-//{
-//    // distribute the scalar to each term
-//    for (LabeledTensor &T : tensors_) {
-//        T *= scalar;
-//    }
+LabeledBlockedTensorDistributive LabeledBlockedTensorAddition::operator*(const LabeledBlockedTensor &other)
+{
+    return LabeledBlockedTensorDistributive(other, *this);
+}
 
-//    return *this;
-//}
+LabeledBlockedTensorAddition &LabeledBlockedTensorAddition::operator*(double scalar)
+{
+    // distribute the scalar to each term
+    for (LabeledBlockedTensor &T : tensors_) {
+        T *= scalar;
+    }
 
-//LabeledTensorAddition &LabeledTensorAddition::operator-()
-//{
-//    for (LabeledTensor &T : tensors_) {
-//        T *= -1.0;
-//    }
+    return *this;
+}
 
-//    return *this;
-//}
+LabeledBlockedTensorAddition &LabeledBlockedTensorAddition::operator-()
+{
+    for (LabeledBlockedTensor &T : tensors_) {
+        T *= -1.0;
+    }
+
+    return *this;
+}
 
 LabeledBlockedTensorProduct::operator double() const
 {
@@ -672,91 +662,6 @@ LabeledBlockedTensorProduct::operator double() const
     return result;
 }
 
-//std::pair<double, double> LabeledTensorProduct::compute_contraction_cost(const std::vector<size_t> &perm) const
-//{
-//#if 0
-//    printf("\n\n  Testing the cost of the contraction pattern: ");
-//    for (size_t p : perm)
-//        printf("[");
-//    for (size_t p : perm) {
-//        const LabeledTensor &ti = tensors_[p];
-//        printf(" %s] ", indices::to_string(ti.indices()).c_str());
-//    }
-//#endif
-
-//    std::map<std::string, size_t> indices_to_size;
-
-//    for (const LabeledTensor &ti : tensors_) {
-//        const Indices &indices = ti.indices();
-//        for (size_t i = 0; i < indices.size(); ++i) {
-//            indices_to_size[indices[i]] = ti.T().dim(i);
-//        }
-//    }
-
-//    double cpu_cost_total = 0.0;
-//    double memory_cost_max = 0.0;
-//    Indices first = tensors_[perm[0]].indices();
-//    for (size_t i = 1; i < perm.size(); ++i) {
-//        Indices second = tensors_[perm[i]].indices();
-//        std::sort(first.begin(), first.end());
-//        std::sort(second.begin(), second.end());
-//        Indices common, first_unique, second_unique;
-
-//        // cannot use common.begin() here, need to use back_inserter() because common.begin() of an
-//        // empty vector is not a valid output iterator
-//        std::set_intersection(first.begin(), first.end(), second.begin(), second.end(), back_inserter(common));
-//        std::set_difference(first.begin(), first.end(), second.begin(), second.end(), back_inserter(first_unique));
-//        std::set_difference(second.begin(), second.end(), first.begin(), first.end(), back_inserter(second_unique));
-
-//        double common_size = 1.0;
-//        for (std::string s : common) common_size *= indices_to_size[s];
-//        double first_size = 1.0;
-//        for (std::string s : first) first_size *= indices_to_size[s];
-//        double second_size = 1.0;
-//        for (std::string s : second) second_size *= indices_to_size[s];
-//        double first_unique_size = 1.0;
-//        for (std::string s : first_unique) first_unique_size *= indices_to_size[s];
-//        double second_unique_size = 1.0;
-//        for (std::string s : second_unique) second_unique_size *= indices_to_size[s];
-//        double result_size = first_unique_size + second_unique_size;
-
-
-//        std::vector<std::string> stored_indices(first_unique);
-//        stored_indices.insert(stored_indices.end(), second_unique.begin(), second_unique.end());
-
-//        double cpu_cost = common_size * result_size;
-//        double memory_cost = first_size + second_size + result_size;
-//        cpu_cost_total += cpu_cost;
-//        memory_cost_max = std::max({memory_cost_max, memory_cost});
-
-//#if 0
-//        printf("\n  First indices        : %s", indices::to_string(first).c_str());
-//        printf("\n  Second indices       : %s", indices::to_string(second).c_str());
-
-//        printf("\n  Common indices       : %s (%.0f)", indices::to_string(common).c_str(), common_size);
-//        printf("\n  First unique indices : %s (%.0f)", indices::to_string(first_unique).c_str(), first_unique_size);
-//        printf("\n  Second unique indices: %s (%.0f)", indices::to_string(second_unique).c_str(), second_unique_size);
-
-//        printf("\n  CPU cost for this step    : %f.0", cpu_cost);
-//        printf("\n  Memory cost for this step : %f.0 = %f.0 + %f.0 + %f.0",
-//               memory_cost,
-//               first_size,
-//               second_size,
-//               result_size);
-
-//        printf("\n  Stored indices       : %s", indices::to_string(stored_indices).c_str());
-//#endif
-
-//        first = stored_indices;
-//    }
-
-//#if 0
-//    printf("\n  Total CPU cost                : %f.0", cpu_cost_total);
-//    printf("\n  Maximum memory cost           : %f.0", memory_cost_max);
-//#endif
-
-//    return std::make_pair(cpu_cost_total, memory_cost_max);
-//}
 
 //LabeledTensorDistributive::operator double() const
 //{

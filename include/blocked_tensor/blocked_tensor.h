@@ -196,10 +196,17 @@ public:
      **/
     void set(double gamma);
 
-//    /**
-//     * Copy the data of other into this tensor.
-//     * Note: this just drops into slice
-//     **/
+    /**
+     * Copy the data of other into this blocked tensor:
+     *  C() = other()
+     * Note: this just drops into slice
+     *
+     * Parameters:
+     *  @param other the blocked tensor to copy data from
+     *
+     * Results
+     *  C is the current bocked tensor, whose data is overwritten
+     **/
 //    void copy(const BlockedTensor& other);
 
 
@@ -264,16 +271,16 @@ public:
     LabeledBlockedTensorAddition operator+(const LabeledBlockedTensor& rhs);
     LabeledBlockedTensorAddition operator-(const LabeledBlockedTensor& rhs);
 
-//    LabeledBlockedTensorDistributive operator*(const LabeledBlockedTensorAddition& rhs);
+    LabeledBlockedTensorDistributive operator*(const LabeledBlockedTensorAddition& rhs);
 
     /** Copies data from rhs to this sorting the data if needed. */
     void operator=(const LabeledBlockedTensor& rhs);
     void operator+=(const LabeledBlockedTensor& rhs);
     void operator-=(const LabeledBlockedTensor& rhs);
 
-//    void operator=(const LabeledBlockedTensorDistributive& rhs);
-//    void operator+=(const LabeledBlockedTensorDistributive& rhs);
-//    void operator-=(const LabeledBlockedTensorDistributive& rhs);
+    void operator=(const LabeledBlockedTensorDistributive& rhs);
+    void operator+=(const LabeledBlockedTensorDistributive& rhs);
+    void operator-=(const LabeledBlockedTensorDistributive& rhs);
 
     void operator=(const LabeledBlockedTensorProduct& rhs);
     void operator+=(const LabeledBlockedTensorProduct& rhs);
@@ -287,7 +294,6 @@ public:
     void operator/=(double scale);
 
     size_t numdim() const { return indices_.size(); }
-//    size_t dim_by_index(const std::string& idx) const;
 
     // negation
     LabeledBlockedTensor operator-() const {
