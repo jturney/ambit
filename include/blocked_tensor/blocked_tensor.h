@@ -13,6 +13,8 @@ namespace tensor {
 
 class LabeledBlockedTensor;
 class LabeledBlockedTensorProduct;
+class LabeledBlockedTensorAddition;
+class LabeledBlockedTensorDistributive;
 
 enum MOSpaceSpinType {AlphaSpin,BetaSpin,NoSpin};
 
@@ -69,16 +71,16 @@ private:
 
 /**
  * Class BlockedTensor
- * Represent a tensor aware of spin and MO spaces
+ * Represent a tensor aware of spin and MO spaces.
  * This class holds several tensors, blocked according to spin and MO spaces.
  *
  * Sample usage:
  *  BlockedTensor::add_mo_space("O" ,"i,j,k,l"    ,{0,1,2,3,4},AlphaSpin);
  *  BlockedTensor::add_mo_space("V" ,"a,b,c,d"    ,{7,8,9},AlphaSpin);
- *  BlockedTensor::add_mo_space("I" ,"p,q,r,s,t"  ,{"O","A","V"});          // create a composite space
+ *  BlockedTensor::add_mo_space("I" ,"p,q,r,s,t"  ,{"O","A","V"}); // create a composite space
  *  BlockedTensor::add_mo_space("A" ,"u,v,w,x,y,z",{5,6},AlphaSpin);
- *  BlockedTensor::add_mo_space("H" ,"m,n"        ,{"O","A"});              // BlockedTensor can deal with redundant spaces
- *  BlockedTensor::add_mo_space("P" ,"e,f"        ,{"A","V"});
+ *  BlockedTensor::add_composite_mo_space("H","m,n",{"O","A"}); // BlockedTensor can deal with redundant spaces
+ *  BlockedTensor::add_composite_mo_space("P","e,f",{"A","V"});
  *
  *  BlockedTensor T("T","O,O,V,V");
  *  BlockedTensor V("V","O,O,V,V");
@@ -194,40 +196,28 @@ public:
      **/
     void set(double gamma);
 
-//    /**
-//     * Copy the data of other into this tensor.
-//     * Note: this just drops into slice
-//     **/
-//    void copy(const BlockedTensor& other);
-
     /**
-     * Perform the contraction:
-     *  C(Cinds) = alpha * A(Ainds) * B(Binds) + beta * C(Cinds)
-     *
-     * Note: Most users should instead use the operator overloading
-     * routines, e.g.,
-     *  C2("ij") += 0.5 * A2("ik") * B2("jk");
+     * Copy the data of other into this blocked tensor:
+     *  C() = other()
+     * Note: this just drops into slice
      *
      * Parameters:
-     *  @param A The left-side factor tensor, e.g., A2
-     *  @param B The right-side factor tensor, e.g., B2
-     *  @param Cinds The indices of tensor C, e.g., "ij"
-     *  @param Ainds The indices of tensor A, e.g., "ik"
-     *  @param Binds The indices of tensor B, e.g., "jk"
-     *  @param alpha The scale applied to the product A*B, e.g., 0.5
-     *  @param beta The scale applied to the tensor C, e.g., 1.0
+     *  @param other the blocked tensor to copy data from
      *
-     * Results:
-     *  C is the current tensor, whose data is overwritten. e.g., C2
+     * Results
+     *  C is the current bocked tensor, whose data is overwritten
      **/
-    void contract(
-        const BlockedTensor& A,
-        const BlockedTensor& B,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
-        const std::vector<std::string>& Binds,
-        double alpha = 1.0,
-        double beta = 0.0);
+//    void copy(const BlockedTensor& other);
+
+
+    // => Iterators <= //
+
+    void iterate(const std::function<void (const std::vector<size_t>&, double&)>& func);
+    void citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const;
+//    void fill(const std::function<void (const std::vector<size_t>&, const double&)>& func) const;
+
+    /// Maps tensor labels ({"i","j","k","p"}) to keys to the block map ({{0,0,0,0},{0,0,0,1}})
+    static std::vector<std::vector<size_t>> label_to_block_keys(const std::vector<std::string>& indices);
 
 private:
 
@@ -260,8 +250,6 @@ private:
     static std::map<std::string,std::vector<size_t>> index_to_mo_spaces_;
 
 protected:
-    /// Maps tensor labels ({"i","j","k","p"}) to keys to the block map ({{0,0,0,0},{0,0,0,1}})
-    static std::vector<std::vector<size_t>> label_to_block_keys(const std::vector<std::string>& indices);
 
 public:
 
@@ -280,33 +268,32 @@ public:
     const BlockedTensor& BT() const { return BT_; }
 
     LabeledBlockedTensorProduct operator*(const LabeledBlockedTensor& rhs);
-//    LabeledBlockedTensorAddition operator+(const LabeledBlockedTensor& rhs);
-//    LabeledBlockedTensorAddition operator-(const LabeledBlockedTensor& rhs);
+    LabeledBlockedTensorAddition operator+(const LabeledBlockedTensor& rhs);
+    LabeledBlockedTensorAddition operator-(const LabeledBlockedTensor& rhs);
 
-//    LabeledBlockedTensorDistributive operator*(const LabeledBlockedTensorAddition& rhs);
+    LabeledBlockedTensorDistributive operator*(const LabeledBlockedTensorAddition& rhs);
 
     /** Copies data from rhs to this sorting the data if needed. */
     void operator=(const LabeledBlockedTensor& rhs);
     void operator+=(const LabeledBlockedTensor& rhs);
     void operator-=(const LabeledBlockedTensor& rhs);
 
-//    void operator=(const LabeledTensorDistributive& rhs);
-//    void operator+=(const LabeledTensorDistributive& rhs);
-//    void operator-=(const LabeledTensorDistributive& rhs);
+    void operator=(const LabeledBlockedTensorDistributive& rhs);
+    void operator+=(const LabeledBlockedTensorDistributive& rhs);
+    void operator-=(const LabeledBlockedTensorDistributive& rhs);
 
     void operator=(const LabeledBlockedTensorProduct& rhs);
     void operator+=(const LabeledBlockedTensorProduct& rhs);
     void operator-=(const LabeledBlockedTensorProduct& rhs);
 
-//    void operator=(const LabeledTensorAddition& rhs);
-//    void operator+=(const LabeledTensorAddition& rhs);
-//    void operator-=(const LabeledTensorAddition& rhs);
+    void operator=(const LabeledBlockedTensorAddition& rhs);
+    void operator+=(const LabeledBlockedTensorAddition& rhs);
+    void operator-=(const LabeledBlockedTensorAddition& rhs);
 
     void operator*=(double scale);
     void operator/=(double scale);
 
     size_t numdim() const { return indices_.size(); }
-//    size_t dim_by_index(const std::string& idx) const;
 
     // negation
     LabeledBlockedTensor operator-() const {
@@ -319,6 +306,7 @@ private:
     std::vector<std::vector<size_t>> label_to_block_keys() const {return BT_.label_to_block_keys(indices_);}
 
     void contract(const LabeledBlockedTensorProduct &rhs,bool zero_result,bool add);
+    void add(const LabeledBlockedTensor &rhs,double alpha,double beta);
 
     BlockedTensor BT_;
     std::vector<std::string> indices_;
@@ -351,81 +339,79 @@ public:
     // conversion operator
     operator double() const;
 
-//    std::pair<double, double> compute_contraction_cost(const std::vector<size_t>& perm) const;
-
 private:
 
     std::vector<LabeledBlockedTensor> tensors_;
 };
 
-//class LabeledTensorAddition
-//{
-//public:
-//    LabeledTensorAddition(const LabeledTensor& A, const LabeledTensor& B)
-//    {
-//        tensors_.push_back(A);
-//        tensors_.push_back(B);
-//    }
+class LabeledBlockedTensorAddition
+{
+public:
+    LabeledBlockedTensorAddition(const LabeledBlockedTensor& A, const LabeledBlockedTensor& B)
+    {
+        tensors_.push_back(A);
+        tensors_.push_back(B);
+    }
 
-//    size_t size() const { return tensors_.size(); }
+    size_t size() const { return tensors_.size(); }
 
-//    const LabeledTensor& operator[](size_t i) const { return tensors_[i]; }
+    const LabeledBlockedTensor& operator[](size_t i) const { return tensors_[i]; }
 
-//    std::vector<LabeledTensor>::iterator begin() { return tensors_.begin(); }
-//    std::vector<LabeledTensor>::const_iterator begin() const { return tensors_.begin(); }
+    std::vector<LabeledBlockedTensor>::iterator begin() { return tensors_.begin(); }
+    std::vector<LabeledBlockedTensor>::const_iterator begin() const { return tensors_.begin(); }
 
-//    std::vector<LabeledTensor>::iterator end() { return tensors_.end(); }
-//    std::vector<LabeledTensor>::const_iterator end() const { return tensors_.end(); }
+    std::vector<LabeledBlockedTensor>::iterator end() { return tensors_.end(); }
+    std::vector<LabeledBlockedTensor>::const_iterator end() const { return tensors_.end(); }
 
-//    LabeledTensorAddition& operator+(const LabeledTensor& other) {
-//        tensors_.push_back(other);
-//        return *this;
-//    }
+    LabeledBlockedTensorAddition& operator+(const LabeledBlockedTensor& other) {
+        tensors_.push_back(other);
+        return *this;
+    }
 
-//    LabeledTensorAddition& operator-(const LabeledTensor& other) {
-//        tensors_.push_back(-other);
-//        return *this;
-//    }
+    LabeledBlockedTensorAddition& operator-(const LabeledBlockedTensor& other) {
+        tensors_.push_back(-other);
+        return *this;
+    }
 
-//    LabeledTensorDistributive operator*(const LabeledTensor& other);
+    LabeledBlockedTensorDistributive operator*(const LabeledBlockedTensor& other);
 
-//    LabeledTensorAddition& operator*(double scalar);
+    LabeledBlockedTensorAddition& operator*(double scalar);
 
-//    // negation
-//    LabeledTensorAddition& operator-();
+    // negation
+    LabeledBlockedTensorAddition& operator-();
 
-//private:
+private:
 
-//    // This handles cases like T("ijab")
-//    std::vector<LabeledTensor> tensors_;
+    // This handles cases like T("ijab")
+    std::vector<LabeledBlockedTensor> tensors_;
 
-//};
+};
 
-//inline LabeledTensorAddition operator*(double factor, const LabeledTensorAddition& ti) {
-//    LabeledTensorAddition ti2 = ti;
-//    return ti2 * factor;
-//}
+inline LabeledBlockedTensorAddition operator*(double factor, const LabeledBlockedTensorAddition& ti) {
+    LabeledBlockedTensorAddition ti2 = ti;
+    return ti2 * factor;
+}
 
-//// Is responsible for expressions like D * (J - K) --> D*J - D*K
-//class LabeledTensorDistributive
-//{
-//public:
-//    LabeledTensorDistributive(const LabeledTensor& A, const LabeledTensorAddition& B)
-//            : A_(A), B_(B)
-//    {}
+// Is responsible for expressions like D * (J - K) --> D*J - D*K
+class LabeledBlockedTensorDistributive
+{
+public:
+    LabeledBlockedTensorDistributive(const LabeledBlockedTensor& A, const LabeledBlockedTensorAddition& B)
+            : A_(A), B_(B)
+    {}
 
-//    const LabeledTensor& A() const { return A_; }
-//    const LabeledTensorAddition& B() const { return B_; }
+    const LabeledBlockedTensor& A() const { return A_; }
+    const LabeledBlockedTensorAddition& B() const { return B_; }
 
-//    // conversion operator
-//    operator double() const;
+    // conversion operator
+    operator double() const;
 
-//private:
+private:
 
-//    const LabeledTensor& A_;
-//    const LabeledTensorAddition& B_;
+    const LabeledBlockedTensor& A_;
+    const LabeledBlockedTensorAddition& B_;
 
-//};
+};
 
 }
 
