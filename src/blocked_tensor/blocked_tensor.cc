@@ -289,6 +289,22 @@ void BlockedTensor::set(double gamma)
     }
 }
 
+void BlockedTensor::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
+{
+    for (auto key_tensor : blocks_){
+        key_tensor.second.iterate(func);
+    }
+}
+
+void BlockedTensor::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
+{
+    for (const auto key_tensor : blocks_){
+        key_tensor.second.citerate(func);
+    }
+}
+
+
+
 void BlockedTensor::print(FILE *fh, bool level, std::string const &format, int maxcols) const
 {
     fprintf(fh, "  ## Blocked Tensor %s ##\n\n", name().c_str());
@@ -352,51 +368,20 @@ LabeledBlockedTensor::LabeledBlockedTensor(BlockedTensor BT, const std::vector<s
 
 void LabeledBlockedTensor::operator=(const LabeledBlockedTensor &rhs)
 {
-    std::vector<std::vector<size_t>> rhs_keys = rhs.label_to_block_keys();
-
-    std::vector<size_t> perm = indices::permutation_order(indices_,rhs.indices_);
-
-    // Loop over all keys of the rhs
-    for (std::vector<size_t>& rhs_key : rhs_keys){
-        // Map the rhs key to the lhs key
-        std::vector<size_t> lhs_key;
-        for (size_t p : perm){
-            lhs_key.push_back(rhs_key[p]);
-        }
-        // Call LabeledTensor's operation
-        Tensor LHS = BT().block(lhs_key);
-        const Tensor RHS = rhs.BT().block(rhs_key);
-
-        if (LHS == RHS) throw std::runtime_error("Self assignment is not allowed.");
-        if (LHS.rank() != RHS.rank()) throw std::runtime_error("Permuted tensors do not have same rank");
-        LHS.permute(RHS,indices_, rhs.indices_, rhs.factor(), 0.0);
-    }
+    add(rhs,1.0,0.0);
 }
 
 void LabeledBlockedTensor::operator+=(const LabeledBlockedTensor &rhs)
 {
-    std::vector<std::vector<size_t>> rhs_keys = rhs.label_to_block_keys();
-
-    std::vector<size_t> perm = indices::permutation_order(indices_,rhs.indices_);
-
-    // Loop over all keys of the rhs
-    for (std::vector<size_t>& rhs_key : rhs_keys){
-        // Map the rhs key to the lhs key
-        std::vector<size_t> lhs_key;
-        for (size_t p : perm){
-            lhs_key.push_back(rhs_key[p]);
-        }
-        // Call LabeledTensor's operation
-        Tensor LHS = BT().block(lhs_key);
-        const Tensor RHS = rhs.BT().block(rhs_key);
-
-        if (LHS == RHS) throw std::runtime_error("Self assignment is not allowed.");
-        if (LHS.rank() != RHS.rank()) throw std::runtime_error("Permuted tensors do not have same rank");
-        LHS.permute(RHS,indices_, rhs.indices_, rhs.factor(), 1.0);
-    }
+    add(rhs,1.0,1.0);
 }
 
 void LabeledBlockedTensor::operator-=(const LabeledBlockedTensor &rhs)
+{
+    add(rhs,-1.0,1.0);
+}
+
+void LabeledBlockedTensor::add(const LabeledBlockedTensor &rhs,double alpha,double beta)
 {
     std::vector<std::vector<size_t>> rhs_keys = rhs.label_to_block_keys();
 
@@ -415,7 +400,7 @@ void LabeledBlockedTensor::operator-=(const LabeledBlockedTensor &rhs)
 
         if (LHS == RHS) throw std::runtime_error("Self assignment is not allowed.");
         if (LHS.rank() != RHS.rank()) throw std::runtime_error("Permuted tensors do not have same rank");
-        LHS.permute(RHS,indices_, rhs.indices_, -rhs.factor(), 1.0);
+        LHS.permute(RHS,indices_, rhs.indices_, alpha * rhs.factor(), beta);
     }
 }
 
@@ -424,15 +409,15 @@ LabeledBlockedTensorProduct LabeledBlockedTensor::operator*(const LabeledBlocked
     return LabeledBlockedTensorProduct(*this, rhs);
 }
 
-//LabeledTensorAddition LabeledTensor::operator+(const LabeledTensor &rhs)
-//{
-//    return LabeledTensorAddition(*this, rhs);
-//}
+LabeledBlockedTensorAddition LabeledBlockedTensor::operator+(const LabeledBlockedTensor &rhs)
+{
+    return LabeledBlockedTensorAddition(*this, rhs);
+}
 
-//LabeledTensorAddition LabeledTensor::operator-(const LabeledTensor &rhs)
-//{
-//    return LabeledTensorAddition(*this, -rhs);
-//}
+LabeledBlockedTensorAddition LabeledBlockedTensor::operator-(const LabeledBlockedTensor &rhs)
+{
+    return LabeledBlockedTensorAddition(*this, -rhs);
+}
 
 //namespace {
 
@@ -478,7 +463,6 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
                                     bool zero_result,
                                     bool add)
 {
-    if (zero_result) BT_.zero();
     // Find the unique indices in the contraction
     size_t nterms = rhs.size();
     std::vector<std::string> unique_indices;
@@ -497,6 +481,17 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
         for (const std::string& index : unique_indices){
             index_map[index] = k;
             k++;
+        }
+    }
+
+    if (zero_result){
+        // Zero the results blocks
+        for (const std::vector<size_t>& uik : unique_indices_keys){
+            std::vector<size_t> result_key;
+            for (const std::string& index : indices()){
+                result_key.push_back(uik[index_map[index]]);
+            }
+            BT_.block(result_key).zero();
         }
     }
 
@@ -526,36 +521,30 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
     }
 }
 
-//void LabeledTensor::operator=(const LabeledTensorAddition &rhs)
-//{
-//    T_.zero();
-//    for (size_t ind = 0, end = rhs.size(); ind < end; ++ind) {
-//        const LabeledTensor &labeledTensor = rhs[ind];
-//        if (T_ == rhs[ind].T()) throw std::runtime_error("Self assignment is not allowed.");
-//        if (T_.rank() != rhs[ind].T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
-//        T_.permute(rhs[ind].T(), indices_, rhs[ind].indices(), rhs[ind].factor(), 1.0);
-//    }
-//}
+void LabeledBlockedTensor::operator=(const LabeledBlockedTensorAddition &rhs)
+{
+    BT_.zero();
+    for (size_t ind = 0, end = rhs.size(); ind < end; ++ind) {
+        const LabeledBlockedTensor &labeledTensor = rhs[ind];
+        add(labeledTensor,1.0,1.0);
+    }
+}
 
-//void LabeledTensor::operator+=(const LabeledTensorAddition &rhs)
-//{
-//    for (size_t ind = 0, end = rhs.size(); ind < end; ++ind) {
-//        const LabeledTensor &labeledTensor = rhs[ind];
-//        if (T_ == rhs[ind].T()) throw std::runtime_error("Self assignment is not allowed.");
-//        if (T_.rank() != rhs[ind].T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
-//        T_.permute(rhs[ind].T(), indices_, rhs[ind].indices(), rhs[ind].factor(), 1.0);
-//    }
-//}
+void LabeledBlockedTensor::operator+=(const LabeledBlockedTensorAddition &rhs)
+{
+    for (size_t ind = 0, end = rhs.size(); ind < end; ++ind) {
+        const LabeledBlockedTensor &labeledTensor = rhs[ind];
+        add(labeledTensor,1.0,1.0);
+    }
+}
 
-//void LabeledTensor::operator-=(const LabeledTensorAddition &rhs)
-//{
-//    for (size_t ind = 0, end = rhs.size(); ind < end; ++ind) {
-//        const LabeledTensor &labeledTensor = rhs[ind];
-//        if (T_ == rhs[ind].T()) throw std::runtime_error("Self assignment is not allowed.");
-//        if (T_.rank() != rhs[ind].T().rank()) throw std::runtime_error("Permuted tensors do not have same rank");
-//        T_.permute(rhs[ind].T(), indices_, rhs[ind].indices(), -rhs[ind].factor(), 1.0);
-//    }
-//}
+void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorAddition &rhs)
+{
+    for (size_t ind = 0, end = rhs.size(); ind < end; ++ind) {
+        const LabeledBlockedTensor &labeledTensor = rhs[ind];
+        add(labeledTensor,-1.0,1.0);
+    }
+}
 
 void LabeledBlockedTensor::operator*=(double scale)
 {
@@ -629,30 +618,59 @@ void LabeledBlockedTensor::operator/=(double scale)
 //    return *this;
 //}
 
-//LabeledTensorProduct::operator double() const
-//{
-//    // Only handles binary expressions.
-//    if (size() == 0 || size() > 2)
-//        throw std::runtime_error("Conversion operator only supports binary expressions at the moment.");
+LabeledBlockedTensorProduct::operator double() const
+{
+    double result = 0.0;
 
-//    Tensor R = Tensor::build(tensors_[0].T().type(), "R", {});
-//    R.contract(
-//        tensors_[0].T(),
-//        tensors_[1].T(),
-//        {},
-//        tensors_[0].indices(),
-//        tensors_[1].indices(),
-//        tensors_[0].factor() * tensors_[1].factor(),
-//        1.0);
+    // Only handles binary expressions.
+    if (size() == 0 || size() > 2)
+        throw std::runtime_error("Conversion operator only supports binary expressions at the moment.");
 
-//    Tensor C = Tensor::build(kCore, "C", {});
-//    C.slice(
-//        R,
-//        {},
-//        {});
+    // Find the unique indices in the contraction
+    std::vector<std::string> A_indices;
+    for (const std::string& index : tensors_[0].indices()){
+        A_indices.push_back(index);
+    }
+    std::vector<std::string> B_indices;
+    for (const std::string& index : tensors_[1].indices()){
+        B_indices.push_back(index);
+    }
+    std::vector<std::string> indices_intersection;
 
-//    return C.data()[0];
-//}
+    std::sort(A_indices.begin(),A_indices.end());
+    std::sort(B_indices.begin(),B_indices.end());
+
+    if (! std::equal(A_indices.begin(),A_indices.end(),B_indices.begin())){
+        throw std::runtime_error("Non-repeated indices in tensor dot product.");
+    }
+
+    std::vector<std::vector<size_t>> unique_indices_keys = BlockedTensor::label_to_block_keys(A_indices);
+    std::map<std::string,size_t> index_map;
+    {
+        size_t k = 0;
+        for (const std::string& index : A_indices){
+            index_map[index] = k;
+            k++;
+        }
+    }
+
+    // Setup and perform contractions
+    for (const std::vector<size_t>& uik : unique_indices_keys){
+        LabeledTensorProduct prod;
+        for (size_t n = 0; n < 2; ++n){
+            const LabeledBlockedTensor& lbt = tensors_[n];
+            std::vector<size_t> term_key;
+            for (const std::string& index : lbt.indices()){
+                term_key.push_back(uik[index_map[index]]);
+            }
+            const LabeledTensor term(lbt.BT().block(term_key),lbt.indices(),lbt.factor());
+            prod *= term;
+        }
+        result += prod;
+    }
+
+    return result;
+}
 
 //std::pair<double, double> LabeledTensorProduct::compute_contraction_cost(const std::vector<size_t> &perm) const
 //{
