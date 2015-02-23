@@ -6,3 +6,6 @@
 *.creator.user
 *.files
 *.includes
+
+# Python compiled files
+*.pyc
