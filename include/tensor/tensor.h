@@ -452,10 +452,10 @@ public:
 
     // => Operator Overloading API <= //
 
-    LabeledTensor operator()(const std::string& indices);
+    LabeledTensor operator()(const std::string& indices) const;
 
-    SlicedTensor operator()(const IndexRange& range);
-    SlicedTensor operator()();
+    SlicedTensor operator()(const IndexRange& range) const;
+    SlicedTensor operator()() const;
 
     // => Environment <= //
 
