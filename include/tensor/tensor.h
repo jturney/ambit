@@ -100,7 +100,7 @@ public:
      * Parameters:
      *  @param type the TensorType to build
      *  @param name the name of the Tensor
-     *  @param dims the dimensions of the indices of the tensor 
+     *  @param dims the dimensions of the indices of the tensor
      *    (dims.size() is the tensor rank)
      *
      * Results:
@@ -108,22 +108,22 @@ public:
      *   The returned Tensor is set to zero.
      **/
     static Tensor build(
-        TensorType type, 
-        const std::string& name, 
+        TensorType type,
+        const std::string& name,
         const Dimension& dims);
 
     /**
      * Return a new Tensor of TensorType type which copies the name,
-     * dimensions, and data of this tensor. 
+     * dimensions, and data of this tensor.
      *
      * E.g.:
      *  Tensor A = C.clone(kDisk);
-     * is equivalent to: 
+     * is equivalent to:
      *  Tensor A = Tensor::build(kDisk, C.name(), C.dims());
      *  A->copy(C);
      *
      * Parameters:
-     *  @param type the TensorType to use for the clone 
+     *  @param type the TensorType to use for the clone
      *
      * Results:
      *  @return new Tensor of TensorType type with the name and contents of this
@@ -208,7 +208,7 @@ public:
      *  0 - Infinity-norm, maximum absolute value of elements
      *  1 - One-norm, sum of absolute values of elements
      *  2 - Two-norm, square root of sum of squares
-     * 
+     *
      * Results:
      *  @return computed norm
      **/
@@ -244,11 +244,11 @@ public:
      * Copy the data of other into this tensor:
      *  C() = other()
      * Note: this just drops into slice
-     * 
+     *
      * Parameters:
      *  @param other the tensor to copy data from
      *
-     * Results 
+     * Results
      *  C is the current tensor, whose data is overwritten
      **/
     void copy(const Tensor& other);
@@ -381,7 +381,7 @@ public:
      *  @param beta the scale to apply to C
      *
      * Results:
-     *  C is the current tensor, whose data is overwritten. 
+     *  C is the current tensor, whose data is overwritten.
      *  All elements in C outside of the range traversed by gemm are
      *  untouched.
      **/
@@ -426,7 +426,7 @@ public:
     //std::map<std::string, Tensor> qr() const;
 
     //Tensor inverse() const;
-        
+
 
 
     // => Utility Operations <= //

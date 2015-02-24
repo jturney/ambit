@@ -10,7 +10,7 @@ set(Boost_USE_MULTITHREADED  ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 
 if(ENABLE_PYTHON)
-    list(APPEND needed_components python)
+    list(APPEND needed_components python3)
 endif()
 
 if(ENABLE_UNIT_TESTS)

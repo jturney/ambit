@@ -9,3 +9,8 @@
 
 # Python compiled files
 *.pyc
+
+# Compiled files
+*.a
+*.o
+*.so
