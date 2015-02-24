@@ -158,17 +158,17 @@ void Tensor::print(FILE *fh, bool level, std::string const &format, int maxcols)
     tensor_->print(fh, level, format, maxcols);
 }
 
-LabeledTensor Tensor::operator()(const std::string& indices)
+LabeledTensor Tensor::operator()(const std::string& indices) const
 {
     return LabeledTensor(*this, indices::split(indices));
 }
 
-SlicedTensor Tensor::operator()(const IndexRange& range)
+SlicedTensor Tensor::operator()(const IndexRange& range) const
 {
     return SlicedTensor(*this, range);
 }
 
-SlicedTensor Tensor::operator()()
+SlicedTensor Tensor::operator()() const
 {
     IndexRange range;
     for (size_t ind = 0L; ind < rank(); ind++) {
