@@ -34,3 +34,11 @@ ambit.initialize_random(c.tensor)
 print("a[i,j] = b[i,k] * c[k,j]")
 a["i,j"] = b["i,k"] * c["k,j"]
 a.printf()
+
+print("a[i,j] = b[i,k] * c[k,j] * 2")
+a["i,j"] = b["i,k"] * c["k,j"] * 2
+a.printf()
+
+print("a[i,j] = 2 * b[i,k] * c[k,j]")
+a["i,j"] = 2 * b["i,k"] * c["k,j"]
+a.printf()

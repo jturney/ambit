@@ -1,12 +1,19 @@
 from . import ambit
 from .ambit import Tensor
-from numbers import Real
+import numbers
 
 class LabeledTensorProduct:
     def __init__(self, left, right):
         self.tensors = []
         self.tensors.append(left)
         self.tensors.append(right)
+
+    def __mul__(self, other):
+        if isinstance(other, numbers.Number):
+            self.tensors[0] *= other
+            return self
+        else:
+            return NotImplemented
 
 class LabeledTensorAddition:
     def __init__(self, left, right):
@@ -25,7 +32,11 @@ class LabeledTensor:
         self.labeledTensor = ambit.LabeledTensor(self.tensor, self.indices, self.factor)
 
     def __mul__(self, other):
-        return LabeledTensorProduct(self, other)
+        if isinstance(other, numbers.Number):
+            self.factor *= other
+            return self
+        else:
+            return LabeledTensorProduct(self, other)
 
     def __add__(self, other):
         return LabeledTensorAddition(self, other)
@@ -35,8 +46,9 @@ class LabeledTensor:
         return LabeledTensorAddition(self, other)
 
     def __rmul__(self, other):
-        if isinstance(other, Real):
+        if isinstance(other, numbers.Number):
             self.factor *= other
+            return self
         else:
             return NotImplemented
 
@@ -51,8 +63,6 @@ class Tensor:
         indices = ambit.Indices.split(str(indices))
 
         if isinstance(value, LabeledTensorProduct):
-            print("In Tensor::__setitem__ with LabeledTensorProduct")
-
             # This is "simple assignment"
             # Make sure C = C * A isn't being called.
             for tensor in value.tensors:
