@@ -4,8 +4,9 @@ from numbers import Real
 
 class LabeledTensorProduct:
     def __init__(self, left, right):
-        self.left = left
-        self.right = right
+        self.tensors = []
+        self.tensors.append(left)
+        self.tensors.append(right)
 
 class LabeledTensorAddition:
     def __init__(self, left, right):
@@ -23,11 +24,8 @@ class LabeledTensor:
         self.indices = ambit.Indices.split(indices)
         self.labeledTensor = ambit.LabeledTensor(self.tensor, self.indices, self.factor)
 
-    def T(self):
-        return self.tensor
-
     def __mul__(self, other):
-        return MultTensor(self, other)
+        return LabeledTensorProduct(self, other)
 
     def __add__(self, other):
         return LabeledTensorAddition(self, other)
@@ -51,10 +49,23 @@ class Tensor:
 
     def __setitem__(self, indices, value):
         indices = ambit.Indices.split(str(indices))
+
         if isinstance(value, LabeledTensorProduct):
             print("In Tensor::__setitem__ with LabeledTensorProduct")
 
-            return NotImplemented
+            # This is "simple assignment"
+            # Make sure C = C * A isn't being called.
+            for tensor in value.tensors:
+                if self.tensor is tensor.tensor:
+                    raise ArithmeticError("Target cannot be present in contraction terms.")
+
+            if len(value.tensors) != 2:
+                raise ArithmeticError("Only pair-wise contractions are currently supported")
+
+            A = value.tensors[0]
+            B = value.tensors[1]
+
+            self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
 
         elif isinstance(value, LabeledTensorAddition):
 
@@ -65,7 +76,7 @@ class Tensor:
                 self.tensor.permute(tensor.tensor, indices, tensor.indices, tensor.factor, 1.0)
 
         elif isinstance(value, LabeledTensor):
-            self.tensor.permute(value.T(), indices, value.indices, value.factor, 0.0)
+            self.tensor.permute(value.tensor, indices, value.indices, value.factor, 0.0)
 
         else:
             raise TypeError('Do not know how to set this type {}'.format(type(value).__name__))
