@@ -12,6 +12,11 @@ print("a[i,j] = b[i,j]")
 a["i,j"] = b["i,j"]
 a.printf()
 
+print("a[i,j] = 2 * b[i,j]")
+a["i,j"] = 2 * b["i,j"]
+a.printf()
+
+
 print("a[i,j] += b[i,j]")
 a["i,j"] += b["i,j"]
 a.printf()
