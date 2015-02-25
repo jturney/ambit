@@ -1,6 +1,7 @@
 #if !defined(TENSOR_MEMORY_H)
 #define TENSOR_MEMORY_H
 
+#include <cstddef>
 #include <mm_malloc.h>
 
 namespace tensor {
@@ -50,7 +51,7 @@ struct aligned_allocator
     typedef const T& const_reference;
     typedef T value_type;
     typedef std::size_t size_type;
-    typedef ptrdiff_t difference_type;
+    typedef std::ptrdiff_t difference_type;
 
     pointer address(reference r) const
     {

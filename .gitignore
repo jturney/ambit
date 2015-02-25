@@ -14,3 +14,7 @@
 *.a
 *.o
 *.so
+
+# compile directories
+obj*
+
