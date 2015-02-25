@@ -201,7 +201,7 @@ void Manager::print() const
     printf("----------------------------------------------------------------------------\n");
 
     for (const Entry& e : contents_) {
-        printf("%-32s %10llu %10llu %10llu %10llu\n",
+        printf("%-32s %10zu %10zu %10zu %10zu\n",
                             e.key,
                             e.start_address.page,
                             e.start_address.offset,
@@ -332,7 +332,7 @@ void File::read_raw(void *buffer, const Address& add, uint64_t size)
 
     error_code = ::read(handle_, buffer, size);
     if (error_code != size) {
-        printf("size = %llu error_code %llu\n", size, error_code);
+        printf("size = %zu error_code %zu\n", size, error_code);
         error(kIOErrorRead);
     }
     read_stat_ += size;
