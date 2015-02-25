@@ -475,6 +475,25 @@ double test_block_retrive_block4()
 //    return diff_oo + diff_vo + diff_ov + diff_vv;
 //}
 
+double test_block_iterator_1()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("a","u,v",{2,3,4},NoSpin);
+    BlockedTensor::add_mo_space("v","e,f",{5,6,7,8,9},NoSpin);
+    BlockedTensor T2 = BlockedTensor::build(kCore,"T2",{"aaaa","vvvv"});
+    T2.iterate([](const std::vector<size_t>& indices, double& value){
+        bool add = true;
+        for (size_t k : indices){
+            if (k > 4) add = false;
+        }
+        if (add){
+            value = 1.0;
+        }
+    });
+    double diff = T2.norm(1) - 81.0;
+    return diff;
+}
+
 double test_Cij_equal_Aji()
 {
     BlockedTensor::reset_mo_spaces();
@@ -1450,6 +1469,7 @@ int main(int argc, char* argv[])
             std::make_tuple(kException, test_block_retrive_block2,          "Testing blocked tensor retrieve ambiguous block"),
             std::make_tuple(kException, test_block_retrive_block3,          "Testing blocked tensor retrieve null block (1)"),
             std::make_tuple(kException, test_block_retrive_block4,          "Testing blocked tensor retrieve null block (2)"),
+            std::make_tuple(kPass,      test_block_iterator_1,              "Testing blocked tensor iterator (1)"),
 //            std::make_tuple(kException, test_copy,                          "Testing blocked tensor copy"),
             std::make_tuple(kPass,      test_Cij_equal_Aji,                 "Testing blocked tensor C(\"ij\") = A(\"ji\")"),
             std::make_tuple(kPass,      test_Cijab_plus_equal_Aaibj,        "Testing blocked tensor C(\"ijab\") += A(\"aibj\")"),

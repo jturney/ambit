@@ -302,18 +302,50 @@ void BlockedTensor::set(double gamma)
 void BlockedTensor::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
 {
     for (auto key_tensor : blocks_){
-        key_tensor.second.iterate(func);
+        const std::vector<size_t>& key = key_tensor.first;
+
+        // Assemble the map from the block indices to the MO indices
+        std::vector<std::vector<size_t>> index_to_mo;
+        for (size_t k : key){
+            index_to_mo.push_back(mo_spaces_[k].mos());
+        }
+
+        size_t rank = key_tensor.second.rank();
+        std::vector<size_t> mo(rank);
+
+        // Call iterate on this tensor block
+        key_tensor.second.iterate([&](const std::vector<size_t>& indices, double& value){
+            for (size_t n = 0; n < rank; ++n){
+                mo[n] = index_to_mo[n][indices[n]];
+            }
+            func(mo,value);
+        });
     }
 }
 
 void BlockedTensor::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
 {
     for (const auto key_tensor : blocks_){
-        key_tensor.second.citerate(func);
+        const std::vector<size_t>& key = key_tensor.first;
+
+        // Assemble the map from the block indices to the MO indices
+        std::vector<std::vector<size_t>> index_to_mo;
+        for (size_t k : key){
+            index_to_mo.push_back(mo_spaces_[k].mos());
+        }
+
+        size_t rank = key_tensor.second.rank();
+        std::vector<size_t> mo(rank);
+
+        // Call citerate on this tensor block
+        key_tensor.second.citerate([&](const std::vector<size_t>& indices,const double& value){
+            for (size_t n = 0; n < rank; ++n){
+                mo[n] = index_to_mo[n][indices[n]];
+            }
+            func(mo,value);
+        });
     }
 }
-
-
 
 void BlockedTensor::print(FILE *fh, bool level, std::string const &format, int maxcols) const
 {
