@@ -89,7 +89,7 @@ void initialize_random(Tensor& A1)
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(tensor_print_ov, Tensor::print, 0, 4)
 
-BOOST_PYTHON_MODULE (ambit)
+BOOST_PYTHON_MODULE (pyambit)
 {
 
     // Register iterable conversions.
