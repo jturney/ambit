@@ -9,7 +9,7 @@
 #include "cyclops/cyclops.h"
 #endif
 
-namespace tensor {
+namespace ambit {
 
 void slice(
     TensorImplPtr C,

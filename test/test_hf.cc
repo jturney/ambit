@@ -4,11 +4,11 @@
 #include <cstdlib>
 #include <assert.h>
 
-#include <tensor/tensor.h>
-#include <tensor/io/io.h>
-#include <tensor/helpers/psi4/io.h>
+#include <ambit/tensor.h>
+#include <ambit/io/io.h>
+#include <ambit/helpers/psi4/io.h>
 
-using namespace tensor;
+using namespace ambit;
 
 TensorType tensor_type = kCore;
 
@@ -54,7 +54,7 @@ void hf()
     double Enuc = 0.0, Eref = 0.0;
 
     {
-        tensor::io::File file32("test.32", tensor::io::kOpenModeOpenExisting);
+        ambit::io::File file32("test.32", ambit::io::kOpenModeOpenExisting);
 
         file32.read("::Num. irreps", &nirrep, 1);
         printf("nirrep = %d\n", nirrep);
@@ -146,9 +146,9 @@ void hf()
     });
 //    C.print(stdout, true);
 
-    C.citerate([](const std::vector<size_t>& indices, const double& value) {
-        printf("rank %d: C[%lu, %lu] %lf\n", settings::rank, indices[0], indices[1], value);
-    });
+//    C.citerate([](const std::vector<size_t>& indices, const double& value) {
+//        printf("rank %d: C[%lu, %lu] %lf\n", settings::rank, indices[0], indices[1], value);
+//    });
 
 //    g.citerate([](const std::vector<size_t>& indices, const double& value) {
 //        printf("g[%lu, %lu, %lu, %lu] %lf\n", indices[0], indices[1], indices[2], indices[3], value);
@@ -158,7 +158,7 @@ void hf()
 int main(int argc, char* argv[])
 {
     srand(time(nullptr));
-    tensor::initialize(argc, argv);
+    ambit::initialize(argc, argv);
 
     if (argc > 1) {
         if (settings::distributed_capable && strcmp(argv[1], "cyclops") == 0) {
@@ -173,6 +173,6 @@ int main(int argc, char* argv[])
 
     hf();
 
-    tensor::finalize();
+    ambit::finalize();
     return EXIT_SUCCESS;
 }

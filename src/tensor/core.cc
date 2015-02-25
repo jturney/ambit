@@ -9,7 +9,7 @@
 
 //#include <boost/timer/timer.hpp>
 
-namespace tensor {
+namespace ambit {
 
 CoreTensorImpl::CoreTensorImpl(const std::string& name, const Dimension& dims)
         : TensorImpl(kCore, name, dims)

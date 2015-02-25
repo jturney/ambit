@@ -5,10 +5,10 @@
 #include <vector>
 #include <stdexcept>
 
-#include <tensor/tensor.h>
+#include <ambit/tensor.h>
 #include "macros.h"
 
-namespace tensor {
+namespace ambit {
 
 typedef TensorImpl* TensorImplPtr;
 typedef TensorImpl const * ConstTensorImplPtr;

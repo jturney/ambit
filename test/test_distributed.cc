@@ -1,6 +1,6 @@
-#include <tensor/tensor.h>
-#include <tensor/io/io.h>
-#include <tensor/helpers/psi4/io.h>
+#include <ambit/tensor.h>
+#include <ambit/io/io.h>
+#include <ambit/helpers/psi4/io.h>
 #include <cmath>
 #include <assert.h>
 #include <cstdlib>
@@ -13,7 +13,7 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-using namespace tensor;
+using namespace ambit;
 
 /// Expected relative accuracy for numerical exactness
 const double epsilon = 1.0E-14;
@@ -138,14 +138,14 @@ int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
     srand (time(nullptr));
-    tensor::settings::debug = true;
-    tensor::initialize(argc, argv);
+    ambit::settings::debug = true;
+    ambit::initialize(argc, argv);
 
     bool success = true;
     int nirrep, nso;
 
     {
-        tensor::io::File file32("test.32", tensor::io::kOpenModeOpenExisting);
+        ambit::io::File file32("test.32", ambit::io::kOpenModeOpenExisting);
 
         file32.read("::Num. irreps", &nirrep, 1);
         printf("nirrep = %d\n", nirrep);
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
         printf("rank %d, norm of g is %lf\n", settings::rank, norm);
     }
 
-    tensor::finalize();
+    ambit::finalize();
 
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -24,7 +24,7 @@
 #include <map>
 #include <string>
 
-namespace tensor { namespace io {
+namespace ambit { namespace io {
 
 struct Manager
 {

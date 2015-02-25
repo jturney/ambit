@@ -1,7 +1,7 @@
-#include <tensor/tensor.h>
-#include <tensor/helpers/psi4/io.h>
+#include <ambit/tensor.h>
+#include <ambit/helpers/psi4/io.h>
 
-namespace tensor {
+namespace ambit {
 namespace helpers {
 namespace psi4 {
 
@@ -32,7 +32,7 @@ void load_iwl(const std::string& fn, Tensor& target)
 {
     if (settings::rank == 0) {
         Tensor local_data = Tensor::build(kCore, "g", target.dims());
-        io::IWL iwl(fn, tensor::io::kOpenModeOpenExisting);
+        io::IWL iwl(fn, ambit::io::kOpenModeOpenExisting);
         io::IWL::read_two(iwl, local_data);
 
         target() = local_data();

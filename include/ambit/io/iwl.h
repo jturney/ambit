@@ -21,9 +21,9 @@
 
 #include "file.h"
 
-#include <tensor/tensor.h>
+#include <ambit/tensor.h>
 
-namespace tensor {
+namespace ambit {
 namespace io {
 
 namespace details {

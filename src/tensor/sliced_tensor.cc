@@ -1,6 +1,6 @@
-#include <tensor/tensor.h>
+#include <ambit/tensor.h>
 
-namespace tensor {
+namespace ambit {
 
 SlicedTensor::SlicedTensor(Tensor T, const IndexRange& range, double factor) :
         T_(T), range_(range), factor_(factor)

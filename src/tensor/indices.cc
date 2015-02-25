@@ -2,7 +2,7 @@
 #include <iterator>
 #include "indices.h"
 
-namespace tensor {
+namespace ambit {
 
 namespace indices {
 

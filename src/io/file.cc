@@ -16,7 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-151 USA.
  */
 
-#include <tensor/io/file.h>
+#include <ambit/io/file.h>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -26,7 +26,7 @@
 
 //#include <util/print.h>
 
-namespace tensor { namespace io {
+namespace ambit { namespace io {
 
 namespace util {
 

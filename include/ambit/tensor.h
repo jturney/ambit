@@ -13,7 +13,7 @@
 
 #include "aligned.h"
 
-namespace tensor {
+namespace ambit {
 
 using std::tuple;
 using std::shared_ptr;

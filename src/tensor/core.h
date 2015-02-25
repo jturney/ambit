@@ -2,9 +2,9 @@
 #define TENSOR_CORE_H
 
 #include "tensorimpl.h"
-#include <tensor/aligned.h>
+#include <ambit/aligned.h>
 
-namespace tensor {
+namespace ambit {
 
 class CoreTensorImpl : public TensorImpl
 {

@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <mm_malloc.h>
 
-namespace tensor {
+namespace ambit {
 
 namespace memory {
 

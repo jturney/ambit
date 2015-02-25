@@ -3,7 +3,7 @@
 
 #include "tensorimpl.h"
 
-namespace tensor {
+namespace ambit {
 
 /// 1 GiB in doubles
 static constexpr size_t disk_buffer__ = 125000000L;
@@ -26,7 +26,7 @@ public:
 
     std::string filename() const { return filename_; }
     FILE* fh() const { return fh_; }
-    
+
 private:
     std::string filename_;
     FILE* fh_;

@@ -1,11 +1,11 @@
 set(TENSOR_HEADERS
-    ${PROJECT_SOURCE_DIR}/include/tensor/aligned.h
-    ${PROJECT_SOURCE_DIR}/include/tensor/tensor.h
-    ${PROJECT_SOURCE_DIR}/include/tensor/io/file.h
-    ${PROJECT_SOURCE_DIR}/include/tensor/io/io.h
-    ${PROJECT_SOURCE_DIR}/include/tensor/io/iwl.h
-    ${PROJECT_SOURCE_DIR}/include/tensor/io/manager.h
-    ${PROJECT_SOURCE_DIR}/include/tensor/helpers/psi4/io.h
+    ${PROJECT_SOURCE_DIR}/include/ambit/aligned.h
+    ${PROJECT_SOURCE_DIR}/include/ambit/tensor.h
+    ${PROJECT_SOURCE_DIR}/include/ambit/io/file.h
+    ${PROJECT_SOURCE_DIR}/include/ambit/io/io.h
+    ${PROJECT_SOURCE_DIR}/include/ambit/io/iwl.h
+    ${PROJECT_SOURCE_DIR}/include/ambit/io/manager.h
+    ${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/io.h
     math/math.h
     tensor/core.h
     tensor/indices.h
@@ -38,19 +38,19 @@ if(ENABLE_CYCLOPS)
 endif()
 
 # build static libray
-add_library(tensor STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
+add_library(ambit STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
 
 if(ENABLE_CYCLOPS)
-    target_link_libraries(tensor ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
-    set_target_properties(tensor PROPERTIES COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-    set_target_properties(tensor PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
+    target_link_libraries(ambit ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
+    set_target_properties(ambit PROPERTIES COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+    set_target_properties(ambit PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
 
-target_link_libraries(tensor ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+target_link_libraries(ambit ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
-install(TARGETS tensor ARCHIVE DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/include/tensor/tensor.h DESTINATION include/tensor)
-install(FILES ${PROJECT_SOURCE_DIR}/include/tensor/aligned.h DESTINATION include/tensor)
+install(TARGETS ambit ARCHIVE DESTINATION lib)
+install(FILES ${PROJECT_SOURCE_DIR}/include/ambit/tensor.h DESTINATION include/ambit)
+install(FILES ${PROJECT_SOURCE_DIR}/include/ambit/aligned.h DESTINATION include/ambit)
 
 if(ENABLE_PYTHON)
     add_subdirectory(python)

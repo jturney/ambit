@@ -10,7 +10,7 @@
 
 //#include <boost/timer/timer.hpp>
 
-namespace tensor {
+namespace ambit {
 
 static size_t disk_next_id__ = 0L;
 size_t disk_next_id() { return disk_next_id__++; }
@@ -28,7 +28,7 @@ DiskTensorImpl::DiskTensorImpl(const std::string& name, const Dimension& dims)
     ss << ".dat";
 
     filename_ = ss.str();
-    fh_ = fopen(filename_.c_str(),"wb+");  
+    fh_ = fopen(filename_.c_str(),"wb+");
     scale(0.0); // Prestripe
 }
 DiskTensorImpl::~DiskTensorImpl()
@@ -41,7 +41,7 @@ void DiskTensorImpl::scale(double beta)
     size_t fast_size = 1L;
     for (int ind = ((int) rank()) - 1; ind >= 0; ind--) {
         if (fast_size * dims()[ind] <= disk_buffer__) {
-            fast_size *= dims()[ind]; 
+            fast_size *= dims()[ind];
         } else {
             break;
         }
@@ -69,7 +69,7 @@ void DiskTensorImpl::scale(double beta)
         }
     }
 
-    delete[] buffer;    
+    delete[] buffer;
 
 }
 void DiskTensorImpl::permute(

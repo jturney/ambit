@@ -5,7 +5,7 @@
 #include <ctf.hpp>
 #include <El.hpp>
 
-namespace tensor {
+namespace ambit {
 
 namespace cyclops {
 

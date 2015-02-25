@@ -2,13 +2,13 @@
 #include <boost/python/return_internal_reference.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
-#include <tensor/tensor.h>
+#include <ambit/tensor.h>
 #include <../tensor/indices.h>
 
 #include <boost/shared_ptr.hpp>
 
 using namespace boost::python;
-using namespace tensor;
+using namespace ambit;
 
 /** @brief Type that allows for registration of conversions from
  *         Python iterable types.

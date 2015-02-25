@@ -1,9 +1,9 @@
 #if !defined(TENSOR_HELPERS_PSI4_IO_H)
 #define TENSOR_HELPERS_PSI4_IO_H
 
-#include <tensor/io/io.h>
+#include <ambit/io/io.h>
 
-namespace tensor {
+namespace ambit {
 namespace helpers {
 namespace psi4 {
 

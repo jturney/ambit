@@ -4,9 +4,9 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include <tensor/tensor.h>
+#include <ambit/tensor.h>
 
-namespace tensor {
+namespace ambit {
 
 namespace indices {
 

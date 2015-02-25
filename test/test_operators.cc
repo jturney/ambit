@@ -1,4 +1,4 @@
-#include <tensor/tensor.h>
+#include <ambit/tensor.h>
 #include <cstring>
 #include <cstdlib>
 //#include <cstdio>
@@ -26,7 +26,7 @@ double b4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
 double c4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
 double d4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
 
-using namespace tensor;
+using namespace ambit;
 
 enum TestResult {
     kPass,
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    tensor::initialize(argc, argv);
+    ambit::initialize(argc, argv);
 
     auto test_functions = {
             //            Expectation,  test function,  User friendly description
@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
     Tensor T = Tensor::build(kDisk, "Disk", {4,5});
     T.print(stdout,true);
 
-    tensor::finalize();
+    ambit::finalize();
 
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

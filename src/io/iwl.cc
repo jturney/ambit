@@ -16,10 +16,10 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-151 USA.
  */
 
-#include <tensor/io/iwl.h>
+#include <ambit/io/iwl.h>
 #include <stdexcept>
 
-namespace tensor {
+namespace ambit {
 namespace io {
 
 IWL::IWL(File &&f, double cutoff, bool psi34_compatible)

@@ -7,9 +7,9 @@
 #include <map>
 #include <string>
 
-#include <tensor/tensor.h>
+#include <ambit/tensor.h>
 
-namespace tensor {
+namespace ambit {
 
 class LabeledBlockedTensor;
 class LabeledBlockedTensorProduct;

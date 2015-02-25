@@ -4,6 +4,6 @@ set(EXAMPLE1_SOURCES
 
 # build static libray
 add_executable(example1 ${EXAMPLE1_SOURCES})
-add_dependencies(example1 tensor)
-target_link_libraries(example1 tensor ${Boost_LIBRARIES})
+add_dependencies(example1 ambit)
+target_link_libraries(example1 ambit ${Boost_LIBRARIES})
 

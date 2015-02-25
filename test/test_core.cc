@@ -1,4 +1,4 @@
-#include <tensor/tensor.h>
+#include <ambit/tensor.h>
 #include <cmath>
 #include <cstdlib>
 
@@ -10,7 +10,7 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-using namespace tensor;
+using namespace ambit;
 
 /// Expected relative accuracy for numerical exactness
 const double epsilon = 1.0E-14;
@@ -2026,7 +2026,7 @@ int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
     srand (time(NULL));
-    tensor::initialize(argc, argv);
+    ambit::initialize(argc, argv);
 
     bool success;
 
@@ -2440,7 +2440,7 @@ int main(int argc, char* argv[])
     printf("%s\n",std::string(82,'-').c_str());
     printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
 
-    tensor::finalize();
+    ambit::finalize();
 
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

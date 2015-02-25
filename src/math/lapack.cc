@@ -391,7 +391,7 @@ extern "C" {
     extern int F_DTZRZF(int*, int*, double*, int*, double*, double*, int*,  int*);
 }
 
-namespace tensor {
+namespace ambit {
 
     /**
      *  Purpose
@@ -18306,7 +18306,7 @@ namespace tensor {
         ::F_DTGSEN(&ijob, &n, a, &lda, b, &ldb, alphar, alphai, beta, q, &ldq, z, &ldz, m, pl, pr, dif, work, &lwork, iwork, &liwork, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -18555,7 +18555,7 @@ namespace tensor {
         ::F_DTGSJA(&jobu, &jobv, &jobq, &m, &p, &n, &k, &l, a, &lda, b, &ldb, &tola, &tolb, alpha, beta, u, &ldu, v, &ldv, q, &ldq, work, ncycle, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -18827,7 +18827,7 @@ namespace tensor {
         ::F_DTGSNA(&job, &howmny, &n, a, &lda, b, &ldb, vl, &ldvl, vr, &ldvr, s, dif, &mm, m, work, &lwork, iwork, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -19013,7 +19013,7 @@ namespace tensor {
         ::F_DTGSYL(&trans, &ijob, &m, &n, a, &lda, b, &ldb, c, &ldc, d, &ldd, e, &lde, f, &ldf, dif, scale, work, &lwork, iwork, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -19077,7 +19077,7 @@ namespace tensor {
         ::F_DTPCON(&norm, &uplo, &diag, &n, ap, rcond, work, iwork, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -19168,7 +19168,7 @@ namespace tensor {
         ::F_DTPRFS(&uplo, &trans, &diag, &n, &nrhs, ap, b, &ldb, x, &ldx, ferr, berr, work, iwork, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -19232,7 +19232,7 @@ namespace tensor {
         ::F_DTPTRI(&uplo, &diag, &n, ap, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -19300,7 +19300,7 @@ namespace tensor {
         ::F_DTPTRS(&uplo, &trans, &diag, &n, &nrhs, ap, b, &ldb, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -19368,7 +19368,7 @@ namespace tensor {
         ::F_DTRCON(&norm, &uplo, &diag, &n, a, &lda, rcond, work, iwork, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -19377,16 +19377,16 @@ namespace tensor {
      *  a real upper quasi-triangular matrix T.
      *  Matrices of this type are produced by the Schur factorization of
      *  a real general matrix:  A = Q*T*Q**T, as computed by DHSEQR.
-     *  
+     *
      *  The right eigenvector x and the left eigenvector y of T corresponding
      *  to an eigenvalue w are defined by:
-     *  
+     *
      *     T*x = w*x,     (y**H)*T = w*(y**H)
-     *  
+     *
      *  where y**H denotes the conjugate transpose of y.
      *  The eigenvalues are not input to this routine, but are read directly
      *  from the diagonal blocks of T.
-     *  
+     *
      *  This routine returns the matrices X and/or Y of right and left
      *  eigenvectors of T, or the products Q*X and/or Q*Y, where Q is an
      *  input matrix.  If Q is the orthogonal factor that reduces a matrix
@@ -19506,7 +19506,7 @@ namespace tensor {
         ::F_DTREVC(&side, &howmny, &n, t, &ldt, vl, &ldvl, vr, &ldvr, &mm, m, work, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -19583,7 +19583,7 @@ namespace tensor {
         ::F_DTREXC(&compq, &n, t, &ldt, q, &ldq, ifst, ilst, work, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -19678,7 +19678,7 @@ namespace tensor {
         ::F_DTRRFS(&uplo, &trans, &diag, &n, &nrhs, a, &lda, b, &ldb, x, &ldx, ferr, berr, work, iwork, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -19892,7 +19892,7 @@ namespace tensor {
         ::F_DTRSEN(&job, &compq, &n, t, &ldt, q, &ldq, wr, wi, m, s, sep, work, &lwork, iwork, &liwork, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -20058,7 +20058,7 @@ namespace tensor {
         ::F_DTRSNA(&job, &howmny, &n, t, &ldt, vl, &ldvl, vr, &ldvr, s, sep, &mm, m, work, &ldwork, iwork, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -20145,7 +20145,7 @@ namespace tensor {
         ::F_DTRSYL(&trana, &tranb, &isgn, &m, &n, a, &lda, b, &ldb, c, &ldc, scale, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -20201,7 +20201,7 @@ namespace tensor {
         ::F_DTRTRI(&uplo, &diag, &n, a, &lda, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -20274,7 +20274,7 @@ namespace tensor {
         ::F_DTRTRS(&uplo, &trans, &diag, &n, &nrhs, a, &lda, b, &ldb, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -20357,7 +20357,7 @@ namespace tensor {
         ::F_DTZRQF(&m, &n, a, &lda, tau, &info);
         return info;
     }
-    
+
     /**
      *  Purpose
      *  =======

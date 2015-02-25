@@ -1,7 +1,7 @@
 #if !defined(TENSOR_MATH_H)
 #define TENSOR_MATH_H
 
-namespace tensor {
+namespace ambit {
 
     // BLAS 1 Double routines
     void C_DROT(unsigned long int ntot, double *x, int incx, double *y, int incy,
@@ -42,7 +42,7 @@ namespace tensor {
     void C_DSYRK(char uplo, char trans, int n, int k, double alpha, double* a, int lda, double beta, double* c, int ldc);
     void C_DSYR2K(char uplo, char trans, int n, int k, double alpha, double* a, int lda, double* b, int ldb, double beta, double* c, int ldc);
     void C_DTRSV(char uplo, char trans, char diag, int n, double* a, int lda, double* x, int incx);
-    
+
     // => LAPACK <=
     int C_DBDSDC(char uplo, char compq, int n, double* d, double* e, double* u, int ldu, double* vt, int ldvt, double* q, int* iq, double* work, int* iwork);
     int C_DBDSQR(char uplo, int n, int ncvt, int nru, int ncc, double* d, double* e, double* vt, int ldvt, double* u, int ldu, double* c, int ldc, double* work);
@@ -230,7 +230,7 @@ namespace tensor {
     int C_DTRTRS(char uplo, char trans, char diag, int n, int nrhs, double* a, int lda, double* b, int ldb);
     int C_DTZRQF(int m, int n, double* a, int lda, double* tau);
     int C_DTZRZF(int m, int n, double* a, int lda, double* tau, double* work, int lwork);
-    
+
 }
 
 #endif

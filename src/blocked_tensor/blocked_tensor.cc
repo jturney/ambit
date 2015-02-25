@@ -1,10 +1,10 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <blocked_tensor/blocked_tensor.h>
+#include <ambit/blocked_tensor.h>
 #include <tensor/indices.h>
 
-namespace tensor {
+namespace ambit {
 
 // Static members of BlockedTensor
 std::vector<MOSpace> BlockedTensor::mo_spaces_;

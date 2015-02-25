@@ -16,7 +16,7 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-project(tensor C CXX)
+project(ambit C CXX)
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 # Custom CMake modules location

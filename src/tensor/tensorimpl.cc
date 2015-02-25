@@ -7,7 +7,7 @@
 #include "cyclops/cyclops.h"
 #endif
 
-namespace tensor {
+namespace ambit {
 
 TensorImpl::TensorImpl(
     TensorType type,
@@ -29,7 +29,7 @@ void TensorImpl::slice(
     double alpha,
     double beta)
 {
-    tensor::slice(this,A,Cinds,Ainds,alpha,beta);
+    ambit::slice(this,A,Cinds,Ainds,alpha,beta);
 }
 void TensorImpl::zero()
 {

@@ -1,7 +1,7 @@
 #include <list>
 #include <algorithm>
 #include <numeric>
-#include <tensor/tensor.h>
+#include <ambit/tensor.h>
 #include "tensorimpl.h"
 #include "core.h"
 #include "indices.h"
@@ -12,7 +12,7 @@
 #endif
 
 
-namespace tensor {
+namespace ambit {
 
 LabeledTensor::LabeledTensor(Tensor T, const std::vector<std::string> &indices, double factor) :
         T_(T), indices_(indices), factor_(factor)

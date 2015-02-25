@@ -8,7 +8,7 @@
     const CyclopsTensorImpl* c##X = dynamic_cast<const CyclopsTensorImpl*>((X)); \
     CTF_Tensor* t##X = c##X->cyclops_;
 
-namespace tensor { namespace cyclops {
+namespace ambit { namespace cyclops {
 
 namespace globals {
     CTF_World *world = nullptr;

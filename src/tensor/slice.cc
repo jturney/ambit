@@ -2,7 +2,7 @@
 #include "math/math.h"
 #include <string.h>
 
-namespace tensor {
+namespace ambit {
 
 void slice(
     TensorImplPtr C,

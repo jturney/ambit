@@ -1,6 +1,6 @@
-#include <tensor/tensor.h>
+#include <ambit/tensor.h>
 
-using namespace tensor;
+using namespace ambit;
 
 int main(int argc, char* argv[])
 {

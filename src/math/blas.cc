@@ -95,7 +95,7 @@ extern "C" {
 
 }
 
-namespace tensor {
+namespace ambit {
 
     /**
      * Swaps a vector with another vector.
@@ -316,14 +316,14 @@ namespace tensor {
      * @return the index of the largest absolute value
      *
      */
-    
+
     unsigned long int C_IDAMAX(unsigned long int length, double *x, int inc_x)
     {
         if(length == 0) return 0L;
-        
+
         unsigned long int reg = 0L;
         unsigned long int reg2 = 0L;
-        
+
         int big_blocks = (int)(length / INT_MAX);
         int small_size = (int)(length % INT_MAX);
         for (int block = 0; block <= big_blocks; block++) {
@@ -331,12 +331,12 @@ namespace tensor {
             signed int length_s = (block == big_blocks) ? small_size : INT_MAX;
             reg2 = ::F_IDAMAX(&length_s, x_s, &inc_x) + block*inc_x*(unsigned long int)INT_MAX;
             if (fabs(x[reg]) > fabs(x[reg2]))
-                reg = reg2; 
+                reg = reg2;
         }
-        
+
         return reg;
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -2616,7 +2616,7 @@ namespace tensor {
         else throw std::invalid_argument("C_DTRMV trans argument is invalid.");
         ::F_DTRMV(&uplo, &trans, &diag, &n, a, &lda, x, &incx);
     }
-    
+
     /**
      *  Purpose
      *  =======
@@ -2750,7 +2750,7 @@ namespace tensor {
         else throw std::invalid_argument("C_DTRSM side argument is invalid.");
         ::F_DTRSM(&side, &uplo, &transa, &diag, &n, &m, &alpha, a, &lda, b, &ldb);
     }
-    
+
     /**
      *  Purpose
      *  =======

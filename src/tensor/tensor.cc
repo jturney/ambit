@@ -2,7 +2,7 @@
 #include <list>
 #include <algorithm>
 
-#include <tensor/tensor.h>
+#include <ambit/tensor.h>
 #include "tensorimpl.h"
 #include "core.h"
 #include "disk.h"
@@ -13,7 +13,7 @@
 #   include "cyclops/cyclops.h"
 #endif
 
-namespace tensor {
+namespace ambit {
 
 namespace settings {
 

@@ -19,7 +19,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <tensor/io/io.h>
+#include <ambit/io/io.h>
 
 //#include <util/print.h>
 
@@ -27,7 +27,7 @@
 #   include <mpi.h>
 #endif
 
-namespace tensor { namespace io {
+namespace ambit { namespace io {
 
 namespace {
 

@@ -28,7 +28,7 @@
 //#include <util/print.h>
 #endif
 
-namespace tensor { namespace io {
+namespace ambit { namespace io {
 
 struct File;
 

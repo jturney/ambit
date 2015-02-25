@@ -1,4 +1,4 @@
-#include <blocked_tensor/blocked_tensor.h>
+#include <ambit/blocked_tensor.h>
 #include <cmath>
 #include <cstdlib>
 
@@ -25,7 +25,7 @@ double b4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
 double c4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
 double d4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
 
-using namespace tensor;
+using namespace ambit;
 
 /// Expected relative accuracy for numerical exactness
 const double epsilon = 1.0E-14;
@@ -1416,7 +1416,7 @@ int main(int argc, char* argv[])
 {
     printf(ANSI_COLOR_RESET);
     srand (time(nullptr));
-    tensor::initialize(argc, argv);
+    ambit::initialize(argc, argv);
 
 
     printf("==> Simple Operations <==\n\n");
@@ -1682,7 +1682,7 @@ int main(int argc, char* argv[])
 //    printf("Tests: %s\n\n",success ? "All Passed" : "Some Failed");
 
 
-    tensor::finalize();
+    ambit::finalize();
 
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
