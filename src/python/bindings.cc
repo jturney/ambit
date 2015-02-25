@@ -72,11 +72,6 @@ struct iterable_converter
     }
 };
 
-LabeledTensor get_labeled_tensor(Tensor& T, const std::string& indices)
-{
-    return LabeledTensor(T, indices::split(indices));
-}
-
 void initialize_random(Tensor& A1)
 {
     size_t numel1 = A1.numel();
@@ -125,7 +120,7 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("split", &indices::split)
             .staticmethod("split");
 
-    typedef std::vector<double>& (Tensor::*data1)();
+    typedef aligned_vector<double>& (Tensor::*data1)();
     typedef const Indices& (LabeledTensor::*idx)() const;
 
     class_<LabeledTensor>("LabeledTensor", no_init)
@@ -143,16 +138,14 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("dim", &Tensor::dim, "docstring")
             .add_property("rank", &Tensor::dim, "docstring")
             .add_property("numel", &Tensor::numel, "docstring")
-//            .def("data", make_function((std::vector<double>& (Tensor::*))&Tensor::data, return_internal_reference<>()), "docstring")
-//            .def("data", data1(&Tensor::data), return_internal_reference<>())
+            .def("data", make_function(data1(&Tensor::data), return_internal_reference<>()))
             .def("scale", &Tensor::scale)
             .def("permute", &Tensor::permute)
             .def("slice", &Tensor::slice)
             .def("contract", &Tensor::contract)
             .def("syev", &Tensor::syev)
             .def("power", &Tensor::power)
-            .def("printf", &Tensor::print,tensor_print_ov())
-            .def("__getitem__", &get_labeled_tensor);
+            .def("printf", &Tensor::print,tensor_print_ov());
 
     def("initialize_random", &initialize_random);
 }
