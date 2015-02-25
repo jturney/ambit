@@ -21,10 +21,12 @@ double a2[MAXTWO][MAXTWO];
 double b2[MAXTWO][MAXTWO];
 double c2[MAXTWO][MAXTWO];
 double d2[MAXTWO][MAXTWO];
+double e2[MAXTWO][MAXTWO];
 double a4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
 double b4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
 double c4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
 double d4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
+double e4[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR];
 
 using namespace ambit;
 
@@ -44,192 +46,10 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO][MAXTWO
 void initialize_random(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR]);
 std::pair<double,double> difference(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR]);
 
-double test_Cij_plus_equal_Aik_Bkj();
-double test_Cij_minus_equal_Aik_Bkj();
-double test_Cij_equal_Aik_Bkj();
-double test_Cij_equal_Aik_Bjk();
-double test_Cij_equal_Aik_Bkj();
-double test_Cij_equal_Aik_Bjk();
-double test_Cijkl_equal_Aijab_Bklab();
-double test_Cikjl_equal_Aijab_Bklab();
-double test_Cij_equal_Aiabc_Bjabc();
-double test_Cij_equal_Aji();
-double test_Cijkl_equal_Akilj();
-double test_Cijkl_equal_Akijl();
-double test_C_equal_2_A();
-double test_C_plus_equal_2_A();
-double test_C_minus_equal_2_A();
-double test_C_times_equal_2();
-double test_C_divide_equal_2();
-double test_Cij_equal_Cij();
-double test_syev();
-double test_Cilkj_equal_Aibaj_Bblak();
-double test_Cljik_equal_Abija_Blbak();
-double test_Cij_equal_Aij_plus_Bij();
-double test_Dij_equal_Aij_plus_Bij_plus_Cij();
-double test_Cij_equal_Aij_minus_Bij();
-double test_Dij_equal_Aij_minus_Bij_plus_Cij();
-double test_Dij_equal_Aij_times_Bij_plus_Cij();
-double test_Dij_equal_Bij_plus_Cij_times_Aij();
-double test_F_equal_D_times_2g_minus_g();
-double test_Dij_equal_2_times_Aij_plus_Bij();
-double test_Dij_equal_negate_Aij_plus_Bij();
-double test_power();
-double test_dot_product();
-double test_dot_product2();
-double test_dot_product3();
-double test_dot_product4();
-double test_chain_multiply();
-double test_chain_multiply2();
-double test_chain_multiply3();
-double test_chain_multiply4();
-double test_slice2();
-
-double test_C_equal_A_B(std::string c_ind,std::string a_ind,std::string b_ind,
-                        std::vector<int> c_dim,std::vector<int> a_dim,std::vector<int> b_dim);
-double test_wrapper();
-
 double zero = 1.0e-12;
 
 TensorType tensor_type = kCore;
 
-int main(int argc, char* argv[])
-{
-    srand (time(nullptr));
-
-    if (argc > 1) {
-        if (strcmp(argv[1], "cyclops") == 0) {
-            tensor_type = kDistributed;
-            printf("  *** Testing distributed tensors. ***\n");
-        }
-        else {
-            printf("  *** Unknown parameter given ***\n");
-            printf("  *** Testing core tensors.   ***\n");
-        }
-    }
-
-    ambit::initialize(argc, argv);
-
-    auto test_functions = {
-            //            Expectation,  test function,  User friendly description
-            std::make_tuple(kPass, test_wrapper, "8 permutations of C(\"ij\") += A(\"ik\") * B(\"kj\")"),
-            std::make_tuple(kPass, test_C_equal_2_A, "C(\"ij\") = 2.0 * A(\"ij\")"),
-            std::make_tuple(kPass, test_C_plus_equal_2_A, "C(\"ij\") += 2.0 * A(\"ij\")"),
-            std::make_tuple(kPass, test_C_minus_equal_2_A, "C(\"ij\") -= 2.0 * A(\"ij\")"),
-            std::make_tuple(kPass, test_C_times_equal_2, "C(\"ij\") *= 2.0"),
-            std::make_tuple(kPass, test_C_divide_equal_2, "C(\"ij\") /= 2.0"),
-            std::make_tuple(kPass, test_Cij_equal_Aik_Bkj, "C(\"ij\") = A(\"ik\") * B(\"kj\")"),
-            std::make_tuple(kPass, test_Cij_equal_Aik_Bjk, "C(\"ij\") = A(\"ik\") * B(\"jk\")"),
-            std::make_tuple(kPass, test_Cij_plus_equal_Aik_Bkj, "C(\"ij\") += A(\"ik\") * B(\"kj\")"),
-            std::make_tuple(kPass, test_Cij_minus_equal_Aik_Bkj, "C(\"ij\") -= A(\"ik\") * B(\"kj\")"),
-            std::make_tuple(kPass, test_Cijkl_equal_Aijab_Bklab, "C(\"ijkl\") += A(\"ijab\") * B(\"klab\")"),
-            std::make_tuple(kPass, test_Cij_equal_Aiabc_Bjabc, "C(\"ij\") += A(\"iabc\") * B(\"jabc\")"),
-            std::make_tuple(kPass, test_Cikjl_equal_Aijab_Bklab, "C(\"ikjl\") += A(\"ijab\") * B(\"klab\")"),
-            std::make_tuple(kPass, test_Cij_equal_Aji, "C(\"ij\") = A(\"ji\")"),
-            std::make_tuple(kPass, test_Cijkl_equal_Akilj, "C(\"ijkl\") = A(\"kilj\")"),
-            std::make_tuple(kPass, test_Cijkl_equal_Akijl, "C(\"ijkl\") = A(\"kijl\")"),
-            std::make_tuple(kException, test_Cij_equal_Cij, "C(\"ij\") = C(\"ji\") exception expected"),
-            std::make_tuple(kPass, test_Cilkj_equal_Aibaj_Bblak, "C(\"ilkj\") += A(\"ibaj\") * B(\"blak\")"),
-            std::make_tuple(kPass, test_Cljik_equal_Abija_Blbak, "C(\"ljik\") += A(\"bija\") * B(\"lbak\")"),
-            std::make_tuple(kPass, test_Cij_equal_Aij_plus_Bij, "C(\"ij\") = A(\"ij\") + B(\"ij\")"),
-            std::make_tuple(kPass,
-                            test_Dij_equal_Aij_plus_Bij_plus_Cij,
-                            "D(\"ij\") = A(\"ij\") + B(\"ij\") + C(\"ij\")"),
-            std::make_tuple(kPass, test_Cij_equal_Aij_minus_Bij, "C(\"ij\") = A(\"ij\") - 5.0 * B(\"ij\")"),
-            std::make_tuple(kPass,
-                            test_Dij_equal_Aij_minus_Bij_plus_Cij,
-                            "D(\"ij\") = A(\"ij\") - B(\"ij\") + 2.0 * C(\"ij\")"),
-            std::make_tuple(kPass,
-                            test_Dij_equal_Aij_times_Bij_plus_Cij,
-                            "D(\"ij\") = A(\"ij\") * (2.0 * B(\"ij\") - C(\"ij\"))"),
-            std::make_tuple(kPass,
-                            test_Dij_equal_Bij_plus_Cij_times_Aij,
-                            "D(\"ij\") = (2.0 * B(\"ij\") - C(\"ij\")) * A(\"ij\")"),
-            std::make_tuple(kPass,
-                            test_F_equal_D_times_2g_minus_g,
-                            "F(\"ij\") = D(\"kl\") * (2.0 * g(\"ijkl\") - g(\"ikjl\"))"),
-            std::make_tuple(kPass, test_Dij_equal_2_times_Aij_plus_Bij, "C(\"ij\") = 2.0 * (A(\"ij\") - B(\"ij\"))"),
-            std::make_tuple(kPass, test_Dij_equal_negate_Aij_plus_Bij, "C(\"ij\") = - (A(\"ij\") - B(\"ij\"))"),
-            std::make_tuple(kPass, test_syev, "Diagonalization (not confirmed)"),
-            std::make_tuple(kPass, test_power, "C^(-1/2) (not confirmed)"),
-            std::make_tuple(kPass, test_dot_product, "double = A(\"ij\")\" * B(\"ij\")"),
-            std::make_tuple(kException, test_dot_product2, "double = A(\"ij\") * B(\"ik\") exception expected"),
-            std::make_tuple(kException, test_dot_product3, "double = A(\"ij\") * B(\"ij\") exception expected"),
-            std::make_tuple(kPass, test_dot_product4, "double D = A(\"i,j\") * (B(\"i,j\") + C(\"i,j\"))"),
-            std::make_tuple(kPass, test_chain_multiply, "D(\"ij\") = B(\"ik\") * C(\"kl\") * A(\"lj\")"),
-            std::make_tuple(kPass, test_chain_multiply2, "D4(\"ijkl\") = A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
-            std::make_tuple(kPass, test_chain_multiply3, "D4(\"ijkl\") += A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
-            std::make_tuple(kPass, test_chain_multiply4, "D4(\"ijkl\") -= A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
-            std::make_tuple(kPass, test_slice2, "Slice C2(1:5,0:4) = A2(0:4,2:6)"),
-    };
-
-    std::vector<std::tuple<std::string,TestResult,double>> results;
-
-    printf(ANSI_COLOR_RESET);
-
-    printf("\n %-50s %12s %s","Description","Max. error","Result");
-    printf("\n %s",std::string(73,'-').c_str());
-
-    bool success = true;
-    for (auto test_function : test_functions) {
-        printf("\n %-50s", std::get<2>(test_function));
-        double result = 0.0;
-        TestResult tresult = kPass, report_result = kPass;
-        std::string exception;
-        try {
-            result = std::get<1>(test_function)();
-
-            // Did the test pass based on returned value?
-            tresult = std::fabs(result) < zero ? kPass : kFail;
-            // Was the tresult the expected result? If so color green else red.
-            report_result = tresult == std::get<0>(test_function) ? kPass : kFail;
-        }
-        catch (std::exception& e) {
-            // was an exception expected?
-            tresult = kException;
-            report_result = tresult == std::get<0>(test_function) ? kPass : kException;
-
-            if (report_result == kException) {
-                exception = e.what();
-            }
-        }
-        printf(" %7e", result);
-        switch (report_result) {
-            case kPass:
-                printf(ANSI_COLOR_GREEN);
-                break;
-            case kFail:
-                printf(ANSI_COLOR_RED);
-                break;
-            default:
-                printf(ANSI_COLOR_YELLOW);
-        }
-        switch (tresult) {
-            case kPass:
-                printf(" Passed" ANSI_COLOR_RESET);
-                break;
-            case kFail:
-                printf(" Failed" ANSI_COLOR_RESET);
-                break;
-            default:
-                printf(" Exception" ANSI_COLOR_RESET);
-        }
-
-        if (report_result == kException)
-            printf("\n    Unexpected: %s", exception.c_str());
-        if (report_result != kPass)
-            success = false;
-    }
-    printf("\n %s",std::string(73,'-').c_str());
-    printf("\n Tests: %s\n",success ? "All passed" : "Some failed");
-
-    Tensor T = Tensor::build(kDisk, "Disk", {4,5});
-    T.print(stdout,true);
-
-    ambit::finalize();
-
-    return success ? EXIT_SUCCESS : EXIT_FAILURE;
-}
 
 Tensor build_and_fill(const std::string& name, const Dimension& dims, double matrix[MAXTWO])
 {
@@ -623,6 +443,49 @@ double test_Cij_equal_Aiabc_Bjabc()
 
     return difference(C, c2).second;
 }
+
+
+
+double test_E_abcd_equal_Aijab_Bklcd_C_jl_D_ik()
+{
+    size_t ni = 9;
+    size_t nj = 6;
+    size_t nk = 7;
+    size_t nl = 9;
+    size_t na = 6;
+    size_t nb = 7;
+    size_t nc = 6;
+    size_t nd = 7;
+
+    Tensor A = build_and_fill("A", {ni, nj, na, nb}, a4);
+    Tensor B = build_and_fill("B", {nk, nl, nc, nd}, b4);
+    Tensor C = build_and_fill("C", {nj, nl}, c2);
+    Tensor D = build_and_fill("D", {ni, nk}, d2);
+    Tensor E = build_and_fill("E", {na, nb, nc, nd}, e4);
+
+    E("abcd") += A("ijab") * B("klcd") * C("jl") * D("ik");
+
+    for (size_t a = 0; a < na; ++a){
+        for (size_t b = 0; b < nb; ++b){
+            for (size_t c = 0; c < nc; ++c){
+                for (size_t d = 0; d < nd; ++d){
+                    for (size_t i = 0; i < ni; ++i){
+                        for (size_t j = 0; j < nj; ++j){
+                            for (size_t k = 0; k < nk; ++k){
+                                for (size_t l = 0; l < nl; ++l){
+                                    e4[a][b][c][d] += a4[i][j][a][b] * b4[k][l][c][d] * c2[j][l] * d2[i][k];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(E, e4).second;
+}
+
 
 double test_C_equal_2_A()
 {
@@ -1328,3 +1191,141 @@ double test_slice2()
     return difference(C, c2).second;
 }
 
+int main(int argc, char* argv[])
+{
+    srand (time(nullptr));
+
+    if (argc > 1) {
+        if (strcmp(argv[1], "cyclops") == 0) {
+            tensor_type = kDistributed;
+            printf("  *** Testing distributed tensors. ***\n");
+        }
+        else {
+            printf("  *** Unknown parameter given ***\n");
+            printf("  *** Testing core tensors.   ***\n");
+        }
+    }
+
+    ambit::initialize(argc, argv);
+
+    auto test_functions = {
+            //            Expectation,  test function,  User friendly description
+            std::make_tuple(kPass, test_wrapper, "8 permutations of C(\"ij\") += A(\"ik\") * B(\"kj\")"),
+            std::make_tuple(kPass, test_C_equal_2_A, "C(\"ij\") = 2.0 * A(\"ij\")"),
+            std::make_tuple(kPass, test_C_plus_equal_2_A, "C(\"ij\") += 2.0 * A(\"ij\")"),
+            std::make_tuple(kPass, test_C_minus_equal_2_A, "C(\"ij\") -= 2.0 * A(\"ij\")"),
+            std::make_tuple(kPass, test_C_times_equal_2, "C(\"ij\") *= 2.0"),
+            std::make_tuple(kPass, test_C_divide_equal_2, "C(\"ij\") /= 2.0"),
+            std::make_tuple(kPass, test_Cij_equal_Aik_Bkj, "C(\"ij\") = A(\"ik\") * B(\"kj\")"),
+            std::make_tuple(kPass, test_Cij_equal_Aik_Bjk, "C(\"ij\") = A(\"ik\") * B(\"jk\")"),
+            std::make_tuple(kPass, test_Cij_plus_equal_Aik_Bkj, "C(\"ij\") += A(\"ik\") * B(\"kj\")"),
+            std::make_tuple(kPass, test_Cij_minus_equal_Aik_Bkj, "C(\"ij\") -= A(\"ik\") * B(\"kj\")"),
+            std::make_tuple(kPass, test_Cijkl_equal_Aijab_Bklab, "C(\"ijkl\") += A(\"ijab\") * B(\"klab\")"),
+            std::make_tuple(kPass, test_Cij_equal_Aiabc_Bjabc, "C(\"ij\") += A(\"iabc\") * B(\"jabc\")"),
+            std::make_tuple(kPass, test_Cikjl_equal_Aijab_Bklab, "C(\"ikjl\") += A(\"ijab\") * B(\"klab\")"),
+            std::make_tuple(kPass, test_Cij_equal_Aji, "C(\"ij\") = A(\"ji\")"),
+            std::make_tuple(kPass, test_Cijkl_equal_Akilj, "C(\"ijkl\") = A(\"kilj\")"),
+            std::make_tuple(kPass, test_Cijkl_equal_Akijl, "C(\"ijkl\") = A(\"kijl\")"),
+            std::make_tuple(kException, test_Cij_equal_Cij, "C(\"ij\") = C(\"ji\") exception expected"),
+            std::make_tuple(kPass, test_Cilkj_equal_Aibaj_Bblak, "C(\"ilkj\") += A(\"ibaj\") * B(\"blak\")"),
+            std::make_tuple(kPass, test_Cljik_equal_Abija_Blbak, "C(\"ljik\") += A(\"bija\") * B(\"lbak\")"),
+            std::make_tuple(kPass, test_E_abcd_equal_Aijab_Bklcd_C_jl_D_ik, "E(\"abcd\") += A(\"ijab\") * B(\"klcd\") * C(\"jl\") * D(\"ik\")"),
+            std::make_tuple(kPass, test_Cij_equal_Aij_plus_Bij, "C(\"ij\") = A(\"ij\") + B(\"ij\")"),
+            std::make_tuple(kPass,
+                            test_Dij_equal_Aij_plus_Bij_plus_Cij,
+                            "D(\"ij\") = A(\"ij\") + B(\"ij\") + C(\"ij\")"),
+            std::make_tuple(kPass, test_Cij_equal_Aij_minus_Bij, "C(\"ij\") = A(\"ij\") - 5.0 * B(\"ij\")"),
+            std::make_tuple(kPass,
+                            test_Dij_equal_Aij_minus_Bij_plus_Cij,
+                            "D(\"ij\") = A(\"ij\") - B(\"ij\") + 2.0 * C(\"ij\")"),
+            std::make_tuple(kPass,
+                            test_Dij_equal_Aij_times_Bij_plus_Cij,
+                            "D(\"ij\") = A(\"ij\") * (2.0 * B(\"ij\") - C(\"ij\"))"),
+            std::make_tuple(kPass,
+                            test_Dij_equal_Bij_plus_Cij_times_Aij,
+                            "D(\"ij\") = (2.0 * B(\"ij\") - C(\"ij\")) * A(\"ij\")"),
+            std::make_tuple(kPass,
+                            test_F_equal_D_times_2g_minus_g,
+                            "F(\"ij\") = D(\"kl\") * (2.0 * g(\"ijkl\") - g(\"ikjl\"))"),
+            std::make_tuple(kPass, test_Dij_equal_2_times_Aij_plus_Bij, "C(\"ij\") = 2.0 * (A(\"ij\") - B(\"ij\"))"),
+            std::make_tuple(kPass, test_Dij_equal_negate_Aij_plus_Bij, "C(\"ij\") = - (A(\"ij\") - B(\"ij\"))"),
+            std::make_tuple(kPass, test_syev, "Diagonalization (not confirmed)"),
+            std::make_tuple(kPass, test_power, "C^(-1/2) (not confirmed)"),
+            std::make_tuple(kPass, test_dot_product, "double = A(\"ij\")\" * B(\"ij\")"),
+            std::make_tuple(kException, test_dot_product2, "double = A(\"ij\") * B(\"ik\") exception expected"),
+            std::make_tuple(kException, test_dot_product3, "double = A(\"ij\") * B(\"ij\") exception expected"),
+            std::make_tuple(kPass, test_dot_product4, "double D = A(\"i,j\") * (B(\"i,j\") + C(\"i,j\"))"),
+            std::make_tuple(kPass, test_chain_multiply, "D(\"ij\") = B(\"ik\") * C(\"kl\") * A(\"lj\")"),
+            std::make_tuple(kPass, test_chain_multiply2, "D4(\"ijkl\") = A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
+            std::make_tuple(kPass, test_chain_multiply3, "D4(\"ijkl\") += A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
+            std::make_tuple(kPass, test_chain_multiply4, "D4(\"ijkl\") -= A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
+            std::make_tuple(kPass, test_slice2, "Slice C2(1:5,0:4) = A2(0:4,2:6)"),
+    };
+
+    std::vector<std::tuple<std::string,TestResult,double>> results;
+
+    printf(ANSI_COLOR_RESET);
+
+    printf("\n %-50s %12s %s","Description","Max. error","Result");
+    printf("\n %s",std::string(83,'-').c_str());
+
+    bool success = true;
+    for (auto test_function : test_functions) {
+        printf("\n %-60s", std::get<2>(test_function));
+        double result = 0.0;
+        TestResult tresult = kPass, report_result = kPass;
+        std::string exception;
+        try {
+            result = std::get<1>(test_function)();
+
+            // Did the test pass based on returned value?
+            tresult = std::fabs(result) < zero ? kPass : kFail;
+            // Was the tresult the expected result? If so color green else red.
+            report_result = tresult == std::get<0>(test_function) ? kPass : kFail;
+        }
+        catch (std::exception& e) {
+            // was an exception expected?
+            tresult = kException;
+            report_result = tresult == std::get<0>(test_function) ? kPass : kException;
+
+            if (report_result == kException) {
+                exception = e.what();
+            }
+        }
+        printf(" %7e", result);
+        switch (report_result) {
+            case kPass:
+                printf(ANSI_COLOR_GREEN);
+                break;
+            case kFail:
+                printf(ANSI_COLOR_RED);
+                break;
+            default:
+                printf(ANSI_COLOR_YELLOW);
+        }
+        switch (tresult) {
+            case kPass:
+                printf(" Passed" ANSI_COLOR_RESET);
+                break;
+            case kFail:
+                printf(" Failed" ANSI_COLOR_RESET);
+                break;
+            default:
+                printf(" Exception" ANSI_COLOR_RESET);
+        }
+
+        if (report_result == kException)
+            printf("\n    Unexpected: %s", exception.c_str());
+        if (report_result != kPass)
+            success = false;
+    }
+    printf("\n %s",std::string(83,'-').c_str());
+    printf("\n Tests: %s\n",success ? "All passed" : "Some failed");
+
+    Tensor T = Tensor::build(kDisk, "Disk", {4,5});
+    T.print(stdout,true);
+
+    ambit::finalize();
+
+    return success ? EXIT_SUCCESS : EXIT_FAILURE;
+}
