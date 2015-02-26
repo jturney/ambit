@@ -16,7 +16,7 @@ class LabeledBlockedTensorProduct;
 class LabeledBlockedTensorAddition;
 class LabeledBlockedTensorDistributive;
 
-enum MOSpaceSpinType {AlphaSpin,BetaSpin,NoSpin};
+enum SpinType {AlphaSpin,BetaSpin,NoSpin};
 
 /**
  * Class MOSpace
@@ -36,7 +36,7 @@ public:
      *  // Create a space of alpha occupied orbitals.
      *  MOSpace alpha_occupied("o","i,j,k,l",{0,1,2,3,4},AlphaSpin);
      */
-    MOSpace(const std::string& name, const std::string& mo_indices, std::vector<size_t> mos,MOSpaceSpinType spin);
+    MOSpace(const std::string& name, const std::string& mo_indices, std::vector<size_t> mos,SpinType spin);
 
     // => Accessors <= //
 
@@ -53,7 +53,7 @@ public:
     size_t dim() const {return mos_.size();}
 
     /// @return The spin of this set of molecular orbitals
-    MOSpaceSpinType spin() const {return spin_;}
+    SpinType spin() const {return spin_;}
 
     /// Print information about this molecular orbital space
     void print();
@@ -65,7 +65,7 @@ private:
     /// The list of molecular orbitals that belong to this space
     std::vector<size_t> mos_;
     /// The spin of this set of molecular orbitals
-    MOSpaceSpinType spin_;
+    SpinType spin_;
 };
 
 
@@ -109,7 +109,7 @@ public:
      */
     static BlockedTensor build(TensorType type, const std::string& name, const std::vector<std::string>& blocks);
 
-    static void add_mo_space(const std::string& name,const std::string& mo_indices,std::vector<size_t> mos,MOSpaceSpinType spin);
+    static void add_mo_space(const std::string& name,const std::string& mo_indices,std::vector<size_t> mos,SpinType spin);
     static void add_composite_mo_space(const std::string& name,const std::string& mo_indices,const std::vector<std::string>& subspaces);
     static void reset_mo_spaces();
     static void print_mo_spaces();
@@ -127,40 +127,33 @@ public:
     /// Set the name of the tensor to name
     void set_name(const std::string& name);
 
-
-    /// Is this block present?
-//    bool is_valid_block(const std::vector<std::string>& key);
-    /// Is this block present?
-    bool is_valid_block(const std::vector<size_t>& key) const;
-
-    /// Return a Tensor object that corresponds to a given orbital class
-//    Tensor block(const std::vector<std::string>& key);
-    /// Return a Tensor object that corresponds to a given orbital class
-    Tensor block(std::vector<size_t>& key);
-    const Tensor block(std::vector<size_t>& key) const;
-    Tensor block(const std::string& indices);
-    std::map<std::vector<size_t>,Tensor>& blocks() {return blocks_;}
-
-    /**
+     /**
      * Print some tensor information to fh
      * \param level If level = false, just print name and dimensions.  If level = true, print the entire tensor.
      **/
-    void print(FILE* fh, bool level = false, const std::string& format = std::string("%11.6f"), int maxcols = 5) const;
+    void print(FILE* fh, bool level = true, const std::string& format = std::string("%11.6f"), int maxcols = 5) const;
 
     // => Data Access <= //
 
     /**
-     * Returns the raw data vector underlying the tensor object if the
-     * underlying tensor object supports a raw data vector. This is only the
-     * case if the underlying tensor is of type kCore.
+     * Returns a map with the block key and the corresponding tensor.
      *
      * Results:
-     *  @return data pointer, if tensor object supports it
+     *  @return a key/Tensor map
      **/
+    std::map<std::vector<size_t>,Tensor>& blocks() {return blocks_;}
 
+    /// Is this block present?
+    bool is_block(const std::string& indices) const;
+    /// Is this block present?
+    bool is_block(const std::vector<size_t>& key) const;
 
-//    /// @return The
-//    std::map<std::vector<size_t>,Tensor>& blocks() {return blocks_;}
+    /// Return a Tensor object that corresponds to a given orbital class
+    Tensor block(std::vector<size_t>& key);
+    /// Return a constant Tensor object that corresponds to a given orbital class
+    const Tensor block(std::vector<size_t>& key) const;
+    /// Return a Tensor object that corresponds to a given block key
+    Tensor block(const std::string& indices);
 
     // => BLAS-Type Tensor Operations <= //
 
@@ -212,9 +205,12 @@ public:
 
     // => Iterators <= //
 
-    void iterate(const std::function<void (const std::vector<size_t>&, double&)>& func);
-    void citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const;
-//    void fill(const std::function<void (const std::vector<size_t>&, const double&)>& func) const;
+    /// Iterate overall all elements of all blocks.  The iterator provides access to the
+    /// value of the tensor elements and their MO indices.
+    void iterate(const std::function<void (const std::vector<size_t>&,const std::vector<SpinType>&, double&)>& func);
+    /// Iterate overall all elements of all blocks.  The iterator provides constant access to the
+    /// value of the tensor elements and their MO indices.
+    void citerate(const std::function<void (const std::vector<size_t>&,const std::vector<SpinType>&, const double&)>& func) const;
 
     /// Maps tensor labels ({"i","j","k","p"}) to keys to the block map ({{0,0,0,0},{0,0,0,1}})
     static std::vector<std::vector<size_t>> label_to_block_keys(const std::vector<std::string>& indices);
@@ -230,9 +226,10 @@ private:
     bool map_name_to_mo_space(const std::string& index,size_t mo_space_idx);
     bool map_composite_name_to_mo_spaces(const std::string& index,const std::vector<size_t>& mo_spaces_idx);
     bool map_index_to_mo_spaces(const std::string& index,const std::vector<size_t>& mo_spaces_idx);
+    static std::vector<size_t> indices_to_key(const std::string& indices);
 
     /// @return The n-th MOSpace
-    size_t mo_space(size_t n);
+    static MOSpace mo_space(size_t n) {return mo_spaces_[n];}
     /// @return The MOSpace corresponding to the name of a space
     size_t name_to_mo_space(const std::string& index) ;
     /// @return The MOSpace objects corresponding to the name of a space
@@ -256,6 +253,7 @@ public:
     // => Operator Overloading API <= //
 
     LabeledBlockedTensor operator()(const std::string& indices);
+    LabeledBlockedTensor operator[](const std::string& indices);
 };
 
 class LabeledBlockedTensor {
@@ -412,6 +410,9 @@ private:
     const LabeledBlockedTensorAddition& B_;
 
 };
+
+/// Take a string like "oovv" and generates the strings "oovv","oOvV","OOVV"
+std::vector<std::string> spin_cases(const std::vector<std::string>& str);
 
 }
 

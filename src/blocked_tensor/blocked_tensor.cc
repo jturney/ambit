@@ -13,7 +13,7 @@ std::map<std::string,std::vector<size_t>> BlockedTensor::composite_name_to_mo_sp
 std::map<std::string,std::vector<size_t>> BlockedTensor::index_to_mo_spaces_;
 
 
-MOSpace::MOSpace(const std::string& name, const std::string& mo_indices,std::vector<size_t> mos,MOSpaceSpinType spin)
+MOSpace::MOSpace(const std::string& name, const std::string& mo_indices,std::vector<size_t> mos,SpinType spin)
     : name_(name), mo_indices_(indices::split(mo_indices)), mos_(mos), spin_(spin)
 {}
 
@@ -28,7 +28,7 @@ void MOSpace::print()
            boost::algorithm::join(mo_list, ",").c_str());
 }
 
-void BlockedTensor::add_mo_space(const std::string& name,const std::string& mo_indices,std::vector<size_t> mos,MOSpaceSpinType spin)
+void BlockedTensor::add_mo_space(const std::string& name,const std::string& mo_indices,std::vector<size_t> mos,SpinType spin)
 {
     if (name_to_mo_space_.count(name) != 0){
         throw std::runtime_error("The MO space \"" + name + "\" is already defined.");
@@ -194,14 +194,31 @@ void BlockedTensor::set_name(const std::string& name)
     name_ = name;
 }
 
-bool BlockedTensor::is_valid_block(const std::vector<size_t>& key) const
+std::vector<size_t> BlockedTensor::indices_to_key(const std::string& indices)
+{
+    std::vector<size_t> key;
+    for (const std::string& index : indices::split(indices)){
+        if (name_to_mo_space_.count(index) != 0){
+            key.push_back(name_to_mo_space_[index]);
+        }else{
+            throw std::runtime_error("The index " + index + " does not indentify a unique space (indices_to_key).");
+        }
+    }
+    return key;
+}
+
+bool BlockedTensor::is_block(const std::string& indices) const
+{
+    return is_block(indices_to_key(indices));
+}
+
+bool BlockedTensor::is_block(const std::vector<size_t>& key) const
 {
     return (blocks_.count(key) != 0);
 }
 
 Tensor BlockedTensor::block(const std::string& indices)
 {
-//    std::vector<std::string> split_indices = indices::split(indices);
     std::vector<size_t> key;
     for (const std::string& index : indices::split(indices)){
         if (name_to_mo_space_.count(index) != 0){
@@ -216,10 +233,10 @@ Tensor BlockedTensor::block(const std::string& indices)
 
 Tensor BlockedTensor::block(std::vector<size_t>& key)
 {
-    if (! is_valid_block(key)){
+    if (! is_block(key)){
         std::string msg;
         for (size_t k : key){
-            msg += boost::lexical_cast<std::string>(k);
+            msg += boost::lexical_cast<std::string>(k) + "(" + mo_space(k).name() + ")";
         }
         throw std::runtime_error("Block \"" + msg + "\" is not contained in tensor " + name());
     }
@@ -228,12 +245,12 @@ Tensor BlockedTensor::block(std::vector<size_t>& key)
 
 const Tensor BlockedTensor::block(std::vector<size_t>& key) const
 {
-    if (! is_valid_block(key)){
+    if (! is_block(key)){
         std::string msg;
         for (size_t k : key){
-            msg += boost::lexical_cast<std::string>(k);
+            msg += boost::lexical_cast<std::string>(k) + "(" + mo_space(k).name() + ")";
         }
-        throw std::runtime_error("Block " + msg + " is not contained in tensor " + name());
+        throw std::runtime_error("Block \"" + msg + "\" is not contained in tensor " + name());
     }
     return blocks_.at(key);
 }
@@ -297,23 +314,63 @@ void BlockedTensor::set(double gamma)
 //        T.copy(key_tensor.second);
 //        blocks_[key_tensor.first] = T;
 //    }
-//}
+//}(const std::vector<size_t>&,const std::vector<SpinType>&, double&)
 
-void BlockedTensor::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
+void BlockedTensor::iterate(const std::function<void (const std::vector<size_t>&, const std::vector<SpinType>&, double&)>& func)
 {
     for (auto key_tensor : blocks_){
-        key_tensor.second.iterate(func);
+        const std::vector<size_t>& key = key_tensor.first;
+
+        // Assemble the map from the block indices to the MO indices
+
+        size_t rank = key_tensor.second.rank();
+        std::vector<size_t> mo(rank);
+        std::vector<SpinType> spin(rank);
+
+        std::vector<std::vector<size_t>> index_to_mo;
+        for (size_t k : key){
+            index_to_mo.push_back(mo_spaces_[k].mos());
+        }
+
+        for (size_t n = 0; n < rank; ++n) spin[n] = mo_spaces_[key[n]].spin();
+
+        // Call iterate on this tensor block
+        key_tensor.second.iterate([&](const std::vector<size_t>& indices, double& value){
+            for (size_t n = 0; n < rank; ++n){
+                mo[n] = index_to_mo[n][indices[n]];
+            }
+            func(mo,spin,value);
+        });
     }
 }
 
-void BlockedTensor::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
+void BlockedTensor::citerate(const std::function<void (const std::vector<size_t>&, const std::vector<SpinType>&, const double&)>& func) const
 {
     for (const auto key_tensor : blocks_){
-        key_tensor.second.citerate(func);
+        const std::vector<size_t>& key = key_tensor.first;
+
+        // Assemble the map from the block indices to the MO indices
+
+        size_t rank = key_tensor.second.rank();
+        std::vector<size_t> mo(rank);
+        std::vector<SpinType> spin(rank);
+
+        std::vector<std::vector<size_t>> index_to_mo;
+        for (size_t k : key){
+            index_to_mo.push_back(mo_spaces_[k].mos());
+        }
+
+        for (size_t n = 0; n < rank; ++n) spin[n] = mo_spaces_[key[n]].spin();
+
+        // Call iterate on this tensor block
+        key_tensor.second.citerate([&](const std::vector<size_t>& indices, const double& value){
+            for (size_t n = 0; n < rank; ++n){
+                mo[n] = index_to_mo[n][indices[n]];
+            }
+            func(mo,spin,value);
+        });
     }
 }
-
-
 
 void BlockedTensor::print(FILE *fh, bool level, std::string const &format, int maxcols) const
 {
@@ -326,6 +383,11 @@ void BlockedTensor::print(FILE *fh, bool level, std::string const &format, int m
 }
 
 LabeledBlockedTensor BlockedTensor::operator()(const std::string& indices)
+{
+    return LabeledBlockedTensor(*this, indices::split(indices));
+}
+
+LabeledBlockedTensor BlockedTensor::operator[](const std::string& indices)
 {
     return LabeledBlockedTensor(*this, indices::split(indices));
 }
@@ -688,5 +750,22 @@ LabeledBlockedTensorProduct::operator double() const
 //    return C.data()[0];
 //}
 
+std::vector<std::string> spin_cases(const std::vector<std::string>& in_str_vec)
+{
+    std::vector<std::string> out_str_vec;
+    for (const std::string& s : in_str_vec){
+        size_t n = s.size() / 2;
+        for (size_t i = 0; i < n + 1; ++i){
+            std::string mod_s = s;
+            std::transform(mod_s.begin(), mod_s.end(), mod_s.begin(), ::tolower);
+            for (size_t j = n - i; j < n; ++j){
+                mod_s[j] = ::toupper(mod_s[j]);
+                mod_s[n + j] = ::toupper(mod_s[n + j]);
+            }
+            out_str_vec.push_back(mod_s);
+        }
+    }
+    return out_str_vec;
+}
 
 }
