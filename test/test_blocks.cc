@@ -481,7 +481,7 @@ double test_block_iterator_1()
     BlockedTensor::add_mo_space("a","u,v",{2,3,4},NoSpin);
     BlockedTensor::add_mo_space("v","e,f",{5,6,7,8,9},NoSpin);
     BlockedTensor T2 = BlockedTensor::build(kCore,"T2",{"aaaa","vvvv"});
-    T2.iterate([](const std::vector<size_t>& indices, double& value){
+    T2.iterate([](const std::vector<size_t>& indices, const std::vector<SpinType>& spin, double& value){
         bool add = true;
         for (size_t k : indices){
             if (k > 4) add = false;
