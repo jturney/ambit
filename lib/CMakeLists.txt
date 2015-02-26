@@ -1,0 +1,4 @@
+
+if(ENABLE_PYTHON)
+    install(DIRECTORY ambit DESTINATION lib FILES_MATCHING PATTERN "*.py")
+endif()

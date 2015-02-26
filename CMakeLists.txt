@@ -100,6 +100,9 @@ if (ENABLE_ELEMENTAL AND ELEMENTAL)
     add_definitions(-DHAVE_ELEMENTAL)
 endif()
 
+# library directory
+add_subdirectory(lib)
+
 # recursively add source directories
 add_subdirectory(src)
 

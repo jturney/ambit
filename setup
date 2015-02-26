@@ -74,7 +74,7 @@ def parse_input():
     group.add_argument('--prefix',
             action='store',
             type=str,
-            default='/usr/local/psi4',
+            default='/usr/local/ambit',
             help='set the install path for make install [default: %(default)s]',
             metavar='PATH')
     # Show CMake command

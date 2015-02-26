@@ -1,5 +1,5 @@
-from . import ambit
-from .ambit import Tensor
+from . import pyambit
+from .pyambit import Tensor
 import numbers
 
 class LabeledTensorProduct:
@@ -28,8 +28,8 @@ class LabeledTensor:
     def __init__(self, t, indices):
         self.factor = 1.0
         self.tensor = t
-        self.indices = ambit.Indices.split(indices)
-        self.labeledTensor = ambit.LabeledTensor(self.tensor, self.indices, self.factor)
+        self.indices = pyambit.Indices.split(indices)
+        self.labeledTensor = pyambit.LabeledTensor(self.tensor, self.indices, self.factor)
 
     def __mul__(self, other):
         if isinstance(other, numbers.Number):
@@ -54,7 +54,7 @@ class LabeledTensor:
 
 class Tensor:
     def __init__(self, tensorType, name, dims):
-        self.tensor = ambit.Tensor.build(tensorType, name, dims)
+        self.tensor = pyambit.Tensor.build(tensorType, name, dims)
 
     def __getitem__(self, indices):
         return LabeledTensor(self.tensor, indices)
