@@ -229,7 +229,7 @@ private:
     static std::vector<size_t> indices_to_key(const std::string& indices);
 
     /// @return The n-th MOSpace
-    size_t mo_space(size_t n);
+    static MOSpace mo_space(size_t n) {return mo_spaces_[n];}
     /// @return The MOSpace corresponding to the name of a space
     size_t name_to_mo_space(const std::string& index) ;
     /// @return The MOSpace objects corresponding to the name of a space

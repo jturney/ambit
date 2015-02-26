@@ -236,7 +236,7 @@ Tensor BlockedTensor::block(std::vector<size_t>& key)
     if (! is_block(key)){
         std::string msg;
         for (size_t k : key){
-            msg += boost::lexical_cast<std::string>(k);
+            msg += boost::lexical_cast<std::string>(k) + "(" + mo_space(k).name() + ")";
         }
         throw std::runtime_error("Block \"" + msg + "\" is not contained in tensor " + name());
     }
@@ -248,9 +248,9 @@ const Tensor BlockedTensor::block(std::vector<size_t>& key) const
     if (! is_block(key)){
         std::string msg;
         for (size_t k : key){
-            msg += boost::lexical_cast<std::string>(k);
+            msg += boost::lexical_cast<std::string>(k) + "(" + mo_space(k).name() + ")";
         }
-        throw std::runtime_error("Block " + msg + " is not contained in tensor " + name());
+        throw std::runtime_error("Block \"" + msg + "\" is not contained in tensor " + name());
     }
     return blocks_.at(key);
 }
