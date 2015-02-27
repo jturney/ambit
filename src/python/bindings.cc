@@ -89,7 +89,8 @@ BOOST_PYTHON_MODULE (pyambit)
 
     // Register iterable conversions.
     iterable_converter()
-            .from_python<std::vector<size_t>>();     // same as a Dimension object
+            .from_python<std::vector<size_t>>()      // same as a Dimension object
+            .from_python<std::vector<std::vector<size_t>>>();
 
     enum_<TensorType>("TensorType", "docstring")
             .value("kCurrent", kCurrent)
@@ -112,6 +113,9 @@ BOOST_PYTHON_MODULE (pyambit)
     class_<std::vector<double>>("DoubleVector")
             .def(vector_indexing_suite<std::vector<double>>());
 
+    class_<aligned_vector<double>>("AlignedDoubleVector")
+            .def(vector_indexing_suite<aligned_vector<double>>());
+
     class_<IndexRange>("IndexRange")
             .def(vector_indexing_suite<IndexRange>());
 
@@ -128,7 +132,7 @@ BOOST_PYTHON_MODULE (pyambit)
             .add_property("factor", &LabeledTensor::factor, "docstring")
             .add_property("indices", make_function(idx(&LabeledTensor::indices), return_value_policy<copy_const_reference>()));
 
-    class_<Tensor>("Tensor")
+    class_<Tensor>("Tensor", no_init)
             .def("build", &Tensor::build)
             .staticmethod("build")
             .add_property("type", &Tensor::type, "docstring")
@@ -136,7 +140,7 @@ BOOST_PYTHON_MODULE (pyambit)
             .add_property("dims",
                           make_function(&Tensor::dims, return_internal_reference<>()), "docstring")
             .def("dim", &Tensor::dim, "docstring")
-            .add_property("rank", &Tensor::dim, "docstring")
+            .add_property("rank", &Tensor::rank, "docstring")
             .add_property("numel", &Tensor::numel, "docstring")
             .def("data", make_function(data1(&Tensor::data), return_internal_reference<>()))
             .def("scale", &Tensor::scale)

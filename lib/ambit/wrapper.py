@@ -4,6 +4,7 @@ import numbers
 
 class LabeledTensorProduct:
     def __init__(self, left, right):
+        self.factor = 1.0
         self.tensors = []
         self.tensors.append(left)
         self.tensors.append(right)
@@ -54,13 +55,14 @@ class LabeledTensor:
 
 class Tensor:
     def __init__(self, tensorType, name, dims):
+        self.factor = 0.0
         self.tensor = pyambit.Tensor.build(tensorType, name, dims)
 
     def __getitem__(self, indices):
         return LabeledTensor(self.tensor, indices)
 
-    def __setitem__(self, indices, value):
-        indices = ambit.Indices.split(str(indices))
+    def __setitem__(self, indices_str, value):
+        indices = pyambit.Indices.split(str(indices_str))
 
         if isinstance(value, LabeledTensorProduct):
             # This is "simple assignment"
@@ -75,17 +77,29 @@ class Tensor:
             A = value.tensors[0]
             B = value.tensors[1]
 
-            self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
+            #print("C[%s]" % (indices_str))
+            self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, value.factor * A.factor * B.factor, self.factor)
 
         elif isinstance(value, LabeledTensorAddition):
 
+            # This is to handle C += A which gets translated into C = C + A
             if self.tensor is not value.tensors[0].tensor:
                 self.tensor.permute(value.tensors[0].tensor, indices, value.tensors[0].indices, value.tensors[0].factor, 0.0)
 
             for tensor in value.tensors[1:]:
-                self.tensor.permute(tensor.tensor, indices, tensor.indices, tensor.factor, 1.0)
+                if isinstance(tensor, LabeledTensor):
+                    self.tensor.permute(tensor.tensor, indices, tensor.indices, tensor.factor, 1.0)
+                else:
+                    # recursively call set item
+                    self.factor = 1.0
+                    self.__setitem__(indices_str, tensor)
 
         elif isinstance(value, LabeledTensor):
+
+            if self.tensor.rank != value.tensor.rank:
+                raise ArithmeticError("Permuted tensors do not have same rank")
+
+            # perform permutation
             self.tensor.permute(value.tensor, indices, value.indices, value.factor, 0.0)
 
         else:
