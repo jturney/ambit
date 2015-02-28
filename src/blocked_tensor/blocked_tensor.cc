@@ -1,6 +1,5 @@
-#include <boost/algorithm/string/join.hpp>
-#include <boost/lexical_cast.hpp>
-
+#include <cmath>
+#include <string>
 #include <ambit/blocked_tensor.h>
 #include <tensor/indices.h>
 
@@ -21,11 +20,11 @@ void MOSpace::print()
 {
     std::vector<std::string> mo_list;
     for (size_t i : mos_){
-        mo_list.push_back(boost::lexical_cast<std::string>(i));
+        mo_list.push_back(std::to_string(i));
     }
     printf("\n  Orbital Space \"%s\"\n  MO Indices: {%s}\n  MO List: (%s)\n",name_.c_str(),
-           boost::algorithm::join(mo_indices_, ",").c_str(),
-           boost::algorithm::join(mo_list, ",").c_str());
+           indices::to_string(mo_indices_).c_str(),
+           indices::to_string(mo_list).c_str());
 }
 
 void BlockedTensor::add_mo_space(const std::string& name,const std::string& mo_indices,std::vector<size_t> mos,SpinType spin)
@@ -236,7 +235,7 @@ Tensor BlockedTensor::block(std::vector<size_t>& key)
     if (! is_block(key)){
         std::string msg;
         for (size_t k : key){
-            msg += boost::lexical_cast<std::string>(k) + "(" + mo_space(k).name() + ")";
+            msg += std::to_string(k) + "(" + mo_space(k).name() + ")";
         }
         throw std::runtime_error("Block \"" + msg + "\" is not contained in tensor " + name());
     }
@@ -248,7 +247,7 @@ const Tensor BlockedTensor::block(std::vector<size_t>& key) const
     if (! is_block(key)){
         std::string msg;
         for (size_t k : key){
-            msg += boost::lexical_cast<std::string>(k) + "(" + mo_space(k).name() + ")";
+            msg += std::to_string(k) + "(" + mo_space(k).name() + ")";
         }
         throw std::runtime_error("Block \"" + msg + "\" is not contained in tensor " + name());
     }
@@ -274,7 +273,7 @@ double BlockedTensor::norm(int type) const
         for (auto block_tensor : blocks_){
             val += std::pow(block_tensor.second.norm(type),2.0);
         }
-        return sqrt(val);
+        return std::sqrt(val);
     } else {
         throw std::runtime_error("Norm must be 0 (infty-norm), 1 (1-norm), or 2 (2-norm)");
     }
