@@ -107,3 +107,12 @@ class Tensor:
 
     def printf(self):
         self.tensor.printf()
+
+    def norm(self, type):
+        return self.tensor.norm(type)
+
+    def zero(self):
+        self.tensor.zero()
+
+    def scale(self, beta):
+        self.scale(beta)

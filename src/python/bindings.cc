@@ -149,6 +149,8 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("contract", &Tensor::contract)
             .def("syev", &Tensor::syev)
             .def("power", &Tensor::power)
+            .def("norm", &Tensor::norm)
+            .def("zero", &Tensor::zero)
             .def("printf", &Tensor::print,tensor_print_ov());
 
     def("initialize_random", &initialize_random);
