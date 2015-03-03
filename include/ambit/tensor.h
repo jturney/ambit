@@ -195,8 +195,8 @@ public:
      * Results:
      *  @return data pointer, if tensor object supports it
      **/
-    aligned_vector<double>& data();
-    const aligned_vector<double>& data() const;
+    std::vector<double>& data();
+    const std::vector<double>& data() const;
 
     // => BLAS-Type Tensor Operations <= //
 

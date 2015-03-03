@@ -50,7 +50,7 @@ TensorType tensor_type = kCore;
 void initialize_random(Tensor &tensor, double matrix[MAXTWO])
 {
     size_t n0 = tensor.dims()[0];
-    aligned_vector<double>& vec = tensor.data();
+    std::vector<double>& vec = tensor.data();
     for (size_t i = 0; i < n0; ++i){
         double randnum = double(std::rand())/double(RAND_MAX);
         matrix[i] = randnum;
@@ -62,7 +62,7 @@ void initialize_random(Tensor &tensor, double matrix[MAXTWO][MAXTWO])
 {
     size_t n0 = tensor.dims()[0];
     size_t n1 = tensor.dims()[1];
-    aligned_vector<double>& vec = tensor.data();
+    std::vector<double>& vec = tensor.data();
     for (size_t i = 0, ij = 0; i < n0; ++i){
         for (size_t j = 0; j < n1; ++j, ++ij){
             double randnum = double(std::rand())/double(RAND_MAX);
@@ -79,7 +79,7 @@ void initialize_random(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][
     size_t n2 = tensor.dims()[2];
     size_t n3 = tensor.dims()[3];
 
-    aligned_vector<double>& vec = tensor.data();
+    std::vector<double>& vec = tensor.data();
     for (size_t i = 0, ijkl = 0; i < n0; ++i){
         for (size_t j = 0; j < n1; ++j){
             for (size_t k = 0; k < n2; ++k){
@@ -97,7 +97,7 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO])
 {
     size_t n0 = tensor.dims()[0];
 
-    const aligned_vector<double>& result = tensor.data();
+    const std::vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
     double max_diff = 0.0;
@@ -114,7 +114,7 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO][MAXTWO
     size_t n0 = tensor.dims()[0];
     size_t n1 = tensor.dims()[1];
 
-    const aligned_vector<double>& result = tensor.data();
+    const std::vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
     double max_diff = 0.0;
@@ -135,7 +135,7 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXFOUR][MAXFO
     size_t n2 = tensor.dims()[2];
     size_t n3 = tensor.dims()[3];
 
-    const aligned_vector<double>& result = tensor.data();
+    const std::vector<double>& result = tensor.data();
 
     double sum_diff = 0.0;
     double max_diff = 0.0;

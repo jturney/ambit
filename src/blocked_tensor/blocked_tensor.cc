@@ -299,7 +299,7 @@ void BlockedTensor::scale(double beta)
 void BlockedTensor::set(double gamma)
 {
     for (auto block_tensor : blocks_){
-        aligned_vector<double>& data = block_tensor.second.data();
+        std::vector<double>& data = block_tensor.second.data();
         for (size_t i = 0L; i < data.size(); ++i){
             data[i] = gamma;
         }
