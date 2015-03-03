@@ -503,7 +503,7 @@ LabeledTensorDistributive::operator double() const
             {},
             A_.indices(),
             B_[ind].indices(),
-            B_[ind].factor() * B_[ind].factor(),
+            A_.factor() * B_[ind].factor(),
             1.0);
     }
 

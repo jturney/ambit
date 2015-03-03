@@ -1,5 +1,5 @@
 from . import pyambit
-from .pyambit import Tensor, EigenvalueOrder
+from .pyambit import ITensor, EigenvalueOrder, TensorType
 import numbers
 
 class LabeledTensorProduct:
@@ -16,14 +16,62 @@ class LabeledTensorProduct:
             print("LabeledTensorProduct::mul %s not implemented" % (type(other)))
             return NotImplemented
 
+    def __float__(self):
+        if len(self.tensors) != 2:
+            raise RuntimeError("Conversion operator only supports binary expressions.")
+
+        R = Tensor(self.tensors[0].tensor.type, "R", [])
+        R.contract(self.tensors[0], self.tensors[1], [], self.tensors[0].indices, self.tensors[1].indices, self.tensors[0].factor * self.tensors[1].factor, 1.0)
+
+        C = Tensor(pyambit.TensorType.kCore, "C", [])
+        C.slice(R, [], [])
+
+        return C.data()[0]
+
 class LabeledTensorAddition:
     def __init__(self, left, right):
         self.tensors = []
         self.tensors.append(left)
         self.tensors.append(right)
 
+    def __mul__(self, other):
+        if isinstance(other, LabeledTensor):
+            return LabeledTensorDistributive(other, self)
+        elif isinstance(other, numbers.Number):
+            for tensor in self.tensors:
+                tensor.factor *= other
+            return self
+
+    def __neg__(self):
+        for tensor in self.tensors:
+            tensor.factor *= -1.0
+        return self
+
+    def __rmul__(self, other):
+        if isinstance(other, numbers.Number):
+            for tensor in self.tensors:
+                tensor.factor *= other
+            return self
+
+    def __add__(self, other):
+        self.tensors.append(other)
+        return self
+
 class LabeledTensorDistributive:
-    pass
+    def __init__(self, left, right):
+        self.A = left
+        self.B = right
+
+    def __float__(self):
+        R = Tensor(self.A.tensor.type, "R", [])
+
+        for tensor in self.B.tensors:
+            R.contract(self.A, tensor, [], self.A.indices, tensor.indices, self.A.factor * tensor.factor, 1.0)
+
+        C = Tensor(pyambit.TensorType.kCore, "C", [])
+        C.slice(R, [], [])
+
+        return C.data()[0]
 
 class LabeledTensor:
     def __init__(self, t, indices):
@@ -32,10 +80,16 @@ class LabeledTensor:
         self.indices = pyambit.Indices.split(indices)
         self.labeledTensor = pyambit.LabeledTensor(self.tensor, self.indices, self.factor)
 
+    def __neg__(self):
+        self.factor *= -1.0
+        return self
+
     def __mul__(self, other):
         if isinstance(other, numbers.Number):
             self.factor *= other
             return self
+        elif isinstance(other, LabeledTensorAddition):
+            return LabeledTensorDistributive(self, other)
         else:
             return LabeledTensorProduct(self, other)
 
@@ -136,7 +190,7 @@ class Tensor:
             self.rank = len(dims)
             self.type = type
             self.dims = dims
-            self.tensor = pyambit.Tensor.build(type, name, dims)
+            self.tensor = pyambit.ITensor.build(type, name, dims)
 
     def __getitem__(self, indices):
         return LabeledTensor(self.tensor, indices)
@@ -153,15 +207,12 @@ class Tensor:
             A = value.tensors[0]
             B = value.tensors[1]
 
-            self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, value.factor * A.factor * B.factor, 0.0)
+            self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
 
         elif isinstance(value, LabeledTensorAddition):
+            self.tensor.zero()
 
-            # This is to handle C += A which gets translated into C = C + A
-            if self.tensor is not value.tensors[0].tensor:
-                self.tensor.permute(value.tensors[0].tensor, indices, value.tensors[0].indices, value.tensors[0].factor, 0.0)
-
-            for tensor in value.tensors[1:]:
+            for tensor in value.tensors:
                 if isinstance(tensor, LabeledTensor):
                     self.tensor.permute(tensor.tensor, indices, tensor.indices, tensor.factor, 1.0)
                 else:
@@ -179,10 +230,18 @@ class Tensor:
 
             self.tensor.permute(value.tensor, indices, value.indices, value.factor, 0.0)
 
+        elif isinstance(value, LabeledTensorDistributive):
+
+            self.tensor.zero()
+
+            A = value.A
+            for B in value.B.tensors:
+                self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor, 1.0)
+
     def __eq__(self, other):
         if isinstance(other, Tensor):
             return self.tensor == other.tensor
-        elif isinstance(other, pyambit.Tensor):
+        elif isinstance(other, pyambit.ITensor):
             return self.tensor == other
         else:
             return NotImplemented

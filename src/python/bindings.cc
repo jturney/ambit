@@ -135,7 +135,7 @@ BOOST_PYTHON_MODULE (pyambit)
             .add_property("factor", &LabeledTensor::factor, "docstring")
             .add_property("indices", make_function(idx(&LabeledTensor::indices), return_value_policy<copy_const_reference>()));
 
-    class_<Tensor>("Tensor", no_init)
+    class_<Tensor>("ITensor", no_init)
             .def("build", &Tensor::build)
             .staticmethod("build")
             .add_property("type", &Tensor::type, "docstring")
