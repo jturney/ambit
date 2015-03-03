@@ -1,5 +1,7 @@
 from . import pyambit
-from .pyambit import Tensor, Indices
+from .pyambit import Indices
+from . import tensor_wrapper
+from .tensor_wrapper import Tensor
 import numbers
 import types
 import math
@@ -62,7 +64,7 @@ class LabeledBlockedTensor:
 
             # Need to protect against self assignment
             # Need to protect against different ranks
-            LHS.permute(RHS, self.indices_split, rhs.indices_split, alpha * rhs.factor, beta)
+            LHS.permute(RHS, self.indices_split, rhs.indices_split, alpha=alpha * rhs.factor, beta=beta)
 
     def label_to_block_keys(self):
         return self.tensor.label_to_block_keys(self.indices)
@@ -208,7 +210,7 @@ class BlockedTensor:
             # pp.pprint(name + "[" + mo_names + "]")
             # pp.pprint(dims)
 
-            newObject.blocks[mo_names] = pyambit.Tensor.build(type, name + "[" + mo_names + "]", dims)
+            newObject.blocks[mo_names] = tensor_wrapper.Tensor.build(type=type, name=name + "[" + mo_names + "]", dims=dims)
 
             # Set or check the rank
             if newObject.rank > 0:

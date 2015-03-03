@@ -90,7 +90,8 @@ BOOST_PYTHON_MODULE (pyambit)
     // Register iterable conversions.
     iterable_converter()
             .from_python<std::vector<size_t>>()      // same as a Dimension object
-            .from_python<std::vector<std::vector<size_t>>>();
+            .from_python<std::vector<std::vector<size_t>>>()
+            .from_python<std::vector<std::string>>();
 
     enum_<TensorType>("TensorType", "docstring")
             .value("kCurrent", kCurrent)
@@ -153,6 +154,7 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("power", &Tensor::power)
             .def("norm", &Tensor::norm)
             .def("zero", &Tensor::zero)
+            .def("copy", &Tensor::copy)
             .def("printf", &Tensor::print,tensor_print_ov());
 
     def("initialize_random", &initialize_random);

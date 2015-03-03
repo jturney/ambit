@@ -1,6 +1,5 @@
 import unittest
 import random
-import numpy as np
 import ambit
 
 class TestBlocks(unittest.TestCase):
@@ -13,10 +12,25 @@ class TestBlocks(unittest.TestCase):
         for r in range(dims[0]):
             for c in range(dims[1]):
                 value = random.random()
-                data[r * dims[0] + c] = value
+
+                data[r * dims[1] + c] = value
                 N[r][c] = value
 
         return [T, N]
+
+    def difference2(self, T, N):
+        max_diff = 0.0
+        data = T.tensor.data()
+        dims = T.dims
+        for r in range(dims[0]):
+            for c in range(dims[1]):
+                Tvalue = data[r*dims[1] + c]
+                Nvalue = N[r][c]
+
+                diff = abs(Tvalue - Nvalue)
+                max_diff = max(max_diff, diff)
+
+        return max_diff
 
     def test_mo_space(self):
         alpha_occ = ambit.MOSpace("o", "i,j,k,l",[0,1,2,3,4],ambit.SpinType.AlphaSpin)
@@ -223,9 +237,6 @@ class TestBlocks(unittest.TestCase):
         [Aoo_t, a2] = self.build_and_fill2("A", [no, no])
         [Coo_t, c2] = self.build_and_fill2("C", [no, no])
 
-        print(Aoo)
-        print(Aoo_t)
-
         Aoo["ij"] = Aoo_t["ij"]
         Coo["ij"] = Coo_t["ij"]
 
@@ -233,7 +244,49 @@ class TestBlocks(unittest.TestCase):
 
         for i in range(no):
             for j in range(no):
-                c2[i][j] = a2[i][j]
+                c2[i][j] = a2[j][i]
+
+        diff_oo = self.difference2(Coo, c2)
+
+        self.assertAlmostEqual(0.0, diff_oo, places=12)
+
+        Aov = A.block("ov")
+        Cvo = C.block("vo")
+
+        [Aov_t, a2] = self.build_and_fill2("A", [no, nv])
+        [Cvo_t, c2] = self.build_and_fill2("C", [nv, no])
+
+        Aov["ij"] = Aov_t["ij"]
+        Cvo["ij"] = Cvo_t["ij"]
+
+        C["ai"] = A["ia"]
+
+        for i in range(no):
+            for a in range(nv):
+                c2[a][i] = a2[i][a]
+
+        diff_vo = self.difference2(Cvo, c2)
+
+        self.assertAlmostEqual(0.0, diff_vo, places=12)
+
+        Avv = A.block("vv")
+        Cvv = C.block("vv")
+
+        [Avv_t, a2] = self.build_and_fill2("A", [nv, nv])
+        [Cvv_t, c2] = self.build_and_fill2("C", [nv, nv])
+
+        Avv["ij"] = Avv_t["ij"]
+        Cvv["ij"] = Cvv_t["ij"]
+
+        C["ab"] = A["ab"]
+
+        for a in range(nv):
+            for b in range(nv):
+                c2[a][b] = a2[a][b]
+
+        diff_vv = self.difference2(Cvv, c2)
+
+        self.assertAlmostEqual(0.0, diff_vv, places=12)
 
 
 if __name__ == '__main__':

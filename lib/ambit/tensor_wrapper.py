@@ -1,5 +1,5 @@
 from . import pyambit
-from .pyambit import Tensor
+from .pyambit import Tensor, EigenvalueOrder
 import numbers
 
 class LabeledTensorProduct:
@@ -57,16 +57,20 @@ class Tensor:
 
     @staticmethod
     def build(type, name, dims):
-        newObject = Tensor()
+        return Tensor(type, name, dims)
 
-        newObject.name = name
-        newObject.dims = dims
-
-    def __init__(self, type, name, dims):
-        self.name = name
-        self.rank = len(dims)
-        self.type = type
-        self.tensor = pyambit.Tensor.build(type, name, dims)
+    def __init__(self, type=None, name=None, dims=None, existing=None):
+        if existing:
+            self.tensor = existing
+            self.type = existing.type
+            self.dims = existing.dims
+            self.name = name if name else existing.name
+        else:
+            self.name = name
+            self.rank = len(dims)
+            self.type = type
+            self.dims = dims
+            self.tensor = pyambit.Tensor.build(type, name, dims)
 
     def __getitem__(self, indices):
         return LabeledTensor(self.tensor, indices)
@@ -118,6 +122,9 @@ class Tensor:
     def printf(self):
         self.tensor.printf()
 
+    def data(self):
+        return self.tensor.data()
+
     def norm(self, type):
         return self.tensor.norm(type)
 
@@ -125,4 +132,32 @@ class Tensor:
         self.tensor.zero()
 
     def scale(self, beta):
-        self.scale(beta)
+        self.tensor.scale(beta)
+
+    def copy(self, other):
+        self.tensor.copy(other)
+
+    def slice(self, A, Cinds, Ainds, alpha=1.0, beta=0.0):
+        self.tensor.slice(A.tensor, Cinds, Ainds, alpha, beta)
+
+    def permute(self, A, Cinds, Ainds, alpha=1.0, beta=0.0):
+        self.tensor.permute(A.tensor, Cinds, Ainds, alpha, beta)
+
+    def contract(self, A, B, Cinds, Ainds, Binds, alpha=1.0, beta=0.0):
+        self.tensor.contract(A.tensor, B.tensor, Cinds, Ainds, Binds, alpha, beta)
+
+    def gemm(self, A, B, transA, transB, nrow, ncol, nzip, ldaA, ldaB, ldaC, offA=0, offB=0, offC=0, alpha=1.0, beta=0.0):
+        self.tensor.gemm(A.tensor, B.tensor, transA, transB, nrow, ncol, nzip, ldaA, ldaB, ldaC, offA, offB, offC, alpha, beta)
+
+    def syev(self, order):
+        aResults = self.tensor.syev(order)
+
+        results = {}
+        for k, v in aResults.iteritems():
+            results[k] = Tensor(existing=v)
+
+        return results
+
+    def power(self, p, condition = 1.0e-12):
+        aResult = self.tensor.power(p, condition)
+        return Tensor(existing=aResult)
