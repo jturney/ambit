@@ -4,16 +4,16 @@ import numbers
 
 class LabeledTensorProduct:
     def __init__(self, left, right):
-        self.factor = 1.0
         self.tensors = []
         self.tensors.append(left)
         self.tensors.append(right)
 
     def __mul__(self, other):
-        if isinstance(other, numbers.Number):
-            self.tensors[0] *= other
+        if isinstance(other, LabeledTensor):
+            self.tensors.append(other)
             return self
         else:
+            print("LabeledTensorProduct::mul %s not implemented" % (type(other)))
             return NotImplemented
 
 class LabeledTensorAddition:
@@ -49,7 +49,73 @@ class LabeledTensor:
     def __rmul__(self, other):
         if isinstance(other, numbers.Number):
             self.factor *= other
+
             return self
+        else:
+            return NotImplemented
+
+    def __iadd__(self, other):
+        if isinstance(other, LabeledTensor):
+            self.tensor.permute(other.tensor, self.indices, other.indices, other.factor, self.factor)
+            return None
+        elif isinstance(other, LabeledTensorDistributive):
+            pass
+        elif isinstance(other, LabeledTensorProduct):
+            # Only support pairwise for now
+            if len(other.tensors) != 2:
+                raise RuntimeError("LabeledTensor: __imul__ : Only pairwise contractions are supported.")
+
+            A = other.tensors[0]
+            B = other.tensors[1]
+
+            self.tensor.contract(A.tensor, B.tensor, self.indices, A.indices, B.indices, A.factor * B.factor, self.factor)
+
+            # This operator is complete.
+            return None
+
+        elif isinstance(other, LabeledTensorAddition):
+            pass
+        else:
+            print("LabeledTensor::__iadd__ not implemented for this type.")
+            return NotImplemented
+
+    def __isub__(self, other):
+        if isinstance(other, LabeledTensor):
+            self.tensor.permute(other.tensor, self.indices, other.indices, -other.factor, self.factor)
+            return None
+        elif isinstance(other, LabeledTensorDistributive):
+            pass
+        elif isinstance(other, LabeledTensorProduct):
+            # Only support pairwise for now
+            if len(other.tensors) != 2:
+                raise RuntimeError("LabeledTensor: __imul__ : Only pairwise contractions are supported.")
+
+            A = other.tensors[0]
+            B = other.tensors[1]
+
+            self.tensor.contract(A.tensor, B.tensor, self.indices, A.indices, B.indices, -A.factor * B.factor, self.factor)
+
+            # This operator is complete.
+            return None
+
+        elif isinstance(other, LabeledTensorAddition):
+            pass
+        else:
+            print("LabeledTensor::__isub__ not implemented for this type.")
+            return NotImplemented
+
+    def __imul__(self, other):
+        if isinstance(other, numbers.Number):
+            self.tensor.scale(other)
+            return None
+
+        else:
+            return NotImplemented
+
+    def __itruediv__(self, other):
+        if isinstance(other, numbers.Number):
+            self.tensor.scale(1.0 / other)
+            return None
         else:
             return NotImplemented
 
@@ -79,11 +145,7 @@ class Tensor:
         indices = pyambit.Indices.split(str(indices_str))
 
         if isinstance(value, LabeledTensorProduct):
-            # This is "simple assignment"
-            # Make sure C = C * A isn't being called.
-            for tensor in value.tensors:
-                if self.tensor is tensor.tensor:
-                    raise ArithmeticError("Target cannot be present in contraction terms.")
+            # This is "simple assignment" C = A * B
 
             if len(value.tensors) != 2:
                 raise ArithmeticError("Only pair-wise contractions are currently supported")
@@ -91,8 +153,7 @@ class Tensor:
             A = value.tensors[0]
             B = value.tensors[1]
 
-            #print("C[%s]" % (indices_str))
-            self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, value.factor * A.factor * B.factor, self.factor)
+            self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, value.factor * A.factor * B.factor, 0.0)
 
         elif isinstance(value, LabeledTensorAddition):
 
@@ -108,16 +169,23 @@ class Tensor:
                     self.factor = 1.0
                     self.__setitem__(indices_str, tensor)
 
+        # This should be handled by LabeledTensor above
         elif isinstance(value, LabeledTensor):
 
+            if self == value.tensor:
+                raise RuntimeError("Self-assignment is not allowed.")
             if self.tensor.rank != value.tensor.rank:
                 raise ArithmeticError("Permuted tensors do not have same rank")
 
-            # perform permutation
             self.tensor.permute(value.tensor, indices, value.indices, value.factor, 0.0)
 
+    def __eq__(self, other):
+        if isinstance(other, Tensor):
+            return self.tensor == other.tensor
+        elif isinstance(other, pyambit.Tensor):
+            return self.tensor == other
         else:
-            raise TypeError('Do not know how to set this type {}'.format(type(value).__name__))
+            return NotImplemented
 
     def printf(self):
         self.tensor.printf()
