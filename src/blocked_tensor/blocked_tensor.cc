@@ -1,5 +1,6 @@
 #include <cmath>
 #include <string>
+#include <algorithm>
 #include <ambit/blocked_tensor.h>
 #include <tensor/indices.h>
 
