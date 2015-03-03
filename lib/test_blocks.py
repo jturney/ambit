@@ -5,13 +5,18 @@ import ambit
 
 class TestBlocks(unittest.TestCase):
 
+    def build_and_fill2(self, name, dims):
+        T = ambit.Tensor(ambit.TensorType.kCore, name, dims)
+        N = [[0 for x in range(dims[1])] for x in range(dims[0])]
 
-    def setUp(self):
-        random.seed()
+        data = T.tensor.data()
+        for r in range(dims[0]):
+            for c in range(dims[1]):
+                value = random.random()
+                data[r * dims[0] + c] = value
+                N[r][c] = value
 
-        self.ni = 9
-        self.nj = 6
-        self.nk = 7
+        return [T, N]
 
     def test_mo_space(self):
         alpha_occ = ambit.MOSpace("o", "i,j,k,l",[0,1,2,3,4],ambit.SpinType.AlphaSpin)
@@ -201,6 +206,35 @@ class TestBlocks(unittest.TestCase):
 
     def test_block_iterator1(self):
         pass
+
+    def test_Cij_equal_Aji(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "vv", "ov", "vo"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "vv", "ov", "vo"])
+
+        Aoo = A.block("oo")
+        Coo = C.block("oo")
+
+        no = 3
+        nv = 5
+
+        [Aoo_t, a2] = self.build_and_fill2("A", [no, no])
+        [Coo_t, c2] = self.build_and_fill2("C", [no, no])
+
+        print(Aoo)
+        print(Aoo_t)
+
+        Aoo["ij"] = Aoo_t["ij"]
+        Coo["ij"] = Coo_t["ij"]
+
+        C["ij"] = A["ji"]
+
+        for i in range(no):
+            for j in range(no):
+                c2[i][j] = a2[i][j]
+
 
 if __name__ == '__main__':
     unittest.main()

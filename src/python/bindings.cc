@@ -122,7 +122,9 @@ BOOST_PYTHON_MODULE (pyambit)
     class_<Indices>("Indices")
             .def(vector_indexing_suite<Indices>())
             .def("split", &indices::split)
-            .staticmethod("split");
+            .staticmethod("split")
+            .def("permutation_order", &indices::permutation_order)
+            .staticmethod("permutation_order");
 
     typedef aligned_vector<double>& (Tensor::*data1)();
     typedef const Indices& (LabeledTensor::*idx)() const;

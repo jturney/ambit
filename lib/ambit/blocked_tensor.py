@@ -39,6 +39,34 @@ class MOSpace:
         msg = "\n  Orbital Space \"%s\"\n  MO Indices: {%s}\n  MO List: (%s)\n" % (self.name, ','.join(map(str, self.mo_indices)), ','.join(map(str, self.mos)))
         return msg
 
+class LabeledBlockedTensor:
+
+    def __init__(self, T, indices, factor=1.0):
+        self.tensor = T
+        self.indices = indices
+        self.indices_split = pyambit.Indices.split(indices)
+        self.factor = factor
+
+    def add(self, rhs, alpha, beta):
+        rhs_keys = rhs.label_to_block_keys()
+        perm = pyambit.Indices.permutation_order(pyambit.Indices.split(self.indices), pyambit.Indices.split(rhs.indices))
+
+        for rhs_key in rhs_keys:
+            lhs_key = ""
+            for p in perm:
+                lhs_key += rhs_key[p]
+
+            # Grab the raw tensors
+            LHS = self.tensor.block(lhs_key)
+            RHS = rhs.tensor.block(rhs_key)
+
+            # Need to protect against self assignment
+            # Need to protect against different ranks
+            LHS.permute(RHS, self.indices_split, rhs.indices_split, alpha * rhs.factor, beta)
+
+    def label_to_block_keys(self):
+        return self.tensor.label_to_block_keys(self.indices)
+
 class BlockedTensor:
 
     mo_spaces = []
@@ -284,6 +312,8 @@ class BlockedTensor:
         # The way we proceed is by forming partial vectors that we keep expanding as we
         # process all the indices.
 
+        indices = pyambit.Indices.split(indices)
+
         final_blocks = []
 
         # Loop over indices of this block
@@ -291,15 +321,17 @@ class BlockedTensor:
             partial_blocks = []
 
             # How does this MO space name map to the MOSpace objects contained in mo_spaces
-            if index in self.index_to_mo_spaces:
-                for mo_space_idx in self.index_to_mo_spaces[index]:
+            if index in BlockedTensor.index_to_mo_spaces:
+                for mo_space_idx in BlockedTensor.index_to_mo_spaces[index]:
                     # Special case
                     if len(final_blocks) == 0:
                         partial_blocks.append([mo_space_idx])
                     else:
                         # Add each primitive set to all the partial block labels
                         for block in final_blocks:
-                            partial_blocks.append(block)
+                            new_block = copy.deepcopy(block)
+                            new_block.append(mo_space_idx)
+                            partial_blocks.append(new_block)
 
             else:
                 raise RuntimeError("Index \"" + index + "\" is not defined.")
@@ -307,9 +339,12 @@ class BlockedTensor:
             final_blocks = partial_blocks
 
         # Grab the orbital spaces names
-        mo_names = ""
-        for ms in final_blocks:
-            mo_names += BlockedTensor.mo_spaces[ms].name
+        mo_names = []
+        for block in final_blocks:
+            mo_name = ""
+            for ms in block:
+                mo_name += BlockedTensor.mo_spaces[ms].name
+            mo_names.append(mo_name)
 
         return mo_names
 
@@ -325,3 +360,13 @@ class BlockedTensor:
             data = self.blocks[key].data()
             for i,p in enumerate(data):
                 data[i] = gamma
+
+    def __getitem__(self, indices):
+        return LabeledBlockedTensor(self, indices)
+
+    def __setitem__(self, indices_str, rhs):
+        indices = pyambit.Indices.split(str(indices_str))
+
+        if isinstance(rhs, LabeledBlockedTensor):
+            me = LabeledBlockedTensor(self, indices_str)
+            me.add(rhs, 1.0, 0.0)

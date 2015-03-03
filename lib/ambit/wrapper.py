@@ -54,9 +54,19 @@ class LabeledTensor:
             return NotImplemented
 
 class Tensor:
-    def __init__(self, tensorType, name, dims):
-        self.factor = 0.0
-        self.tensor = pyambit.Tensor.build(tensorType, name, dims)
+
+    @staticmethod
+    def build(type, name, dims):
+        newObject = Tensor()
+
+        newObject.name = name
+        newObject.dims = dims
+
+    def __init__(self, type, name, dims):
+        self.name = name
+        self.rank = len(dims)
+        self.type = type
+        self.tensor = pyambit.Tensor.build(type, name, dims)
 
     def __getitem__(self, indices):
         return LabeledTensor(self.tensor, indices)
