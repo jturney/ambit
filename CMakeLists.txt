@@ -103,6 +103,9 @@ endif()
 # library directory
 add_subdirectory(lib)
 
+# include directory (for installation)
+add_subdirectory(include)
+
 # recursively add source directories
 add_subdirectory(src)
 

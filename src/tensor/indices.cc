@@ -30,7 +30,7 @@ static inline std::string &trim(std::string &s)
 
 }
 
-std::vector<std::string> split(const std::string &indices)
+Indices split(const std::string &indices)
 {
     std::istringstream f(indices);
     std::string s;

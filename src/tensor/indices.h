@@ -16,7 +16,7 @@ namespace indices {
  * If no comma is found it assumes the indices are one character in length.
  *
  */
-std::vector<std::string> split(const std::string& indices);
+Indices split(const std::string& indices);
 
 /** Returns true if the two indices are equivalent. */
 bool equivalent(const std::vector<std::string>& left, const std::vector<std::string>& right);

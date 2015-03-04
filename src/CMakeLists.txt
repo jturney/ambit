@@ -49,8 +49,6 @@ endif()
 target_link_libraries(ambit ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
 install(TARGETS ambit ARCHIVE DESTINATION lib)
-install(FILES ${PROJECT_SOURCE_DIR}/include/ambit/tensor.h DESTINATION include/ambit)
-install(FILES ${PROJECT_SOURCE_DIR}/include/ambit/aligned.h DESTINATION include/ambit)
 
 if(ENABLE_PYTHON)
     add_subdirectory(python)

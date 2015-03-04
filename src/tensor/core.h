@@ -11,8 +11,8 @@ class CoreTensorImpl : public TensorImpl
 public:
     CoreTensorImpl(const std::string& name, const Dimension& dims);
 
-    aligned_vector<double>& data() { return data_; }
-    const aligned_vector<double>& data() const { return data_; }
+    std::vector<double>& data() { return data_; }
+    const std::vector<double>& data() const { return data_; }
 
     // => Simple Single Tensor Operations <= //
 
@@ -73,7 +73,7 @@ public:
     void citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const;
 
 private:
-    aligned_vector<double> data_;
+    std::vector<double> data_;
 };
 
 typedef CoreTensorImpl* CoreTensorImplPtr;
