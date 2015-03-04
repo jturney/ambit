@@ -114,9 +114,6 @@ BOOST_PYTHON_MODULE (pyambit)
     class_<std::vector<double>>("DoubleVector")
             .def(vector_indexing_suite<std::vector<double>>());
 
-    class_<std::vector<double>>("AlignedDoubleVector")
-            .def(vector_indexing_suite<std::vector<double>>());
-
     class_<IndexRange>("IndexRange")
             .def(vector_indexing_suite<IndexRange>());
 
