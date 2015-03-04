@@ -35,6 +35,7 @@ Dimension permuted_dimension(
     const std::vector<std::string>& old_order);
 
 std::vector<Indices> determine_contraction_result(const LabeledTensor& A, const LabeledTensor& B);
+std::vector<Indices> determine_contraction_result_from_indices(Indices Aindices, Indices Bindices);
 
 // Returns a comma separated list of the indices
 std::string to_string(const Indices& indices);

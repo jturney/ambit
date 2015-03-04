@@ -695,7 +695,7 @@ class TestBlocks(unittest.TestCase):
 
         D['ij'] = B['ik'] * C['kl'] * A['lj']
 
-        self.assertAlmostEqual(0.0, self.difference(Doo, d2), places=12)
+        self.assertAlmostEqual(0.0, self.difference(D.block("oo"), d2), places=12)
 
 if __name__ == '__main__':
     unittest.main()
