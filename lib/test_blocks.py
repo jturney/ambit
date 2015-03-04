@@ -1,5 +1,6 @@
 import unittest
 import random
+import math
 import ambit
 
 class TestBlocks(unittest.TestCase):
@@ -31,6 +32,89 @@ class TestBlocks(unittest.TestCase):
                 max_diff = max(max_diff, diff)
 
         return max_diff
+
+    def build_and_fill3(self, name, dims):
+        T = ambit.Tensor(ambit.TensorType.kCore, name, dims)
+        N = [[[0 for x in range(dims[2])] for x in range(dims[1])] for x in range(dims[0])]
+
+        data = T.tensor.data()
+        for p in range(dims[0]):
+            for q in range(dims[1]):
+                for r in range(dims[2]):
+                    value = random.random()
+
+                    data[p*dims[1]*dims[2] + q*dims[2] + r] = value
+                    N[p][q][r] = value
+
+        return [T, N]
+
+    def difference3(self, T, N):
+        max_diff = 0.0
+        data = T.tensor.data()
+        dims = T.dims
+        for p in range(dims[0]):
+            for q in range(dims[1]):
+                for r in range(dims[2]):
+                    Tvalue = data[p*dims[1]*dims[2] + q*dims[2] + r]
+                    Nvalue = N[p][q][r]
+
+                    diff = abs(Tvalue - Nvalue)
+                    max_diff = max(max_diff, diff)
+
+        return max_diff
+
+    def build_and_fill4(self, name, dims):
+        T = ambit.Tensor(ambit.TensorType.kCore, name, dims)
+        N = [[[[0 for x in range(dims[3])] for x in range(dims[2])] for x in range(dims[1])] for x in range(dims[0])]
+
+        data = T.tensor.data()
+        for p in range(dims[0]):
+            for q in range(dims[1]):
+                for r in range(dims[2]):
+                    for s in range(dims[3]):
+                        value = random.random()
+
+                        data[p*dims[1]*dims[2]*dims[3] + q*dims[2]*dims[3] + r*dims[3] + s] = value
+                        N[p][q][r][s] = value
+
+        return [T, N]
+
+    def difference4(self, T, N):
+        max_diff = 0.0
+        data = T.tensor.data()
+        dims = T.dims
+        for p in range(dims[0]):
+            for q in range(dims[1]):
+                for r in range(dims[2]):
+                    for s in range(dims[3]):
+                        Tvalue = data[p*dims[1]*dims[2]*dims[3] + q*dims[2]*dims[3] + r*dims[3] + s]
+                        Nvalue = N[p][q][r][s]
+
+                        diff = abs(Tvalue - Nvalue)
+                        max_diff = max(max_diff, diff)
+
+        return max_diff
+
+    def build_and_fill(self, name, dims):
+        if len(dims) == 2:
+            return self.build_and_fill2(name, dims)
+        elif len(dims) == 3:
+            return self.build_and_fill3(name, dims)
+        elif len(dims) == 4:
+            return self.build_and_fill4(name, dims)
+        else:
+            raise RuntimeError("Don't know how to build tensors of order %d" % len(dims))
+
+    def difference(self, T, N):
+        dims = T.dims
+        if len(dims) == 2:
+            return self.difference2(T, N)
+        elif len(dims) == 3:
+            return self.difference3(T, N)
+        elif len(dims) == 4:
+            return self.difference4(T, N)
+        else:
+            raise RuntimeError("Don't know how to difference tensors of order %d" % len(dims))
 
     def test_mo_space(self):
         alpha_occ = ambit.MOSpace("o", "i,j,k,l",[0,1,2,3,4],ambit.SpinType.AlphaSpin)
@@ -114,7 +198,6 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "T", ["oo", "vv"])
-        # A.printf()
 
     def test_block_creation2(self):
         ambit.BlockedTensor.reset_mo_space()
@@ -225,6 +308,7 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+
         A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "vv", "ov", "vo"])
         C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "vv", "ov", "vo"])
 
@@ -288,6 +372,330 @@ class TestBlocks(unittest.TestCase):
 
         self.assertAlmostEqual(0.0, diff_vv, places=12)
 
+    def test_Cijab_plus_equal_Aaibj(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["vovo", "ovvo", "voov"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oovv", "ovvo", "voov"])
+
+        no = 3
+        nv = 5
+
+        Avovo = A.block("vovo")
+        Coovv = C.block("oovv")
+
+        [Avovo_t, a4] = self.build_and_fill("A", [nv, no, nv, no])
+        [Coovv_t, c4] = self.build_and_fill("C", [no, no, nv, nv])
+
+        Avovo["pqrs"] = Avovo_t["pqrs"]
+        Coovv["pqrs"] = Coovv_t["pqrs"]
+
+        C["ijab"] += A["aibj"]
+
+        for i in range(no):
+            for j in range(no):
+                for a in range(nv):
+                    for b in range(nv):
+                        c4[i][j][a][b] += a4[a][i][b][j]
+
+        self.assertAlmostEqual(0.0, self.difference(Coovv, c4), places=12)
+
+    def test_Cijab_plus_equal_Aaibj(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["vovo", "ovvo", "voov"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oovv", "ovvo", "voov"])
+
+        no = 3
+        nv = 5
+
+        Aovvo = A.block("ovvo")
+        Cvoov = C.block("voov")
+
+        [Aovvo_t, a4] = self.build_and_fill("A", [no, nv, nv, no])
+        [Cvoov_t, c4] = self.build_and_fill("C", [nv, no, no, nv])
+
+        Aovvo["pqrs"] = Aovvo_t["pqrs"]
+        Cvoov["pqrs"] = Cvoov_t["pqrs"]
+
+        C["bija"] += A["jabi"]
+
+        for i in range(no):
+            for j in range(no):
+                for a in range(nv):
+                    for b in range(nv):
+                        c4[b][i][j][a] += a4[j][a][b][i]
+
+        self.assertAlmostEqual(0.0, self.difference(Cvoov, c4), places=12)
+
+    def test_Cij_times_equal_double(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "vv", "ov", "vo"])
+
+        no = 3
+        nv = 5
+
+        [Aoo_t, a2] = self.build_and_fill("Aoo", [no, no])
+        [Aov_t, b2] = self.build_and_fill("Aov", [no, nv])
+        c2 = [[0 for x in range(no)] for x in range(no)]
+
+        A.block("oo")["pq"] = Aoo_t["pq"]
+        A.block("ov")["pq"] = Aov_t["pq"]
+
+        A["ij"] *= math.exp(1.0)
+
+        for i in range(no):
+            for j in range(no):
+                c2[i][j] = math.exp(1.0) * a2[i][j]
+
+        self.assertAlmostEqual(0.0, self.difference(A.block("oo"), c2), places=12)
+
+        c2 = [[0 for x in range(nv)] for x in range(no)]
+
+        A["ia"] /= math.exp(1.0)
+
+        for i in range(no):
+            for a in range(nv):
+                c2[i][a] = b2[i][a] / math.exp(1.0)
+
+        self.assertAlmostEqual(0.0, self.difference(A.block("ov"), c2), places=12)
+
+    def test_Cip_times_equal_double(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "vv", "ov", "vo"])
+
+        no = 3
+        nv = 5
+
+        [Aoo_t, a2] = self.build_and_fill("Aoo", [no, no])
+        [Aov_t, b2] = self.build_and_fill("Aov", [no, nv])
+        c2 = [[0 for x in range(no)] for x in range(no)]
+
+
+        A.block("oo")["pq"] = Aoo_t["pq"]
+        A.block("ov")["pq"] = Aov_t["pq"]
+
+        A["ip"] *= math.exp(1.0)
+
+        for i in range(no):
+            for j in range(no):
+                c2[i][j] = math.exp(1.0) * a2[i][j]
+
+        self.assertAlmostEqual(0.0, self.difference(A.block("oo"), c2), places=12)
+
+        c2 = [[0 for x in range(nv)] for x in range(no)]
+
+        for i in range(no):
+            for a in range(nv):
+                c2[i][a] = math.exp(1.0) * b2[i][a]
+
+        self.assertAlmostEqual(0.0, self.difference(A.block("ov"), c2), places=12)
+
+    def test_Cij_equal_Aij_Bjk(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k", [0,1,2], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+
+        no = 3
+
+        [Aoo_t, a2] = self.build_and_fill("Aoo", [no, no])
+        [Boo_t, b2] = self.build_and_fill("Boo", [no, no])
+        [Coo_t, c2] = self.build_and_fill("Coo", [no, no])
+
+        A.block("oo")["pq"] = Aoo_t["pq"]
+        B.block("oo")["pq"] = Boo_t["pq"]
+        C.block("oo")["pq"] = Coo_t["pq"]
+
+        for i in range(no):
+            for j in range(no):
+                c2[i][j] = 0.0
+                for k in range(no):
+                    c2[i][j] += a2[i][k] * b2[j][k]
+
+        C["ij"] = A["ik"] * B["jk"]
+
+        self.assertAlmostEqual(0.0, self.difference(C.block("oo"), c2), places=12)
+
+    def test_Cij_equal_Aip_Bjp(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k", [0,1,2,10,12], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9,3,4], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+
+        no = 5
+        nv = 7
+
+        [Aoo_t, a2] = self.build_and_fill("Aoo", [no, no])
+        [Boo_t, b2] = self.build_and_fill("Aoo", [no, no])
+        [Coo_t, c2] = self.build_and_fill("Aoo", [no, no])
+        [Aov_t, d2] = self.build_and_fill("Aoo", [no, nv])
+        [Bov_t, e2] = self.build_and_fill("Aoo", [no, nv])
+        [Cov_t, f2] = self.build_and_fill("Aoo", [no, nv])
+
+        A.block("oo")["pq"] = Aoo_t["pq"]
+        B.block("oo")["pq"] = Boo_t["pq"]
+        C.block("oo")["pq"] = Coo_t["pq"]
+        A.block("ov")["pq"] = Aov_t["pq"]
+        B.block("ov")["pq"] = Bov_t["pq"]
+        C.block("ov")["pq"] = Cov_t["pq"]
+
+        for i in range(no):
+            for j in range(no):
+                c2[i][j] = 0.0
+                for k in range(no):
+                    c2[i][j] += a2[i][k] * b2[j][k]
+
+                for a in range(nv):
+                    c2[i][j] += d2[i][a] * e2[j][a]
+
+        C["ij"] = A["ip"] * B["jp"]
+        C["ab"] = A["ap"] * B["bp"]
+
+        self.assertAlmostEqual(0.0, self.difference(C.block("oo"), c2), places=12)
+
+    def test_Cij_equal_half_Aia_Baj(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k", [0,1,2], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+
+        no = 3
+        nv = 5
+
+        [Aov_t, a2] = self.build_and_fill("Aov", [no, nv])
+        [Bvo_t, b2] = self.build_and_fill("Bvo", [nv, no])
+        [Coo_t, c2] = self.build_and_fill("Coo", [no, no])
+
+        A.block("ov")["pq"] = Aov_t["pq"]
+        B.block("vo")["pq"] = Bvo_t["pq"]
+        C.block("oo")["pq"] = Coo_t["pq"]
+
+        for i in range(no):
+            for j in range(no):
+                c2[i][j] = 0.0
+                for a in range(nv):
+                    c2[i][j] += 0.5 * a2[i][a] * b2[a][j]
+
+        C["ij"] = 0.5 * A["ia"] * B["aj"]
+
+        self.assertAlmostEqual(0.0, self.difference(C.block("oo"), c2), places=12)
+
+    def test_Cij_plus_equal_half_Aai_Bja(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k", [0,1,2], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+
+        no = 3
+        nv = 5
+
+        [Avo_t, a2] = self.build_and_fill("Avo", [nv, no])
+        [Bov_t, b2] = self.build_and_fill("Bov", [no, nv])
+        [Coo_t, c2] = self.build_and_fill("Coo", [no, no])
+
+        A.block("vo")["pq"] = Avo_t["pq"]
+        B.block("ov")["pq"] = Bov_t["pq"]
+        C.block("oo")["pq"] = Coo_t["pq"]
+
+        for i in range(no):
+            for j in range(no):
+                for a in range(nv):
+                    c2[i][j] += 0.5 * a2[a][i] * b2[j][a]
+
+        C["ij"] += A["ai"] * 0.5 * B["ja"]
+
+        self.assertAlmostEqual(0.0, self.difference(C.block("oo"), c2), places=12)
+
+    def test_Cij_minus_equal_Aik_Bjk(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k", [0,1,2], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+
+        no = 3
+
+        [Aoo_t, a2] = self.build_and_fill("Aov", [no, no])
+        [Boo_t, b2] = self.build_and_fill("Bvo", [no, no])
+        [Coo_t, c2] = self.build_and_fill("Coo", [no, no])
+
+        A.block("oo")["pq"] = Aoo_t["pq"]
+        B.block("oo")["pq"] = Boo_t["pq"]
+        C.block("oo")["pq"] = Coo_t["pq"]
+
+        for i in range(no):
+            for j in range(no):
+                for k in range(no):
+                    c2[i][j] -= a2[i][k] * b2[j][k]
+
+        C["ij"] -= A["ik"] * B["jk"]
+
+        self.assertAlmostEqual(0.0, self.difference(C.block("oo"), c2), places=12)
+
+    def test_chain_multiply(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        D = ambit.BlockedTensor.build(ambit.TensorType.kCore, "D", ["oo", "ov", "vo", "vv"])
+
+        no = 3
+
+        [Aoo_t, a2] = self.build_and_fill("Aov", [no, no])
+        [Boo_t, b2] = self.build_and_fill("Bvo", [no, no])
+        [Coo_t, c2] = self.build_and_fill("Coo", [no, no])
+        [Doo_t, d2] = self.build_and_fill("Doo", [no, no])
+
+        A.block("oo")["pq"] = Aoo_t["pq"]
+        B.block("oo")["pq"] = Boo_t["pq"]
+        C.block("oo")["pq"] = Coo_t["pq"]
+        D.block("oo")["pq"] = Doo_t["pq"]
+
+        for i in range(no):
+            for j in range(no):
+                d2[i][j] = 0.0
+                for k in range(no):
+                    for l in range(no):
+                        d2[i][j] += a2[l][j] * b2[i][k] * c2[k][l]
+
+        D['ij'] = B['ik'] * C['kl'] * A['lj']
+
+        self.assertAlmostEqual(0.0, self.difference(Doo, d2), places=12)
 
 if __name__ == '__main__':
     unittest.main()

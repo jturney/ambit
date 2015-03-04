@@ -127,7 +127,7 @@ BOOST_PYTHON_MODULE (pyambit)
     typedef const Indices& (LabeledTensor::*idx)() const;
     std::vector<double>& (Tensor::*data)() = &Tensor::data;
 
-    class_<LabeledTensor>("LabeledTensor", no_init)
+    class_<LabeledTensor>("ILabeledTensor", no_init)
             .def(init<Tensor, const std::vector<std::string>&, double>())
             .add_property("factor", &LabeledTensor::factor, "docstring")
             .add_property("indices", make_function(idx(&LabeledTensor::indices), return_value_policy<copy_const_reference>()));
