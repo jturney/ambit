@@ -1,5 +1,5 @@
 # Oldest version of Boost tested against
-set(BOOSTVER 1.54.0)
+set(BOOSTVER 1.53.0)
 
 list(APPEND needed_components filesystem chrono system timer)
 
