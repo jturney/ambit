@@ -30,6 +30,12 @@ void MOSpace::print()
 
 void BlockedTensor::add_mo_space(const std::string& name,const std::string& mo_indices,std::vector<size_t> mos,SpinType spin)
 {
+    if (name.size() == 0){
+        throw std::runtime_error("Empty name given to orbital space.");
+    }
+    if (mo_indices.size() == 0){
+        throw std::runtime_error("No MO indices were specified for the MO space \"" + name);
+    }
     if (name_to_mo_space_.count(name) != 0){
         throw std::runtime_error("The MO space \"" + name + "\" is already defined.");
     }
@@ -58,6 +64,12 @@ void BlockedTensor::add_mo_space(const std::string& name,const std::string& mo_i
 
 void BlockedTensor::add_composite_mo_space(const std::string& name,const std::string& mo_indices,const std::vector<std::string>& subspaces)
 {
+    if (name.size() == 0){
+        throw std::runtime_error("Empty name given to composite orbital space.");
+    }
+    if (mo_indices.size() == 0){
+        throw std::runtime_error("No MO indices were specified for the composite MO space \"" + name);
+    }
     if (name_to_mo_space_.count(name) != 0){
         throw std::runtime_error("The MO space \"" + name + "\" is already defined.");
     }
