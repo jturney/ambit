@@ -127,6 +127,11 @@ public:
     /// Set the name of the tensor to name
     void set_name(const std::string& name);
 
+    /// @return Does this Tensor point to the same underlying tensor as Tensor other?
+    bool operator==(const BlockedTensor& other) const;
+    /// @return !Does this Tensor point to the same underlying tensor as Tensor other?
+    bool operator!=(const BlockedTensor& other) const;
+
      /**
      * Print some tensor information to fh
      * \param level If level = false, just print name and dimensions.  If level = true, print the entire tensor.
@@ -149,9 +154,9 @@ public:
     bool is_block(const std::vector<size_t>& key) const;
 
     /// Return a Tensor object that corresponds to a given orbital class
-    Tensor block(std::vector<size_t>& key);
+    Tensor block(const std::vector<size_t>& key);
     /// Return a constant Tensor object that corresponds to a given orbital class
-    const Tensor block(std::vector<size_t>& key) const;
+    const Tensor block(const std::vector<size_t>& key) const;
     /// Return a Tensor object that corresponds to a given block key
     Tensor block(const std::string& indices);
 

@@ -231,7 +231,7 @@ Tensor BlockedTensor::block(const std::string& indices)
     return block(key);
 }
 
-Tensor BlockedTensor::block(std::vector<size_t>& key)
+Tensor BlockedTensor::block(const std::vector<size_t>& key)
 {
     if (! is_block(key)){
         std::string msg;
@@ -243,7 +243,7 @@ Tensor BlockedTensor::block(std::vector<size_t>& key)
     return blocks_.at(key);
 }
 
-const Tensor BlockedTensor::block(std::vector<size_t>& key) const
+const Tensor BlockedTensor::block(const std::vector<size_t>& key) const
 {
     if (! is_block(key)){
         std::string msg;
@@ -304,6 +304,25 @@ void BlockedTensor::set(double gamma)
             data[i] = gamma;
         }
     }
+}
+
+bool BlockedTensor::operator==(const BlockedTensor& other) const
+{
+    bool same = false;
+    for (auto block_tensor : blocks_){
+        const std::vector<size_t>& key = block_tensor.first;
+        if (other.is_block(key)){
+            if (block_tensor.second == other.block(key)){
+                same = true;
+            }
+        }
+    }
+    return same;
+}
+
+bool BlockedTensor::operator!=(const BlockedTensor& other) const
+{
+    return not (*this == other);
 }
 
 //void BlockedTensor::copy(const BlockedTensor& other)
@@ -510,8 +529,17 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
                                     bool zero_result,
                                     bool add)
 {
-    // Find the unique indices in the contraction
     size_t nterms = rhs.size();
+
+    // Check for self assignment
+    for (size_t n = 0; n < nterms; ++n){
+        const BlockedTensor& bt = rhs[n].BT();
+        if (BT_ == bt){
+            throw std::runtime_error("Tensor contractions does not support self assignment.");
+        }
+    }
+
+    // Find the unique indices in the contraction
     std::vector<std::string> unique_indices;
     for (size_t n = 0; n < nterms; ++n){
         for (const std::string& index : rhs[n].indices()){
