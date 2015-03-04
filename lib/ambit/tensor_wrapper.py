@@ -193,9 +193,23 @@ class Tensor:
             self.tensor = pyambit.ITensor.build(type, name, dims)
 
     def __getitem__(self, indices):
-        return LabeledTensor(self.tensor, indices)
+        if isinstance(indices, list):
+            return SlicedTensor(self, indices)
+        else:
+            return LabeledTensor(self.tensor, indices)
 
     def __setitem__(self, indices_str, value):
+
+        if isinstance(value, SlicedTensor):
+            if self.tensor == value.tensor:
+                raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
+            if self.tensor.rank != value.tensor.rank:
+                raise RuntimeError("SlicedTensor::__setitem__: Sliced tensors do not have same rank")
+
+            self.tensor.slice(value.tensor.tensor, indices_str, value.range, value.factor, 0.0)
+
+            return None
+
         indices = pyambit.Indices.split(str(indices_str))
 
         if isinstance(value, LabeledTensorProduct):
@@ -288,3 +302,58 @@ class Tensor:
     def power(self, p, condition = 1.0e-12):
         aResult = self.tensor.power(p, condition)
         return Tensor(existing=aResult)
+
+class SlicedTensor:
+
+    def __init__(self, tensor, range, factor=1.0):
+        self.tensor = tensor
+        self.range = range
+        self.factor = factor
+
+        # Check the data given to us
+        if not isinstance(tensor, Tensor):
+            raise RuntimeError("SlicedTensor: Expected tensor to be Tensor")
+
+        if len(range) != tensor.rank:
+            raise RuntimeError("SlicedTensor: Sliced tensor does not have correct number of indices for underlying tensor's rank")
+
+        for idx, value in enumerate(range):
+            if len(value) != 2:
+                raise RuntimeError("SlicedTensor: Each index of an IndexRange should have two elements {start,end+1} in it.")
+            if value[0] > value[1]:
+                raise RuntimeError("SlicedTensor: Each index of an IndexRange should end+1>=start in it.")
+            if value[1] > tensor.dims[idx]:
+                raise RuntimeError("SlicedTensor: IndexRange exceeds size of tensor.")
+
+    def __iadd__(self, value):
+        if isinstance(value, SlicedTensor):
+            if self.tensor == value.tensor:
+                raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
+            if self.tensor.rank != value.tensor.rank:
+                raise RuntimeError("SlicedTensor::__setitem__: Sliced tensors do not have same rank")
+
+            self.tensor.slice(value.tensor, self.range, value.range, value.factor, 1.0)
+
+            return None
+
+    def __isub__(self, value):
+        if isinstance(value, SlicedTensor):
+            if self.tensor == value.tensor:
+                raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
+            if self.tensor.rank != value.tensor.rank:
+                raise RuntimeError("SlicedTensor::__setitem__: Sliced tensors do not have same rank")
+
+            self.tensor.slice(value.tensor, self.range, value.range, -value.factor, 1.0)
+
+            return None
+
+    def __mul__(self, other):
+        if isinstance(other, numbers.Number):
+            return SlicedTensor(self.tensor, self.range, other * self.factor)
+
+    def __rmul__(self, other):
+        if isinstance(other, numbers.Number):
+            return SlicedTensor(self.tensor, self.range, other * self.factor)
+
+    def __neg__(self):
+        return SlicedTensor(self.tensor, self.range, -self.factor)
