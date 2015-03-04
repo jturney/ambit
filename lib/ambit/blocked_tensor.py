@@ -1,20 +1,16 @@
 from . import pyambit
-from .pyambit import Indices
 from . import tensor_wrapper
-from .tensor_wrapper import Tensor
-import numbers
-import types
 import math
-import pprint
 import copy
+
 
 class SpinType:
     AlphaSpin = 1
     BetaSpin = 2
     NoSpin = 3
 
-class MOSpace:
 
+class MOSpace:
     def __init__(self, name, mo_indices, mos, spin):
         self.name = str(name)
         self.mo_indices = pyambit.Indices.split(mo_indices)
@@ -38,11 +34,12 @@ class MOSpace:
         return len(self.mos)
 
     def __str__(self):
-        msg = "\n  Orbital Space \"%s\"\n  MO Indices: {%s}\n  MO List: (%s)\n" % (self.name, ','.join(map(str, self.mo_indices)), ','.join(map(str, self.mos)))
+        msg = "\n  Orbital Space \"%s\"\n  MO Indices: {%s}\n  MO List: (%s)\n" % (
+        self.name, ','.join(map(str, self.mo_indices)), ','.join(map(str, self.mos)))
         return msg
 
-class LabeledBlockedTensor:
 
+class LabeledBlockedTensor:
     def __init__(self, T, indices, factor=1.0):
         self.tensor = T
         self.indices = indices
@@ -51,7 +48,8 @@ class LabeledBlockedTensor:
 
     def add(self, rhs, alpha, beta):
         rhs_keys = rhs.label_to_block_keys()
-        perm = pyambit.Indices.permutation_order(pyambit.Indices.split(self.indices), pyambit.Indices.split(rhs.indices))
+        perm = pyambit.Indices.permutation_order(pyambit.Indices.split(self.indices),
+                                                 pyambit.Indices.split(rhs.indices))
 
         for rhs_key in rhs_keys:
             lhs_key = ""
@@ -69,8 +67,8 @@ class LabeledBlockedTensor:
     def label_to_block_keys(self):
         return self.tensor.label_to_block_keys(self.indices)
 
-class BlockedTensor:
 
+class BlockedTensor:
     mo_spaces = []
     name_to_mo_space = {}
     composite_name_to_mo_spaces = {}
@@ -131,7 +129,7 @@ class BlockedTensor:
 
     @staticmethod
     def print_mo_spaces():
-        print("\n  List of Molecular Orbital Spaces:");
+        print("\n  List of Molecular Orbital Spaces:")
         for mo_space in BlockedTensor.mo_spaces:
             print(mo_space)
 
@@ -155,9 +153,6 @@ class BlockedTensor:
         newObject.rank = 0
 
         tensor_blocks = []
-
-        pp = pprint.PrettyPrinter(indent=4)
-        # pp.pprint(BlockedTensor.composite_name_to_mo_spaces)
 
         # This algorithm takes a vector of strings that define the blocks of this tensor and unpacks them.
         # This may require taking composite spaces ("G" = {"O","V"}) and expanding the string
@@ -204,13 +199,8 @@ class BlockedTensor:
             for ms in this_block:
                 mo_names += BlockedTensor.mo_spaces[ms].name
 
-            # pp.pprint(this_block)
-            # pp.pprint(name)
-            # pp.pprint(mo_names)
-            # pp.pprint(name + "[" + mo_names + "]")
-            # pp.pprint(dims)
-
-            newObject.blocks[mo_names] = tensor_wrapper.Tensor.build(type=type, name=name + "[" + mo_names + "]", dims=dims)
+            newObject.blocks[mo_names] = tensor_wrapper.Tensor.build(type=type, name=name + "[" + mo_names + "]",
+                                                                     dims=dims)
 
             # Set or check the rank
             if newObject.rank > 0:
@@ -218,8 +208,6 @@ class BlockedTensor:
                     raise RuntimeError("Attempting to create the BlockedTensor \"" + name + "\" with nonunique rank.")
             else:
                 newObject.rank = len(this_block)
-
-            # pp.pprint(newObject.blocks)
 
         return newObject
 
@@ -254,7 +242,8 @@ class BlockedTensor:
                 if index in BlockedTensor.name_to_mo_space:
                     key.append(BlockedTensor.name_to_mo_space[index])
                 else:
-                    raise RuntimeError("Cannot retrieve block " + indices + " of tensor " + self.name + ". The index " + index + " does not identify a unique space.");
+                    raise RuntimeError(
+                        "Cannot retrieve block " + indices + " of tensor " + self.name + ". The index " + index + " does not identify a unique space.")
             return self.block(key)
 
         else:
@@ -265,7 +254,7 @@ class BlockedTensor:
             if not self.is_block(mo_names):
                 msg = ""
                 for k in indices:
-                    msg += str(k) + "(" + BlockedTensor.mo_space(k).name + ")"
+                    msg += str(k) + "(" + BlockedTensor.mo_space[k].name + ")"
                 raise RuntimeError("Block \"" + msg + "\" is not contained in tensor " + self.name)
 
             return self.blocks[mo_names]
@@ -291,7 +280,7 @@ class BlockedTensor:
             return math.sqrt(val)
 
         else:
-            raise RuntimeError("Norm must be 0 (infty-norm), 1 (1-norm), or 2 (2-norm)");
+            raise RuntimeError("Norm must be 0 (infty-norm), 1 (1-norm), or 2 (2-norm)")
 
         return 0.0
 
@@ -360,7 +349,7 @@ class BlockedTensor:
     def set(self, gamma):
         for key in self.blocks:
             data = self.blocks[key].data()
-            for i,p in enumerate(data):
+            for i, p in enumerate(data):
                 data[i] = gamma
 
     def __getitem__(self, indices):

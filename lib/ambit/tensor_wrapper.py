@@ -1,6 +1,6 @@
 from . import pyambit
-from .pyambit import ITensor, EigenvalueOrder, TensorType
 import numbers
+
 
 class LabeledTensorProduct:
     def __init__(self, left, right):
@@ -21,12 +21,14 @@ class LabeledTensorProduct:
             raise RuntimeError("Conversion operator only supports binary expressions.")
 
         R = Tensor(self.tensors[0].tensor.type, "R", [])
-        R.contract(self.tensors[0], self.tensors[1], [], self.tensors[0].indices, self.tensors[1].indices, self.tensors[0].factor * self.tensors[1].factor, 1.0)
+        R.contract(self.tensors[0], self.tensors[1], [], self.tensors[0].indices, self.tensors[1].indices,
+                   self.tensors[0].factor * self.tensors[1].factor, 1.0)
 
         C = Tensor(pyambit.TensorType.kCore, "C", [])
         C.slice(R, [], [])
 
         return C.data()[0]
+
 
 class LabeledTensorAddition:
     def __init__(self, left, right):
@@ -57,6 +59,7 @@ class LabeledTensorAddition:
         self.tensors.append(other)
         return self
 
+
 class LabeledTensorDistributive:
     def __init__(self, left, right):
         self.A = left
@@ -72,6 +75,7 @@ class LabeledTensorDistributive:
         C.slice(R, [], [])
 
         return C.data()[0]
+
 
 class LabeledTensor:
     def __init__(self, t, indices):
@@ -122,7 +126,8 @@ class LabeledTensor:
             A = other.tensors[0]
             B = other.tensors[1]
 
-            self.tensor.contract(A.tensor, B.tensor, self.indices, A.indices, B.indices, A.factor * B.factor, self.factor)
+            self.tensor.contract(A.tensor, B.tensor, self.indices, A.indices, B.indices, A.factor * B.factor,
+                                 self.factor)
 
             # This operator is complete.
             return None
@@ -147,7 +152,8 @@ class LabeledTensor:
             A = other.tensors[0]
             B = other.tensors[1]
 
-            self.tensor.contract(A.tensor, B.tensor, self.indices, A.indices, B.indices, -A.factor * B.factor, self.factor)
+            self.tensor.contract(A.tensor, B.tensor, self.indices, A.indices, B.indices, -A.factor * B.factor,
+                                 self.factor)
 
             # This operator is complete.
             return None
@@ -173,8 +179,8 @@ class LabeledTensor:
         else:
             return NotImplemented
 
-class Tensor:
 
+class Tensor:
     @staticmethod
     def build(type, name, dims):
         return Tensor(type, name, dims)
@@ -287,8 +293,10 @@ class Tensor:
     def contract(self, A, B, Cinds, Ainds, Binds, alpha=1.0, beta=0.0):
         self.tensor.contract(A.tensor, B.tensor, Cinds, Ainds, Binds, alpha, beta)
 
-    def gemm(self, A, B, transA, transB, nrow, ncol, nzip, ldaA, ldaB, ldaC, offA=0, offB=0, offC=0, alpha=1.0, beta=0.0):
-        self.tensor.gemm(A.tensor, B.tensor, transA, transB, nrow, ncol, nzip, ldaA, ldaB, ldaC, offA, offB, offC, alpha, beta)
+    def gemm(self, A, B, transA, transB, nrow, ncol, nzip, ldaA, ldaB, ldaC, offA=0, offB=0, offC=0, alpha=1.0,
+             beta=0.0):
+        self.tensor.gemm(A.tensor, B.tensor, transA, transB, nrow, ncol, nzip, ldaA, ldaB, ldaC, offA, offB, offC,
+                         alpha, beta)
 
     def syev(self, order):
         aResults = self.tensor.syev(order)
@@ -299,12 +307,12 @@ class Tensor:
 
         return results
 
-    def power(self, p, condition = 1.0e-12):
+    def power(self, p, condition=1.0e-12):
         aResult = self.tensor.power(p, condition)
         return Tensor(existing=aResult)
 
-class SlicedTensor:
 
+class SlicedTensor:
     def __init__(self, tensor, range, factor=1.0):
         self.tensor = tensor
         self.range = range
@@ -315,11 +323,13 @@ class SlicedTensor:
             raise RuntimeError("SlicedTensor: Expected tensor to be Tensor")
 
         if len(range) != tensor.rank:
-            raise RuntimeError("SlicedTensor: Sliced tensor does not have correct number of indices for underlying tensor's rank")
+            raise RuntimeError(
+                "SlicedTensor: Sliced tensor does not have correct number of indices for underlying tensor's rank")
 
         for idx, value in enumerate(range):
             if len(value) != 2:
-                raise RuntimeError("SlicedTensor: Each index of an IndexRange should have two elements {start,end+1} in it.")
+                raise RuntimeError(
+                    "SlicedTensor: Each index of an IndexRange should have two elements {start,end+1} in it.")
             if value[0] > value[1]:
                 raise RuntimeError("SlicedTensor: Each index of an IndexRange should end+1>=start in it.")
             if value[1] > tensor.dims[idx]:
