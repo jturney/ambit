@@ -697,5 +697,42 @@ class TestBlocks(unittest.TestCase):
 
         self.assertAlmostEqual(0.0, self.difference(D.block("oo"), d2), places=12)
 
+    def test_chain_multiply2(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9,10,15,20], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["vvoo"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        D = ambit.BlockedTensor.build(ambit.TensorType.kCore, "D", ["oovv", "ovvo"])
+
+        no = 5
+        nv = 8
+
+        [Avvoo_t, a4] = self.build_and_fill("Avvoo", [nv, nv, no, no])
+        [Boo_t,   b2] = self.build_and_fill("Boo",   [no, no])
+        [Coo_t,   c2] = self.build_and_fill("Coo",   [no, no])
+        [Doovv_t, d4] = self.build_and_fill("Doovv", [no, no, nv, nv])
+
+        A.block('vvoo')['pqrs'] = Avvoo_t['pqrs']
+        B.block('oo')['pq'] = Boo_t['pq']
+        C.block('oo')['pq'] = Coo_t['pq']
+        D.block('oovv')['pqrs'] = Doovv_t['pqrs']
+
+        for i in range(no):
+            for j in range(no):
+                for a in range(nv):
+                    for b in range(nv):
+                        d4[i][j][a][b] = 0.0
+                        for k in range(no):
+                            for l in range(no):
+                                d4[i][j][a][b] += a4[a][b][l][j] * b2[i][k] * c2[k][l]
+
+        D['ijab'] = B['ik'] * C['kl'] * A['ablj']
+
+        self.assertAlmostEqual(0.0, self.difference(D.block("oovv"), d4), places=12)
+
 if __name__ == '__main__':
     unittest.main()
