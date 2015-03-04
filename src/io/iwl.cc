@@ -104,7 +104,7 @@ void IWL::read_one(File &io, const std::string &label, Tensor &tensor)
 
     // psi stores lower triangle full block (may be symmetry blocked, but we don't care).
 
-    aligned_vector<double>& data = tensor.data();
+    std::vector<double>& data = tensor.data();
     size_t n = tensor.dims()[0];
     size_t ntri = n * (n + 1) / 2;
 
@@ -142,7 +142,7 @@ void IWL::read_two(IWL &io, Tensor &tensor)
 
     // psi stores 1 of the 8 possible permutations
 
-    aligned_vector<double>& values = tensor.data();
+    std::vector<double>& values = tensor.data();
 
     size_t count = 0;
     do {

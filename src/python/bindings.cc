@@ -75,7 +75,7 @@ struct iterable_converter
 void initialize_random(Tensor& A1)
 {
     size_t numel1 = A1.numel();
-    aligned_vector<double>& A1v = A1.data();
+    std::vector<double>& A1v = A1.data();
     for (size_t ind = 0L; ind < numel1; ind++) {
         double randnum = double(std::rand())/double(RAND_MAX);
         A1v[ind] = randnum;
@@ -114,8 +114,8 @@ BOOST_PYTHON_MODULE (pyambit)
     class_<std::vector<double>>("DoubleVector")
             .def(vector_indexing_suite<std::vector<double>>());
 
-    class_<aligned_vector<double>>("AlignedDoubleVector")
-            .def(vector_indexing_suite<aligned_vector<double>>());
+    class_<std::vector<double>>("AlignedDoubleVector")
+            .def(vector_indexing_suite<std::vector<double>>());
 
     class_<IndexRange>("IndexRange")
             .def(vector_indexing_suite<IndexRange>());
@@ -127,8 +127,8 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("permutation_order", &indices::permutation_order)
             .staticmethod("permutation_order");
 
-    typedef aligned_vector<double>& (Tensor::*data1)();
     typedef const Indices& (LabeledTensor::*idx)() const;
+    std::vector<double>& (Tensor::*data)() = &Tensor::data;
 
     class_<LabeledTensor>("LabeledTensor", no_init)
             .def(init<Tensor, const std::vector<std::string>&, double>())
@@ -145,7 +145,7 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("dim", &Tensor::dim, "docstring")
             .add_property("rank", &Tensor::rank, "docstring")
             .add_property("numel", &Tensor::numel, "docstring")
-            .def("data", make_function(data1(&Tensor::data), return_internal_reference<>()))
+            .def("data", data, return_value_policy<reference_existing_object>())
             .def("scale", &Tensor::scale)
             .def("permute", &Tensor::permute)
             .def("slice", &Tensor::slice)
