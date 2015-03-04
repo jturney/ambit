@@ -566,6 +566,19 @@ double test_Cij_equal_Aji()
     return diff_oo + diff_vo + diff_vv;
 }
 
+double test_Aij_equal_Aji()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+
+    BlockedTensor A = BlockedTensor::build(kCore,"A",{"oo","vv","ov","vo"});
+
+    A("ij") = A("ji");
+
+    return 0.0;
+}
+
 double test_Cijab_plus_equal_Aaibj()
 {
     BlockedTensor::reset_mo_spaces();
@@ -924,6 +937,20 @@ double test_Cij_minus_equal_Aik_B_jk()
     double diff_oo = difference(Coo, c2).second;
 
     return diff_oo;
+}
+
+double test_Aij_equal_Aik_B_jk()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j,k",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
+
+    BlockedTensor A = BlockedTensor::build(kCore,"A",{"oo","ov","vo","vv"});
+    BlockedTensor B = BlockedTensor::build(kCore,"B",{"oo","ov","vo","vv"});
+
+    A("ij") = A("ik") * B("jk");
+
+    return 0.0;
 }
 
 double test_chain_multiply()
@@ -1472,6 +1499,7 @@ int main(int argc, char* argv[])
             std::make_tuple(kPass,      test_block_iterator_1,              "Testing blocked tensor iterator (1)"),
 //            std::make_tuple(kException, test_copy,                          "Testing blocked tensor copy"),
             std::make_tuple(kPass,      test_Cij_equal_Aji,                 "Testing blocked tensor C(\"ij\") = A(\"ji\")"),
+            std::make_tuple(kException, test_Aij_equal_Aji,                 "Testing blocked tensor A(\"ij\") = A(\"ji\")"),
             std::make_tuple(kPass,      test_Cijab_plus_equal_Aaibj,        "Testing blocked tensor C(\"ijab\") += A(\"aibj\")"),
             std::make_tuple(kPass,      test_Cbija_minus_equal_Ajabi,       "Testing blocked tensor C(\"bija\") -= A(\"jabi\")"),
             std::make_tuple(kPass,      test_Cij_times_equal_double,        "Testing blocked tensor A(\"ij\") *= double"),
@@ -1481,6 +1509,7 @@ int main(int argc, char* argv[])
             std::make_tuple(kPass,      test_Cij_equal_half_Aia_B_aj,       "Testing blocked tensor C(\"ij\") = 0.5 * A(\"ia\") * B(\"aj\")"),
             std::make_tuple(kPass,      test_Cij_plus_equal_half_Aai_B_ja,  "Testing blocked tensor C(\"ij\") += A(\"ai\") * (0.5 * B(\"ja\"))"),
             std::make_tuple(kPass,      test_Cij_minus_equal_Aik_B_jk,      "Testing blocked tensor C(\"ij\") -= A(\"ik\") * B(\"jk\")"),
+            std::make_tuple(kException, test_Aij_equal_Aik_B_jk,            "Testing blocked tensor A(\"ij\") = A(\"ik\") * B(\"jk\")"),
             std::make_tuple(kPass,      test_chain_multiply,                "Testing blocked tensor chain multiply (1)"),
             std::make_tuple(kPass,      test_chain_multiply2,               "Testing blocked tensor chain multiply (2)"),
             std::make_tuple(kPass,      test_Cij_equal_Aij_plus_Bij,        "Testing blocked tensor C(\"ij\") = A(\"ij\") + B(\"ij\")"),
