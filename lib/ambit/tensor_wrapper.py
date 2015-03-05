@@ -1,12 +1,13 @@
+from __future__ import division
 from . import pyambit
 import numbers
-
+import itertools
 
 class LabeledTensorProduct:
     def __init__(self, left, right):
         self.tensors = []
-        self.tensors.append(left)
-        self.tensors.append(right)
+        if left: self.tensors.append(left)
+        if right: self.tensors.append(right)
 
     def __mul__(self, other):
         if isinstance(other, LabeledTensor):
@@ -29,12 +30,58 @@ class LabeledTensorProduct:
 
         return C.data()[0]
 
+    def compute_contraction_cost(self, perm):
+        indices_to_size = {}
+
+        for ti in self.tensors:
+            for i, v in enumerate(ti.indices):
+                indices_to_size[v] = ti.tensor.dims[i]
+
+        # print("indices_to_size: " + str(indices_to_size))
+
+        cpu_cost_total = 0.0
+        memory_cost_max = 0.0
+
+        first = self.tensors[perm[0]].indices
+
+        for i in perm[1:]:
+            first = set(first)
+            second = set(self.tensors[i].indices)
+
+            common = first.intersection(second)
+            first_unique = first.difference(second)
+            second_unique = second.difference(first)
+
+            common_size = 1.0
+            for s in common: common_size *= indices_to_size[s]
+            first_size = 1.0
+            for s in first: first_size *= indices_to_size[s]
+            second_size = 1.0
+            for s in second: second_size *= indices_to_size[s]
+            first_unique_size = 1.0
+            for s in first_unique: first_unique_size *= indices_to_size[s]
+            second_unique_size = 1.0
+            for s in second_unique: second_unique_size *= indices_to_size[s]
+            result_size = first_unique_size + second_unique_size
+
+            stored_indices = []
+            for v in first_unique: stored_indices.append(v)
+            for v in second_unique: stored_indices.append(v)
+
+            cpu_cost = common_size * result_size
+            memory_cost = first_size + second_size + result_size
+            cpu_cost_total += cpu_cost
+            memory_cost_max += max(memory_cost_max, memory_cost)
+
+            first = stored_indices
+
+        return [cpu_cost_total, memory_cost_max]
 
 class LabeledTensorAddition:
     def __init__(self, left, right):
         self.tensors = []
-        self.tensors.append(left)
-        self.tensors.append(right)
+        if left: self.tensors.append(left)
+        if right: self.tensors.append(right)
 
     def __mul__(self, other):
         if isinstance(other, LabeledTensor):
@@ -78,11 +125,19 @@ class LabeledTensorDistributive:
 
 
 class LabeledTensor:
-    def __init__(self, t, indices):
-        self.factor = 1.0
+    def __init__(self, t, indices, factor=1.0):
+        self.factor = factor
         self.tensor = t
-        self.indices = pyambit.Indices.split(indices)
-        self.labeledTensor = pyambit.LabeledTensor(self.tensor, self.indices, self.factor)
+        if isinstance(indices, pyambit.Indices):
+            self.indices = indices
+        else:
+            self.indices = pyambit.Indices.split(indices)
+
+    def dim_by_index(self, index):
+        positions = [i for i,x in enumerate(self.indices) if x == index]
+        if len(positions) != 1:
+            raise RuntimeError("LabeledTensor.dim_by_index: Couldn't find index " + index)
+        return self.tensor.dims[positions[0]]
 
     def __neg__(self):
         self.factor *= -1.0
@@ -117,14 +172,48 @@ class LabeledTensor:
             self.tensor.permute(other.tensor, self.indices, other.indices, other.factor, self.factor)
             return None
         elif isinstance(other, LabeledTensorDistributive):
-            pass
+            raise NotImplementedError("LabeledTensor.__iadd__(LabeledTensorDistributive) is not implemented")
         elif isinstance(other, LabeledTensorProduct):
-            # Only support pairwise for now
-            if len(other.tensors) != 2:
-                raise RuntimeError("LabeledTensor: __imul__ : Only pairwise contractions are supported.")
+            nterms = len(other.tensors)
+            best_perm = [0 for x in range(nterms)]
+            perms = [x for x in range(nterms)]
+            best_cpu_cost = 1.0e200
+            best_memory_cost = 1.0e200
 
-            A = other.tensors[0]
-            B = other.tensors[1]
+            for perm in itertools.permutations(perms):
+                [cpu_cost, memory_cost] = other.compute_contraction_cost(perm)
+                if cpu_cost < best_cpu_cost:
+                    best_perm = perm
+                    best_cpu_cost = cpu_cost
+                    best_memory_cost = memory_cost
+
+            # At this point best_perm should be used to perform the contractions in optimal order
+            A = other.tensors[best_perm[0]]
+            maxn = nterms - 2
+            for n in range(maxn):
+                B = other.tensors[best_perm[n + 1]]
+
+                AB_indices = pyambit.Indices.determine_contraction_result_from_indices(A.indices, B.indices)
+                A_fix_idx = AB_indices[1]
+                B_fix_idx = AB_indices[2]
+
+                dims = []
+                indices = []
+
+                for index in A_fix_idx:
+                    dims.append(A.dim_by_index(index))
+                    indices.append(index)
+                for index in B_fix_idx:
+                    dims.append(B.dim_by_index(index))
+                    indices.append(index)
+
+                tAB = Tensor.build(A.tensor.type, A.tensor.name + " * " + B.tensor.name, dims)
+
+                tAB.contract(A, B, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
+
+                A.set(LabeledTensor(tAB.tensor, "".join(indices), 1.0))
+
+            B = other.tensors[best_perm[nterms - 1]]
 
             self.tensor.contract(A.tensor, B.tensor, self.indices, A.indices, B.indices, A.factor * B.factor,
                                  self.factor)
@@ -133,24 +222,57 @@ class LabeledTensor:
             return None
 
         elif isinstance(other, LabeledTensorAddition):
-            pass
+            raise NotImplementedError("LabeledTensor.__iadd__(LabeledTensorAddition) is not implemented")
         else:
-            print("LabeledTensor::__iadd__ not implemented for this type.")
-            return NotImplemented
+            raise NotImplementedError("LabeledTensor.__iadd__(%s) is not implemented" % (type(other)))
 
     def __isub__(self, other):
         if isinstance(other, LabeledTensor):
             self.tensor.permute(other.tensor, self.indices, other.indices, -other.factor, self.factor)
             return None
         elif isinstance(other, LabeledTensorDistributive):
-            pass
+            raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
         elif isinstance(other, LabeledTensorProduct):
-            # Only support pairwise for now
-            if len(other.tensors) != 2:
-                raise RuntimeError("LabeledTensor: __imul__ : Only pairwise contractions are supported.")
+            nterms = len(other.tensors)
+            best_perm = [0 for x in range(nterms)]
+            perms = [x for x in range(nterms)]
+            best_cpu_cost = 1.0e200
+            best_memory_cost = 1.0e200
 
-            A = other.tensors[0]
-            B = other.tensors[1]
+            for perm in itertools.permutations(perms):
+                [cpu_cost, memory_cost] = other.compute_contraction_cost(perm)
+                if cpu_cost < best_cpu_cost:
+                    best_perm = perm
+                    best_cpu_cost = cpu_cost
+                    best_memory_cost = memory_cost
+
+            # At this point best_perm should be used to perform the contractions in optimal order
+            A = other.tensors[best_perm[0]]
+            maxn = nterms - 2
+            for n in range(maxn):
+                B = other.tensors[best_perm[n + 1]]
+
+                AB_indices = pyambit.Indices.determine_contraction_result_from_indices(A.indices, B.indices)
+                A_fix_idx = AB_indices[1]
+                B_fix_idx = AB_indices[2]
+
+                dims = []
+                indices = []
+
+                for index in A_fix_idx:
+                    dims.append(A.dim_by_index(index))
+                    indices.append(index)
+                for index in B_fix_idx:
+                    dims.append(B.dim_by_index(index))
+                    indices.append(index)
+
+                tAB = Tensor.build(A.tensor.type, A.tensor.name + " * " + B.tensor.name, dims)
+
+                tAB.contract(A, B, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
+
+                A.set(LabeledTensor(tAB.tensor, "".join(indices), 1.0))
+
+            B = other.tensors[best_perm[nterms - 1]]
 
             self.tensor.contract(A.tensor, B.tensor, self.indices, A.indices, B.indices, -A.factor * B.factor,
                                  self.factor)
@@ -159,7 +281,7 @@ class LabeledTensor:
             return None
 
         elif isinstance(other, LabeledTensorAddition):
-            pass
+            raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
         else:
             print("LabeledTensor::__isub__ not implemented for this type.")
             return NotImplemented
@@ -168,16 +290,27 @@ class LabeledTensor:
         if isinstance(other, numbers.Number):
             self.tensor.scale(other)
             return None
-
         else:
-            return NotImplemented
+            raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
 
     def __itruediv__(self, other):
         if isinstance(other, numbers.Number):
             self.tensor.scale(1.0 / other)
             return None
         else:
-            return NotImplemented
+            raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
+
+    def __idiv__(self, other):
+        if isinstance(other, numbers.Number):
+            self.tensor.scale(1.0 / other)
+            return None
+        else:
+            raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
+
+    def set(self, to):
+        self.tensor = to.tensor
+        self.indices = to.indices
+        self.factor = to.factor
 
 
 class Tensor:
@@ -219,15 +352,53 @@ class Tensor:
         indices = pyambit.Indices.split(str(indices_str))
 
         if isinstance(value, LabeledTensorProduct):
-            # This is "simple assignment" C = A * B
+            nterms = len(value.tensors)
+            best_perm = [0 for x in range(nterms)]
+            perms = [x for x in range(nterms)]
+            best_cpu_cost = 1.0e200
+            best_memory_cost = 1.0e200
 
-            if len(value.tensors) != 2:
-                raise ArithmeticError("Only pair-wise contractions are currently supported")
+            for perm in itertools.permutations(perms):
+                [cpu_cost, memory_cost] = value.compute_contraction_cost(perm)
+                if cpu_cost < best_cpu_cost:
+                    best_perm = perm
+                    best_cpu_cost = cpu_cost
+                    best_memory_cost = memory_cost
 
-            A = value.tensors[0]
-            B = value.tensors[1]
+            # At this point best_perm should be used to perform the contractions in optimal order
+            A = value.tensors[best_perm[0]]
+            maxn = nterms - 2
+            for n in range(maxn):
+                B = value.tensors[best_perm[n + 1]]
 
-            self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
+                AB_indices = pyambit.Indices.determine_contraction_result_from_indices(A.indices, B.indices)
+                A_fix_idx = AB_indices[1]
+                B_fix_idx = AB_indices[2]
+
+                dims = []
+                indices = []
+
+                for index in A_fix_idx:
+                    dims.append(A.dim_by_index(index))
+                    indices.append(index)
+                for index in B_fix_idx:
+                    dims.append(B.dim_by_index(index))
+                    indices.append(index)
+
+                tAB = Tensor.build(A.tensor.type, A.tensor.name + " * " + B.tensor.name, dims)
+
+                tAB.contract(A, B, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
+
+                A.set(LabeledTensor(tAB.tensor, "".join(indices), 1.0))
+
+            B = value.tensors[best_perm[nterms - 1]]
+
+            self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor,
+                          0.0)
+
+            # This operator is complete.
+            return None
+
 
         elif isinstance(value, LabeledTensorAddition):
             self.tensor.zero()
@@ -264,7 +435,7 @@ class Tensor:
         elif isinstance(other, pyambit.ITensor):
             return self.tensor == other
         else:
-            return NotImplemented
+            raise NotImplementedError("LabeledTensor.__eq__(%s) is not implemented" % (type(other)))
 
     def printf(self):
         self.tensor.printf()
@@ -345,6 +516,9 @@ class SlicedTensor:
             self.tensor.slice(value.tensor, self.range, value.range, value.factor, 1.0)
 
             return None
+        else:
+            raise NotImplementedError("SlicedTensor.__iadd__(%s) is not implemented" % (type(other)))
+
 
     def __isub__(self, value):
         if isinstance(value, SlicedTensor):
@@ -356,6 +530,9 @@ class SlicedTensor:
             self.tensor.slice(value.tensor, self.range, value.range, -value.factor, 1.0)
 
             return None
+        else:
+            raise NotImplementedError("SlicedTensor.__isub__(%s) is not implemented" % (type(other)))
+
 
     def __mul__(self, other):
         if isinstance(other, numbers.Number):

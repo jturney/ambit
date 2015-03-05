@@ -72,16 +72,6 @@ struct iterable_converter
     }
 };
 
-void initialize_random(Tensor& A1)
-{
-    size_t numel1 = A1.numel();
-    std::vector<double>& A1v = A1.data();
-    for (size_t ind = 0L; ind < numel1; ind++) {
-        double randnum = double(std::rand())/double(RAND_MAX);
-        A1v[ind] = randnum;
-    }
-}
-
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(tensor_print_ov, Tensor::print, 0, 4)
 
 BOOST_PYTHON_MODULE (pyambit)
@@ -117,20 +107,26 @@ BOOST_PYTHON_MODULE (pyambit)
     class_<IndexRange>("IndexRange")
             .def(vector_indexing_suite<IndexRange>());
 
+    class_<std::vector<Indices>>("IndicesVector")
+            .def(vector_indexing_suite<std::vector<Indices>>());
+
     class_<Indices>("Indices")
             .def(vector_indexing_suite<Indices>())
             .def("split", &indices::split)
             .staticmethod("split")
             .def("permutation_order", &indices::permutation_order)
-            .staticmethod("permutation_order");
+            .staticmethod("permutation_order")
+            .def("determine_contraction_result_from_indices", &indices::determine_contraction_result_from_indices)
+            .staticmethod("determine_contraction_result_from_indices");
 
     typedef const Indices& (LabeledTensor::*idx)() const;
     std::vector<double>& (Tensor::*data)() = &Tensor::data;
 
-    class_<LabeledTensor>("LabeledTensor", no_init)
+    class_<LabeledTensor>("ILabeledTensor", no_init)
             .def(init<Tensor, const std::vector<std::string>&, double>())
             .add_property("factor", &LabeledTensor::factor, "docstring")
-            .add_property("indices", make_function(idx(&LabeledTensor::indices), return_value_policy<copy_const_reference>()));
+            .add_property("indices", make_function(idx(&LabeledTensor::indices), return_value_policy<copy_const_reference>()))
+            .def("dim_by_index", &LabeledTensor::dim_by_index);
 
     class_<Tensor>("ITensor", no_init)
             .def("build", &Tensor::build)
@@ -153,6 +149,4 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("zero", &Tensor::zero)
             .def("copy", &Tensor::copy)
             .def("printf", &Tensor::print,tensor_print_ov());
-
-    def("initialize_random", &initialize_random);
 }

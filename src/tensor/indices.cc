@@ -145,12 +145,9 @@ std::string to_string(const Indices& indices)
     return ss.str();
 }
 
-std::vector<Indices> determine_contraction_result(const LabeledTensor& A, const LabeledTensor& B)
+std::vector<Indices> determine_contraction_result_from_indices(Indices Aindices, Indices Bindices)
 {
     std::vector<Indices> result;
-
-    Indices Aindices = A.indices();
-    Indices Bindices = B.indices();
 
     size_t dimAB = Aindices.size() + Bindices.size();
 
@@ -195,6 +192,11 @@ std::vector<Indices> determine_contraction_result(const LabeledTensor& A, const 
     result.push_back(AB_unique);
 
     return result;
+}
+
+std::vector<Indices> determine_contraction_result(const LabeledTensor& A, const LabeledTensor& B)
+{
+    return determine_contraction_result_from_indices(A.indices(), B.indices());
 }
 
 } // namespace  indices
