@@ -475,9 +475,10 @@ LabeledBlockedTensor::LabeledBlockedTensor(BlockedTensor BT, const std::vector<s
 std::string LabeledBlockedTensor::str() const
 {
     std::string s(BT_.name());
-    for (const std::string& index : indices){
+    for (const std::string& index : indices_){
 
     }
+    return s;
 }
 
 void LabeledBlockedTensor::operator=(const LabeledBlockedTensor &rhs)
@@ -540,7 +541,7 @@ void LabeledBlockedTensor::operator=(const LabeledBlockedTensorProduct &rhs)
     }catch (std::exception& e) {
         std::string msg = "In tensor contraction:";
         msg += this->str();
-        throw std::runtime_error();
+        //throw std::runtime_error();
     }
 }
 
