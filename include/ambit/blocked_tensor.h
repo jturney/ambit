@@ -114,6 +114,7 @@ public:
     static void reset_mo_spaces();
     static void print_mo_spaces();
 
+    static void set_expert_mode(bool mode) {expert_mode_ = mode;}
 
     // => Accessors <= //
 
@@ -139,6 +140,10 @@ public:
     void print(FILE* fh, bool level = true, const std::string& format = std::string("%11.6f"), int maxcols = 5) const;
 
     // => Data Access <= //
+
+
+    /// @return a list of labels of the blocks contained in this object (e.g. {"ccaa","cCaA",...})
+    std::vector<std::string>& block_labels() {return block_labels_;} const
 
     /**
      * Returns a map with the block key and the corresponding tensor.
@@ -224,6 +229,7 @@ private:
 
     std::string name_;
     std::size_t rank_;
+    std::vector<std::string> block_labels_;
     std::map<std::vector<size_t>,Tensor> blocks_;
 
     /// A vector of MOSpace objects
@@ -242,6 +248,9 @@ private:
     /// @return The MOSpace objects corresponding to an orbital index
     std::vector<size_t>& index_to_mo_spaces(const std::string& index);
 
+
+    // => Static Class Data <= //
+
     /// A vector of MOSpace objects
     static std::vector<MOSpace> mo_spaces_;
     /// Maps the name of MOSpace (e.g. "o") to the position of the object in the vector mo_spaces_
@@ -250,6 +259,9 @@ private:
     static std::map<std::string,std::vector<size_t>> composite_name_to_mo_spaces_;
     /// Maps an orbital index (e.g. "i","j") to the MOSpace objects that contain it
     static std::map<std::string,std::vector<size_t>> index_to_mo_spaces_;
+    /// Enables expert mode, which overides some default error checking
+    static bool expert_mode_;
+
 
 protected:
 
@@ -269,6 +281,7 @@ public:
     double factor() const { return factor_; }
     const Indices& indices() const { return indices_; }
     const BlockedTensor& BT() const { return BT_; }
+    std::string str() const;
 
     LabeledBlockedTensorProduct operator*(const LabeledBlockedTensor& rhs);
     LabeledBlockedTensorAddition operator+(const LabeledBlockedTensor& rhs);

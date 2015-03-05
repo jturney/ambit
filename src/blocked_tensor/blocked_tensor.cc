@@ -12,6 +12,8 @@ std::map<std::string,size_t> BlockedTensor::name_to_mo_space_;
 std::map<std::string,std::vector<size_t>> BlockedTensor::composite_name_to_mo_spaces_;
 std::map<std::string,std::vector<size_t>> BlockedTensor::index_to_mo_spaces_;
 
+bool BlockedTensor::expert_mode_ = false;
+
 
 MOSpace::MOSpace(const std::string& name, const std::string& mo_indices,std::vector<size_t> mos,SpinType spin)
     : name_(name), mo_indices_(indices::split(mo_indices)), mos_(mos), spin_(spin)
@@ -166,11 +168,12 @@ BlockedTensor BlockedTensor::build(TensorType type, const std::string& name, con
             dims.push_back(dim);
         }
         // Grab the orbital spaces names
-        std::string mo_names;
+        std::string block_label;
         for (size_t ms : this_block){
-            mo_names += mo_spaces_[ms].name();
+            block_label += mo_spaces_[ms].name();
         }
-        newObject.blocks_[this_block] = Tensor::build(type,name + "[" + mo_names + "]",dims);
+        newObject.blocks_[this_block] = Tensor::build(type,name + "[" + block_label + "]",dims);
+        newObject.block_labels_.push_back(block_label);
 
         // Set or check the rank
         if (newObject.rank_ > 0){
@@ -469,6 +472,14 @@ LabeledBlockedTensor::LabeledBlockedTensor(BlockedTensor BT, const std::vector<s
     throw std::runtime_error("Labeled tensor does not have correct number of indices for underlying tensor's rank");
 }
 
+std::string LabeledBlockedTensor::str() const
+{
+    std::string s(BT_.name());
+    for (const std::string& index : indices){
+
+    }
+}
+
 void LabeledBlockedTensor::operator=(const LabeledBlockedTensor &rhs)
 {
     add(rhs,1.0,0.0);
@@ -524,7 +535,13 @@ LabeledBlockedTensorAddition LabeledBlockedTensor::operator-(const LabeledBlocke
 
 void LabeledBlockedTensor::operator=(const LabeledBlockedTensorProduct &rhs)
 {
-    contract(rhs,true,true);
+    try{
+        contract(rhs,true,true);
+    }catch (std::exception& e) {
+        std::string msg = "In tensor contraction:";
+        msg += this->str();
+        throw std::runtime_error();
+    }
 }
 
 void LabeledBlockedTensor::operator+=(const LabeledBlockedTensorProduct &rhs)
