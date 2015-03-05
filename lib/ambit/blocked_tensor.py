@@ -3,6 +3,7 @@ from . import tensor_wrapper
 import math
 import copy
 import numbers
+import sys, traceback
 
 
 class SpinType:
@@ -39,6 +40,7 @@ class MOSpace:
         self.name, ','.join(map(str, self.mo_indices)), ','.join(map(str, self.mos)))
         return msg
 
+
 class LabeledBlockedTensorProduct:
 
     def __init__(self, left, right):
@@ -51,24 +53,58 @@ class LabeledBlockedTensorProduct:
             self.btensors.append(other)
             return self
 
+
 class LabeledBlockedTensorAddition:
-    pass
+
+    def __init__(self, left, right):
+        self.tensors = []
+        self.tensors.append(left)
+        self.tensors.append(right)
+
+    def __mul__(self, other):
+        if isinstance(other, LabeledBlockedTensor):
+            return LabeledBlockedTensorDistributive(other, self)
+        elif isinstance(other, numbers.Number):
+            for tensor in self.tensors:
+                tensor.factor *= other
+            return self
+
+    def __neg__(self):
+        for tensor in self.tensors:
+            tensor.factor *= -1.0
+        return self
+
+    def __rmul__(self, other):
+        if isinstance(other, numbers.Number):
+            for tensor in self.tensors:
+                tensor.factor *= other
+            return self
+
+    def __add__(self, other):
+        self.tensors.append(other)
+        return self
 
 class LabeledBlockedTensorDistributive:
-    pass
+
+    def __init__(self, left, right):
+        self.A = left
+        self.B = right
 
 class LabeledBlockedTensor:
     def __init__(self, T, indices, factor=1.0):
         self.btensor = T
-        self.indices = indices
-        self.indices_split = pyambit.Indices.split(indices)
+        # self.indices = indices
+        # self.indices_split = pyambit.Indices.split(indices)
+
+        self.indices = pyambit.Indices.split(indices)
+        self.indices_string = indices
+
         self.factor = factor
 
     def add(self, rhs, alpha, beta):
-        rhs_keys = rhs.label_to_block_keys()
+        rhs_keys = BlockedTensor.label_to_block_keys(rhs.indices)
 
-        perm = pyambit.Indices.permutation_order(pyambit.Indices.split(self.indices),
-                                                 pyambit.Indices.split(rhs.indices))
+        perm = pyambit.Indices.permutation_order(self.indices, rhs.indices)
 
         for rhs_key in rhs_keys:
             lhs_key = ""
@@ -81,7 +117,7 @@ class LabeledBlockedTensor:
 
             # Need to protect against self assignment
             # Need to protect against different ranks
-            LHS.permute(RHS, self.indices_split, rhs.indices_split, alpha=alpha * rhs.factor, beta=beta)
+            LHS.permute(RHS, self.indices, rhs.indices, alpha=alpha * rhs.factor, beta=beta)
 
     def contract(self, rhs, zero_result, add):
         if isinstance(rhs, LabeledBlockedTensorProduct):
@@ -108,15 +144,12 @@ class LabeledBlockedTensor:
                 index_map[index] = k
                 k += 1
 
-            # print("index_map: " + str(index_map))
-
             if zero_result == True:
                 for uik in unique_indices_key:
                     # print("uik: " + str(uik))
                     result_key = ""
                     for index in self.indices:
                         result_key += uik[index_map[index]]
-                    # print("result_key: " + str(result_key))
                     self.btensor.block(result_key).zero()
 
             # Setup and perform contractions
@@ -124,13 +157,16 @@ class LabeledBlockedTensor:
                 result_key = ""
                 for index in self.indices:
                     result_key += uik[index_map[index]]
+                # print("result_key: " + str(result_key))
                 result = tensor_wrapper.LabeledTensor(self.btensor.block(result_key).tensor, self.indices, self.factor)
 
+                # print("tensor: %s" % self.btensor.block(result_key).tensor)
                 prod = tensor_wrapper.LabeledTensorProduct(None, None)
                 for lbt in rhs.btensors:
                     term_key = ""
                     for index in lbt.indices:
                         term_key += uik[index_map[index]]
+                    # print("term_key: " + str(term_key))
                     term = tensor_wrapper.LabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
                     prod.tensors.append(term)
 
@@ -143,11 +179,19 @@ class LabeledBlockedTensor:
             raise RuntimeError("LabeledBlockedTensor.contract: Unexpected type for rhs: " + type(rhs))
 
     def label_to_block_keys(self):
-        return self.btensor.label_to_block_keys(self.indices)
+        return BlockedTensor.label_to_block_keys(self.indices)
 
     def __neg__(self):
         self.factor *= -1.0
         return self
+
+    def __add__(self, other):
+        if isinstance(other, LabeledBlockedTensor):
+            return LabeledBlockedTensorAddition(self, other)
+
+    def __sub__(self, other):
+        other.factor *= -1.0
+        return LabeledBlockedTensorAddition(self, other)
 
     def __mul__(self, other):
         if isinstance(other, numbers.Number):
@@ -170,6 +214,12 @@ class LabeledBlockedTensor:
         elif isinstance(other, LabeledBlockedTensorProduct):
             self.contract(other, False, True)
             return None
+        elif isinstance(other, LabeledBlockedTensorAddition):
+            for tensor in other.tensors:
+                self.add(tensor, 1.0, 1.0)
+        elif isinstance(other, LabeledBlockedTensorDistributive):
+            for tensor in other.B.tensors:
+                self.contract(LabeledBlockedTensorProduct(other.A, tensor), False, True)
 
     def __imul__(self, other):
         if isinstance(other, numbers.Number):
@@ -185,6 +235,12 @@ class LabeledBlockedTensor:
         elif isinstance(other, LabeledBlockedTensorProduct):
             self.contract(other, False, False)
             return None
+        elif isinstance(other, LabeledBlockedTensorAddition):
+            for tensor in other.tensors:
+                self.add(tensor, -1.0, 1.0)
+        elif isinstance(other, LabeledBlockedTensorDistributive):
+            for tensor in other.B.tensors:
+                self.contract(LabeledBlockedTensorProduct(other.A, tensor), False, False)
 
     def __itruediv__(self, other):
         if isinstance(other, numbers.Number):
@@ -378,7 +434,7 @@ class BlockedTensor:
             if not self.is_block(mo_names):
                 msg = ""
                 for k in indices:
-                    msg += str(k) + "(" + BlockedTensor.mo_space[k].name + ")"
+                    msg += BlockedTensor.mo_spaces[k].name
                 raise RuntimeError("Block \"" + msg + "\" is not contained in tensor " + self.name)
 
             return self.blocks[mo_names]
@@ -428,8 +484,8 @@ class BlockedTensor:
         # The way we proceed is by forming partial vectors that we keep expanding as we
         # process all the indices.
 
-        if not isinstance(indices, list):
-            indices = pyambit.Indices.split(indices)
+        # if not isinstance(indices, pyambit.Indices):
+        #     indices = pyambit.Indices.split(indices)
 
         final_blocks = []
 
@@ -463,6 +519,9 @@ class BlockedTensor:
                 mo_name += BlockedTensor.mo_spaces[ms].name
             mo_names.append(mo_name)
 
+        # print("mo_name: %s" % mo_names)
+        # traceback.print_stack()
+
         return mo_names
 
     def printf(self):
@@ -491,3 +550,21 @@ class BlockedTensor:
         elif isinstance(rhs, LabeledBlockedTensorProduct):
             me = LabeledBlockedTensor(self, indices_str)
             me.contract(rhs, True, True)
+
+        elif isinstance(rhs, LabeledBlockedTensorAddition):
+            self.zero()
+
+            me = LabeledBlockedTensor(self, indices_str)
+            for tensor in rhs.tensors:
+                me.add(tensor, 1.0, 1.0)
+
+        elif isinstance(rhs, LabeledBlockedTensorDistributive):
+
+            me = LabeledBlockedTensor(self, indices_str)
+            # print("me: %s" % (type(me)))
+
+            me.contract(LabeledBlockedTensorProduct(rhs.A, rhs.B.tensors[0]), True, True)
+            for tensor in rhs.B.tensors[1:]:
+                # print("A: %s" % (type(rhs.A)))
+                # print("tensor: %s" % (type(tensor)))
+                me.contract(LabeledBlockedTensorProduct(rhs.A, tensor), False, True)

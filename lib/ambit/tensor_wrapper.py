@@ -127,7 +127,10 @@ class LabeledTensor:
     def __init__(self, t, indices, factor=1.0):
         self.factor = factor
         self.tensor = t
-        self.indices = pyambit.Indices.split(indices)
+        if isinstance(indices, pyambit.Indices):
+            self.indices = indices
+        else:
+            self.indices = pyambit.Indices.split(indices)
 
     def dim_by_index(self, index):
         positions = [i for i,x in enumerate(self.indices) if x == index]
@@ -168,7 +171,7 @@ class LabeledTensor:
             self.tensor.permute(other.tensor, self.indices, other.indices, other.factor, self.factor)
             return None
         elif isinstance(other, LabeledTensorDistributive):
-            pass
+            raise NotImplementedError("LabeledTensor.__iadd__(LabeledTensorDistributive) is not implemented")
         elif isinstance(other, LabeledTensorProduct):
             nterms = len(other.tensors)
             best_perm = [0 for x in range(nterms)]
@@ -218,17 +221,16 @@ class LabeledTensor:
             return None
 
         elif isinstance(other, LabeledTensorAddition):
-            pass
+            raise NotImplementedError("LabeledTensor.__iadd__(LabeledTensorAddition) is not implemented")
         else:
-            print("LabeledTensor::__iadd__ not implemented for this type.")
-            return NotImplemented
+            raise NotImplementedError("LabeledTensor.__iadd__(%s) is not implemented" % (type(other)))
 
     def __isub__(self, other):
         if isinstance(other, LabeledTensor):
             self.tensor.permute(other.tensor, self.indices, other.indices, -other.factor, self.factor)
             return None
         elif isinstance(other, LabeledTensorDistributive):
-            pass
+            raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
         elif isinstance(other, LabeledTensorProduct):
             nterms = len(other.tensors)
             best_perm = [0 for x in range(nterms)]
@@ -278,7 +280,7 @@ class LabeledTensor:
             return None
 
         elif isinstance(other, LabeledTensorAddition):
-            pass
+            raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
         else:
             print("LabeledTensor::__isub__ not implemented for this type.")
             return NotImplemented
@@ -287,16 +289,15 @@ class LabeledTensor:
         if isinstance(other, numbers.Number):
             self.tensor.scale(other)
             return None
-
         else:
-            return NotImplemented
+            raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
 
     def __itruediv__(self, other):
         if isinstance(other, numbers.Number):
             self.tensor.scale(1.0 / other)
             return None
         else:
-            return NotImplemented
+            raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
 
     def set(self, to):
         self.tensor = to.tensor
@@ -426,7 +427,7 @@ class Tensor:
         elif isinstance(other, pyambit.ITensor):
             return self.tensor == other
         else:
-            return NotImplemented
+            raise NotImplementedError("LabeledTensor.__eq__(%s) is not implemented" % (type(other)))
 
     def printf(self):
         self.tensor.printf()
@@ -507,6 +508,9 @@ class SlicedTensor:
             self.tensor.slice(value.tensor, self.range, value.range, value.factor, 1.0)
 
             return None
+        else:
+            raise NotImplementedError("SlicedTensor.__iadd__(%s) is not implemented" % (type(other)))
+
 
     def __isub__(self, value):
         if isinstance(value, SlicedTensor):
@@ -518,6 +522,9 @@ class SlicedTensor:
             self.tensor.slice(value.tensor, self.range, value.range, -value.factor, 1.0)
 
             return None
+        else:
+            raise NotImplementedError("SlicedTensor.__isub__(%s) is not implemented" % (type(other)))
+
 
     def __mul__(self, other):
         if isinstance(other, numbers.Number):
