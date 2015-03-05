@@ -72,16 +72,6 @@ struct iterable_converter
     }
 };
 
-void initialize_random(Tensor& A1)
-{
-    size_t numel1 = A1.numel();
-    std::vector<double>& A1v = A1.data();
-    for (size_t ind = 0L; ind < numel1; ind++) {
-        double randnum = double(std::rand())/double(RAND_MAX);
-        A1v[ind] = randnum;
-    }
-}
-
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(tensor_print_ov, Tensor::print, 0, 4)
 
 BOOST_PYTHON_MODULE (pyambit)
@@ -159,6 +149,4 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("zero", &Tensor::zero)
             .def("copy", &Tensor::copy)
             .def("printf", &Tensor::print,tensor_print_ov());
-
-    def("initialize_random", &initialize_random);
 }

@@ -1,5 +1,5 @@
 #from . import pyambit
-from .pyambit import TensorType, EigenvalueOrder, initialize_random
+from .pyambit import TensorType, EigenvalueOrder
 
 from . import tensor_wrapper
 from .tensor_wrapper import Tensor, LabeledTensor
