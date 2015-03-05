@@ -79,8 +79,8 @@ class LabeledTensorProduct:
 class LabeledTensorAddition:
     def __init__(self, left, right):
         self.tensors = []
-        self.tensors.append(left)
-        self.tensors.append(right)
+        if left: self.tensors.append(left)
+        if right: self.tensors.append(right)
 
     def __mul__(self, other):
         if isinstance(other, LabeledTensor):

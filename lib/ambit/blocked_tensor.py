@@ -53,6 +53,40 @@ class LabeledBlockedTensorProduct:
             self.btensors.append(other)
             return self
 
+    def __float__(self):
+
+        if len(self.btensors) != 2:
+            raise RuntimeError("Conversion operator only supports binary expressions")
+
+        # Check the indices...they must be the same
+        a_indices = set(self.btensors[0].indices)
+        b_indices = set(self.btensors[1].indices)
+
+        if len(a_indices.difference(b_indices)) != 0 or len(b_indices.difference(a_indices)) != 0:
+            raise RuntimeError("Non-repeated indices found in tensor dot product")
+
+        unique_indices_key = BlockedTensor.label_to_block_keys(self.btensors[0].indices)
+
+        index_map = {}
+        k = 0
+        for index in self.btensors[0].indices:
+            index_map[index] = k
+            k += 1
+
+        # Setup and perform contractions
+        result = 0.0
+        for uik in unique_indices_key:
+            prod = tensor_wrapper.LabeledTensorProduct(None, None)
+            for lbt in self.btensors:
+                term_key = ""
+                for index in lbt.indices:
+                    term_key += uik[index_map[index]]
+                term = tensor_wrapper.LabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
+                prod.tensors.append(term)
+
+            result += float(prod)
+
+        return result
 
 class LabeledBlockedTensorAddition:
 
@@ -89,6 +123,46 @@ class LabeledBlockedTensorDistributive:
     def __init__(self, left, right):
         self.A = left
         self.B = right
+
+    def __float__(self):
+
+        # Check the indices...they must be the same
+        a_indices = set(self.A.indices)
+
+        for B in self.B.tensors:
+            b_indices = set(B.indices)
+
+            if len(a_indices.difference(b_indices)) != 0 or len(b_indices.difference(a_indices)) != 0:
+                raise RuntimeError("Non-repeated indices found in tensor dot product")
+
+        unique_indices_key = BlockedTensor.label_to_block_keys(self.A.indices)
+
+        index_map = {}
+        k = 0
+        for index in self.A.indices:
+            index_map[index] = k
+            k += 1
+
+        # Setup and perform contractions
+        result = 0.0
+        for uik in unique_indices_key:
+            prod = tensor_wrapper.LabeledTensorAddition(None, None)
+            for lbt in self.B.tensors:
+                term_key = ""
+                for index in lbt.indices:
+                    term_key += uik[index_map[index]]
+                term = tensor_wrapper.LabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
+                prod.tensors.append(term)
+
+            term_key = ""
+            for index in self.A.indices:
+                term_key += uik[index_map[index]]
+
+            A = tensor_wrapper.LabeledTensor(self.A.btensor.block(term_key).tensor, self.A.indices, self.A.factor)
+            dist = tensor_wrapper.LabeledTensorDistributive(A, prod)
+            result += float(dist)
+
+        return result
 
 class LabeledBlockedTensor:
     def __init__(self, T, indices, factor=1.0):

@@ -973,7 +973,7 @@ class TestBlocks(unittest.TestCase):
 
         C['ij'] = 2.0 * (A['ij'] - B['ij'])
 
-        self.assertAlmostEqual(0.0, self.difference(C.block('oo'), c2))
+        self.assertAlmostEqual(0.0, self.difference(C.block('oo'), c2), places=12)
 
     def test_Cij_minus_equal_3_times_Aij_minus_2Bij(self):
         ambit.BlockedTensor.reset_mo_space()
@@ -1000,7 +1000,7 @@ class TestBlocks(unittest.TestCase):
 
         C['ij'] -= 3.0 * (A['ij'] - 2.0 * B['ij'])
 
-        self.assertAlmostEqual(0.0, self.difference(C.block('oo'), c2))
+        self.assertAlmostEqual(0.0, self.difference(C.block('oo'), c2), places=12)
 
     def test_Cij_equal_negate_Aij_plus_Bij(self):
         ambit.BlockedTensor.reset_mo_space()
@@ -1027,16 +1027,115 @@ class TestBlocks(unittest.TestCase):
 
         C['ij'] = - (A['ij'] + B['ij'])
 
-        self.assertAlmostEqual(0.0, self.difference(C.block('oo'), c2))
+        self.assertAlmostEqual(0.0, self.difference(C.block('oo'), c2), places=12)
 
     def test_dot_product1(self):
-        pass
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9,10,11], ambit.SpinType.AlphaSpin)
 
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+
+        no = 5
+        nv = 7
+
+        [Aov_t, a2] = self.build_and_fill("Aov", [no, nv])
+        [Bvo_t, b2] = self.build_and_fill("Bvo", [nv, no])
+
+        A.block('ov')['pq'] = Aov_t['pq']
+        B.block('vo')['pq'] = Bvo_t['pq']
+
+        c2 = 0.0
+        for i in range(no):
+            for a in range(nv):
+                c2 += a2[i][a] * b2[a][i]
+
+        C = float(A['ia'] * B['ai'])
+
+        self.assertAlmostEqual(0.0, C - c2, places=12)
+
+    @unittest.expectedFailure
     def test_dot_product2(self):
-        pass
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9,10,11], ambit.SpinType.AlphaSpin)
 
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+
+        no = 5
+        nv = 7
+
+        [Aov_t, a2] = self.build_and_fill("Aov", [no, nv])
+        [Bvo_t, b2] = self.build_and_fill("Bvo", [nv, no])
+
+        A.block('ov')['pq'] = Aov_t['pq']
+        B.block('vo')['pq'] = Bvo_t['pq']
+
+        c2 = 0.0
+        for i in range(no):
+            for a in range(nv):
+                c2 += a2[i][a] * b2[a][i]
+
+        C = float(A['ia'] * B['bi'])
+
+        self.assertAlmostEqual(0.0, C - c2, places=12)
+
+    @unittest.expectedFailure
     def test_dot_product3(self):
-        pass
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9,10,11], ambit.SpinType.AlphaSpin)
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+
+        no = 5
+        nv = 7
+
+        [Aov_t, a2] = self.build_and_fill("Aov", [no, nv])
+        [Bvo_t, b2] = self.build_and_fill("Bvo", [nv, no])
+
+        A.block('ov')['pq'] = Aov_t['pq']
+        B.block('vo')['pq'] = Bvo_t['pq']
+
+        c2 = 0.0
+        for i in range(no):
+            for a in range(nv):
+                c2 += a2[i][a] * b2[a][i]
+
+        C = float(A['ia'] * B['aij'])
+
+        self.assertAlmostEqual(0.0, C - c2, places=12)
+
+    def test_dot_product4(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,4,5], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+
+        no = 5
+
+        [Aoo_t, a2] = self.build_and_fill("Aoo", [no, no])
+        [Boo_t, b2] = self.build_and_fill("Boo", [no, no])
+        [Coo_t, c2] = self.build_and_fill("Coo", [no, no])
+
+        A.block('oo')['pq'] = Aoo_t['pq']
+        B.block('oo')['pq'] = Boo_t['pq']
+        C.block('oo')['pq'] = Coo_t['pq']
+
+        d = 0.0
+        for i in range(no):
+            for j in range(no):
+                d += a2[i][j] * (b2[i][j] + c2[i][j])
+
+        D = float(A['ij'] * (B['ij'] + C['ij']))
+
+        self.assertAlmostEqual(0.0, D - d, places=12)
 
     @unittest.expectedFailure
     def test_contraction_exception1(self):
