@@ -1,3 +1,4 @@
+from __future__ import division
 from . import pyambit
 import numbers
 import itertools
@@ -293,6 +294,13 @@ class LabeledTensor:
             raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
 
     def __itruediv__(self, other):
+        if isinstance(other, numbers.Number):
+            self.tensor.scale(1.0 / other)
+            return None
+        else:
+            raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
+
+    def __idiv__(self, other):
         if isinstance(other, numbers.Number):
             self.tensor.scale(1.0 / other)
             return None

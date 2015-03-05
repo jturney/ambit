@@ -1,3 +1,4 @@
+from __future__ import division
 from . import pyambit
 from . import tensor_wrapper
 import math
@@ -317,6 +318,13 @@ class LabeledBlockedTensor:
                 self.contract(LabeledBlockedTensorProduct(other.A, tensor), False, False)
 
     def __itruediv__(self, other):
+        if isinstance(other, numbers.Number):
+            keys = self.label_to_block_keys()
+
+            for key in keys:
+                self.btensor.block(key).scale(1.0 / other)
+
+    def __idiv__(self, other):
         if isinstance(other, numbers.Number):
             keys = self.label_to_block_keys()
 
