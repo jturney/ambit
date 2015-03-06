@@ -38,6 +38,19 @@ public:
      */
     MOSpace(const std::string& name, const std::string& mo_indices, std::vector<size_t> mos,SpinType spin);
 
+    /**
+     * Constructor.
+     *
+     * @param name            The MO space name.
+     * @param mo_indices      The MO indices that identify this space.
+     * @param mos_spin        The list of pairs (MO,spin) for all the spin orbitals that belong to this space.
+     *
+     * Example of use:
+     *  // Create a space of alpha and beta occupied orbitals.
+     *  MOSpace alpha_occupied("o","i,j,k,l",{(0,AlphaSpin),(0,BetaSpin),(1,AlphaSpin),(2,BetaSpin)});
+     */
+    MOSpace(const std::string& name, const std::string& mo_indices, std::vector<std::pair<size_t,SpinType> > mos_spin);
+
     // => Accessors <= //
 
     /// @return The label of this molecular orbital space
@@ -53,7 +66,7 @@ public:
     size_t dim() const {return mos_.size();}
 
     /// @return The spin of this set of molecular orbitals
-    SpinType spin() const {return spin_;}
+    std::vector<SpinType> spin() const {return spin_;}
 
     /// Print information about this molecular orbital space
     void print();
@@ -65,7 +78,7 @@ private:
     /// The list of molecular orbitals that belong to this space
     std::vector<size_t> mos_;
     /// The spin of this set of molecular orbitals
-    SpinType spin_;
+    std::vector<SpinType> spin_;
 };
 
 
