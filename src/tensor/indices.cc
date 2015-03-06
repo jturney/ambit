@@ -132,14 +132,14 @@ void print(const Indices &indices)
 }
 
 
-std::string to_string(const Indices& indices)
+std::string to_string(const Indices& indices, const std::string& sep)
 {
     if (indices.size() == 0)
         return std::string();
 
     std::ostringstream ss;
 
-    std::copy(indices.begin(), indices.end() - 1, std::ostream_iterator<std::string>(ss, ","));
+    std::copy(indices.begin(), indices.end() - 1, std::ostream_iterator<std::string>(ss,sep.c_str()));
     ss << indices.back();
 
     return ss.str();

@@ -12,6 +12,8 @@ std::map<std::string,size_t> BlockedTensor::name_to_mo_space_;
 std::map<std::string,std::vector<size_t>> BlockedTensor::composite_name_to_mo_spaces_;
 std::map<std::string,std::vector<size_t>> BlockedTensor::index_to_mo_spaces_;
 
+bool BlockedTensor::expert_mode_ = false;
+
 
 MOSpace::MOSpace(const std::string& name, const std::string& mo_indices,std::vector<size_t> mos,SpinType spin)
     : name_(name), mo_indices_(indices::split(mo_indices)), mos_(mos), spin_(spin)
@@ -166,11 +168,12 @@ BlockedTensor BlockedTensor::build(TensorType type, const std::string& name, con
             dims.push_back(dim);
         }
         // Grab the orbital spaces names
-        std::string mo_names;
+        std::string block_label;
         for (size_t ms : this_block){
-            mo_names += mo_spaces_[ms].name();
+            block_label += mo_spaces_[ms].name();
         }
-        newObject.blocks_[this_block] = Tensor::build(type,name + "[" + mo_names + "]",dims);
+        newObject.blocks_[this_block] = Tensor::build(type,name + "[" + block_label + "]",dims);
+        newObject.block_labels_.push_back(block_label);
 
         // Set or check the rank
         if (newObject.rank_ > 0){
@@ -246,11 +249,11 @@ Tensor BlockedTensor::block(const std::string& indices)
 Tensor BlockedTensor::block(const std::vector<size_t>& key)
 {
     if (! is_block(key)){
-        std::string msg;
+        std::string labels;
         for (size_t k : key){
-            msg += std::to_string(k) + "(" + mo_space(k).name() + ")";
+            labels += mo_space(k).name();
         }
-        throw std::runtime_error("Block \"" + msg + "\" is not contained in tensor " + name());
+        throw std::runtime_error("Tensor " + name() + " does not contain block \"" + labels);
     }
     return blocks_.at(key);
 }
@@ -258,11 +261,11 @@ Tensor BlockedTensor::block(const std::vector<size_t>& key)
 const Tensor BlockedTensor::block(const std::vector<size_t>& key) const
 {
     if (! is_block(key)){
-        std::string msg;
+        std::string labels;
         for (size_t k : key){
-            msg += std::to_string(k) + "(" + mo_space(k).name() + ")";
+            labels += mo_space(k).name();
         }
-        throw std::runtime_error("Block \"" + msg + "\" is not contained in tensor " + name());
+        throw std::runtime_error("Tensor " + name() + " does not contain block \"" + labels + "\"");
     }
     return blocks_.at(key);
 }
@@ -469,6 +472,13 @@ LabeledBlockedTensor::LabeledBlockedTensor(BlockedTensor BT, const std::vector<s
     throw std::runtime_error("Labeled tensor does not have correct number of indices for underlying tensor's rank");
 }
 
+std::string LabeledBlockedTensor::str() const
+{
+    std::string s(BT_.name());
+    s += "[" + indices::to_string(indices_) + "]";
+    return s;
+}
+
 void LabeledBlockedTensor::operator=(const LabeledBlockedTensor &rhs)
 {
     add(rhs,1.0,0.0);
@@ -524,17 +534,32 @@ LabeledBlockedTensorAddition LabeledBlockedTensor::operator-(const LabeledBlocke
 
 void LabeledBlockedTensor::operator=(const LabeledBlockedTensorProduct &rhs)
 {
-    contract(rhs,true,true);
+    try{
+        contract(rhs,true,true);
+    }catch (std::exception& e) {
+        std::string msg = "\n" + this->str() + " = " + rhs.str() + " <- " + std::string(e.what());
+        throw std::runtime_error(msg);
+    }
 }
 
 void LabeledBlockedTensor::operator+=(const LabeledBlockedTensorProduct &rhs)
 {
-    contract(rhs,false,true);
+    try{
+        contract(rhs,false,true);
+    }catch (std::exception& e) {
+        std::string msg = "\n" + this->str() + " += " + rhs.str() + " <- " + std::string(e.what());
+        throw std::runtime_error(msg);
+    }
 }
 
 void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorProduct &rhs)
 {
-    contract(rhs,false,false);
+    try{
+        contract(rhs,false,false);
+    }catch (std::exception& e) {
+        std::string msg = "\n" + this->str() + " -= " + rhs.str() + " <- " + std::string(e.what());
+        throw std::runtime_error(msg);
+    }
 }
 
 void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
@@ -578,7 +603,13 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
             for (const std::string& index : indices()){
                 result_key.push_back(uik[index_map[index]]);
             }
-            BT_.block(result_key).zero();
+            if (BlockedTensor::expert_mode_){
+                if (BT_.is_block(result_key)){
+                    BT_.block(result_key).zero();
+                }
+            }else{
+                BT_.block(result_key).zero();
+            }
         }
     }
 
@@ -588,22 +619,39 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
         for (const std::string& index : indices()){
             result_key.push_back(uik[index_map[index]]);
         }
-        LabeledTensor result(BT().block(result_key),indices(),factor());
 
-        LabeledTensorProduct prod;
-        for (size_t n = 0; n < nterms; ++n){
-            const LabeledBlockedTensor& lbt = rhs[n];
-            std::vector<size_t> term_key;
-            for (const std::string& index : lbt.indices()){
-                term_key.push_back(uik[index_map[index]]);
+        bool do_contract = true;
+        // In expert mode if a contraction cannot be performed
+        if (BlockedTensor::expert_mode_){
+            if (not BT().is_block(result_key)) do_contract = false;
+            for (size_t n = 0; n < nterms; ++n){
+                const LabeledBlockedTensor& lbt = rhs[n];
+                std::vector<size_t> term_key;
+                for (const std::string& index : lbt.indices()){
+                    term_key.push_back(uik[index_map[index]]);
+                }
+                if (not lbt.BT().is_block(term_key)) do_contract = false;
             }
-            const LabeledTensor term(lbt.BT().block(term_key),lbt.indices(),lbt.factor());
-            prod *= term;
         }
-        if (add){
-            result += prod;
-        }else{
-            result -= prod;
+
+        if (do_contract){
+            LabeledTensor result(BT().block(result_key),indices(),factor());
+
+            LabeledTensorProduct prod;
+            for (size_t n = 0; n < nterms; ++n){
+                const LabeledBlockedTensor& lbt = rhs[n];
+                std::vector<size_t> term_key;
+                for (const std::string& index : lbt.indices()){
+                    term_key.push_back(uik[index_map[index]]);
+                }
+                const LabeledTensor term(lbt.BT().block(term_key),lbt.indices(),lbt.factor());
+                prod *= term;
+            }
+            if (add){
+                result += prod;
+            }else{
+                result -= prod;
+            }
         }
     }
 }
@@ -710,6 +758,15 @@ LabeledBlockedTensorAddition &LabeledBlockedTensorAddition::operator-()
     return *this;
 }
 
+std::string LabeledBlockedTensorProduct::str() const
+{
+    std::vector<std::string> vec_str;
+    for (const auto& tensor : tensors_){
+        vec_str.push_back(tensor.str());
+    }
+    return indices::to_string(vec_str," * ");
+}
+
 LabeledBlockedTensorProduct::operator double() const
 {
     double result = 0.0;
@@ -764,36 +821,13 @@ LabeledBlockedTensorProduct::operator double() const
     return result;
 }
 
-
-//LabeledTensorDistributive::operator double() const
-//{
-//    Tensor R = Tensor::build(A_.T().type(), "R", {});
-
-//    for (size_t ind = 0L; ind < B_.size(); ind++) {
-
-//        R.contract(
-//            A_.T(),
-//            B_[ind].T(),
-//            {},
-//            A_.indices(),
-//            B_[ind].indices(),
-//            B_[ind].factor() * B_[ind].factor(),
-//            1.0);
-//    }
-
-//    Tensor C = Tensor::build(kCore, "C", {});
-//    C.slice(
-//        R,
-//        {},
-//        {});
-
-//    return C.data()[0];
-//}
-
 std::vector<std::string> spin_cases(const std::vector<std::string>& in_str_vec)
 {
     std::vector<std::string> out_str_vec;
     for (const std::string& s : in_str_vec){
+        if (s.size() % 2 == 1){
+            throw std::runtime_error("String \"" + s + "\" passed to spin_cases() is not valid.");
+        }
         size_t n = s.size() / 2;
         for (size_t i = 0; i < n + 1; ++i){
             std::string mod_s = s;

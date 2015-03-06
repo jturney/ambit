@@ -38,7 +38,7 @@ std::vector<Indices> determine_contraction_result(const LabeledTensor& A, const 
 std::vector<Indices> determine_contraction_result_from_indices(Indices Aindices, Indices Bindices);
 
 // Returns a comma separated list of the indices
-std::string to_string(const Indices& indices);
+std::string to_string(const Indices& indices,const std::string& sep = ",");
 
 void print(const Indices &indices);
 
