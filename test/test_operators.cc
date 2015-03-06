@@ -46,7 +46,7 @@ std::pair<double,double> difference(Tensor &tensor, double matrix[MAXTWO][MAXTWO
 void initialize_random(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR]);
 std::pair<double,double> difference(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR]);
 
-double zero = 1.0e-12;
+double zero = 1.0e-11;
 
 TensorType tensor_type = kCore;
 
@@ -1321,9 +1321,6 @@ int main(int argc, char* argv[])
     }
     printf("\n %s",std::string(83,'-').c_str());
     printf("\n Tests: %s\n",success ? "All passed" : "Some failed");
-
-    Tensor T = Tensor::build(kDisk, "Disk", {4,5});
-    T.print(stdout,true);
 
     ambit::finalize();
 

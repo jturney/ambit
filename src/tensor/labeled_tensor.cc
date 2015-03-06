@@ -102,7 +102,7 @@ LabeledTensor tensor_product_get_temp_AB(const LabeledTensor &A, const LabeledTe
 
 }
 
-void LabeledTensor::operator=(const LabeledTensorProduct &rhs)
+void LabeledTensor::contract(const LabeledTensorProduct& rhs, bool zero_result, bool add)
 {
     size_t nterms = rhs.size();
     std::vector<size_t> perm(nterms);
@@ -159,132 +159,23 @@ void LabeledTensor::operator=(const LabeledTensorProduct &rhs)
                 indices(),
                 A.indices(),
                 B.indices(),
-                A.factor() * B.factor(),
-                0.0);
+                add ? A.factor() * B.factor() : -A.factor() * B.factor(),
+                zero_result ? 0.0 : 1.0);
+}
+
+void LabeledTensor::operator=(const LabeledTensorProduct &rhs)
+{
+    contract(rhs, true, true);
 }
 
 void LabeledTensor::operator+=(const LabeledTensorProduct &rhs)
 {
-    size_t nterms = rhs.size();
-    std::vector<size_t> perm(nterms);
-    std::vector<size_t> best_perm(nterms);
-    std::iota(perm.begin(), perm.end(), 0);
-    std::pair<double, double> best_cpu_memory_cost(1.0e200, 1.0e200);
-
-    do {
-        std::pair<double, double> cpu_memory_cost = rhs.compute_contraction_cost(perm);
-        if (cpu_memory_cost.first < best_cpu_memory_cost.first) {
-            best_perm = perm;
-            best_cpu_memory_cost = cpu_memory_cost;
-        }
-    } while (std::next_permutation(perm.begin(), perm.end()));
-
-    // at this point 'perm' should be used to perform contraction in optimal order.
-
-    LabeledTensor A = rhs[best_perm[0]];
-    int maxn = int(nterms) - 2;
-    for (int n = 0; n < maxn; ++n) {
-        LabeledTensor B = rhs[best_perm[n + 1]];
-
-        std::vector<Indices> AB_indices = indices::determine_contraction_result(A, B);
-        const Indices &A_fix_idx = AB_indices[1];
-        const Indices &B_fix_idx = AB_indices[2];
-        Dimension dims;
-        Indices indices;
-
-        for (size_t i = 0; i < A_fix_idx.size(); ++i) {
-            dims.push_back(A.dim_by_index(A_fix_idx[i]));
-            indices.push_back(A_fix_idx[i]);
-        }
-        for (size_t i = 0; i < B_fix_idx.size(); ++i) {
-            dims.push_back(B.dim_by_index(B_fix_idx[i]));
-            indices.push_back(B_fix_idx[i]);
-        }
-
-        Tensor tAB = Tensor::build(A.T().type(), A.T().name() + " * " + B.T().name(), dims);
-
-        tAB.contract(A.T(),
-                     B.T(),
-                     indices,
-                     A.indices(),
-                     B.indices(),
-                     A.factor() * B.factor(),
-                     0.0);
-
-        A.set(LabeledTensor(tAB, indices, 1.0));
-    }
-    const LabeledTensor &B = rhs[best_perm[nterms - 1]];
-
-    T_.contract(A.T(),
-                B.T(),
-                indices(),
-                A.indices(),
-                B.indices(),
-                A.factor() * B.factor(),
-                1.0);
-
+    contract(rhs, false, true);
 }
 
 void LabeledTensor::operator-=(const LabeledTensorProduct &rhs)
 {
-    size_t nterms = rhs.size();
-    std::vector<size_t> perm(nterms);
-    std::vector<size_t> best_perm(nterms);
-    std::iota(perm.begin(), perm.end(), 0);
-    std::pair<double, double> best_cpu_memory_cost(1.0e200, 1.0e200);
-
-    do {
-        std::pair<double, double> cpu_memory_cost = rhs.compute_contraction_cost(perm);
-        if (cpu_memory_cost.first < best_cpu_memory_cost.first) {
-            best_perm = perm;
-            best_cpu_memory_cost = cpu_memory_cost;
-        }
-    } while (std::next_permutation(perm.begin(), perm.end()));
-
-    // at this point 'perm' should be used to perform contraction in optimal order.
-
-    LabeledTensor A = rhs[best_perm[0]];
-    int maxn = int(nterms) - 2;
-    for (int n = 0; n < maxn; ++n) {
-        LabeledTensor B = rhs[best_perm[n + 1]];
-
-        std::vector<Indices> AB_indices = indices::determine_contraction_result(A, B);
-        const Indices &A_fix_idx = AB_indices[1];
-        const Indices &B_fix_idx = AB_indices[2];
-        Dimension dims;
-        Indices indices;
-
-        for (size_t i = 0; i < A_fix_idx.size(); ++i) {
-            dims.push_back(A.dim_by_index(A_fix_idx[i]));
-            indices.push_back(A_fix_idx[i]);
-        }
-        for (size_t i = 0; i < B_fix_idx.size(); ++i) {
-            dims.push_back(B.dim_by_index(B_fix_idx[i]));
-            indices.push_back(B_fix_idx[i]);
-        }
-
-        Tensor tAB = Tensor::build(A.T().type(), A.T().name() + " * " + B.T().name(), dims);
-
-        tAB.contract(A.T(),
-                     B.T(),
-                     indices,
-                     A.indices(),
-                     B.indices(),
-                     A.factor() * B.factor(),
-                     0.0);
-
-        A.set(LabeledTensor(tAB, indices, 1.0));
-    }
-    const LabeledTensor &B = rhs[best_perm[nterms - 1]];
-
-    T_.contract(A.T(),
-                B.T(),
-                indices(),
-                A.indices(),
-                B.indices(),
-                -A.factor() * B.factor(),
-                1.0);
-
+    contract(rhs, false, false);
 }
 
 void LabeledTensor::operator=(const LabeledTensorAddition &rhs)
@@ -382,19 +273,9 @@ LabeledTensorAddition &LabeledTensorAddition::operator-()
 
 LabeledTensorProduct::operator double() const
 {
-    // Only handles binary expressions.
-    if (size() == 0 || size() > 2)
-        throw std::runtime_error("Conversion operator only supports binary expressions at the moment.");
-
     Tensor R = Tensor::build(tensors_[0].T().type(), "R", {});
-    R.contract(
-        tensors_[0].T(),
-        tensors_[1].T(),
-        {},
-        tensors_[0].indices(),
-        tensors_[1].indices(),
-        tensors_[0].factor() * tensors_[1].factor(),
-        1.0);
+    LabeledTensor lR(R, { }, 1.0);
+    lR.contract(*this, true, true);
 
     Tensor C = Tensor::build(kCore, "C", {});
     C.slice(

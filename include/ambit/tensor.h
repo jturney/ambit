@@ -517,6 +517,8 @@ public:
         return LabeledTensor(T_, indices_, -factor_);
     }
 
+    void contract(const LabeledTensorProduct& rhs, bool zero_result, bool add);
+
 private:
 
     void set(const LabeledTensor& to);
