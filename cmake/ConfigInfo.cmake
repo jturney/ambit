@@ -4,6 +4,9 @@ message("-- C++ compiler flags    : ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${cmake
 message("-- C compiler flags      : ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${cmake_build_type_toupper}}")
 message("-- Fortran compiler flags: ${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${cmake_build_type_toupper}}")
 message("-- Libraries             : ${EXTERNAL_LIBS}")
+if(ENABLE_PYTHON)
+    message("-- Python site packages  : ${PYTHON_SITE_PACKAGES}")
+endif()
 
 get_directory_property(LIST_OF_DEFINITIONS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
 message("-- Definitions           : ${LIST_OF_DEFINITIONS}")

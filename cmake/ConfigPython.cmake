@@ -28,6 +28,13 @@ if(PYTHONINTERP_FOUND)
                         "import distutils.sysconfig, sys; sys.stdout.write(distutils.sysconfig.get_config_var('SO'))"
                    OUTPUT_VARIABLE PYTHON_MODULE_EXTENSION
                    RESULT_VARIABLE _PYTHON_MODULE_EXTENSION)
+
+   # Get Python site-packages directory
+   execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c
+                        "import distutils.sysconfig, sys; sys.stdout.write(distutils.sysconfig.get_python_lib())"
+                    OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
    # Set include path, if returned by interpreter
    if("${_PYTHON_INCLUDE_RESULT}" STREQUAL "0")
       set(PYTHON_INCLUDE_DIR ${_PYTHON_INCLUDE_PATH} CACHE PATH "Path to a file")
