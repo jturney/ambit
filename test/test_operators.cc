@@ -1024,6 +1024,54 @@ double test_dot_product4()
     return std::fabs(D - d);
 }
 
+double test_dot_product5()
+{
+    size_t ni = 9, nj = 6, nk = 7;
+
+    Tensor A = build_and_fill("A", {ni, nj}, a2);
+    Tensor B = build_and_fill("B", {nj, nk}, b2);
+    Tensor C = build_and_fill("C", {nk, ni}, c2);
+
+    double D = A("i,j") * B("j,k") * C("k,i");
+    double d = 0.0;
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            for (size_t k = 0; k < nk; ++k){
+                d += a2[i][j] * b2[j][k] * c2[k][i];
+            }
+        }
+    }
+
+    return std::fabs(D - d);
+}
+
+double test_dot_product6()
+{
+    size_t ni = 9, nj = 6, nk = 7, nl = 5, nm = 8;
+
+    Tensor A = build_and_fill("A", {ni, nj}, a2);
+    Tensor B = build_and_fill("B", {nj, nk, nl, nm}, b4);
+    Tensor C = build_and_fill("C", {nm, nl, nk, ni}, c4);
+
+    double D = A("i,j") * B("j,k,l,m") * C("m,l,k,i");
+    double d = 0.0;
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            for (size_t k = 0; k < nk; ++k){
+                for (size_t l = 0; l < nl; ++l){
+                    for (size_t m = 0; m < nm; ++m){
+                        d += a2[i][j] * b4[j][k][l][m] * c4[m][l][k][i];
+                    }
+                }
+            }
+        }
+    }
+
+    return std::fabs(D - d);
+}
+
 double test_chain_multiply()
 {
     size_t ni = 9, nj = 6, nk = 4, nl=5;
@@ -1255,6 +1303,8 @@ int main(int argc, char* argv[])
             std::make_tuple(kException, test_dot_product2, "double = A(\"ij\") * B(\"ik\") exception expected"),
             std::make_tuple(kException, test_dot_product3, "double = A(\"ij\") * B(\"ij\") exception expected"),
             std::make_tuple(kPass, test_dot_product4, "double D = A(\"i,j\") * (B(\"i,j\") + C(\"i,j\"))"),
+            std::make_tuple(kPass, test_dot_product5, "double D = A(\"i,j\") * B(\"j,k\") * C(\"k,i\")"),
+            std::make_tuple(kPass, test_dot_product6, "double D = A(\"i,j\") * B(\"j,k,l,m\") * C(\"m,l,k,i\")"),
             std::make_tuple(kPass, test_chain_multiply, "D(\"ij\") = B(\"ik\") * C(\"kl\") * A(\"lj\")"),
             std::make_tuple(kPass, test_chain_multiply2, "D4(\"ijkl\") = A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
             std::make_tuple(kPass, test_chain_multiply3, "D4(\"ijkl\") += A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),

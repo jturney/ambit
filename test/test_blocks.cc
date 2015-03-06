@@ -913,6 +913,52 @@ double test_Cij_equal_Aip_B_jp_expert()
     return diff_oo;
 }
 
+double test_Cpq_equal_Apq_B_pq_expert()
+{
+    BlockedTensor::set_expert_mode(true);
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","i,j,k",{0,1,2,10,12},AlphaSpin);
+    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9,3,4},AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g","p,q,r,s",{"o","v"});
+
+    BlockedTensor A = BlockedTensor::build(kCore,"A",{"oo","vo","ov"});
+    BlockedTensor B = BlockedTensor::build(kCore,"B",{"oo","vo","ov"});
+    BlockedTensor C = BlockedTensor::build(kCore,"C",{"oo"});
+
+    size_t no = 5;
+    size_t nv = 7;
+
+    Tensor Aoo_t = build_and_fill("Aoo", {no, no}, a2);
+    Tensor Boo_t = build_and_fill("Boo", {no, no}, b2);
+    Tensor Coo_t = build_and_fill("Coo", {no, no}, c2);
+    Tensor Cov_t = build_and_fill("Cov", {no, nv}, f2);
+
+
+    A.block("oo")("pq") = Aoo_t("pq");
+    B.block("oo")("pq") = Boo_t("pq");
+    C.block("oo")("pq") = Coo_t("pq");
+    C.block("ov")("pq") = Cov_t("pq");
+
+
+    for (size_t i = 0; i < no; ++i){
+        for (size_t j = 0; j < no; ++j){
+            c2[i][j] = 0.0;
+            for (size_t k = 0; k < no; ++k){
+                c2[i][j] += a2[i][k] * b2[j][k];
+            }
+        }
+    }
+
+    C("pq") = A("pq") * B("pq");
+
+    Tensor Coo = C.block("oo");
+    double diff_oo = difference(Coo, c2).second;
+
+    BlockedTensor::set_expert_mode(false);
+
+    return diff_oo;
+}
+
 double test_Cij_equal_half_Aia_B_aj()
 {
     BlockedTensor::reset_mo_spaces();
@@ -1021,6 +1067,46 @@ double test_Cij_minus_equal_Aik_B_jk()
     }
 
     C("ij") -= A("ik") * B("jk");
+
+    Tensor Coo = C.block("oo");
+    double diff_oo = difference(Coo, c2).second;
+
+    return diff_oo;
+}
+
+
+double test_greek_Cij_equal_Aik_B_jk()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o","ι,κ,λ,μ,i,j,k,l",{0,1,2},AlphaSpin);
+    BlockedTensor::add_mo_space("v","α,β,γ,δ",{5,6,7,8,9},AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g","ρ,σ",{"o","v"});
+
+    BlockedTensor A = BlockedTensor::build(kCore,"A",{"oo","ov","vo","vv"});
+    BlockedTensor B = BlockedTensor::build(kCore,"B",{"oo","ov","vo","vv"});
+    BlockedTensor C = BlockedTensor::build(kCore,"C",{"oo","ov","vo","vv"});
+
+    size_t no = 3;
+
+    Tensor Aoo_t = build_and_fill("Aoo", {no, no}, a2);
+    Tensor Boo_t = build_and_fill("Boo", {no, no}, b2);
+    Tensor Coo_t = build_and_fill("Coo", {no, no}, c2);
+
+    A.block("oo")("pq") = Aoo_t("pq");
+    B.block("oo")("pq") = Boo_t("pq");
+    C.block("oo")("pq") = Coo_t("pq");
+
+
+    for (size_t i = 0; i < no; ++i){
+        for (size_t j = 0; j < no; ++j){
+            c2[i][j] = 0.0;
+            for (size_t k = 0; k < no; ++k){
+                c2[i][j] += a2[i][k] * b2[j][k];
+            }
+        }
+    }
+
+    C("ι,κ") = A("ι,λ") * B("κ,λ");
 
     Tensor Coo = C.block("oo");
     double diff_oo = difference(Coo, c2).second;
@@ -1597,9 +1683,11 @@ int main(int argc, char* argv[])
             std::make_tuple(kPass,      test_Cij_equal_Aip_B_jp,            "Testing blocked tensor C(\"ij\") = A(\"ip\") * B(\"jp\") (1)"),
             std::make_tuple(kException, test_Cij_equal_Aip_B_jp_fail,       "Testing blocked tensor C(\"ij\") = A(\"ip\") * B(\"jp\") (2)"),
             std::make_tuple(kPass,      test_Cij_equal_Aip_B_jp_expert,     "Testing blocked tensor C(\"ij\") = A(\"ip\") * B(\"jp\") (3)"),
+            std::make_tuple(kPass,      test_Cpq_equal_Apq_B_pq_expert,     "Testing blocked tensor C(\"pq\") = A(\"pq\") * B(\"pq\")"),
             std::make_tuple(kPass,      test_Cij_equal_half_Aia_B_aj,       "Testing blocked tensor C(\"ij\") = 0.5 * A(\"ia\") * B(\"aj\")"),
             std::make_tuple(kPass,      test_Cij_plus_equal_half_Aai_B_ja,  "Testing blocked tensor C(\"ij\") += A(\"ai\") * (0.5 * B(\"ja\"))"),
             std::make_tuple(kPass,      test_Cij_minus_equal_Aik_B_jk,      "Testing blocked tensor C(\"ij\") -= A(\"ik\") * B(\"jk\")"),
+            std::make_tuple(kPass,      test_greek_Cij_equal_Aik_B_jk,      "Testing blocked tensor C(\"ij\") = A(\"ik\") * B(\"jk\") [Greek]"),
             std::make_tuple(kException, test_Aij_equal_Aik_B_jk,            "Testing blocked tensor A(\"ij\") = A(\"ik\") * B(\"jk\")"),
             std::make_tuple(kPass,      test_chain_multiply,                "Testing blocked tensor chain multiply (1)"),
             std::make_tuple(kPass,      test_chain_multiply2,               "Testing blocked tensor chain multiply (2)"),

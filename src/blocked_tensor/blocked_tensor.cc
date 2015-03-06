@@ -16,7 +16,7 @@ bool BlockedTensor::expert_mode_ = false;
 
 
 MOSpace::MOSpace(const std::string& name, const std::string& mo_indices,std::vector<size_t> mos,SpinType spin)
-    : name_(name), mo_indices_(indices::split(mo_indices)), mos_(mos), spin_(spin)
+    : name_(name), mo_indices_(indices::split(mo_indices)), mos_(mos), spin_(mos.size(),spin)
 {}
 
 void MOSpace::print()
@@ -253,7 +253,7 @@ Tensor BlockedTensor::block(const std::vector<size_t>& key)
         for (size_t k : key){
             labels += mo_space(k).name();
         }
-        throw std::runtime_error("Tensor " + name() + " does not contain block \"" + labels);
+        throw std::runtime_error("Tensor " + name() + " does not contain block \"" + labels + "\"");
     }
     return blocks_.at(key);
 }
@@ -773,33 +773,23 @@ LabeledBlockedTensorProduct::operator double() const
 {
     double result = 0.0;
 
-    // Only handles binary expressions.
-    if (size() == 0 || size() > 2)
-        throw std::runtime_error("Conversion operator only supports binary expressions at the moment.");
+    size_t nterms = this->size();
 
     // Find the unique indices in the contraction
-    std::vector<std::string> A_indices;
-    for (const std::string& index : tensors_[0].indices()){
-        A_indices.push_back(index);
+    std::vector<std::string> unique_indices;
+    for (size_t n = 0; n < nterms; ++n){
+        for (const std::string& index : tensors_[n].indices()){
+            unique_indices.push_back(index);
+        }
     }
-    std::vector<std::string> B_indices;
-    for (const std::string& index : tensors_[1].indices()){
-        B_indices.push_back(index);
-    }
-    std::vector<std::string> indices_intersection;
+    sort( unique_indices.begin(), unique_indices.end() );
+    unique_indices.erase( std::unique( unique_indices.begin(), unique_indices.end() ), unique_indices.end() );
 
-    std::sort(A_indices.begin(),A_indices.end());
-    std::sort(B_indices.begin(),B_indices.end());
-
-    if (! std::equal(A_indices.begin(),A_indices.end(),B_indices.begin())){
-        throw std::runtime_error("Non-repeated indices in tensor dot product.");
-    }
-
-    std::vector<std::vector<size_t>> unique_indices_keys = BlockedTensor::label_to_block_keys(A_indices);
+    std::vector<std::vector<size_t>> unique_indices_keys = BlockedTensor::label_to_block_keys(unique_indices);
     std::map<std::string,size_t> index_map;
     {
         size_t k = 0;
-        for (const std::string& index : A_indices){
+        for (const std::string& index : unique_indices){
             index_map[index] = k;
             k++;
         }
@@ -807,17 +797,33 @@ LabeledBlockedTensorProduct::operator double() const
 
     // Setup and perform contractions
     for (const std::vector<size_t>& uik : unique_indices_keys){
-        LabeledTensorProduct prod;
-        for (size_t n = 0; n < 2; ++n){
-            const LabeledBlockedTensor& lbt = tensors_[n];
-            std::vector<size_t> term_key;
-            for (const std::string& index : lbt.indices()){
-                term_key.push_back(uik[index_map[index]]);
+
+        bool do_contract = true;
+        // In expert mode if a contraction cannot be performed
+        if (BlockedTensor::expert_mode()){
+            for (size_t n = 0; n < nterms; ++n){
+                const LabeledBlockedTensor& lbt = tensors_[n];
+                std::vector<size_t> term_key;
+                for (const std::string& index : lbt.indices()){
+                    term_key.push_back(uik[index_map[index]]);
+                }
+                if (not lbt.BT().is_block(term_key)) do_contract = false;
             }
-            const LabeledTensor term(lbt.BT().block(term_key),lbt.indices(),lbt.factor());
-            prod *= term;
         }
-        result += prod;
+
+        if (do_contract){
+            LabeledTensorProduct prod;
+            for (size_t n = 0; n < nterms; ++n){
+                const LabeledBlockedTensor& lbt = tensors_[n];
+                std::vector<size_t> term_key;
+                for (const std::string& index : lbt.indices()){
+                    term_key.push_back(uik[index_map[index]]);
+                }
+                const LabeledTensor term(lbt.BT().block(term_key),lbt.indices(),lbt.factor());
+                prod *= term;
+            }
+            result += prod;
+        }
     }
 
     return result;

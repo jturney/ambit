@@ -226,13 +226,18 @@ public:
 //    void copy(const BlockedTensor& other);
 
 
+
     // => Iterators <= //
 
-    /// Iterate overall all elements of all blocks.  The iterator provides access to the
-    /// value of the tensor elements and their MO indices.
+    /**
+     * Iterate overall all elements of all blocks.  The iterator provides access to the
+     * value of the tensor elements, the MO indices, and spin values.
+     **/
     void iterate(const std::function<void (const std::vector<size_t>&,const std::vector<SpinType>&, double&)>& func);
-    /// Iterate overall all elements of all blocks.  The iterator provides constant access to the
-    /// value of the tensor elements and their MO indices.
+    /**
+     * Iterate overall all elements of all blocks.  The iterator provides constant access to the
+     * value of the tensor elements, the MO indices, and spin values.
+     **/
     void citerate(const std::function<void (const std::vector<size_t>&,const std::vector<SpinType>&, const double&)>& func) const;
 
     /// Maps tensor labels ({"i","j","k","p"}) to keys to the block map ({{0,0,0,0},{0,0,0,1}})
@@ -262,6 +267,7 @@ private:
     std::vector<size_t>& index_to_mo_spaces(const std::string& index);
 
 
+
     // => Static Class Data <= //
 
     /// A vector of MOSpace objects
@@ -275,6 +281,10 @@ private:
     /// Enables expert mode, which overides some default error checking
     static bool expert_mode_;
 
+
+public:
+    /// @return Is BlockedTensor using "expert mode"?
+    static bool expert_mode() {return expert_mode_;}
 
 protected:
 
