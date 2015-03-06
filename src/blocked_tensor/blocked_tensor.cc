@@ -362,16 +362,17 @@ void BlockedTensor::iterate(const std::function<void (const std::vector<size_t>&
         std::vector<SpinType> spin(rank);
 
         std::vector<std::vector<size_t>> index_to_mo;
+        std::vector<std::vector<SpinType>> index_to_spin;
         for (size_t k : key){
             index_to_mo.push_back(mo_spaces_[k].mos());
+            index_to_spin.push_back(mo_spaces_[k].spin());
         }
-
-        for (size_t n = 0; n < rank; ++n) spin[n] = mo_spaces_[key[n]].spin();
 
         // Call iterate on this tensor block
         key_tensor.second.iterate([&](const std::vector<size_t>& indices, double& value){
             for (size_t n = 0; n < rank; ++n){
                 mo[n] = index_to_mo[n][indices[n]];
+                spin[n] = index_to_spin[n][indices[n]];
             }
             func(mo,spin,value);
         });
@@ -390,16 +391,17 @@ void BlockedTensor::citerate(const std::function<void (const std::vector<size_t>
         std::vector<SpinType> spin(rank);
 
         std::vector<std::vector<size_t>> index_to_mo;
+        std::vector<std::vector<SpinType>> index_to_spin;
         for (size_t k : key){
             index_to_mo.push_back(mo_spaces_[k].mos());
+            index_to_spin.push_back(mo_spaces_[k].spin());
         }
-
-        for (size_t n = 0; n < rank; ++n) spin[n] = mo_spaces_[key[n]].spin();
 
         // Call iterate on this tensor block
         key_tensor.second.citerate([&](const std::vector<size_t>& indices, const double& value){
             for (size_t n = 0; n < rank; ++n){
                 mo[n] = index_to_mo[n][indices[n]];
+                spin[n] = index_to_spin[n][indices[n]];
             }
             func(mo,spin,value);
         });
