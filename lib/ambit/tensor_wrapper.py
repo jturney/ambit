@@ -492,24 +492,100 @@ class Tensor:
         return self.tensor.data()
 
     def norm(self, type):
+        """
+        Returns the norm of the tensor.
+
+        :param type: the type of norm desired:
+         0 - Infinity-norm, maximum absolute value of elements
+         1 - One-norm, sum of absolute values of elements
+         2 - Two-norm, square root of sum of squares
+
+        :return: computed norm
+        """
         return self.tensor.norm(type)
 
     def zero(self):
+        """
+        Sets the data of the tensor to zeros.
+        """
         self.tensor.zero()
 
     def scale(self, beta):
+        """
+        Scales the tensor by scalar beta, e.g.
+        C = beta * C
+
+        Note: If beta is 0.0, a memset is performed rather than a scale to clamp
+        NaNs and other garbage out.
+
+        :param beta: the scale to apply
+        """
         self.tensor.scale(beta)
 
     def copy(self, other):
+        """
+        Copy the data of other into this tensor:
+        C() = other()
+
+        :param other: the tensor to copy data from
+        """
         self.tensor.copy(other)
 
     def slice(self, A, Cinds, Ainds, alpha=1.0, beta=0.0):
+        """
+        Perform the slice:
+         C(Cinds) = alpha * A(Ainds) + beta * C(Cinds)
+
+        Note: Most users should instead use the operator overloading
+        routines, e.g.,
+         C2[[[0,m],[0,n]]] += 0.5 * A2[[[1,m+1],[1,n+1]]]
+
+        :param A: the source tensor, e.g. A2
+        :param Cinds: the slices of indices of tensor C, e.g., [[0,m],[0,n]]
+        :param Ainds: the indices of tensor A, e.g., [[1,m+1],[1,n+1]]
+        :param alpha: the scale applied to the tensor A, e.g. 0.5
+        :param beta: the scale applied to the tensor C, e.g., 1.0
+
+        Results:
+         C is the current tensor, whose data is overwritten. e.g., C2
+         All elements outside of the IndexRange in C are untouched, alpha and beta
+         scales are applied only to elements indices of the IndexRange
+        """
         self.tensor.slice(A.tensor, Cinds, Ainds, alpha, beta)
 
     def permute(self, A, Cinds, Ainds, alpha=1.0, beta=0.0):
+        """
+        Perform the permutation:
+        C[Cinds] = alpha * A[Ainds] + beta * C[Cinds]
+
+        Note: Most users should instead use the operator overloading
+        routines, e.g.,
+        C["ij"] += 0.5 * A2["ji"]
+
+        :param A: the source tensor, e.g., A2
+        :param Cinds: the indices of tensor C, e.g., "ij"
+        :param Ainds: the indices of tensor A, e.g., "ji"
+        :param alpha: the scale applied to the tensor A, e.g., 0.5
+        :param beta: the scale applied to the tensor C, e.g., 1.0
+        """
         self.tensor.permute(A.tensor, Cinds, Ainds, alpha, beta)
 
     def contract(self, A, B, Cinds, Ainds, Binds, alpha=1.0, beta=0.0):
+        """
+        Perform the contraction:
+         C[Cinds] = alpha * A[Ainds] * B[Binds] + beta * C[Cinds]
+
+        Note: Most users should instead use the operator overloading
+        routines, e.g.,
+
+        :param A: the left-side factor tensor, e.g., A2
+        :param B: the right-side factor tensor, e.g., B2
+        :param Cinds: the indices of tensor C, e.g., "ij"
+        :param Ainds: the indices of tensor A, e.g., "ik"
+        :param Binds: the indices of tensor B, e.g., "jk"
+        :param alpha: the scale applied to the product A*B, e.g., 0.5
+        :param beta: the scale applied to the tensor C, e.g., 1.0
+        """
         self.tensor.contract(A.tensor, B.tensor, Cinds, Ainds, Binds, alpha, beta)
 
     def gemm(self, A, B, transA, transB, nrow, ncol, nzip, ldaA, ldaB, ldaC, offA=0, offB=0, offC=0, alpha=1.0,
