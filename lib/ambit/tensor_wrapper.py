@@ -3,11 +3,14 @@ from . import pyambit
 import numbers
 import itertools
 
+
 class LabeledTensorProduct:
     def __init__(self, left, right):
         self.tensors = []
-        if left: self.tensors.append(left)
-        if right: self.tensors.append(right)
+        if left:
+            self.tensors.append(left)
+        if right:
+            self.tensors.append(right)
 
     def __mul__(self, other):
         if isinstance(other, LabeledTensor):
@@ -53,20 +56,27 @@ class LabeledTensorProduct:
             second_unique = second.difference(first)
 
             common_size = 1.0
-            for s in common: common_size *= indices_to_size[s]
+            for s in common:
+                common_size *= indices_to_size[s]
             first_size = 1.0
-            for s in first: first_size *= indices_to_size[s]
+            for s in first:
+                first_size *= indices_to_size[s]
             second_size = 1.0
-            for s in second: second_size *= indices_to_size[s]
+            for s in second:
+                second_size *= indices_to_size[s]
             first_unique_size = 1.0
-            for s in first_unique: first_unique_size *= indices_to_size[s]
+            for s in first_unique:
+                first_unique_size *= indices_to_size[s]
             second_unique_size = 1.0
-            for s in second_unique: second_unique_size *= indices_to_size[s]
+            for s in second_unique:
+                second_unique_size *= indices_to_size[s]
             result_size = first_unique_size + second_unique_size
 
             stored_indices = []
-            for v in first_unique: stored_indices.append(v)
-            for v in second_unique: stored_indices.append(v)
+            for v in first_unique:
+                stored_indices.append(v)
+            for v in second_unique:
+                stored_indices.append(v)
 
             cpu_cost = common_size * result_size
             memory_cost = first_size + second_size + result_size
@@ -77,11 +87,14 @@ class LabeledTensorProduct:
 
         return [cpu_cost_total, memory_cost_max]
 
+
 class LabeledTensorAddition:
     def __init__(self, left, right):
         self.tensors = []
-        if left: self.tensors.append(left)
-        if right: self.tensors.append(right)
+        if left:
+            self.tensors.append(left)
+        if right:
+            self.tensors.append(right)
 
     def __mul__(self, other):
         if isinstance(other, LabeledTensor):
@@ -134,7 +147,7 @@ class LabeledTensor:
             self.indices = pyambit.Indices.split(indices)
 
     def dim_by_index(self, index):
-        positions = [i for i,x in enumerate(self.indices) if x == index]
+        positions = [i for i, x in enumerate(self.indices) if x == index]
         if len(positions) != 1:
             raise RuntimeError("LabeledTensor.dim_by_index: Couldn't find index " + index)
         return self.tensor.dims[positions[0]]
@@ -316,6 +329,17 @@ class LabeledTensor:
 class Tensor:
     @staticmethod
     def build(type, name, dims):
+        """
+        Factory constructor. Builds a Tensor of TensorType type
+        with given name and dimensions dims.
+
+        :param type: the TensorType to build
+        :param name: the name of the Tensor
+        :param dims: the dimensions of the indices of the tensor
+                     (len(dims) is the tensor rank
+        :return: new Tensor of TensorType type with name and dims.
+                 The returned Tensor is set to zero.
+        """
         return Tensor(type, name, dims)
 
     def __init__(self, type=None, name=None, dims=None, existing=None):
@@ -394,7 +418,7 @@ class Tensor:
             B = value.tensors[best_perm[nterms - 1]]
 
             self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor,
-                          0.0)
+                                 0.0)
 
             # This operator is complete.
             return None
@@ -441,6 +465,30 @@ class Tensor:
         self.tensor.printf()
 
     def data(self):
+        """
+        Returns the raw data vector underlying the tensor object if the
+        underlying tensor object supports a raw data vector. This is only the
+        case if the underlying tensor is of type kCore.
+
+        This routine is intended to facilitate rapid filling of data into a
+        kCore buffer tensor, following which the user may stripe the buffer
+        tensor into a kDisk or kDistributed tensor via slice operations.
+
+        If a vector is successfully returned, it points to the unrolled data o
+        the tensor, with the right-most dimensions running fastest and left-mo
+        dimensions running slowest.
+
+        Example successful use case:
+         Tensor A = Tensor::build(kCore, "A3", {4,5,6});
+         std::vector<double>& Av = A.data();
+         double* Ap = Av.data(); // In case the raw pointer is needed
+         In this case, Av[0] = A(0,0,0), Av[1] = A(0,0,1), etc.
+
+         Tensor B = Tensor::build(kDisk, "B3", {4,5,6});
+         std::vector<double>& Bv = B.data(); // throws
+
+        :return: data pointer, if tensor object supports it
+        """
         return self.tensor.data()
 
     def norm(self, type):
