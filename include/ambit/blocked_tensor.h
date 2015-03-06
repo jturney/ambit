@@ -345,6 +345,8 @@ public:
 
     size_t size() const { return tensors_.size(); }
 
+    std::string str() const;
+
     const LabeledBlockedTensor& operator[](size_t i) const { return tensors_[i]; }
 
     LabeledBlockedTensorProduct& operator*(const LabeledBlockedTensor& other) {
