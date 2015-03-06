@@ -937,15 +937,10 @@ double test_Cpq_equal_Apq_B_pq_expert()
     A.block("oo")("pq") = Aoo_t("pq");
     B.block("oo")("pq") = Boo_t("pq");
     C.block("oo")("pq") = Coo_t("pq");
-    C.block("ov")("pq") = Cov_t("pq");
-
 
     for (size_t i = 0; i < no; ++i){
         for (size_t j = 0; j < no; ++j){
-            c2[i][j] = 0.0;
-            for (size_t k = 0; k < no; ++k){
-                c2[i][j] += a2[i][k] * b2[j][k];
-            }
+            c2[i][j] = a2[i][j] * b2[i][j];
         }
     }
 

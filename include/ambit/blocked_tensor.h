@@ -123,6 +123,7 @@ public:
     static BlockedTensor build(TensorType type, const std::string& name, const std::vector<std::string>& blocks);
 
     static void add_mo_space(const std::string& name,const std::string& mo_indices,std::vector<size_t> mos,SpinType spin);
+    static void add_mo_space(const std::string& name,const std::string& mo_indices,std::vector<std::pair<size_t,SpinType>> mo_spin);
     static void add_composite_mo_space(const std::string& name,const std::string& mo_indices,const std::vector<std::string>& subspaces);
     static void reset_mo_spaces();
     static void print_mo_spaces();

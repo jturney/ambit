@@ -14,10 +14,18 @@ std::map<std::string,std::vector<size_t>> BlockedTensor::index_to_mo_spaces_;
 
 bool BlockedTensor::expert_mode_ = false;
 
-
 MOSpace::MOSpace(const std::string& name, const std::string& mo_indices,std::vector<size_t> mos,SpinType spin)
     : name_(name), mo_indices_(indices::split(mo_indices)), mos_(mos), spin_(mos.size(),spin)
 {}
+
+MOSpace::MOSpace(const std::string& name, const std::string& mo_indices,std::vector<std::pair<size_t,SpinType> > mos_spin)
+    : name_(name), mo_indices_(indices::split(mo_indices))
+{
+    for (const auto& p_s : mos_spin){
+        mos_.push_back(p_s.first);
+        spin_.push_back(p_s.second);
+    }
+}
 
 void MOSpace::print()
 {
@@ -45,6 +53,40 @@ void BlockedTensor::add_mo_space(const std::string& name,const std::string& mo_i
     size_t mo_space_idx = mo_spaces_.size();
 
     MOSpace ms(name,mo_indices,mos,spin);
+    // Add the MOSpace object
+    mo_spaces_.push_back(ms);
+
+    // Link the name to the mo_space_ vector
+    name_to_mo_space_[name] = mo_space_idx;
+
+    // Link the composite name to the mo_space_ vector
+    composite_name_to_mo_spaces_[name] = {mo_space_idx};
+
+    // Link the indices to the mo_space_
+    for (const std::string& mo_index : indices::split(mo_indices)){
+        if (index_to_mo_spaces_.count(mo_index) == 0){
+            index_to_mo_spaces_[mo_index] = {mo_space_idx};
+        }else{
+            throw std::runtime_error("The MO index \"" + mo_index + "\" is already defined.");
+        }
+    }
+}
+
+void BlockedTensor::add_mo_space(const std::string& name,const std::string& mo_indices,std::vector<std::pair<size_t,SpinType>> mo_spin)
+{
+    if (name.size() == 0){
+        throw std::runtime_error("Empty name given to orbital space.");
+    }
+    if (mo_indices.size() == 0){
+        throw std::runtime_error("No MO indices were specified for the MO space \"" + name);
+    }
+    if (name_to_mo_space_.count(name) != 0){
+        throw std::runtime_error("The MO space \"" + name + "\" is already defined.");
+    }
+
+    size_t mo_space_idx = mo_spaces_.size();
+
+    MOSpace ms(name,mo_indices,mo_spin);
     // Add the MOSpace object
     mo_spaces_.push_back(ms);
 
