@@ -577,6 +577,7 @@ class Tensor:
 
         Note: Most users should instead use the operator overloading
         routines, e.g.,
+         C2["ij"] += 0.5 * A2["ik"] * B2["jk"]
 
         :param A: the left-side factor tensor, e.g., A2
         :param B: the right-side factor tensor, e.g., B2
@@ -590,8 +591,53 @@ class Tensor:
 
     def gemm(self, A, B, transA, transB, nrow, ncol, nzip, ldaA, ldaB, ldaC, offA=0, offB=0, offC=0, alpha=1.0,
              beta=0.0):
-        self.tensor.gemm(A.tensor, B.tensor, transA, transB, nrow, ncol, nzip, ldaA, ldaB, ldaC, offA, offB, offC,
-                         alpha, beta)
+        """
+        Perform the GEMM call equivalent to:
+         C_DGEMM(
+             (transA ? 'T' : 'N'),
+             (transB ? 'T' : 'N'),
+             nrow,
+             ncol,
+             nzip,
+             alpha,
+             Ap + offA,
+             ldaA,
+             Bp + offB,
+             ldaB,
+             beta,
+             Cp + offC,
+             ldaC);
+         where, e.g., Ap = A.data().data();
+
+        Notes:
+         - This is only implemented for kCore
+         - No bounds checking on the GEMM is performed
+         - This function is intended to help advanced users get optimal
+           performance from single-node codes.
+
+        :param A: the left-side factor tensor
+        :param B: the right-side factor tensor
+        :param transA: transpose A or not
+        :param transB: transpose B or not
+        :param nrow: number of rows in the GEMM call
+        :param ncol: number of columns in the GEMM call
+        :param nzip: number of zip indices in the GEMM call
+        :param ldaA: leading dimension of A:
+                     Must be >= nzip if transA == False
+                     Must be >= nrow if transA == True
+        :param ldaB: leading dimension of B:
+                     Must be >= ncol if transB == False
+                     Must be >= nzip if transB == True
+        :param ldaC: leading dimension of C:
+                     Must be >= ncol
+        :param offA: the offset of the A data pointer to apply
+        :param offB: the offset of the B data pointer to apply
+        :param offC: the offset of the C data pointer to apply
+        :param alpha: the scale to apply to A*B
+        :param beta: the scale to apply to C
+        """
+        self.tensor.gemm(A.tensor, B.tensor, transA, transB, nrow, ncol, nzip, ldaA, ldaB, ldaC, offA=0, offB=0, offC=0,
+                         alpha=1.0, beta=0.0)
 
     def syev(self, order):
         aResults = self.tensor.syev(order)
