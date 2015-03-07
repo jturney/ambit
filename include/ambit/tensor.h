@@ -11,8 +11,6 @@
 #include <memory>
 #include <tuple>
 
-#include "aligned.h"
-
 namespace ambit {
 
 using std::tuple;

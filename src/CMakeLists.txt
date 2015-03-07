@@ -1,5 +1,4 @@
 set(TENSOR_HEADERS
-    ${PROJECT_SOURCE_DIR}/include/ambit/aligned.h
     ${PROJECT_SOURCE_DIR}/include/ambit/tensor.h
     ${PROJECT_SOURCE_DIR}/include/ambit/io/file.h
     ${PROJECT_SOURCE_DIR}/include/ambit/io/io.h

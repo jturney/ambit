@@ -2,7 +2,6 @@
 #define TENSOR_CORE_H
 
 #include "tensorimpl.h"
-#include <ambit/aligned.h>
 
 namespace ambit {
 
