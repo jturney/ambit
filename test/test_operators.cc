@@ -444,6 +444,46 @@ double test_Cij_equal_Aiabc_Bjabc()
     return difference(C, c2).second;
 }
 
+double test_Cij_minus_equal_Aij_Bij()
+{
+    size_t ni = 9;
+    size_t nj = 6;
+
+    Tensor A = build_and_fill("A", {ni, nj}, a2);
+    Tensor B = build_and_fill("B", {ni, nj}, b2);
+    Tensor C = build_and_fill("C", {ni, nj}, c2);
+
+    C("ij") -= A("ij") * B("ij");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            c2[i][j] -= a2[i][j] * b2[i][j];
+        }
+    }
+
+    return difference(C, c2).second;
+}
+
+double test_Dij_plus_equal_Aij_Bij_Cij()
+{
+    size_t ni = 9;
+    size_t nj = 6;
+
+    Tensor A = build_and_fill("A", {ni, nj}, a2);
+    Tensor B = build_and_fill("B", {ni, nj}, b2);
+    Tensor C = build_and_fill("C", {ni, nj}, c2);
+    Tensor D = build_and_fill("C", {ni, nj}, d2);
+
+    D("ij") += A("ij") * B("ij") * C("ij");
+
+    for (size_t i = 0; i < ni; ++i){
+        for (size_t j = 0; j < nj; ++j){
+            d2[i][j] += a2[i][j] * b2[i][j] * c2[i][j];
+        }
+    }
+
+    return difference(D, d2).second;
+}
 
 
 double test_E_abcd_equal_Aijab_Bklcd_C_jl_D_ik()
@@ -1277,6 +1317,8 @@ int main(int argc, char* argv[])
             std::make_tuple(kException, test_Cij_equal_Cij, "C(\"ij\") = C(\"ji\") exception expected"),
             std::make_tuple(kPass, test_Cilkj_equal_Aibaj_Bblak, "C(\"ilkj\") += A(\"ibaj\") * B(\"blak\")"),
             std::make_tuple(kPass, test_Cljik_equal_Abija_Blbak, "C(\"ljik\") += A(\"bija\") * B(\"lbak\")"),
+            std::make_tuple(kPass, test_Cij_minus_equal_Aij_Bij, "C(\"ij\") -= A(\"ij\") * B(\"ij\")"),
+            std::make_tuple(kPass, test_Dij_plus_equal_Aij_Bij_Cij, "D(\"ij\") += A(\"ij\") * B(\"ij\") * C(\"ij\")"),
             std::make_tuple(kPass, test_E_abcd_equal_Aijab_Bklcd_C_jl_D_ik, "E(\"abcd\") += A(\"ijab\") * B(\"klcd\") * C(\"jl\") * D(\"ik\")"),
             std::make_tuple(kPass, test_Cij_equal_Aij_plus_Bij, "C(\"ij\") = A(\"ij\") + B(\"ij\")"),
             std::make_tuple(kPass,
