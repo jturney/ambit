@@ -682,7 +682,7 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
     //If descending is required, the canonical order must be reversed
     //Sort is stable
     if (order == kDescending) {
-        double* Temp_sqrsp_col = memory::allocate<double>(n);
+        double* Temp_sqrsp_col = new double[n];
         double w_Temp_sqrsp;
 
         for (size_t c = 0; c<n/2; c++) {
@@ -699,7 +699,7 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
 
         }
 
-        memory::free(Temp_sqrsp_col);
+        delete[] Temp_sqrsp_col;
     }
 
     std::map<std::string, TensorImplPtr> result;
@@ -751,7 +751,7 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
     size_t n = diag["eigenvalues"]->dims()[0];
     double *a = dynamic_cast<CoreTensorImplPtr>(diag["eigenvalues"])->data().data();
     double *a1 = dynamic_cast<CoreTensorImplPtr>(diag["eigenvectors"])->data().data();
-    double *a2 = memory::allocate<double>(n*n);
+    double *a2 = new double[n*n];
 
     memcpy(a2, a1, sizeof(double)*n*n);
 
@@ -777,7 +777,7 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
 
     C_DGEMM('T','N',n,n,n,1.0,a2,n,a1,n,0.0,powered->data_.data(),n);
 
-    memory::free(a2);
+    delete[] a2;
 
     // Need to manually delete the tensors in the diag map
     for (auto& el : diag) {
