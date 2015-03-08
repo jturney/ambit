@@ -118,7 +118,7 @@ void LabeledTensor::contract(const LabeledTensorProduct& rhs, bool zero_result, 
         }
     } while (std::next_permutation(perm.begin(), perm.end()));
 
-    // at this point 'perm' should be used to perform contraction in optimal order.
+    // at this point 'best_perm' should be used to perform contraction in optimal order.
 
     LabeledTensor A = rhs[best_perm[0]];
     int maxn = int(nterms) - 2;
@@ -126,10 +126,19 @@ void LabeledTensor::contract(const LabeledTensorProduct& rhs, bool zero_result, 
         LabeledTensor B = rhs[best_perm[n + 1]];
 
         std::vector<Indices> AB_indices = indices::determine_contraction_result(A, B);
+        const Indices &AB_common_idx = AB_indices[0];
         const Indices &A_fix_idx = AB_indices[1];
         const Indices &B_fix_idx = AB_indices[2];
         Dimension dims;
         Indices indices;
+
+        for (size_t i = 0; i < AB_common_idx.size(); ++i) {
+            // If a common index is also found in the rhs it's a Hadamard index
+            if(std::find(this->indices().begin(), this->indices().end(), AB_common_idx[i]) != this->indices().end()){
+                dims.push_back(A.dim_by_index(AB_common_idx[i]));
+                indices.push_back(AB_common_idx[i]);
+            }
+        }
 
         for (size_t i = 0; i < A_fix_idx.size(); ++i) {
             dims.push_back(A.dim_by_index(A_fix_idx[i]));
