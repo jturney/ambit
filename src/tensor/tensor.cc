@@ -4,8 +4,8 @@
 
 #include <ambit/tensor.h>
 #include "tensorimpl.h"
-#include "core.h"
-#include "disk.h"
+#include "core/core.h"
+#include "disk/disk.h"
 #include "indices.h"
 
 // include header files to specific tensor types supported.

@@ -2,8 +2,8 @@
 #define TENSOR_SLICE_H
 
 #include "tensorimpl.h"
-#include "core.h"
-#include "disk.h"
+#include "core/core.h"
+#include "disk/disk.h"
 
 #ifdef HAVE_CYCLOPS
 #include "cyclops/cyclops.h"

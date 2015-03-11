@@ -1,6 +1,6 @@
 #include "tensorimpl.h"
-#include "core.h"
-#include "disk.h"
+#include "core/core.h"
+#include "disk/disk.h"
 #include "slice.h"
 
 #if defined(HAVE_ELEMENTAL)

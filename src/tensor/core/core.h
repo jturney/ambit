@@ -1,7 +1,7 @@
 #if !defined(TENSOR_CORE_H)
 #define TENSOR_CORE_H
 
-#include "tensorimpl.h"
+#include "tensor/tensorimpl.h"
 
 namespace ambit {
 

@@ -6,7 +6,8 @@ set(TENSOR_HEADERS
     ${PROJECT_SOURCE_DIR}/include/ambit/io/manager.h
     ${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/io.h
     math/math.h
-    tensor/core.h
+    tensor/core/core.h
+    tensor/disk/disk.h
     tensor/indices.h
     tensor/macros.h
     tensor/tensorimpl.h
@@ -19,8 +20,8 @@ set(TENSOR_SOURCES
     io/manager.cc
     math/blas.cc
     math/lapack.cc
-    tensor/core.cc
-    tensor/disk.cc
+    tensor/core/core.cc
+    tensor/disk/disk.cc
     tensor/slice.cc
     tensor/indices.cc
     tensor/labeled_tensor.cc

@@ -1,8 +1,7 @@
-#include "tensorimpl.h"
 #include "disk.h"
 #include "memory.h"
 #include "math/math.h"
-#include "indices.h"
+#include "tensor/indices.h"
 #include <sstream>
 #include <string.h>
 #include <cmath>
