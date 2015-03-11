@@ -69,17 +69,48 @@ int initialize(int argc, char* argv[])
         }
     }
 
+    // I don't know how to initialize elemental with a different communicator.
 #if defined(HAVE_ELEMENTAL)
     El::Initialize(argc, argv);
 #endif
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &settings::rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &settings::nprocess);
+    globals::communicator = MPI_COMM_WORLD;
 
-    globals::world = new CTF_World(argc, argv);
+    MPI_Comm_rank(globals::communicator, &settings::rank);
+    MPI_Comm_size(globals::communicator, &settings::nprocess);
+
+    globals::world = new CTF_World(globals::communicator, argc, argv);
 
     if (settings::debug && settings::rank == 0) {
-        printf("Cyclops interface initialized.\nnprocess: %d\n", settings::nprocess);
+        printf("Cyclops interface initialized. nprocess: %d\n", settings::nprocess);
+    }
+
+    return 0;
+}
+
+int initialize(MPI_Comm comm, int argc, char * * argv)
+{
+    // Since we're provided a communicator ensure MPI is initialize
+    MPI_Initialized(&globals::initialized_mpi);
+
+    if (!globals::initialized_mpi) {
+        throw std::runtime_error("cyclops::initialize: Communicator provided but MPI is not initialized.");
+    }
+
+    globals::communicator = comm;
+
+#if defined(HAVE_ELEMENTAL)
+    printf("cycops::initialize: I don't know how to initialize Elemental with a different communicator.");
+    El::Initialize(argc, argv);
+#endif
+
+    MPI_Comm_rank(globals::communicator, &settings::rank);
+    MPI_Comm_size(globals::communicator, &settings::nprocess);
+
+    globals::world = new CTF_World(globals::communicator, argc, argv);
+
+    if (settings::debug && settings::rank == 0) {
+        printf("Cyclops interface initialized. nprocess: %d\n", settings::nprocess);
     }
 
     return 0;

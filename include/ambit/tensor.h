@@ -81,10 +81,10 @@ extern const bool distributed_capable;
  * @param argv the command line arguments
  * @return error code
  */
-int initialize(int argc, char** argv);
+int initialize(int argc = 0, char* * argv = nullptr);
 
 #if defined(HAVE_MPI)
-int initialize(MPI_Comm comm, int argc = 0, char * const * argv = nullptr);
+int initialize(MPI_Comm comm, int argc = 0, char * * argv = nullptr);
 #endif
 
 /** Shutdowns the tensor library.
