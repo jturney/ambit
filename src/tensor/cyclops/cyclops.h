@@ -10,6 +10,9 @@ namespace ambit {
 namespace cyclops {
 
 int initialize(int argc, char* argv[]);
+
+int initialize(MPI_Comm comm, int argc = 0, char * const * argv = nullptr);
+
 void finalize();
 
 class CyclopsTensorImpl : public TensorImpl

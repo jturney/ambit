@@ -15,6 +15,9 @@ namespace globals {
 
     // did we initialize MPI or did the user?
     int initialized_mpi = 0;
+
+    // MPI communicator object
+    MPI_Comm communicator = 0;
 }
 
 namespace {

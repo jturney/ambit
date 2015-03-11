@@ -11,6 +11,10 @@
 #include <memory>
 #include <tuple>
 
+#if defined(HAVE_MPI)
+#include <mpi.h>
+#endif
+
 namespace ambit {
 
 using std::tuple;
@@ -78,6 +82,10 @@ extern const bool distributed_capable;
  * @return error code
  */
 int initialize(int argc, char** argv);
+
+#if defined(HAVE_MPI)
+int initialize(MPI_Comm comm, int argc = 0, char * const * argv = nullptr);
+#endif
 
 /** Shutdowns the tensor library.
  *
