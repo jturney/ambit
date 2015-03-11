@@ -76,18 +76,14 @@ Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& 
     }
     switch(type) {
         case kCore:
-//            printf("Constructing core tensor.\n");
             newObject.tensor_.reset(new CoreTensorImpl(name, dims));
             break;
 
         case kDisk:
-//            printf("Constructing disk tensor.\n");
             newObject.tensor_.reset(new DiskTensorImpl(name, dims));
             break;
 
         case kDistributed:
-//            printf("Constructing distributed tensor.\n");
-
             #if defined(HAVE_CYCLOPS)
             newObject.tensor_.reset(new cyclops::CyclopsTensorImpl(name, dims));
             #else
@@ -276,9 +272,9 @@ Tensor Tensor::power(double alpha, double condition) const
 void Tensor::contract(
     const Tensor& A,
     const Tensor& B,
-    const std::vector<std::string>& Cinds,
-    const std::vector<std::string>& Ainds,
-    const std::vector<std::string>& Binds,
+    const Indices& Cinds,
+    const Indices& Ainds,
+    const Indices& Binds,
     double alpha,
     double beta)
 {
@@ -293,8 +289,8 @@ void Tensor::contract(
 }
 void Tensor::permute(
     const Tensor &A,
-    const std::vector<std::string>& Cinds,
-    const std::vector<std::string>& Ainds,
+    const Indices& Cinds,
+    const Indices& Ainds,
     double alpha,
     double beta)
 {
