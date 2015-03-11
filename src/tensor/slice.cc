@@ -625,7 +625,7 @@ void slice(
         numel *= sizes[ind];
     }
 
-    std::shared_ptr<CoreTensorImpl> C2(new CoreTensorImpl("C2", sizes));
+    shared_ptr<CoreTensorImpl> C2(new CoreTensorImpl("C2", sizes));
     double* C2p = C2->data().data();
 
     std::vector<long_int> Aidx(numel);
@@ -676,7 +676,7 @@ void slice(
         numel *= sizes[ind];
     }
 
-    std::shared_ptr<CoreTensorImpl> A2(new CoreTensorImpl("A2", sizes));
+    shared_ptr<CoreTensorImpl> A2(new CoreTensorImpl("A2", sizes));
     A2->slice(A,A2inds,Ainds,1.0,0.0);
     double* A2p = A2->data().data();
 
