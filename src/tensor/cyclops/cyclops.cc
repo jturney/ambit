@@ -22,13 +22,6 @@ namespace globals {
 
 namespace {
 
-std::string generateGenericLabels(const Dimension& dims)
-{
-    std::string labels(dims.size(), 0);
-    std::copy(dims.begin(), dims.end(), labels.begin());
-    return labels;
-}
-
 std::vector<std::string> generateCyclopsLabels(const std::vector<Indices>& inds)
 {
     static const char* cyclops_index_set = "abcdefghijklmnopqrstuvwyxzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -58,7 +51,7 @@ std::vector<std::string> generateCyclopsLabels(const std::vector<Indices>& inds)
 
 }
 
-int initialize(int argc, char* argv[])
+int initialize(int argc, char** argv)
 {
     MPI_Initialized(&globals::initialized_mpi);
 
@@ -339,7 +332,7 @@ void CyclopsTensorImpl::iterate(const std::function<void (const std::vector<size
     std::vector<size_t> addressing(rank(), 1);
 
     // form addressing array
-    for (int n=1; n < rank(); ++n) {
+    for (size_t n=1; n < rank(); ++n) {
         addressing[n] = addressing[n-1] * dim(n-1);
     }
 
@@ -370,7 +363,7 @@ void CyclopsTensorImpl::citerate(const std::function<void (const std::vector<siz
     std::vector<size_t> addressing(rank(), 1);
 
     // form addressing array
-    for (int n=1; n < rank(); ++n) {
+    for (size_t n=1; n < rank(); ++n) {
         addressing[n] = addressing[n-1] * dim(n-1);
     }
 

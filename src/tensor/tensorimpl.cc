@@ -3,7 +3,7 @@
 #include "disk/disk.h"
 #include "slice.h"
 
-#if defined(HAVE_ELEMENTAL)
+#if defined(HAVE_CYCLOPS)
 #include "cyclops/cyclops.h"
 #endif
 

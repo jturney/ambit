@@ -34,7 +34,7 @@ const bool distributed_capable = false;
 
 namespace {
 
-int common_initialize(int argc, char* const * argv)
+void common_initialize(int /*argc*/, char* const * /*argv*/)
 {
     // Set the scratch path for disk files
     const char* scratch_env = std::getenv("TENSOR_SCRATCH");
@@ -44,16 +44,13 @@ int common_initialize(int argc, char* const * argv)
     } else {
         Tensor::set_scratch_path(".");
     }
-
-    return 0;
 }
 
 }
 
 int initialize(int argc, char* * argv)
 {
-    if (common_initialize(argc, argv) == 0)
-        return 0;
+    common_initialize(argc, argv);
 
 #if defined(HAVE_CYCLOPS)
     return cyclops::initialize(argc, argv);
@@ -65,8 +62,7 @@ int initialize(int argc, char* * argv)
 #if defined(HAVE_MPI)
 int initialize(MPI_Comm comm, int argc, char * * argv)
 {
-    if (common_initialize(argc, argv) == 0)
-        return 0;
+    common_initialize(argc, argv);
 
 #if defined(HAVE_CYCLOPS)
     return cyclops::initialize(argc, argv);
