@@ -723,5 +723,25 @@ class TestOperatorOverloading(unittest.TestCase):
 
         self.assertAlmostEqual(0.0, self.difference(C, nC), places=12)
 
+    def test_slice4(self):
+        ni = 7
+        nj = 7
+        nk = 7
+        nl = 7
+
+        [A, nA] = self.build_and_fill("A", [nk, nl])
+        [C, nC] = self.build_and_fill("C", [ni, nj])
+
+        Ainds = [[0, 4], [2, 6]]
+        Cinds = [[1, 5], [0, 4]]
+
+        C[1:5, 0:4] -= A[0:4, 2:6]
+
+        for i in range(Cinds[0][1] - Cinds[0][0]):
+            for j in range(Cinds[1][1] - Cinds[1][0]):
+                nC[i + Cinds[0][0]][j + Cinds[1][0]] -= nA[i + Ainds[0][0]][j + Ainds[1][0]]
+
+        self.assertAlmostEqual(0.0, self.difference(C, nC), places=12)
+
 if __name__ == '__main__':
     unittest.main()
