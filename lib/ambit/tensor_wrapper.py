@@ -348,12 +348,14 @@ class Tensor:
             self.type = existing.type
             self.dims = existing.dims
             self.name = name if name else existing.name
+            self.__array_interface__ = existing.__array_interface__
         else:
             self.name = name
             self.rank = len(dims)
             self.type = type
             self.dims = dims
             self.tensor = pyambit.ITensor.build(type, name, dims)
+            self.__array_interface__ = self.tensor.__array_interface__
 
     def __getitem__(self, indices):
         if isinstance(indices, list):
