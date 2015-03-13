@@ -348,16 +348,22 @@ class Tensor:
             self.type = existing.type
             self.dims = existing.dims
             self.name = name if name else existing.name
+
             if type == pyambit.TensorType.kCore:
                 self.__array_interface__ = existing.__array_interface__
+            else:
+                self.__array_interface__ = {'typestr':'Only kCore tensors can be converted to ndarrays.'}
         else:
             self.name = name
             self.rank = len(dims)
             self.type = type
             self.dims = dims
             self.tensor = pyambit.ITensor.build(type, name, dims)
+
             if type == pyambit.TensorType.kCore:
                 self.__array_interface__ = self.tensor.__array_interface__
+            else:
+                self.__array_interface__ = {'typestr':'Only kCore tensors can be converted to ndarrays.'}
 
     def __getitem__(self, indices):
 
@@ -366,12 +372,16 @@ class Tensor:
 
             # 1D Slice
             if isinstance(indices[0], int):
-                return SlicedTensor(self, indices)
+                return SlicedTensor(self, list(indices))
+
+            # Throw if dims do not match
+            if len(indices) != self.rank:
+                raise RuntimeError("SlicedTensor: Number of slices does not equal tensor rank.")
 
             # ND slice
             formed_inds = []
             for num, sl in enumerate(indices):
-                if isinstance(sl, (list, tuple)):
+                if isinstance(sl, list):
                     formed_inds.append(sl)
                 elif isinstance(sl, slice):
                     if sl.step:
@@ -386,7 +396,8 @@ class Tensor:
         elif isinstance(indices, slice):
             if indices.step:
                 raise ValueError("Step slices are not supported.")
-            return SlicedTensor(self, [[indices.start, indices.stop]])
+            sl = indices
+            return SlicedTensor(self, [[sl.start if sl.start else 0, sl.stop if sl.stop else self.dims[num]]])
 
         # Labeled tensor
         else:

@@ -619,6 +619,7 @@ class TestOperatorOverloading(unittest.TestCase):
         [A, nA] = self.build_and_fill("A", [ni, nj])
         [B, nB] = self.build_and_fill("B", [ni, nj])
 
+
         C = float(A["ij"] * B["ik"])
         nC = 0.0
 
@@ -742,6 +743,28 @@ class TestOperatorOverloading(unittest.TestCase):
                 nC[i + Cinds[0][0]][j + Cinds[1][0]] -= nA[i + Ainds[0][0]][j + Ainds[1][0]]
 
         self.assertAlmostEqual(0.0, self.difference(C, nC), places=12)
+
+    def test_slice_bounds(self):
+        [C, nC] = self.build_and_fill("C", [10, 10])
+        with self.assertRaises(RuntimeError):
+            C[1:5, 0:4, :3]
+        with self.assertRaises(RuntimeError):
+            C[:, :, :]
+        with self.assertRaises(RuntimeError):
+            C[:, :, :, :]
+        with self.assertRaises(RuntimeError):
+            C[slice(5), slice(5), slice(5)]
+
+    def test_slice_step(self):
+        [C, nC] = self.build_and_fill("C", [10, 10])
+        with self.assertRaises(ValueError):
+            C[1:5:2, 1:5]
+        with self.assertRaises(ValueError):
+            C[1:5, 1:5:2]
+        with self.assertRaises(ValueError):
+            C[1:5:2]
+        with self.assertRaises(ValueError):
+            C[:, 1:5:2]
 
 if __name__ == '__main__':
     unittest.main()
