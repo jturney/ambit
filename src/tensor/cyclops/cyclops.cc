@@ -15,16 +15,12 @@ namespace globals {
 
     // did we initialize MPI or did the user?
     int initialized_mpi = 0;
+
+    // MPI communicator object
+    MPI_Comm communicator = 0;
 }
 
 namespace {
-
-std::string generateGenericLabels(const Dimension& dims)
-{
-    std::string labels(dims.size(), 0);
-    std::copy(dims.begin(), dims.end(), labels.begin());
-    return labels;
-}
 
 std::vector<std::string> generateCyclopsLabels(const std::vector<Indices>& inds)
 {
@@ -55,7 +51,7 @@ std::vector<std::string> generateCyclopsLabels(const std::vector<Indices>& inds)
 
 }
 
-int initialize(int argc, char* argv[])
+int initialize(int argc, char** argv)
 {
     MPI_Initialized(&globals::initialized_mpi);
 
@@ -66,17 +62,48 @@ int initialize(int argc, char* argv[])
         }
     }
 
+    // I don't know how to initialize elemental with a different communicator.
 #if defined(HAVE_ELEMENTAL)
     El::Initialize(argc, argv);
 #endif
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &settings::rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &settings::nprocess);
+    globals::communicator = MPI_COMM_WORLD;
 
-    globals::world = new CTF_World(argc, argv);
+    MPI_Comm_rank(globals::communicator, &settings::rank);
+    MPI_Comm_size(globals::communicator, &settings::nprocess);
+
+    globals::world = new CTF_World(globals::communicator, argc, argv);
 
     if (settings::debug && settings::rank == 0) {
-        printf("Cyclops interface initialized.\nnprocess: %d\n", settings::nprocess);
+        printf("Cyclops interface initialized. nprocess: %d\n", settings::nprocess);
+    }
+
+    return 0;
+}
+
+int initialize(MPI_Comm comm, int argc, char * * argv)
+{
+    // Since we're provided a communicator ensure MPI is initialize
+    MPI_Initialized(&globals::initialized_mpi);
+
+    if (!globals::initialized_mpi) {
+        throw std::runtime_error("cyclops::initialize: Communicator provided but MPI is not initialized.");
+    }
+
+    globals::communicator = comm;
+
+#if defined(HAVE_ELEMENTAL)
+    printf("cycops::initialize: I don't know how to initialize Elemental with a different communicator.");
+    El::Initialize(argc, argv);
+#endif
+
+    MPI_Comm_rank(globals::communicator, &settings::rank);
+    MPI_Comm_size(globals::communicator, &settings::nprocess);
+
+    globals::world = new CTF_World(globals::communicator, argc, argv);
+
+    if (settings::debug && settings::rank == 0) {
+        printf("Cyclops interface initialized. nprocess: %d\n", settings::nprocess);
     }
 
     return 0;
@@ -214,10 +241,6 @@ std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder ord
     El::SortType sort = order == kAscending ? El::ASCENDING : El::DESCENDING;
     El::HermitianEig(El::LOWER, H, w, X, sort);
 
-//    El::Print(H, "H");
-//    El::Print(X, "X");
-//    El::Print(w, "w");
-
     // construct cyclops tensors to hold eigen vectors and values.
     Dimension value_dims(1);
     value_dims[0] = length;
@@ -260,10 +283,6 @@ TensorImplPtr CyclopsTensorImpl::power(double alpha, double condition) const
     El::SortType sort = El::ASCENDING;
     El::HermitianEig(El::LOWER, H, w, X, sort);
 
-//    El::Print(H, "H");
-//    El::Print(X, "X");
-//    El::Print(w, "w");
-
     const int numLocalEigs = w.LocalHeight();
     double maxLocalEig = 0.0;
     for(int iLoc=0; iLoc<numLocalEigs; ++iLoc)
@@ -305,7 +324,7 @@ void CyclopsTensorImpl::iterate(const std::function<void (const std::vector<size
     std::vector<size_t> addressing(rank(), 1);
 
     // form addressing array
-    for (int n=1; n < rank(); ++n) {
+    for (size_t n=1; n < rank(); ++n) {
         addressing[n] = addressing[n-1] * dim(n-1);
     }
 
@@ -336,7 +355,7 @@ void CyclopsTensorImpl::citerate(const std::function<void (const std::vector<siz
     std::vector<size_t> addressing(rank(), 1);
 
     // form addressing array
-    for (int n=1; n < rank(); ++n) {
+    for (size_t n=1; n < rank(); ++n) {
         addressing[n] = addressing[n-1] * dim(n-1);
     }
 

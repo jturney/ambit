@@ -1,9 +1,9 @@
 #include "tensorimpl.h"
-#include "core.h"
-#include "disk.h"
+#include "core/core.h"
+#include "disk/disk.h"
 #include "slice.h"
 
-#if defined(HAVE_ELEMENTAL)
+#if defined(HAVE_CYCLOPS)
 #include "cyclops/cyclops.h"
 #endif
 
@@ -78,11 +78,11 @@ void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int 
 
     if (level > 0) {
         double* temp;
-        std::shared_ptr<TensorImpl> T;
+        shared_ptr<TensorImpl> T;
         if (type() == kCore) {
             temp = const_cast<double*>(data().data());
         } else {
-            T = std::shared_ptr<TensorImpl>(clone(kCore));
+            T = shared_ptr<TensorImpl>(clone(kCore));
             temp = const_cast<double*>(T->data().data());
         }
 

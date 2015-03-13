@@ -1,7 +1,7 @@
 #if !defined(TENSOR_DISK_H)
 #define TENSOR_DISK_H
 
-#include "tensorimpl.h"
+#include "tensor/tensorimpl.h"
 
 namespace ambit {
 

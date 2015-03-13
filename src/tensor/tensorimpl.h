@@ -88,8 +88,8 @@ public:
 
     virtual void permute(
         ConstTensorImplPtr A,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
+        const Indices& Cinds,
+        const Indices& Ainds,
         double alpha = 1.0,
         double beta = 0.0)
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
@@ -97,9 +97,9 @@ public:
     virtual void contract(
         ConstTensorImplPtr A,
         ConstTensorImplPtr B,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
-        const std::vector<std::string>& Binds,
+        const Indices& Cinds,
+        const Indices& Ainds,
+        const Indices& Binds,
         double alpha = 1.0,
         double beta = 0.0)
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }

@@ -3,13 +3,7 @@
 #include <numeric>
 #include <ambit/tensor.h>
 #include "tensorimpl.h"
-#include "core.h"
 #include "indices.h"
-
-// include header files to specific tensor types supported.
-#if defined(HAVE_CYCLOPS)
-#   include "cyclops/cyclops.h"
-#endif
 
 
 namespace ambit {

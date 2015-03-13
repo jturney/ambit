@@ -11,6 +11,10 @@
 #include <memory>
 #include <tuple>
 
+#if defined(HAVE_MPI)
+#include <mpi.h>
+#endif
+
 namespace ambit {
 
 using std::tuple;
@@ -77,7 +81,11 @@ extern const bool distributed_capable;
  * @param argv the command line arguments
  * @return error code
  */
-int initialize(int argc, char** argv);
+int initialize(int argc = 0, char* * argv = nullptr);
+
+#if defined(HAVE_MPI)
+int initialize(MPI_Comm comm, int argc = 0, char** argv = nullptr);
+#endif
 
 /** Shutdowns the tensor library.
  *
@@ -298,8 +306,8 @@ public:
      **/
     void permute(
         const Tensor& A,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
+        const Indices& Cinds,
+        const Indices& Ainds,
         double alpha = 1.0,
         double beta = 0.0);
 
@@ -326,9 +334,9 @@ public:
     void contract(
         const Tensor& A,
         const Tensor& B,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
-        const std::vector<std::string>& Binds,
+        const Indices& Cinds,
+        const Indices& Ainds,
+        const Indices& Binds,
         double alpha = 1.0,
         double beta = 0.0);
 
@@ -471,7 +479,7 @@ public:
 class LabeledTensor {
 
 public:
-    LabeledTensor(Tensor T, const std::vector<std::string>& indices, double factor = 1.0);
+    LabeledTensor(Tensor T, const Indices& indices, double factor = 1.0);
 
     double factor() const { return factor_; }
     const Indices& indices() const { return indices_; }
@@ -522,7 +530,7 @@ private:
     void set(const LabeledTensor& to);
 
     Tensor T_;
-    std::vector<std::string> indices_;
+    Indices indices_;
     double factor_;
 
 };

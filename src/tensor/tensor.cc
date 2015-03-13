@@ -4,8 +4,8 @@
 
 #include <ambit/tensor.h>
 #include "tensorimpl.h"
-#include "core.h"
-#include "disk.h"
+#include "core/core.h"
+#include "disk/disk.h"
 #include "indices.h"
 
 // include header files to specific tensor types supported.
@@ -32,9 +32,11 @@ const bool distributed_capable = false;
 #endif
 }
 
-int initialize(int argc, char** argv)
+namespace {
+
+void common_initialize(int /*argc*/, char* const * /*argv*/)
 {
-    /// Set the scratch path for disk files
+    // Set the scratch path for disk files
     const char* scratch_env = std::getenv("TENSOR_SCRATCH");
     if (scratch_env != nullptr) {
         std::string scratch_str(scratch_env);
@@ -42,13 +44,33 @@ int initialize(int argc, char** argv)
     } else {
         Tensor::set_scratch_path(".");
     }
+}
+
+}
+
+int initialize(int argc, char* * argv)
+{
+    common_initialize(argc, argv);
 
 #if defined(HAVE_CYCLOPS)
-    cyclops::initialize(argc, argv);
-#endif
-
+    return cyclops::initialize(argc, argv);
+#else
     return 0;
+#endif
 }
+
+#if defined(HAVE_MPI)
+int initialize(MPI_Comm comm, int argc, char * * argv)
+{
+    common_initialize(argc, argv);
+
+#if defined(HAVE_CYCLOPS)
+    return cyclops::initialize(argc, argv);
+#else
+    return 0;
+#endif
+}
+#endif
 
 void finalize()
 {
@@ -76,18 +98,14 @@ Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& 
     }
     switch(type) {
         case kCore:
-//            printf("Constructing core tensor.\n");
             newObject.tensor_.reset(new CoreTensorImpl(name, dims));
             break;
 
         case kDisk:
-//            printf("Constructing disk tensor.\n");
             newObject.tensor_.reset(new DiskTensorImpl(name, dims));
             break;
 
         case kDistributed:
-//            printf("Constructing distributed tensor.\n");
-
             #if defined(HAVE_CYCLOPS)
             newObject.tensor_.reset(new cyclops::CyclopsTensorImpl(name, dims));
             #else
@@ -276,9 +294,9 @@ Tensor Tensor::power(double alpha, double condition) const
 void Tensor::contract(
     const Tensor& A,
     const Tensor& B,
-    const std::vector<std::string>& Cinds,
-    const std::vector<std::string>& Ainds,
-    const std::vector<std::string>& Binds,
+    const Indices& Cinds,
+    const Indices& Ainds,
+    const Indices& Binds,
     double alpha,
     double beta)
 {
@@ -293,8 +311,8 @@ void Tensor::contract(
 }
 void Tensor::permute(
     const Tensor &A,
-    const std::vector<std::string>& Cinds,
-    const std::vector<std::string>& Ainds,
+    const Indices& Cinds,
+    const Indices& Ainds,
     double alpha,
     double beta)
 {
