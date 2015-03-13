@@ -241,10 +241,6 @@ std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder ord
     El::SortType sort = order == kAscending ? El::ASCENDING : El::DESCENDING;
     El::HermitianEig(El::LOWER, H, w, X, sort);
 
-//    El::Print(H, "H");
-//    El::Print(X, "X");
-//    El::Print(w, "w");
-
     // construct cyclops tensors to hold eigen vectors and values.
     Dimension value_dims(1);
     value_dims[0] = length;
@@ -286,10 +282,6 @@ TensorImplPtr CyclopsTensorImpl::power(double alpha, double condition) const
     El::DistMatrix<double> X;
     El::SortType sort = El::ASCENDING;
     El::HermitianEig(El::LOWER, H, w, X, sort);
-
-//    El::Print(H, "H");
-//    El::Print(X, "X");
-//    El::Print(w, "w");
 
     const int numLocalEigs = w.LocalHeight();
     double maxLocalEig = 0.0;
