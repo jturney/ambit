@@ -54,14 +54,6 @@ def parse_input():
     #        default=None,
     #        help='set the Fortran compiler [default: pick automatically or based on FC=...]',
     #        metavar='STRING')
-    # Libint maximum angular momentum.
-    parser.add_argument('--max-am-eri',
-            metavar="= MAX_ANGULAR_MOMENTUM",
-            type=int,
-            default=5,
-            help="""The maximum angular momentum level (1=p, 2=d, 3=f, etc.) for the libint and libderiv packages.
-            Note: A value of N implies a maximum first derivative of N-1, and maximum second derivative of N-2.
-            [default: %(default)s]""")
     # Release, debug or profiling build
     group.add_argument('--type',
             nargs='?',
@@ -205,10 +197,6 @@ def parse_input():
             action='store_true',
             default=False,
             help='link statically [default: %(default)s]')
-    group.add_argument('--unit-tests',
-            action='store_true',
-            default=False,
-            help='build unit test suite [default: %(default)s]')
     group.add_argument('--vectorization',
             action='store_true',
             default=False,
@@ -345,7 +333,6 @@ def gen_cmake_command(args):
     #command += ' -DENABLE_CSR=%s'            % translate_cmake(args.csr)
     command += ' -DENABLE_SCALAPACK=%s'      % translate_cmake(args.scalapack)
     #command += ' -DENABLE_SCALASCA=%s'       % translate_cmake(args.scalasca)
-    command += ' -DENABLE_UNIT_TESTS=%s'     % translate_cmake(args.unit_tests)
     command += ' -DENABLE_STATIC_LINKING=%s' % translate_cmake(args.static)
     command += ' -DENABLE_CXX11_SUPPORT=%s'  % translate_cmake(args.cxx11)
 
