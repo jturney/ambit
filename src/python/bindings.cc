@@ -72,6 +72,24 @@ struct iterable_converter
     }
 };
 
+dict tensor_array_interface(Tensor ten){
+    dict rv;
+
+    rv["shape"] = boost::python::tuple(ten.dims());
+    rv["data"] = boost::python::make_tuple((long)ten.data().data(), false);
+
+    // Type
+    //std::string typestr = is_big_endian() ? ">" : "<";
+    std::string typestr = "<";
+    std::stringstream sstr;
+    sstr << (int)sizeof(double);
+    typestr += "f" + sstr.str();
+    rv["typestr"] = typestr;
+
+    return rv;
+}
+
+
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(tensor_print_ov, Tensor::print, 0, 4)
 
 BOOST_PYTHON_MODULE (pyambit)
@@ -148,5 +166,6 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("norm", &Tensor::norm)
             .def("zero", &Tensor::zero)
             .def("copy", &Tensor::copy)
-            .def("printf", &Tensor::print,tensor_print_ov());
+            .def("printf", &Tensor::print,tensor_print_ov())
+            .add_property("__array_interface__", tensor_array_interface);
 }
