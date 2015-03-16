@@ -167,5 +167,5 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("zero", &Tensor::zero)
             .def("copy", &Tensor::copy)
             .def("printf", &Tensor::print,tensor_print_ov())
-            .add_property("__array_interface__", tensor_array_interface);
+            .def("__array_interface__", tensor_array_interface);
 }
