@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <assert.h>
 
+#include <ambit/print.h>
 #include <ambit/tensor.h>
 #include <ambit/io/io.h>
 #include <ambit/helpers/psi4/io.h>
@@ -57,11 +58,11 @@ void hf()
         ambit::io::File file32("test.32", ambit::io::kOpenModeOpenExisting);
 
         file32.read("::Num. irreps", &nirrep, 1);
-        printf("nirrep = %d\n", nirrep);
+        print("nirrep = %d\n", nirrep);
         assert(nirrep == 1);
 
         file32.read("::Num. SO", &nso, 1);
-        printf("nso = %d\n", nso);
+        print("nso = %d\n", nso);
 
         file32.read("::Nuclear rep. energy", &Enuc, 1);
         file32.read("::SCF energy", &Eref, 1);
@@ -73,10 +74,10 @@ void hf()
 
     // Build tensors
     Tensor S = load_overlap("test.35", AO2);
-    printf("norm of S is %lf\n", S.norm());
+    print("norm of S is %lf\n", S.norm());
     Tensor H = load_1e_hamiltonian("test.35", AO2);
     Tensor g = load_2e(AO4);
-    printf("norm of g is %lf\n", g.norm());
+    print("norm of g is %lf\n", g.norm());
 
     Tensor Ft = build("Ft", AO2);
     Tensor Smhalf = S.power(-0.5);
@@ -116,8 +117,7 @@ void hf()
         // Calculate energy
         Eelec = D("mu,nu") * (H("mu,nu") + F("mu,nu"));
 
-        if (settings::rank == 0)
-            printf("  @RHF iter %5d: %20.14lf\n", iter++, Enuc + Eelec);
+        print("  @RHF iter %5d: %20.14lf\n", iter++, Enuc + Eelec);
 
         // Transform the Fock matrix
         Ft("i,j") = Smhalf("mu,i") * Smhalf("nu,j") * F("mu,nu");
@@ -163,11 +163,12 @@ int main(int argc, char* argv[])
     if (argc > 1) {
         if (settings::distributed_capable && strcmp(argv[1], "cyclops") == 0) {
             tensor_type = kDistributed;
-            printf("  *** Testing distributed tensors. ***\n");
+            ambit::print("  *** Testing distributed tensors. ***\n");
+            ambit::print("      Running in %d processes.\n", ambit::settings::nprocess);
         }
         else {
-            printf("  *** Unknown parameter given ***\n");
-            printf("  *** Testing core tensors.   ***\n");
+            ambit::print("  *** Unknown parameter given ***\n");
+            ambit::print("  *** Testing core tensors.   ***\n");
         }
     }
 
