@@ -409,7 +409,7 @@ class BlockedTensor:
         self.blocks = {}
 
     @staticmethod
-    def build(type, name, blocks):
+    def build(dtype, name, blocks):
         newObject = BlockedTensor()
 
         newObject.name = str(name)
@@ -462,7 +462,7 @@ class BlockedTensor:
             for ms in this_block:
                 mo_names += BlockedTensor.mo_spaces[ms].name
 
-            newObject.blocks[mo_names] = tensor_wrapper.Tensor.build(type=type, name=name + "[" + mo_names + "]",
+            newObject.blocks[mo_names] = tensor_wrapper.Tensor.build(dtype=dtype, name=name + "[" + mo_names + "]",
                                                                      dims=dims)
 
             # Set or check the rank

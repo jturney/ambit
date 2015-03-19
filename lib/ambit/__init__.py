@@ -1,5 +1,6 @@
 #from . import pyambit
 from .pyambit import TensorType, EigenvalueOrder
+from .pyambit import TensorVector, TensorMap
 
 from . import tensor_wrapper
 from .tensor_wrapper import Tensor, LabeledTensor

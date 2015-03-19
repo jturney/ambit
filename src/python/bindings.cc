@@ -1,6 +1,7 @@
 #include <boost/python.hpp>
 #include <boost/python/return_internal_reference.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/suite/indexing/map_indexing_suite.hpp>
 
 #include <ambit/tensor.h>
 #include <../tensor/indices.h>
@@ -102,16 +103,11 @@ BOOST_PYTHON_MODULE (pyambit)
             .from_python<std::vector<std::vector<size_t>>>() // same as IndexRange
             .from_python<std::vector<std::string>>();
 
-    enum_<TensorType>("TensorType", "docstring")
-            .value("kCurrent", kCurrent)
-            .value("kCore", kCore)
-            .value("kDisk", kDisk)
-            .value("kDistributed", kDistributed)
-            .value("kAgnostic", kAgnostic);
+    class_<std::vector<Tensor>>("TensorVector")
+        .def(vector_indexing_suite<std::vector<Tensor>>());
 
-    enum_<EigenvalueOrder>("EigenvalueOrder", "docstring")
-            .value("kAscending", kAscending)
-            .value("kDescending", kDescending);
+    class_<std::map<std::string, Tensor>>("TensorMap")
+        .def(map_indexing_suite<std::map<std::string, Tensor>>());
 
     class_<Dimension>("Dimension")
             .def(vector_indexing_suite<Dimension>());
@@ -128,6 +124,18 @@ BOOST_PYTHON_MODULE (pyambit)
 
     class_<std::vector<Indices>>("IndicesVector")
             .def(vector_indexing_suite<std::vector<Indices>>());
+
+    // Typedefs
+    enum_<TensorType>("TensorType", "docstring")
+            .value("kCurrent", kCurrent)
+            .value("kCore", kCore)
+            .value("kDisk", kDisk)
+            .value("kDistributed", kDistributed)
+            .value("kAgnostic", kAgnostic);
+
+    enum_<EigenvalueOrder>("EigenvalueOrder", "docstring")
+            .value("kAscending", kAscending)
+            .value("kDescending", kDescending);
 
     class_<Indices>("Indices")
             .def(vector_indexing_suite<Indices>())
@@ -150,7 +158,7 @@ BOOST_PYTHON_MODULE (pyambit)
     class_<Tensor>("ITensor", no_init)
             .def("build", &Tensor::build)
             .staticmethod("build")
-            .add_property("type", &Tensor::type, "docstring")
+            .add_property("dtype", &Tensor::type, "docstring")
             .add_property("name", &Tensor::name, &Tensor::set_name, "docstring")
             .add_property("dims",
                           make_function(&Tensor::dims, return_internal_reference<>()), "docstring")

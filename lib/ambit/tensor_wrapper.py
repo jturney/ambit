@@ -4,6 +4,44 @@ import numbers
 import itertools
 
 
+def _parse_slices(indices, dims):
+    # Multiarray slices
+    if isinstance(indices, (list, tuple)):
+
+        # 1D Slice
+        if isinstance(indices[0], int):
+            return list(indices)
+
+        # Throw if dims do not match
+        if len(indices) != len(dims):
+            raise RuntimeError("SlicedTensor: Number of slices does not equal tensor rank.")
+
+        # ND slice
+        formed_indices = []
+        for num, sl in enumerate(indices):
+            if isinstance(sl, list):
+                formed_indices.append(sl)
+            elif isinstance(sl, slice):
+                if sl.step:
+                    raise ValueError("Step slices are not supported.")
+                new_slice = [sl.start if sl.start else 0, sl.stop if sl.stop else dims[num]]
+                formed_indices.append(new_slice)
+            else:
+                raise ValueError("Slice of type %s is not supported." % type(sl))
+        return formed_indices
+
+    # Single slice
+    elif isinstance(indices, slice):
+        if indices.step:
+            raise ValueError("Step slices are not supported.")
+        sl = indices
+        return [[sl.start if sl.start else 0, sl.stop if sl.stop else dims[num]]]
+
+    # Conventional list slices
+    else:
+        return indices
+
+
 class LabeledTensorProduct:
     def __init__(self, left, right):
         self.tensors = []
@@ -24,7 +62,7 @@ class LabeledTensorProduct:
         if len(self.tensors) != 2:
             raise RuntimeError("Conversion operator only supports binary expressions.")
 
-        R = Tensor(self.tensors[0].tensor.type, "R", [])
+        R = Tensor(self.tensors[0].tensor.dtype, "R", [])
         R.contract(self.tensors[0], self.tensors[1], [], self.tensors[0].indices, self.tensors[1].indices,
                    self.tensors[0].factor * self.tensors[1].factor, 1.0)
 
@@ -126,7 +164,7 @@ class LabeledTensorDistributive:
         self.B = right
 
     def __float__(self):
-        R = Tensor(self.A.tensor.type, "R", [])
+        R = Tensor(self.A.tensor.dtype, "R", [])
 
         for tensor in self.B.tensors:
             R.contract(self.A, tensor, [], self.A.indices, tensor.indices, self.A.factor * tensor.factor, 1.0)
@@ -220,7 +258,7 @@ class LabeledTensor:
                     dims.append(B.dim_by_index(index))
                     indices.append(index)
 
-                tAB = Tensor.build(A.tensor.type, A.tensor.name + " * " + B.tensor.name, dims)
+                tAB = Tensor.build(A.tensor.dtype, A.tensor.name + " * " + B.tensor.name, dims)
 
                 tAB.contract(A, B, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
 
@@ -279,7 +317,7 @@ class LabeledTensor:
                     dims.append(B.dim_by_index(index))
                     indices.append(index)
 
-                tAB = Tensor.build(A.tensor.type, A.tensor.name + " * " + B.tensor.name, dims)
+                tAB = Tensor.build(A.tensor.dtype, A.tensor.name + " * " + B.tensor.name, dims)
 
                 tAB.contract(A, B, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
 
@@ -328,7 +366,7 @@ class LabeledTensor:
 
 class Tensor:
     @staticmethod
-    def build(type, name, dims):
+    def build(dtype, name, dims):
         """
         Factory constructor. Builds a Tensor of TensorType type
         with given name and dimensions dims.
@@ -340,66 +378,36 @@ class Tensor:
         :return: new Tensor of TensorType type with name and dims.
                  The returned Tensor is set to zero.
         """
-        return Tensor(type, name, dims)
+        return Tensor(dtype, name, dims)
 
-    def __init__(self, type=None, name=None, dims=None, existing=None):
+    def __init__(self, dtype=None, name=None, dims=None, existing=None):
+
+        if isinstance(dtype, str):
+            dtype = pyambit.TensorType.names[dtype]
+
         if existing:
             self.tensor = existing
-            self.type = existing.type
+            self.dtype = existing.dtype
             self.dims = existing.dims
             self.name = name if name else existing.name
 
         else:
             self.name = name
             self.rank = len(dims)
-            self.type = type
+            self.dtype = dtype
             self.dims = dims
-            self.tensor = pyambit.ITensor.build(type, name, dims)
+            self.tensor = pyambit.ITensor.build(dtype, name, dims)
 
     @property
     def __array_interface__(self):
-       if self.type == pyambit.TensorType.kCore:
+       if self.dtype == pyambit.TensorType.kCore:
            return self.tensor.__array_interface__()
        else:
            raise TypeError('Only kCore tensors can be converted to ndarrays.')
 
     def __getitem__(self, indices):
-
-        # Multiarray slices
-        if isinstance(indices, (list, tuple)):
-
-            # 1D Slice
-            if isinstance(indices[0], int):
-                return SlicedTensor(self, list(indices))
-
-            # Throw if dims do not match
-            if len(indices) != self.rank:
-                raise RuntimeError("SlicedTensor: Number of slices does not equal tensor rank.")
-
-            # ND slice
-            formed_inds = []
-            for num, sl in enumerate(indices):
-                if isinstance(sl, list):
-                    formed_inds.append(sl)
-                elif isinstance(sl, slice):
-                    if sl.step:
-                        raise ValueError("Step slices are not supported.")
-                    new_slice = [sl.start if sl.start else 0, sl.stop if sl.stop else self.dims[num]]
-                    formed_inds.append(new_slice)
-                else:
-                    raise ValueError("Slice of type %s is not supported." % type(sl))
-            return SlicedTensor(self, formed_inds)
-
-        # Single slice
-        elif isinstance(indices, slice):
-            if indices.step:
-                raise ValueError("Step slices are not supported.")
-            sl = indices
-            return SlicedTensor(self, [[sl.start if sl.start else 0, sl.stop if sl.stop else self.dims[num]]])
-
-        # Labeled tensor
-        else:
-            return LabeledTensor(self.tensor, indices)
+        pslices = _parse_slices(indices, self.dims)
+        return LabeledTensor(self.tensor, pslices)
 
     def __setitem__(self, indices_str, value):
 
@@ -449,7 +457,7 @@ class Tensor:
                     dims.append(B.dim_by_index(index))
                     indices.append(index)
 
-                tAB = Tensor.build(A.tensor.type, A.tensor.name + " * " + B.tensor.name, dims)
+                tAB = Tensor.build(A.tensor.dtype, A.tensor.name + " * " + B.tensor.name, dims)
 
                 tAB.contract(A, B, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
 
@@ -679,12 +687,22 @@ class Tensor:
         self.tensor.gemm(A.tensor, B.tensor, transA, transB, nrow, ncol, nzip, ldaA, ldaB, ldaC, offA=0, offB=0, offC=0,
                          alpha=1.0, beta=0.0)
 
-    def syev(self, order):
+    def syev(self, order=None):
+
+        if order is None:
+            order = pyambit.EigenvalueOrder.names["kAscending"]
+        elif isinstance(order, str):
+            order = pyambit.EigenvalueOrder.names[order]
+        elif isinstance(order, pyambit.EigenvalueOrder):
+            order = order
+        else:
+            raise ValueError("Tensor: syev order type %s not recognized", type(order))
+
         aResults = self.tensor.syev(order)
 
         results = {}
-        for k, v in aResults.iteritems():
-            results[k] = Tensor(existing=v)
+        for k in ['eigenvectors', 'eigenvalues']:
+            results[k] = Tensor(existing=aResults[k])
 
         return results
 
@@ -754,3 +772,4 @@ class SlicedTensor:
 
     def __neg__(self):
         return SlicedTensor(self.tensor, self.range, -self.factor)
+
