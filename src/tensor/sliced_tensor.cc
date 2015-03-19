@@ -5,8 +5,9 @@ namespace ambit {
 SlicedTensor::SlicedTensor(Tensor T, const IndexRange& range, double factor) :
         T_(T), range_(range), factor_(factor)
 {
-    if (T_.rank() != range_.size())
-        throw std::runtime_error("Sliced tensor does not have correct number of indices for underlying tensor's rank");
+    if (T_.rank() != range_.size()) {
+        throw std::runtime_error("Sliced tensor does not have correct number of indices for underlying tensor's rank\n range_ " + std::to_string(range_.size()) + " rank " + std::to_string(T.rank()));
+    }
     for (size_t ind = 0; ind < T.rank(); ind++) {
         if (range_[ind].size() != 2L)
             throw std::runtime_error("Each index of an IndexRange should have two elements {start,end+1} in it.");

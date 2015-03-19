@@ -38,17 +38,17 @@ if(ENABLE_CYCLOPS)
 endif()
 
 # build static libray
-add_library(ambit STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
+add_library(ambit SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
 
 if(ENABLE_CYCLOPS)
     target_link_libraries(ambit ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
-    set_target_properties(ambit PROPERTIES COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-    set_target_properties(ambit PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
+#    set_target_properties(ambit PROPERTIES COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+#    set_target_properties(ambit PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
 
-target_link_libraries(ambit ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
+target_link_libraries(ambit ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS ambit ARCHIVE DESTINATION lib)
+install(TARGETS ambit LIBRARY DESTINATION lib)
 
 if(ENABLE_PYTHON)
     add_subdirectory(python)
