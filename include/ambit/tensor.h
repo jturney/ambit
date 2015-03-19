@@ -11,10 +11,6 @@
 #include <memory>
 #include <tuple>
 
-//#if defined(HAVE_MPI)
-//#include <mpi.h>
-//#endif
-
 namespace ambit {
 
 using std::tuple;
@@ -668,7 +664,6 @@ private:
 inline SlicedTensor operator*(double factor, const SlicedTensor& ti) {
     return SlicedTensor(ti.T(), ti.range(), factor*ti.factor());
 };
-
 
 }
 

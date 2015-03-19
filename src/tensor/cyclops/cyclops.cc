@@ -3,6 +3,7 @@
 #endif
 
 #include "cyclops.h"
+#include <ambit/print.h>
 
 #define GET_CTF_TENSOR(X) \
     const CyclopsTensorImpl* c##X = dynamic_cast<const CyclopsTensorImpl*>((X)); \
@@ -74,8 +75,8 @@ int initialize(int argc, char** argv)
 
     globals::world = new CTF_World(globals::communicator, argc, argv);
 
-    if (settings::debug && settings::rank == 0) {
-        printf("Cyclops interface initialized. nprocess: %d\n", settings::nprocess);
+    if (settings::debug) {
+        print("Cyclops interface initialized. nprocess: %d\n", settings::nprocess);
     }
 
     return 0;
@@ -93,7 +94,7 @@ int initialize(MPI_Comm comm, int argc, char * * argv)
     globals::communicator = comm;
 
 #if defined(HAVE_ELEMENTAL)
-    printf("cycops::initialize: I don't know how to initialize Elemental with a different communicator.");
+    print("cycops::initialize: I don't know how to initialize Elemental with a different communicator.");
     El::Initialize(argc, argv);
 #endif
 
@@ -102,8 +103,8 @@ int initialize(MPI_Comm comm, int argc, char * * argv)
 
     globals::world = new CTF_World(globals::communicator, argc, argv);
 
-    if (settings::debug && settings::rank == 0) {
-        printf("Cyclops interface initialized. nprocess: %d\n", settings::nprocess);
+    if (settings::debug) {
+        print("Cyclops interface initialized. nprocess: %d\n", settings::nprocess);
     }
 
     return 0;
