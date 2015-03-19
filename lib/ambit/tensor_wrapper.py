@@ -349,10 +349,6 @@ class Tensor:
             self.dims = existing.dims
             self.name = name if name else existing.name
 
-            if type == pyambit.TensorType.kCore:
-                self.__array_interface__ = existing.__array_interface__
-            else:
-                self.__array_interface__ = {'typestr':'Only kCore tensors can be converted to ndarrays.'}
         else:
             self.name = name
             self.rank = len(dims)
@@ -360,10 +356,12 @@ class Tensor:
             self.dims = dims
             self.tensor = pyambit.ITensor.build(type, name, dims)
 
-            if type == pyambit.TensorType.kCore:
-                self.__array_interface__ = self.tensor.__array_interface__
-            else:
-                self.__array_interface__ = {'typestr':'Only kCore tensors can be converted to ndarrays.'}
+    @property
+    def __array_interface__(self):
+       if self.type == pyambit.TensorType.kCore:
+           return self.tensor.__array_interface__()
+       else:
+           raise TypeError('Only kCore tensors can be converted to ndarrays.')
 
     def __getitem__(self, indices):
 

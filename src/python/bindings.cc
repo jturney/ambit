@@ -98,6 +98,7 @@ BOOST_PYTHON_MODULE (pyambit)
     // Register iterable conversions.
     iterable_converter()
             .from_python<std::vector<size_t>>()      // same as a Dimension object
+            .from_python<std::vector<double>>()      // need to expressly make a double converter
             .from_python<std::vector<std::vector<size_t>>>() // same as IndexRange
             .from_python<std::vector<std::string>>();
 
@@ -167,5 +168,5 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("zero", &Tensor::zero)
             .def("copy", &Tensor::copy)
             .def("printf", &Tensor::print,tensor_print_ov())
-            .add_property("__array_interface__", tensor_array_interface);
+            .def("__array_interface__", tensor_array_interface);
 }
