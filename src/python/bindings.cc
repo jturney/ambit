@@ -98,6 +98,7 @@ BOOST_PYTHON_MODULE (pyambit)
     // Register iterable conversions.
     iterable_converter()
             .from_python<std::vector<size_t>>()      // same as a Dimension object
+            .from_python<std::vector<double>>()      // need to expressly make a double converter
             .from_python<std::vector<std::vector<size_t>>>() // same as IndexRange
             .from_python<std::vector<std::string>>();
 
