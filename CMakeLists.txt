@@ -16,8 +16,13 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-project(ambit C CXX)
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+project(ambit C CXX)
+
+set(AMBIT_MAJOR_VERSION 0)
+set(AMBIT_MINOR_VERSION 1)
+set(AMBIT_PATCH_VERSION 0)
+set(AMBIT_VERSION ${AMBIT_MAJOR_VERSION}.${AMBIT_MINOR_VERSION}.${AMBIT_PATCH_VERSION})
 
 # Custom CMake modules location
 list(APPEND CMAKE_MODULE_PATH
@@ -25,6 +30,8 @@ list(APPEND CMAKE_MODULE_PATH
     ${CMAKE_SOURCE_DIR}/cmake/compilers
     ${CMAKE_SOURCE_DIR}/cmake/math
 )
+
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Options
 option(ENABLE_MPI           "Enable MPI parallelization"  OFF)
@@ -114,6 +121,8 @@ add_subdirectory(test)
 
 # sample suite
 add_subdirectory(samples)
+
+# Add all targets to the build-tree export set
 
 # this has to be the very last CMake module to be included
 include(ConfigInfo)

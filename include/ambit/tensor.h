@@ -11,9 +11,9 @@
 #include <memory>
 #include <tuple>
 
-#if defined(HAVE_MPI)
-#include <mpi.h>
-#endif
+//#if defined(HAVE_MPI)
+//#include <mpi.h>
+//#endif
 
 namespace ambit {
 
@@ -83,9 +83,9 @@ extern const bool distributed_capable;
  */
 int initialize(int argc = 0, char* * argv = nullptr);
 
-#if defined(HAVE_MPI)
-int initialize(MPI_Comm comm, int argc = 0, char** argv = nullptr);
-#endif
+//#if defined(HAVE_MPI)
+//int initialize(MPI_Comm comm, int argc = 0, char** argv = nullptr);
+//#endif
 
 /** Shutdowns the tensor library.
  *
