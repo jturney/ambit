@@ -17,6 +17,12 @@ namespace ambit {
 
 namespace settings {
 
+namespace {
+
+int ninitialized = 0;
+
+}
+
 int nprocess = 1;
 
 int rank = 0;
@@ -36,6 +42,11 @@ namespace {
 
 void common_initialize(int /*argc*/, char* const * /*argv*/)
 {
+    if (settings::ninitialized != 0)
+        throw std::runtime_error("ambit::initialize: Ambit has already been initialized.");
+
+    settings::ninitialized++;
+
     // Set the scratch path for disk files
     const char* scratch_env = std::getenv("TENSOR_SCRATCH");
     if (scratch_env != nullptr) {
@@ -59,21 +70,13 @@ int initialize(int argc, char* * argv)
 #endif
 }
 
-#if defined(HAVE_MPI)
-int initialize(MPI_Comm comm, int argc, char * * argv)
-{
-    common_initialize(argc, argv);
-
-#if defined(HAVE_CYCLOPS)
-    return cyclops::initialize(argc, argv);
-#else
-    return 0;
-#endif
-}
-#endif
-
 void finalize()
 {
+    if (settings::ninitialized == 0)
+        throw std::runtime_error("ambit::finalize: Ambit has already been finalized.");
+
+    settings::ninitialized--;
+    
 #if defined(HAVE_CYCLOPS)
     cyclops::finalize();
 #endif
@@ -87,6 +90,9 @@ Tensor::Tensor(shared_ptr<TensorImpl> tensor)
 
 Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& dims)
 {
+    if (settings::ninitialized == 0)
+        throw std::runtime_error("ambit::Tensor::build: Ambit has not been initialized.");
+
     Tensor newObject;
 
     if (type == kAgnostic) {
