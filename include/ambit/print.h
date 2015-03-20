@@ -11,7 +11,7 @@ void print(const std::string& format, ...);
 /** Each proces will print to their respective output file.
  *  The master process will print to both the screen and its output file.
  */
-//void printn(const std::string& format, ...);
+void printn(const std::string& format, ...);
 
 /** Increases printing column offset by increment.
  * @param increment the amount to increase indentation.

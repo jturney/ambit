@@ -18,6 +18,10 @@ public:
     double norm(
         int type = 2) const;
 
+    std::tuple<double, std::vector<size_t>> max() const;
+
+    std::tuple<double, std::vector<size_t>> min() const;
+
     void scale(
         double beta = 0.0);
 

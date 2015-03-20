@@ -10,6 +10,7 @@ set(TENSOR_HEADERS
     tensor/core/core.h
     tensor/disk/disk.h
     tensor/indices.h
+    tensor/globals.h
     tensor/macros.h
     tensor/tensorimpl.h
 )
@@ -23,10 +24,11 @@ set(TENSOR_SOURCES
     math/lapack.cc
     tensor/core/core.cc
     tensor/disk/disk.cc
-    tensor/slice.cc
     tensor/indices.cc
+    tensor/globals.cc
     tensor/labeled_tensor.cc
     tensor/print.cc
+    tensor/slice.cc
     tensor/sliced_tensor.cc
     tensor/tensor.cc
     tensor/tensorimpl.cc

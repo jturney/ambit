@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <string.h>
 #include <cmath>
+#include <limits>
 
 //#include <boost/timer/timer.hpp>
 
@@ -41,6 +42,39 @@ double CoreTensorImpl::norm(
         throw std::runtime_error("Norm must be 0 (infty-norm), 1 (1-norm), or 2 (2-norm)");
     }
 }
+
+std::tuple<double, std::vector<size_t>> CoreTensorImpl::max() const
+{
+    std::tuple<double, std::vector<size_t>> element;
+
+    std::get<0>(element) = std::numeric_limits<double>::lowest();
+
+    citerate([&](const std::vector<size_t>& indices, const double& value) {
+        if (std::get<0>(element) > value) {
+            std::get<0>(element) = value;
+            std::get<1>(element) = indices;
+        }
+    });
+
+    return element;
+}
+
+std::tuple<double, std::vector<size_t>> CoreTensorImpl::min() const
+{
+    std::tuple<double, std::vector<size_t>> element;
+
+    std::get<0>(element) = std::numeric_limits<double>::max();
+
+    citerate([&](const std::vector<size_t>& indices, const double& value) {
+        if (std::get<0>(element) < value) {
+            std::get<0>(element) = value;
+            std::get<1>(element) = indices;
+        }
+    });
+
+    return element;
+}
+
 void CoreTensorImpl::scale(double beta)
 {
     if (beta == 0.0)

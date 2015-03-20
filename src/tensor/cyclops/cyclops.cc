@@ -3,6 +3,7 @@
 #endif
 
 #include "cyclops.h"
+#include "../globals.h"
 #include <ambit/print.h>
 
 #define GET_CTF_TENSOR(X) \
@@ -11,14 +12,13 @@
 
 namespace ambit { namespace cyclops {
 
-namespace globals {
+namespace details {
+
     CTF_World *world = nullptr;
 
     // did we initialize MPI or did the user?
     int initialized_mpi = 0;
 
-    // MPI communicator object
-    MPI_Comm communicator = 0;
 }
 
 namespace {
@@ -54,9 +54,9 @@ std::vector<std::string> generateCyclopsLabels(const std::vector<Indices>& inds)
 
 int initialize(int argc, char** argv)
 {
-    MPI_Initialized(&globals::initialized_mpi);
+    MPI_Initialized(&details::initialized_mpi);
 
-    if (!globals::initialized_mpi) {
+    if (!details::initialized_mpi) {
         int error = MPI_Init(&argc, &argv);
         if (error != MPI_SUCCESS) {
             throw std::runtime_error("cyclops::initialize: Unable to initialize MPI.");
@@ -73,7 +73,7 @@ int initialize(int argc, char** argv)
     MPI_Comm_rank(globals::communicator, &settings::rank);
     MPI_Comm_size(globals::communicator, &settings::nprocess);
 
-    globals::world = new CTF_World(globals::communicator, argc, argv);
+    details::world = new CTF_World(globals::communicator, argc, argv);
 
     if (settings::debug) {
         print("Cyclops interface initialized. nprocess: %d\n", settings::nprocess);
@@ -85,9 +85,9 @@ int initialize(int argc, char** argv)
 int initialize(MPI_Comm comm, int argc, char * * argv)
 {
     // Since we're provided a communicator ensure MPI is initialize
-    MPI_Initialized(&globals::initialized_mpi);
+    MPI_Initialized(&details::initialized_mpi);
 
-    if (!globals::initialized_mpi) {
+    if (!details::initialized_mpi) {
         throw std::runtime_error("cyclops::initialize: Communicator provided but MPI is not initialized.");
     }
 
@@ -101,7 +101,7 @@ int initialize(MPI_Comm comm, int argc, char * * argv)
     MPI_Comm_rank(globals::communicator, &settings::rank);
     MPI_Comm_size(globals::communicator, &settings::nprocess);
 
-    globals::world = new CTF_World(globals::communicator, argc, argv);
+    details::world = new CTF_World(globals::communicator, argc, argv);
 
     if (settings::debug) {
         print("Cyclops interface initialized. nprocess: %d\n", settings::nprocess);
@@ -112,15 +112,15 @@ int initialize(MPI_Comm comm, int argc, char * * argv)
 
 void finalize()
 {
-    delete globals::world;
-    globals::world = nullptr;
+    delete details::world;
+    details::world = nullptr;
 
 #if defined(HAVE_ELEMENTAL)
     El::Finalize();
 #endif
 
     // if we initialized MPI then we finalize it.
-    if (!globals::initialized_mpi)
+    if (!details::initialized_mpi)
         MPI_Finalize();
 }
 
@@ -129,7 +129,7 @@ CyclopsTensorImpl::CyclopsTensorImpl(const std::string& name,
     : TensorImpl(kDistributed, name, dims)
 {
     if (dims.size() == 0) {
-        cyclops_ = new CTF_Scalar(0.0, *globals::world);
+        cyclops_ = new CTF_Scalar(0.0, *details::world);
         return;
     }
 
@@ -141,7 +141,7 @@ CyclopsTensorImpl::CyclopsTensorImpl(const std::string& name,
     cyclops_ = new CTF_Tensor(dims.size(),
                            local_dims,
                            local_sym,
-                           *globals::world);
+                           *details::world);
 
     delete[] local_dims;
     delete[] local_sym;
@@ -164,6 +164,110 @@ double CyclopsTensorImpl::norm(int type) const
     default:
         throw std::runtime_error("Unknown norm type passed to Cyclops tensor.");
     }
+}
+
+std::tuple<double, std::vector<size_t>> CyclopsTensorImpl::max() const
+{
+    double element_value;
+    std::vector<size_t> element_indices;
+
+    element_value = std::numeric_limits<double>::lowest();
+
+    citerate([&](const std::vector<size_t>& indices, const double& value) {
+        if (value > element_value) {
+            element_value = value;
+            element_indices = indices;
+        }
+    });
+
+    barrier();
+
+    // Need to perform broadcast of smallest.
+    size_t *myindices = new size_t[rank()];
+    size_t *allindices = new size_t[rank() * ambit::settings::nprocess];
+    double *allvalues = new double[ambit::settings::nprocess];
+
+    // Broadcast each nodes smallest value to all nodes
+    MPI_Allgather(&element_value, 1, MPI_DOUBLE, allvalues, 1, MPI_DOUBLE, globals::communicator);
+
+    for (int i=0; i<rank(); i++)
+        myindices[i] = element_indices[i];
+
+    // Broadcast each nodes set of indices to all nodes
+    MPI_Allgather(myindices, rank() * sizeof(size_t), MPI_CHAR, allindices, rank() * sizeof(size_t), MPI_CHAR, globals::communicator);
+
+    // Now that we have each nodes' minimum value check each for the global minimum
+    for (size_t i=0; i<ambit::settings::nprocess; i++) {
+        if (allvalues[i] > element_value) {
+            element_value = allvalues[i];
+            for (size_t j=0; j<rank(); j++)
+                element_indices[j] = allindices[rank()*i + j];
+        }
+    }
+
+    delete[] allvalues;
+    delete[] allindices;
+    delete[] myindices;
+
+    barrier();
+
+    std::tuple<double, std::vector<size_t>> result;
+    std::get<0>(result) = element_value;
+    std::get<1>(result) = element_indices;
+
+    return result;
+}
+
+std::tuple<double, std::vector<size_t>> CyclopsTensorImpl::min() const
+{
+    double element_value;
+    std::vector<size_t> element_indices;
+
+    element_value = std::numeric_limits<double>::max();
+
+    citerate([&](const std::vector<size_t>& indices, const double& value) {
+        if (value < element_value) {
+            element_value = value;
+            element_indices = indices;
+        }
+    });
+
+    barrier();
+
+    // Need to perform broadcast of smallest.
+    size_t *myindices = new size_t[rank()];
+    size_t *allindices = new size_t[rank() * ambit::settings::nprocess];
+    double *allvalues = new double[ambit::settings::nprocess];
+
+    // Broadcast each nodes smallest value to all nodes
+    MPI_Allgather(&element_value, 1, MPI_DOUBLE, allvalues, 1, MPI_DOUBLE, globals::communicator);
+
+    for (int i=0; i<rank(); i++)
+        myindices[i] = element_indices[i];
+
+    // Broadcast each nodes set of indices to all nodes
+    MPI_Allgather(myindices, rank() * sizeof(size_t), MPI_CHAR, allindices, rank() * sizeof(size_t), MPI_CHAR, globals::communicator);
+
+    // Now that we have each nodes' minimum value check each for the global minimum
+    for (size_t i=0; i<ambit::settings::nprocess; i++) {
+        if (allvalues[i] < element_value) {
+            element_value = allvalues[i];
+            for (size_t j=0; j<rank(); j++)
+                element_indices[j] = allindices[rank()*i + j];
+        }
+    }
+
+    delete[] allvalues;
+    delete[] allindices;
+    delete[] myindices;
+
+    barrier();
+
+    std::tuple<double, std::vector<size_t>> result;
+    std::get<0>(result) = element_value;
+    std::get<1>(result) = element_indices;
+
+    return result;
 }
 
 void CyclopsTensorImpl::scale(double beta)

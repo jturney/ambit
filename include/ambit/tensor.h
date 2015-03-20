@@ -79,15 +79,18 @@ extern const bool distributed_capable;
  */
 int initialize(int argc = 0, char* * argv = nullptr);
 
-//#if defined(HAVE_MPI)
-//int initialize(MPI_Comm comm, int argc = 0, char** argv = nullptr);
-//#endif
-
 /** Shutdowns the tensor library.
  *
  * Calls any necessary routines of utilized frameworks.
  */
 void finalize();
+
+/** Barrier function
+ *
+ * If called in MPI process it equivalent to calling MPI_Barrier.
+ * Otherwise this call is nop.
+ */
+void barrier();
 
 class Tensor {
 
@@ -215,6 +218,18 @@ public:
      *  @return computed norm
      **/
     double norm(int type = 2) const;
+
+    /** Find the maximum value.
+     *
+     * @return maximum value along with its indices
+     */
+    std::tuple<double, std::vector<size_t>> max() const;
+
+    /** Find the minimum value.
+     *
+     * @return minimum value along with its indices
+     */
+    std::tuple<double, std::vector<size_t>> min() const;
 
     /**
      * Sets the data of the tensor to zeros

@@ -70,6 +70,12 @@ public:
         int type = 2) const
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
+    virtual std::tuple<double, std::vector<size_t>> max() const
+        { throw std::runtime_error("Operation not support in this tensor implementation."); }
+
+    virtual std::tuple<double, std::vector<size_t>> min() const
+        { throw std::runtime_error("Operation not support in this tensor implementation."); }
+
     void zero();
 
     virtual void scale(

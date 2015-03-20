@@ -8,6 +8,8 @@
 #include "disk/disk.h"
 #include "indices.h"
 
+#include "globals.h"
+
 // include header files to specific tensor types supported.
 #if defined(HAVE_CYCLOPS)
 #   include "cyclops/cyclops.h"
@@ -79,6 +81,13 @@ void finalize()
 
 #if defined(HAVE_CYCLOPS)
     cyclops::finalize();
+#endif
+}
+
+void barrier()
+{
+#if defined(HAVE_MPI)
+    MPI_Barrier(globals::communicator);
 #endif
 }
 
@@ -238,6 +247,16 @@ void Tensor::iterate(const std::function<void (const std::vector<size_t>&, doubl
 void Tensor::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
 {
     tensor_->citerate(func);
+}
+
+std::tuple<double, std::vector<size_t>> Tensor::max() const
+{
+    return tensor_->max();
+}
+
+std::tuple<double, std::vector<size_t>> Tensor::min() const
+{
+    return tensor_->min();
 }
 
 std::map<std::string, Tensor> Tensor::map_to_tensor(const std::map<std::string, TensorImplPtr>& x)

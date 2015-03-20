@@ -1,4 +1,5 @@
 #include <ambit/tensor.h>
+#include <ambit/print.h>
 #include <ambit/io/io.h>
 #include <ambit/helpers/psi4/io.h>
 #include <cmath>
@@ -148,11 +149,11 @@ int main(int argc, char* argv[])
         ambit::io::File file32("test.32", ambit::io::kOpenModeOpenExisting);
 
         file32.read("::Num. irreps", &nirrep, 1);
-        printf("nirrep = %d\n", nirrep);
+        print("nirrep = %d\n", nirrep);
         assert(nirrep == 1);
 
         file32.read("::Num. SO", &nso, 1);
-        printf("nso = %d\n", nso);
+        print("nso = %d\n", nso);
     }
 
     Dimension AO2 = {(size_t)nso, (size_t)nso};
@@ -162,8 +163,7 @@ int main(int argc, char* argv[])
         helpers::psi4::load_matrix("test.35", "SO-basis Overlap Ints", S);
 
         double norm = S.norm();
-        //if (settings::rank == 0)
-            printf("rank %d, norm of S is %lf\n", settings::rank, norm);
+        printn("norm of S is %lf\n", settings::rank, norm);
     }
 
     {
@@ -171,7 +171,10 @@ int main(int argc, char* argv[])
         helpers::psi4::load_iwl("test.33", g);
 
         double norm = g.norm();
-        printf("rank %d, norm of g is %lf\n", settings::rank, norm);
+        printn("norm of g is %lf\n", settings::rank, norm);
+
+        printn("max value in g is %lf\n", std::get<0>(g.max()));
+        printn("min value in g is %lf\n", std::get<0>(g.min()));
     }
 
     ambit::finalize();

@@ -7,12 +7,13 @@
 namespace ambit {
 
 namespace {
+
 int indent_size = 0;
 
 
-void print_indentation(FILE *out)
+void print_indentation()
 {
-    fprintf(out, "%*s", indent_size, "");
+    printf("%*s", indent_size, "");
 }
 
 }
@@ -34,15 +35,26 @@ void print(const std::string& format, ...)
     if (ambit::settings::rank == 0) {
         va_list args;
         va_start(args, format);
-        print_indentation(stdout);
+        print_indentation();
         vprintf(format.c_str(), args);
         va_end(args);
     }
 }
 
-//void printn(const std::string& format, ...)
-//{
-//    throw std::runtime_error("Not implemented");
-//}
+void printn(const std::string& format, ...)
+{
+    for (int proc=0; proc < settings::nprocess; proc++) {
+        if (proc == settings::rank) {
+            printf("%d: ", settings::rank);
+            va_list args;
+            va_start(args, format);
+            print_indentation();
+            vprintf(format.c_str(), args);
+            va_end(args);
+        }
+
+        barrier();
+    }
+}
 
 }
