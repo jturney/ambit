@@ -8,6 +8,13 @@ namespace ambit {
 
 namespace {
 int indent_size = 0;
+
+
+void print_indentation(FILE *out)
+{
+    fprintf(out, "%*s", indent_size, "");
+}
+
 }
 
 void indent(int increment)
@@ -20,11 +27,6 @@ void unindent(int decrement)
     indent_size -= decrement;
     if (indent_size < 0)
         indent_size = 0;
-}
-
-void print_indentation(FILE *out)
-{
-    fprintf(out, "%*s", indent_size, "");
 }
 
 void print(const std::string& format, ...)
