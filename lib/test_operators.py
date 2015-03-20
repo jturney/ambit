@@ -4,6 +4,12 @@ import ambit
 
 class TestOperatorOverloading(unittest.TestCase):
 
+    def setUp(self):
+        ambit.initialize()
+
+    def tearDown(self):
+        ambit.finalize()
+
     def build_and_fill2(self, name, dims):
         T = ambit.Tensor(ambit.TensorType.kCore, name, dims)
         N = [[0 for x in range(dims[1])] for x in range(dims[0])]

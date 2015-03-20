@@ -18,6 +18,12 @@ dim_size_dict = {k:v for k, v in zip(dim_inds, dim_sizes)}
 
 class TestOperatorOverloading(unittest.TestCase):
 
+    def setUp(self):
+        ambit.initialize()
+
+    def tearDown(self):
+        ambit.finalize()
+
     def build(self, name, dims, ttype=tensor_type, fill=None):
         # Builds arbitrary Tensors and numpy arrys
         # Accepts a list of integers or a string for dimensions
@@ -44,7 +50,7 @@ class TestOperatorOverloading(unittest.TestCase):
 
     def assert_allclose(self, T, N):
         # Can test arbitrary tensor types once implemented
-        if T.type == ambit.TensorType.kCore:
+        if T.dtype == ambit.TensorType.kCore:
             self.assertTrue(np.allclose(T, N))
         else:
             raise ValueError("Assert Allclose: Only kCore is currently supported")
@@ -54,10 +60,10 @@ class TestOperatorOverloading(unittest.TestCase):
         for rank in range(1, max_test_rank):
             tmp_dims = dim_sizes[:rank]
             tmp_inds = dim_inds[:rank]
-        
+
             [aA, nA] = self.build("A", tmp_dims)
             [aC, nC] = self.build("C", tmp_dims)
-            
+
             aC[tmp_inds] = 2.0 * aA[tmp_inds]
             nC = 2.0 * nA
             self.assert_allclose(aC, nC)
@@ -68,11 +74,11 @@ class TestOperatorOverloading(unittest.TestCase):
         for rank in range(1, max_test_rank):
             tmp_dims = dim_sizes[:rank]
             tmp_inds = dim_inds[:rank]
-        
+
             [aA, nA] = self.build("A", tmp_dims)
             [aB, nB] = self.build("B", tmp_dims)
             [aC, nC] = self.build("C", tmp_dims)
-            
+
             aC[tmp_inds] = aA[tmp_inds] * aB[tmp_inds]
             nC = nA * nB
             self.assert_allclose(aC, nC)
@@ -84,10 +90,10 @@ class TestOperatorOverloading(unittest.TestCase):
         for rank in range(1, max_test_rank):
             tmp_dims = dim_sizes[:rank]
             tmp_inds = dim_inds[:rank]
-        
+
             [aA, nA] = self.build("A", tmp_dims)
             [aC, nC] = self.build("C", tmp_dims)
-            
+
             aC[tmp_inds] *= aA[tmp_inds]
             nC *= nA
             self.assert_allclose(aC, nC)
@@ -97,11 +103,11 @@ class TestOperatorOverloading(unittest.TestCase):
         for rank in range(1, max_test_rank):
             tmp_dims = dim_sizes[:rank]
             tmp_inds = dim_inds[:rank]
-        
+
             [aA, nA] = self.build("A", tmp_dims)
             [aB, nB] = self.build("B", tmp_dims)
             [aC, nC] = self.build("C", tmp_dims)
-            
+
             aC[tmp_inds] = aA[tmp_inds] + aB[tmp_inds]
             nC = nA + nB
             self.assert_allclose(aC, nC)
@@ -111,11 +117,11 @@ class TestOperatorOverloading(unittest.TestCase):
         for rank in range(1, max_test_rank):
             tmp_dims = dim_sizes[:rank]
             tmp_inds = dim_inds[:rank]
-        
+
             [aA, nA] = self.build("A", tmp_dims)
             [aB, nB] = self.build("B", tmp_dims)
             [aC, nC] = self.build("C", tmp_dims)
-            
+
             aC[tmp_inds] = aA[tmp_inds] - aB[tmp_inds]
             nC = nA - nB
             self.assert_allclose(aC, nC)
@@ -132,7 +138,7 @@ class TestOperatorOverloading(unittest.TestCase):
         self.assert_allclose(aC, nC)
 
     def test_nd_dot_1idx(self):
-        # All permutations of nd dot with one index removed 
+        # All permutations of nd dot with one index removed
         # Can include all output permutations
 
         for rank in range(1, max_test_rank):
@@ -155,14 +161,14 @@ class TestOperatorOverloading(unittest.TestCase):
                 for iret_inds in ret_ind_list:
                     iret_inds = ''.join(iret_inds)
                     einsum_string = left_inds + ',' + right_inds + '->' + iret_inds
-                    
+
                     [aC, nC] = self.build("C", iret_inds)
                     aC[iret_inds] = aA[left_inds] * aB[right_inds]
                     np.einsum(einsum_string, nA, nB, out=nC)
                     self.assert_allclose(aC, nC)
 
     def test_nd_dot_2idx(self):
-        # All permutations of nd dot with two index removed 
+        # All permutations of nd dot with two index removed
         # Can include all output permutations
 
         for rank in range(2, max_test_rank):
@@ -193,7 +199,7 @@ class TestOperatorOverloading(unittest.TestCase):
                     aC[iret_inds] = aA[left_inds] * aB[right_inds]
                     np.einsum(einsum_string, nA, nB, out=nC)
                     self.assert_allclose(aC, nC)
-            
+
 if __name__ == '__main__':
     unittest.main()
 

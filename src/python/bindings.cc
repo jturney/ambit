@@ -90,6 +90,10 @@ dict tensor_array_interface(Tensor ten){
     return rv;
 }
 
+void initialize_wrapper()
+{
+    ambit::initialize(0, nullptr);
+}
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(tensor_print_ov, Tensor::print, 0, 4)
 
@@ -177,4 +181,7 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("copy", &Tensor::copy)
             .def("printf", &Tensor::print,tensor_print_ov())
             .def("__array_interface__", tensor_array_interface);
+
+    def("initialize", initialize_wrapper);
+    def("finalize", ambit::finalize);
 }

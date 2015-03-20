@@ -76,7 +76,7 @@ void finalize()
         throw std::runtime_error("ambit::finalize: Ambit has already been finalized.");
 
     settings::ninitialized--;
-    
+
 #if defined(HAVE_CYCLOPS)
     cyclops::finalize();
 #endif
