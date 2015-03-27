@@ -153,6 +153,26 @@ void hf()
 //    g.citerate([](const std::vector<size_t>& indices, const double& value) {
 //        printf("g[%lu, %lu, %lu, %lu] %lf\n", indices[0], indices[1], indices[2], indices[3], value);
 //    });
+
+
+// the energy eigenvalues
+
+    Tensor t_eigev = Tensor::build(kCore, "eigenvalues", {(size_t)nso});
+    IndexRange all = {{0L, (size_t)nso}};
+    t_eigev(all) = Feigen["eigenvalues"](all);
+    std::vector<double> e_eigev = t_eigev.data();
+
+//    if (settings::rank == 0)
+        t_eigev.print();
+
+    // Construct denominators
+
+    Tensor Dia = build("Dia",{5,2});
+    Dia.iterate([&](const std::vector<size_t>& indices, double& value) {
+//        value = 1.0/(e_eigev[indices[0]]-e_eigev[indices[1]+ndocc]);
+        printf("indices %d %d: %lf %lf\n", indices[0],indices[1],e_eigev[indices[0]],e_eigev[indices[1]+5]);
+        value = 1.0/(t_eigev.data()[indices[0]]-t_eigev.data()[indices[1]+5]);
+    });
 }
 
 int main(int argc, char* argv[])

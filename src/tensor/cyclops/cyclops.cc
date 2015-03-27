@@ -571,8 +571,9 @@ void CyclopsTensorImpl::copyFromElemental1(const El::DistMatrix<double, El::VR, 
 {
     std::vector<kv_pair> pairs;
     const int cshift = w.ColShift();
+    const int cstride = w.ColStride();
     for (int i=0; i<w.LocalHeight(); i++) {
-        pairs.push_back(kv_pair(i+cshift, w.GetLocal(i, 0)));
+        pairs.push_back(kv_pair(cshift+i*cstride, w.GetLocal(i, 0)));
     }
     cyclops_->write(pairs.size(), pairs.data());
 }
