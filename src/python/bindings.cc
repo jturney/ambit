@@ -179,6 +179,8 @@ BOOST_PYTHON_MODULE (pyambit)
             .def("norm", &Tensor::norm)
             .def("zero", &Tensor::zero)
             .def("copy", &Tensor::copy)
+            .def("min", &Tensor::min)
+            .def("max", &Tensor::max)
             .def("printf", &Tensor::print,tensor_print_ov())
             .def("__array_interface__", tensor_array_interface);
 

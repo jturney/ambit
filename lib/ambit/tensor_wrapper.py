@@ -618,6 +618,12 @@ class Tensor:
         """
         self.tensor.permute(A.tensor, Cinds, Ainds, alpha, beta)
 
+    def min(self):
+        return self.tensor.min()
+
+    def max(self):
+        return self.tensor.max()
+
     def contract(self, A, B, Cinds, Ainds, Binds, alpha=1.0, beta=0.0):
         """
         Perform the contraction:
