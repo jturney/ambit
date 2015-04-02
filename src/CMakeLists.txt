@@ -13,7 +13,7 @@ set(TENSOR_HEADERS
     tensor/globals.h
     tensor/macros.h
     tensor/tensorimpl.h
-    tensor/timer.h
+    ${PROJECT_SOURCE_DIR}/include/ambit/timer.h
 )
 
 set(TENSOR_SOURCES

@@ -13,8 +13,10 @@
 namespace ambit {
 namespace timer {
 
+// TODO: Should be hidden from public interface
 void initialize();
 
+// TODO: Should be hidden from public interface
 void finalize();
 
 void report();

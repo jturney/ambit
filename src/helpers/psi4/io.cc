@@ -1,6 +1,6 @@
 #include <ambit/tensor.h>
 #include <ambit/helpers/psi4/io.h>
-#include "../../tensor/timer.h"
+#include <ambit/timer.h>
 
 namespace ambit {
 namespace helpers {

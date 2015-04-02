@@ -1,6 +1,6 @@
 #include "slice.h"
 #include "math/math.h"
-#include "timer.h"
+#include <ambit/timer.h>
 #include <string.h>
 
 namespace ambit {

@@ -2,7 +2,7 @@
 // Created by Justin Turney on 3/30/15.
 //
 
-#include "timer.h"
+#include <ambit/timer.h>
 #include <ambit/print.h>
 #include <ambit/tensor.h>
 

@@ -11,7 +11,7 @@
 
 #include "globals.h"
 
-#include "timer.h"
+#include <ambit/timer.h>
 
 // include header files to specific tensor types supported.
 #if defined(HAVE_CYCLOPS)
