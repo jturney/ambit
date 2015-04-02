@@ -68,6 +68,9 @@ extern size_t memory_limit;
 /// Distributed capable?
 extern const bool distributed_capable;
 
+/// Enable timers
+extern bool timers;
+
 }
 
 /** Initializes the tensor library.

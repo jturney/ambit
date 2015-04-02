@@ -178,6 +178,7 @@ void hf()
 int main(int argc, char* argv[])
 {
     srand(time(nullptr));
+    ambit::settings::timers = true;
     ambit::initialize(argc, argv);
 
     if (argc > 1) {

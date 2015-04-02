@@ -3,12 +3,15 @@
 #include <algorithm>
 
 #include <ambit/tensor.h>
+#include <ambit/print.h>
 #include "tensorimpl.h"
 #include "core/core.h"
 #include "disk/disk.h"
 #include "indices.h"
 
 #include "globals.h"
+
+#include "timer.h"
 
 // include header files to specific tensor types supported.
 #if defined(HAVE_CYCLOPS)
@@ -38,6 +41,9 @@ const bool distributed_capable = true;
 #else
 const bool distributed_capable = false;
 #endif
+
+bool timers = false;
+
 }
 
 namespace {
@@ -48,6 +54,8 @@ void common_initialize(int /*argc*/, char* const * /*argv*/)
         throw std::runtime_error("ambit::initialize: Ambit has already been initialized.");
 
     settings::ninitialized++;
+
+    timer::initialize();
 
     // Set the scratch path for disk files
     const char* scratch_env = std::getenv("TENSOR_SCRATCH");
@@ -82,6 +90,9 @@ void finalize()
 #if defined(HAVE_CYCLOPS)
     cyclops::finalize();
 #endif
+
+    timer::report();
+    timer::finalize();
 }
 
 void barrier()
@@ -227,36 +238,55 @@ Tensor Tensor::cat(std::vector<Tensor> const, int dim)
 
 double Tensor::norm(int type) const
 {
-    return tensor_->norm(type);
+    timer::timer_push("Tensor::norm");
+    auto result = tensor_->norm(type);
+    timer::timer_pop();
+    return result;
 }
 void Tensor::zero()
 {
+    timer::timer_push("Tensor::zero");
     tensor_->scale(0.0);
+    timer::timer_pop();
 }
 
 void Tensor::scale(double a)
 {
+    timer::timer_push("Tensor::scale");
     tensor_->scale(a);
+    timer::timer_pop();
 }
 
 void Tensor::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
 {
+    timer::timer_push("Tensor::iterate");
     tensor_->iterate(func);
+    timer::timer_pop();
 }
 
 void Tensor::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
 {
+    timer::timer_push("Tensor::citerate");
     tensor_->citerate(func);
+    timer::timer_pop();
 }
 
 std::tuple<double, std::vector<size_t>> Tensor::max() const
 {
-    return tensor_->max();
+    timer::timer_push("Tensor::max");
+    auto result = tensor_->max();
+    timer::timer_pop();
+
+    return result;
 }
 
 std::tuple<double, std::vector<size_t>> Tensor::min() const
 {
-    return tensor_->min();
+    timer::timer_push("Tensor::min");
+    auto result = tensor_->min();
+    timer::timer_pop();
+
+    return result;
 }
 
 std::map<std::string, Tensor> Tensor::map_to_tensor(const std::map<std::string, TensorImplPtr>& x)
@@ -273,7 +303,10 @@ std::map<std::string, Tensor> Tensor::map_to_tensor(const std::map<std::string, 
 
 std::map<std::string, Tensor> Tensor::syev(EigenvalueOrder order) const
 {
-    return map_to_tensor(tensor_->syev(order));
+    timer::timer_push("Tensor::syev");
+    auto result = map_to_tensor(tensor_->syev(order));
+    timer::timer_pop();
+    return result;
 }
 
 //std::map<std::string, Tensor> Tensor::geev(EigenvalueOrder order) const
@@ -325,6 +358,8 @@ void Tensor::contract(
     double alpha,
     double beta)
 {
+    timer::timer_push("Tensor::contract: " + name() + "[" + indices::to_string(Cinds) + "] = " + A.name() + "[" + indices::to_string(Ainds) + "] * " + B.name() + "[" + indices::to_string(Binds) + "]");
+
     tensor_->contract(
         A.tensor_.get(),
         B.tensor_.get(),
@@ -333,6 +368,8 @@ void Tensor::contract(
         Binds,
         alpha,
         beta);
+
+    timer::timer_pop();
 }
 void Tensor::permute(
     const Tensor &A,
@@ -341,7 +378,11 @@ void Tensor::permute(
     double alpha,
     double beta)
 {
+    timer::timer_push("Tensor::permute");
+
     tensor_->permute(A.tensor_.get(),Cinds,Ainds,alpha,beta);
+
+    timer::timer_pop();
 }
 void Tensor::slice(
     const Tensor &A,
@@ -350,7 +391,11 @@ void Tensor::slice(
     double alpha,
     double beta)
 {
+    timer::timer_push("Tensor::slice");
+
     tensor_->slice(A.tensor_.get(),Cinds,Ainds,alpha,beta);
+
+    timer::timer_pop();
 }
 void Tensor::gemm(
     const Tensor& A,
@@ -369,6 +414,7 @@ void Tensor::gemm(
     double alpha,
     double beta)
 {
+    timer::timer_push("Tensor::gemm");
     tensor_->gemm(
         A.tensor_.get(),
         B.tensor_.get(),
@@ -385,6 +431,8 @@ void Tensor::gemm(
         offC,
         alpha,
         beta);
+
+    timer::timer_pop();
 }
 
 bool Tensor::operator==(const Tensor& other) const

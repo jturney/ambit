@@ -1,5 +1,6 @@
 #include <ambit/tensor.h>
 #include <ambit/helpers/psi4/io.h>
+#include "../../tensor/timer.h"
 
 namespace ambit {
 namespace helpers {
@@ -7,6 +8,7 @@ namespace psi4 {
 
 void load_matrix(const std::string& fn, const std::string& entry, Tensor& target)
 {
+    timer::timer_push("ambit::helpers::psi4::load_matrix");
     if (settings::rank == 0) {
         io::File handle(fn, io::kOpenModeOpenExisting);
         Tensor local_data = Tensor::build(kCore, "Local Data", target.dims());
@@ -26,10 +28,12 @@ void load_matrix(const std::string& fn, const std::string& entry, Tensor& target
 
         target(zero_range) = local_data(zero_range);
     }
+    timer::timer_pop();
 }
 
 void load_iwl(const std::string& fn, Tensor& target)
 {
+    timer::timer_push("ambit::helpers::psi4::load_iwl");
     if (settings::rank == 0) {
         Tensor local_data = Tensor::build(kCore, "g", target.dims());
         io::IWL iwl(fn, ambit::io::kOpenModeOpenExisting);
@@ -49,6 +53,7 @@ void load_iwl(const std::string& fn, Tensor& target)
 
         target(zero_range) = local_data(zero_range);
     }
+    timer::timer_pop();
 }
 
 }

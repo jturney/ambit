@@ -13,6 +13,7 @@ set(TENSOR_HEADERS
     tensor/globals.h
     tensor/macros.h
     tensor/tensorimpl.h
+    tensor/timer.h
 )
 
 set(TENSOR_SOURCES
@@ -32,6 +33,7 @@ set(TENSOR_SOURCES
     tensor/sliced_tensor.cc
     tensor/tensor.cc
     tensor/tensorimpl.cc
+    tensor/timer.cc
     blocked_tensor/blocked_tensor.cc
 )
 
