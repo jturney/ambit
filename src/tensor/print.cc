@@ -18,6 +18,11 @@ void print_indentation()
 
 }
 
+int current_indent()
+{
+    return indent_size;
+}
+
 void indent(int increment)
 {
     indent_size += increment;

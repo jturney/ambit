@@ -13,8 +13,6 @@ void slice(
     double alpha,
     double beta)
 {
-    timer::timer_push("slice wrapper");
-
     // => Error Checking <= //
 
     for (size_t ind = 0L; ind < C->rank(); ind++) {
@@ -48,8 +46,6 @@ void slice(
     } else {
         throw std::runtime_error("Slice cannot handle this type pairing.");
     }
-
-    timer::timer_pop();
 }
 
 void slice(

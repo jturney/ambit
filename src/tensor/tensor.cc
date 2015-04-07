@@ -113,6 +113,8 @@ Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& 
     if (settings::ninitialized == 0)
         throw std::runtime_error("ambit::Tensor::build: Ambit has not been initialized.");
 
+    ambit::timer::timer_push("Tensor::build");
+
     Tensor newObject;
 
     if (type == kAgnostic) {
@@ -143,6 +145,8 @@ Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& 
         default:
             throw std::runtime_error("Tensor::build: Unknown parameter passed into 'type'.");
     }
+
+    ambit::timer::timer_pop();
 
     return newObject;
 }
@@ -257,6 +261,13 @@ void Tensor::scale(double a)
     timer::timer_pop();
 }
 
+void Tensor::set(double alpha)
+{
+    timer::timer_push("Timer::set");
+    tensor_->set(alpha);
+    timer::timer_pop();
+}
+
 void Tensor::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
 {
     timer::timer_push("Tensor::iterate");
@@ -358,7 +369,10 @@ void Tensor::contract(
     double alpha,
     double beta)
 {
-    timer::timer_push("Tensor::contract: " + name() + "[" + indices::to_string(Cinds) + "] = " + A.name() + "[" + indices::to_string(Ainds) + "] * " + B.name() + "[" + indices::to_string(Binds) + "]");
+    if (ambit::settings::debug)
+        ambit::print("    #: " + name() + "[" + indices::to_string(Cinds) + "] = " + A.name() + "[" + indices::to_string(Ainds) + "] * " + B.name() + "[" + indices::to_string(Binds) + "]\n");
+
+    timer::timer_push("#: " + name() + "[" + indices::to_string(Cinds) + "] = " + A.name() + "[" + indices::to_string(Ainds) + "] * " + B.name() + "[" + indices::to_string(Binds) + "]");
 
     tensor_->contract(
         A.tensor_.get(),
@@ -378,7 +392,9 @@ void Tensor::permute(
     double alpha,
     double beta)
 {
-    timer::timer_push("Tensor::permute");
+    if (ambit::settings::debug)
+        ambit::print("    P: " + name() + "[" + indices::to_string(Cinds) + "] = " + A.name() + "[" + indices::to_string(Ainds) + "]\n");
+    timer::timer_push("P: " + name() + "[" + indices::to_string(Cinds) + "] = " + A.name() + "[" + indices::to_string(Ainds) + "]");
 
     tensor_->permute(A.tensor_.get(),Cinds,Ainds,alpha,beta);
 

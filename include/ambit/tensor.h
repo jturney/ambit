@@ -261,6 +261,13 @@ public:
     void scale(double beta = 0.0);
 
     /**
+     * Sets all elements in the tensor to the value.
+     *
+     * @param alpha the value to set
+     */
+    void set(double alpha);
+
+    /**
      * Copy the data of other into this tensor:
      *  C() = other()
      * Note: this just drops into slice

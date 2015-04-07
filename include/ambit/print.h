@@ -23,6 +23,9 @@ void indent(int increment = 4);
  */
 void unindent(int decrement = 4);
 
+/** Returns the current level of indentation. */
+int current_indent();
+
 struct indenter
 {
     indenter(int increment = 4) : size(increment) { indent(size); }

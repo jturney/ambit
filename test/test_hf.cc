@@ -8,6 +8,7 @@
 #include <ambit/tensor.h>
 #include <ambit/io/io.h>
 #include <ambit/helpers/psi4/io.h>
+#include <ambit/timer.h>
 
 using namespace ambit;
 
@@ -110,6 +111,8 @@ void hf()
     double Eelec = 0.0, Eold = 0.0;
     int iter = 1;
     do {
+        ambit::timer::timer_push("HF iteration");
+
         F("mu,nu") = H("mu,nu");
         F("mu,nu") += D("rho,sigma") * (2.0 * g("mu,nu,rho,sigma") - g("mu,rho,nu,sigma"));
 //        F.print(stdout, true);
@@ -135,6 +138,8 @@ void hf()
 
         if (std::fabs(Eelec - Eold) < 1.0e-8) converged = true;
         Eold = Eelec;
+
+        ambit::timer::timer_pop();
 
         if (iter > 15)
             break;

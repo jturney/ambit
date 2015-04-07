@@ -82,6 +82,12 @@ void CoreTensorImpl::scale(double beta)
         C_DSCAL(numel(), beta, data_.data(), 1);
 }
 
+void CoreTensorImpl::set(double alpha)
+{
+    for (size_t i=0; i<numel(); ++i)
+        data_[i] = alpha;
+}
+
 void CoreTensorImpl::contract(
     ConstTensorImplPtr A,
     ConstTensorImplPtr B,

@@ -82,6 +82,9 @@ public:
         double beta = 0.0)
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
 
+    virtual void set(double alpha)
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
+
     void copy(
         ConstTensorImplPtr other);
 

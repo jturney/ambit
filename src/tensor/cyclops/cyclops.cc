@@ -10,27 +10,28 @@
     const CyclopsTensorImpl* c##X = dynamic_cast<const CyclopsTensorImpl*>((X)); \
     CTF_Tensor* t##X = c##X->cyclops_;
 
-namespace ambit { namespace cyclops {
+namespace ambit {
+namespace cyclops {
 
 namespace details {
 
-    CTF_World *world = nullptr;
+CTF_World *world = nullptr;
 
-    // did we initialize MPI or did the user?
-    int initialized_mpi = 0;
+// did we initialize MPI or did the user?
+int initialized_mpi = 0;
 
 }
 
 namespace {
 
-std::vector<std::string> generateCyclopsLabels(const std::vector<Indices>& inds)
+std::vector<std::string> generateCyclopsLabels(const std::vector<Indices> &inds)
 {
-    static const char* cyclops_index_set = "abcdefghijklmnopqrstuvwyxzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    static const char *cyclops_index_set = "abcdefghijklmnopqrstuvwyxzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     int index = 0;
     std::map<std::string, std::string> index_map;
     for (size_t k = 0L; k < inds.size(); k++) {
-        const std::vector<std::string>& ind = inds[k];
+        const std::vector<std::string> &ind = inds[k];
         for (size_t l = 0; l < ind.size(); l++) {
             std::string token = ind[l];
             if (index_map.count(token)) continue;
@@ -41,7 +42,7 @@ std::vector<std::string> generateCyclopsLabels(const std::vector<Indices>& inds)
     std::vector<std::string> cyclops_inds;
     for (size_t k = 0L; k < inds.size(); k++) {
         std::stringstream ss;
-        const std::vector<std::string>& ind = inds[k];
+        const std::vector<std::string> &ind = inds[k];
         for (size_t l = 0; l < ind.size(); l++) {
             ss << index_map[ind[l]];
         }
@@ -52,7 +53,7 @@ std::vector<std::string> generateCyclopsLabels(const std::vector<Indices>& inds)
 
 }
 
-int initialize(int argc, char** argv)
+int initialize(int argc, char **argv)
 {
     MPI_Initialized(&details::initialized_mpi);
 
@@ -82,7 +83,7 @@ int initialize(int argc, char** argv)
     return 0;
 }
 
-int initialize(MPI_Comm comm, int argc, char * * argv)
+int initialize(MPI_Comm comm, int argc, char **argv)
 {
     // Since we're provided a communicator ensure MPI is initialize
     MPI_Initialized(&details::initialized_mpi);
@@ -124,9 +125,9 @@ void finalize()
         MPI_Finalize();
 }
 
-CyclopsTensorImpl::CyclopsTensorImpl(const std::string& name,
-                                     const Dimension& dims)
-    : TensorImpl(kDistributed, name, dims)
+CyclopsTensorImpl::CyclopsTensorImpl(const std::string &name,
+                                     const Dimension &dims)
+        : TensorImpl(kDistributed, name, dims)
 {
     if (dims.size() == 0) {
         cyclops_ = new CTF_Scalar(0.0, *details::world);
@@ -134,14 +135,14 @@ CyclopsTensorImpl::CyclopsTensorImpl(const std::string& name,
     }
 
     int *local_sym = new int[dims.size()];
-    std::fill(local_sym, local_sym+dims.size(), NS);
+    std::fill(local_sym, local_sym + dims.size(), NS);
     int *local_dims = new int[dims.size()];
     std::copy(dims.begin(), dims.end(), local_dims);
 
     cyclops_ = new CTF_Tensor(dims.size(),
-                           local_dims,
-                           local_sym,
-                           *details::world);
+                              local_dims,
+                              local_sym,
+                              *details::world);
 
     delete[] local_dims;
     delete[] local_sym;
@@ -154,15 +155,15 @@ CyclopsTensorImpl::~CyclopsTensorImpl()
 
 double CyclopsTensorImpl::norm(int type) const
 {
-    switch(type) {
-    case 0:
-        return cyclops_->norm_infty();
-    case 1:
-        return cyclops_->norm1();
-    case 2:
-        return cyclops_->norm2();
-    default:
-        throw std::runtime_error("Unknown norm type passed to Cyclops tensor.");
+    switch (type) {
+        case 0:
+            return cyclops_->norm_infty();
+        case 1:
+            return cyclops_->norm1();
+        case 2:
+            return cyclops_->norm2();
+        default:
+            throw std::runtime_error("Unknown norm type passed to Cyclops tensor.");
     }
 }
 
@@ -173,7 +174,7 @@ std::tuple<double, std::vector<size_t>> CyclopsTensorImpl::max() const
 
     element_value = std::numeric_limits<double>::lowest();
 
-    citerate([&](const std::vector<size_t>& indices, const double& value) {
+    citerate([&](const std::vector<size_t> &indices, const double &value) {
         if (value > element_value) {
             element_value = value;
             element_indices = indices;
@@ -190,18 +191,24 @@ std::tuple<double, std::vector<size_t>> CyclopsTensorImpl::max() const
     // Broadcast each nodes smallest value to all nodes
     MPI_Allgather(&element_value, 1, MPI_DOUBLE, allvalues, 1, MPI_DOUBLE, globals::communicator);
 
-    for (int i=0; i<rank(); i++)
+    for (int i = 0; i < rank(); i++)
         myindices[i] = element_indices[i];
 
     // Broadcast each nodes set of indices to all nodes
-    MPI_Allgather(myindices, rank() * sizeof(size_t), MPI_CHAR, allindices, rank() * sizeof(size_t), MPI_CHAR, globals::communicator);
+    MPI_Allgather(myindices,
+                  rank() * sizeof(size_t),
+                  MPI_CHAR,
+                  allindices,
+                  rank() * sizeof(size_t),
+                  MPI_CHAR,
+                  globals::communicator);
 
     // Now that we have each nodes' minimum value check each for the global minimum
-    for (size_t i=0; i<ambit::settings::nprocess; i++) {
+    for (size_t i = 0; i < ambit::settings::nprocess; i++) {
         if (allvalues[i] > element_value) {
             element_value = allvalues[i];
-            for (size_t j=0; j<rank(); j++)
-                element_indices[j] = allindices[rank()*i + j];
+            for (size_t j = 0; j < rank(); j++)
+                element_indices[j] = allindices[rank() * i + j];
         }
     }
 
@@ -225,7 +232,7 @@ std::tuple<double, std::vector<size_t>> CyclopsTensorImpl::min() const
 
     element_value = std::numeric_limits<double>::max();
 
-    citerate([&](const std::vector<size_t>& indices, const double& value) {
+    citerate([&](const std::vector<size_t> &indices, const double &value) {
         if (value < element_value) {
             element_value = value;
             element_indices = indices;
@@ -242,18 +249,24 @@ std::tuple<double, std::vector<size_t>> CyclopsTensorImpl::min() const
     // Broadcast each nodes smallest value to all nodes
     MPI_Allgather(&element_value, 1, MPI_DOUBLE, allvalues, 1, MPI_DOUBLE, globals::communicator);
 
-    for (int i=0; i<rank(); i++)
+    for (int i = 0; i < rank(); i++)
         myindices[i] = element_indices[i];
 
     // Broadcast each nodes set of indices to all nodes
-    MPI_Allgather(myindices, rank() * sizeof(size_t), MPI_CHAR, allindices, rank() * sizeof(size_t), MPI_CHAR, globals::communicator);
+    MPI_Allgather(myindices,
+                  rank() * sizeof(size_t),
+                  MPI_CHAR,
+                  allindices,
+                  rank() * sizeof(size_t),
+                  MPI_CHAR,
+                  globals::communicator);
 
     // Now that we have each nodes' minimum value check each for the global minimum
-    for (size_t i=0; i<ambit::settings::nprocess; i++) {
+    for (size_t i = 0; i < ambit::settings::nprocess; i++) {
         if (allvalues[i] < element_value) {
             element_value = allvalues[i];
-            for (size_t j=0; j<rank(); j++)
-                element_indices[j] = allindices[rank()*i + j];
+            for (size_t j = 0; j < rank(); j++)
+                element_indices[j] = allindices[rank() * i + j];
         }
     }
 
@@ -277,27 +290,40 @@ void CyclopsTensorImpl::scale(double beta)
     }
     else {
         long_int local_size;
-        double* local_data;
+        double *local_data;
 
         local_data = cyclops_->get_raw_data(&local_size);
 
         VECTORIZED_LOOP
-        for (long_int i=0; i<local_size; ++i) {
+        for (long_int i = 0; i < local_size; ++i) {
             local_data[i] *= beta;
         }
     }
 }
 
+void CyclopsTensorImpl::set(double alpha)
+{
+    long_int local_size;
+    double *local_data;
+
+    local_data = cyclops_->get_raw_data(&local_size);
+
+    VECTORIZED_LOOP
+    for (long_int i = 0; i < local_size; ++i) {
+        local_data[i] = alpha;
+    }
+}
+
 void CyclopsTensorImpl::permute(
         ConstTensorImplPtr A,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
+        const std::vector<std::string> &Cinds,
+        const std::vector<std::string> &Ainds,
         double alpha,
         double beta)
 {
     GET_CTF_TENSOR(A);
 
-    std::vector<std::string> cyclops_inds = generateCyclopsLabels({Cinds,Ainds});
+    std::vector<std::string> cyclops_inds = generateCyclopsLabels({Cinds, Ainds});
     std::string Ccyclops = cyclops_inds[0];
     std::string Acyclops = cyclops_inds[1];
 
@@ -308,16 +334,16 @@ void CyclopsTensorImpl::permute(
 void CyclopsTensorImpl::contract(
         ConstTensorImplPtr A,
         ConstTensorImplPtr B,
-        const std::vector<std::string>& Cinds,
-        const std::vector<std::string>& Ainds,
-        const std::vector<std::string>& Binds,
+        const std::vector<std::string> &Cinds,
+        const std::vector<std::string> &Ainds,
+        const std::vector<std::string> &Binds,
         double alpha,
         double beta)
 {
     GET_CTF_TENSOR(A);
     GET_CTF_TENSOR(B);
 
-    std::vector<std::string> cyclops_inds = generateCyclopsLabels({Cinds,Ainds,Binds});
+    std::vector<std::string> cyclops_inds = generateCyclopsLabels({Cinds, Ainds, Binds});
     std::string Ccyclops = cyclops_inds[0];
     std::string Acyclops = cyclops_inds[1];
     std::string Bcyclops = cyclops_inds[2];
@@ -341,7 +367,7 @@ std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder ord
     copyToElemental2(H);
 
     // construct elemental storage for values and vectors
-    El::DistMatrix<double,El::VR,El::STAR> w;
+    El::DistMatrix<double, El::VR, El::STAR> w;
     El::DistMatrix<double> X;
     El::SortType sort = order == kAscending ? El::ASCENDING : El::DESCENDING;
     El::HermitianEig(El::LOWER, H, w, X, sort);
@@ -349,8 +375,8 @@ std::map<std::string, TensorImplPtr> CyclopsTensorImpl::syev(EigenvalueOrder ord
     // construct cyclops tensors to hold eigen vectors and values.
     Dimension value_dims(1);
     value_dims[0] = length;
-    CyclopsTensorImpl* vectors = new CyclopsTensorImpl("Eigenvectors", dims());
-    CyclopsTensorImpl* values = new CyclopsTensorImpl("Eigenvalues", value_dims);
+    CyclopsTensorImpl *vectors = new CyclopsTensorImpl("Eigenvectors", dims());
+    CyclopsTensorImpl *values = new CyclopsTensorImpl("Eigenvalues", value_dims);
 
     // populate cyclops with elemental data
     vectors->copyFromElemental2(X);
@@ -383,22 +409,21 @@ TensorImplPtr CyclopsTensorImpl::power(double alpha, double condition) const
     copyToElemental2(H);
 
     // construct elemental storage for values and vectors
-    El::DistMatrix<double,El::VR,El::STAR> w;
+    El::DistMatrix<double, El::VR, El::STAR> w;
     El::DistMatrix<double> X;
     El::SortType sort = El::ASCENDING;
     El::HermitianEig(El::LOWER, H, w, X, sort);
 
     const int numLocalEigs = w.LocalHeight();
     double maxLocalEig = 0.0;
-    for(int iLoc=0; iLoc<numLocalEigs; ++iLoc)
-    {
-        const double omega = w.GetLocal(iLoc,0);
+    for (int iLoc = 0; iLoc < numLocalEigs; ++iLoc) {
+        const double omega = w.GetLocal(iLoc, 0);
         maxLocalEig = std::max(maxLocalEig, omega);
     }
-    const double maxEig = El::mpi::AllReduce( maxLocalEig, El::mpi::MAX, El::mpi::COMM_WORLD);
+    const double maxEig = El::mpi::AllReduce(maxLocalEig, El::mpi::MAX, El::mpi::COMM_WORLD);
 
     // Overwrite the eigenvalues with f(w)
-    for( int iLoc=0; iLoc<numLocalEigs; ++iLoc ) {
+    for (int iLoc = 0; iLoc < numLocalEigs; ++iLoc) {
         const double omega = w.GetLocal(iLoc, 0);
         double new_omega = 0.0;
 
@@ -406,7 +431,7 @@ TensorImplPtr CyclopsTensorImpl::power(double alpha, double condition) const
             new_omega = 0.0;
         else {
             new_omega = pow(omega, alpha);
-            if (! std::isfinite(new_omega))
+            if (!std::isfinite(new_omega))
                 new_omega = 0.0;
         }
 
@@ -415,7 +440,7 @@ TensorImplPtr CyclopsTensorImpl::power(double alpha, double condition) const
 
     El::HermitianFromEVD(El::LOWER, H, w, X);
 
-    CyclopsTensorImpl* result = new CyclopsTensorImpl(name() + "^" + std::to_string(alpha), dims());
+    CyclopsTensorImpl *result = new CyclopsTensorImpl(name() + "^" + std::to_string(alpha), dims());
     result->copyFromLowerElementalToFull2(H);
     return result;
 #else
@@ -423,14 +448,14 @@ TensorImplPtr CyclopsTensorImpl::power(double alpha, double condition) const
 #endif
 }
 
-void CyclopsTensorImpl::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
+void CyclopsTensorImpl::iterate(const std::function<void(const std::vector<size_t> &, double &)> &func)
 {
     std::vector<size_t> indices(rank(), 0);
     std::vector<size_t> addressing(rank(), 1);
 
     // form addressing array
-    for (size_t n=1; n < rank(); ++n) {
-        addressing[n] = addressing[n-1] * dim(n-1);
+    for (size_t n = 1; n < rank(); ++n) {
+        addressing[n] = addressing[n - 1] * dim(n - 1);
     }
 
     long_int nelem;
@@ -438,9 +463,9 @@ void CyclopsTensorImpl::iterate(const std::function<void (const std::vector<size
     kv_pair *pairs;
 
     cyclops_->read_local(&nelem, &pairs);
-    for (size_t n=0; n < nelem; ++n) {
+    for (size_t n = 0; n < nelem; ++n) {
         size_t d = pairs[n].k;
-        for (int k=nrank-1; k>=0; --k) {
+        for (int k = nrank - 1; k >= 0; --k) {
             indices[k] = d / addressing[k];
             d = d % addressing[k];
         }
@@ -454,14 +479,14 @@ void CyclopsTensorImpl::iterate(const std::function<void (const std::vector<size
     free(pairs);
 }
 
-void CyclopsTensorImpl::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
+void CyclopsTensorImpl::citerate(const std::function<void(const std::vector<size_t> &, const double &)> &func) const
 {
     std::vector<size_t> indices(rank(), 0);
     std::vector<size_t> addressing(rank(), 1);
 
     // form addressing array
-    for (size_t n=1; n < rank(); ++n) {
-        addressing[n] = addressing[n-1] * dim(n-1);
+    for (size_t n = 1; n < rank(); ++n) {
+        addressing[n] = addressing[n - 1] * dim(n - 1);
     }
 
     long_int nelem;
@@ -469,9 +494,9 @@ void CyclopsTensorImpl::citerate(const std::function<void (const std::vector<siz
     kv_pair *pairs;
 
     cyclops_->read_local(&nelem, &pairs);
-    for (size_t n=0; n < nelem; ++n) {
+    for (size_t n = 0; n < nelem; ++n) {
         size_t d = pairs[n].k;
-        for (int k=nrank-1; k>=0; --k) {
+        for (int k = nrank - 1; k >= 0; --k) {
             indices[k] = d / addressing[k];
             d = d % addressing[k];
         }
@@ -496,12 +521,12 @@ void CyclopsTensorImpl::copyToElemental2(El::DistMatrix<double> &U) const
     const int rstride = U.RowStride();
 
     // determine which pairs from cyclops we need.
-    for (int i=0; i<U.LocalHeight(); i++) {
-        for (int j=0; j<U.LocalWidth(); j++) {
-            const int c = cshift+i*cstride;
-            const int r = rshift+j*rstride;
+    for (int i = 0; i < U.LocalHeight(); i++) {
+        for (int j = 0; j < U.LocalWidth(); j++) {
+            const int c = cshift + i * cstride;
+            const int r = rshift + j * rstride;
 
-            pairs.push_back(kv_pair(r*cols+c, 0));
+            pairs.push_back(kv_pair(r * cols + c, 0));
         }
     }
 
@@ -509,11 +534,11 @@ void CyclopsTensorImpl::copyToElemental2(El::DistMatrix<double> &U) const
     cyclops_->read(pairs.size(), pairs.data());
 
     // populate elemental
-    for (size_t p=0; p<pairs.size(); p++) {
-        const int r = pairs[p].k/cols;
-        const int c = pairs[p].k-cols*r;
-        const int i = (c-cshift)/cstride;
-        const int j = (r-rshift)/rstride;
+    for (size_t p = 0; p < pairs.size(); p++) {
+        const int r = pairs[p].k / cols;
+        const int c = pairs[p].k - cols * r;
+        const int i = (c - cshift) / cstride;
+        const int j = (r - rshift) / rstride;
 
         U.SetLocal(i, j, pairs[p].d);
     }
@@ -528,18 +553,18 @@ void CyclopsTensorImpl::copyFromElemental2(const El::DistMatrix<double> &X)
     const int cstride = X.ColStride();
     const int rstride = X.RowStride();
 
-    for (int i=0; i<X.LocalHeight(); i++) {
-        for (int j=0; j<X.LocalWidth(); j++) {
-            const int c = cshift+i*cstride;
-            const int r = rshift+j*rstride;
+    for (int i = 0; i < X.LocalHeight(); i++) {
+        for (int j = 0; j < X.LocalWidth(); j++) {
+            const int c = cshift + i * cstride;
+            const int r = rshift + j * rstride;
 
-            pairs.push_back(kv_pair(c*length+r, X.GetLocal(i, j)));
+            pairs.push_back(kv_pair(c * length + r, X.GetLocal(i, j)));
         }
     }
     cyclops_->write(pairs.size(), pairs.data());
 }
 
-void CyclopsTensorImpl::copyFromLowerElementalToFull2(const El::DistMatrix<double>& X)
+void CyclopsTensorImpl::copyFromLowerElementalToFull2(const El::DistMatrix<double> &X)
 {
     size_t length = dims()[1];
     std::vector<kv_pair> pairs;
@@ -548,17 +573,17 @@ void CyclopsTensorImpl::copyFromLowerElementalToFull2(const El::DistMatrix<doubl
     const int cstride = X.ColStride();
     const int rstride = X.RowStride();
 
-    for (int i=0; i<X.LocalHeight(); i++) {
-        for (int j=0; j<X.LocalWidth(); j++) {
-            const int c = cshift+i*cstride;
-            const int r = rshift+j*rstride;
+    for (int i = 0; i < X.LocalHeight(); i++) {
+        for (int j = 0; j < X.LocalWidth(); j++) {
+            const int c = cshift + i * cstride;
+            const int r = rshift + j * rstride;
 
             // lower triangle
             if (r < c) {
                 pairs.push_back(kv_pair(r * length + c, X.GetLocal(i, j)));
                 pairs.push_back(kv_pair(c * length + r, X.GetLocal(i, j)));
             }
-            // diagonal
+                // diagonal
             else if (c == r) {
                 pairs.push_back(kv_pair(r * length + c, X.GetLocal(i, j)));
             }
@@ -567,16 +592,17 @@ void CyclopsTensorImpl::copyFromLowerElementalToFull2(const El::DistMatrix<doubl
     cyclops_->write(pairs.size(), pairs.data());
 }
 
-void CyclopsTensorImpl::copyFromElemental1(const El::DistMatrix<double, El::VR, El::STAR>& w)
+void CyclopsTensorImpl::copyFromElemental1(const El::DistMatrix<double, El::VR, El::STAR> &w)
 {
     std::vector<kv_pair> pairs;
     const int cshift = w.ColShift();
     const int cstride = w.ColStride();
-    for (int i=0; i<w.LocalHeight(); i++) {
-        pairs.push_back(kv_pair(cshift+i*cstride, w.GetLocal(i, 0)));
+    for (int i = 0; i < w.LocalHeight(); i++) {
+        pairs.push_back(kv_pair(cshift + i * cstride, w.GetLocal(i, 0)));
     }
     cyclops_->write(pairs.size(), pairs.data());
 }
 #endif
 
-}}
+}
+}

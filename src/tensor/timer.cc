@@ -9,7 +9,8 @@
 #include <cstdio>
 #include <cassert>
 
-namespace ambit { namespace timer {
+namespace ambit {
+namespace timer {
 
 using clock = std::chrono::high_resolution_clock;
 using time_point = std::chrono::time_point<clock>;
@@ -31,7 +32,8 @@ struct TimerDetail
 
     time_point start_time;
 
-    TimerDetail() : name("(no name)"), total_time(0), total_calls(0), parent(nullptr) {}
+    TimerDetail() : name("(no name)"), total_time(0), total_calls(0), parent(nullptr)
+    { }
 };
 
 TimerDetail *current_timer = nullptr;
@@ -67,23 +69,26 @@ namespace {
 // This is a recursive function
 void print_timer_info(TimerDetail *timer)
 {
-    if (timer != root)
-        print("%s : %lld ns : %lld calls : %lld avg time per call\n",
-              timer->name.c_str(),
-              std::chrono::duration_cast<std::chrono::nanoseconds>(timer->total_time),
-              timer->total_calls,
-              std::chrono::duration_cast<std::chrono::nanoseconds>(timer->total_time) / timer->total_calls);
-//        print("%s : %lld ns : %lld calls\n",
-//              timer->name.c_str(),
-//              std::chrono::duration_cast<std::chrono::nanoseconds>(timer->total_time),
-//              timer->total_calls);
+    char buffer[512];
+    if (timer != root) {
+        sprintf(buffer,
+                "%lld ms : %lld calls : %lld ms per call : ",
+                std::chrono::duration_cast<std::chrono::milliseconds>(timer->total_time),
+                timer->total_calls,
+                std::chrono::duration_cast<std::chrono::milliseconds>(timer->total_time) / timer->total_calls);
+        print("%s%*s%s\n",
+              buffer,
+              50 - ambit::current_indent() - strlen(buffer),
+              "",
+              timer->name.c_str());
+    }
     else {
         print("\nTiming information:\n\n");
     }
     if (!timer->children.empty()) {
         indent();
 
-        for (auto& child : timer->children) {
+        for (auto &child : timer->children) {
             print_timer_info(&child.second);
         }
 
@@ -99,7 +104,7 @@ void report()
         print_timer_info(root);
 }
 
-void timer_push(const std::string& name)
+void timer_push(const std::string &name)
 {
     if (settings::timers) {
         assert(current_timer != nullptr);
@@ -125,4 +130,5 @@ void timer_pop()
     }
 }
 
-}}
+}
+}

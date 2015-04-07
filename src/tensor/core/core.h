@@ -25,6 +25,8 @@ public:
     void scale(
         double beta = 0.0);
 
+    void set(double alpha);
+
     void permute(
         ConstTensorImplPtr A,
         const Indices& Cinds,
