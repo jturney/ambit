@@ -8,6 +8,7 @@
 
 #include <cstdio>
 #include <cassert>
+#include <string.h>
 
 namespace ambit {
 namespace timer {
