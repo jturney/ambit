@@ -406,8 +406,11 @@ class Tensor:
            raise TypeError('Only kCore tensors can be converted to ndarrays.')
 
     def __getitem__(self, indices):
-        pslices = _parse_slices(indices, self.dims)
-        return LabeledTensor(self.tensor, pslices)
+
+        if isinstance(indices, str):
+            return LabeledTensor(self.tensor, indices)
+        else:
+            return SlicedTensor(self, _parse_slices(indices, self.dims))
 
     def __setitem__(self, indices_str, value):
 
@@ -416,8 +419,11 @@ class Tensor:
                 raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
             if self.tensor.rank != value.tensor.rank:
                 raise RuntimeError("SlicedTensor::__setitem__: Sliced tensors do not have same rank")
+            if isinstance(indices_str, str):
+                raise TypeError("SlicedTensor::__setitem__: Slice cannot be a string")
 
-            self.tensor.slice(value.tensor.tensor, indices_str, value.range, value.factor, 0.0)
+            indices = _parse_slices(indices_str, self.dims)
+            self.tensor.slice(value.tensor.tensor, indices, value.range, value.factor, 0.0)
 
             return None
 
@@ -740,13 +746,15 @@ class SlicedTensor:
             if value[1] > tensor.dims[idx]:
                 raise RuntimeError("SlicedTensor: IndexRange exceeds size of tensor.")
 
+    def _check_other(self, value):
+        if self.tensor == value.tensor:
+            raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
+        if self.tensor.rank != value.tensor.rank:
+            raise RuntimeError("SlicedTensor::__setitem__: Sliced tensors do not have same rank")
+
     def __iadd__(self, value):
         if isinstance(value, SlicedTensor):
-            if self.tensor == value.tensor:
-                raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
-            if self.tensor.rank != value.tensor.rank:
-                raise RuntimeError("SlicedTensor::__setitem__: Sliced tensors do not have same rank")
-
+            self._check_other(value)
             self.tensor.slice(value.tensor, self.range, value.range, value.factor, 1.0)
 
             return None
@@ -756,11 +764,7 @@ class SlicedTensor:
 
     def __isub__(self, value):
         if isinstance(value, SlicedTensor):
-            if self.tensor == value.tensor:
-                raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
-            if self.tensor.rank != value.tensor.rank:
-                raise RuntimeError("SlicedTensor::__setitem__: Sliced tensors do not have same rank")
-
+            self._check_other(value)
             self.tensor.slice(value.tensor, self.range, value.range, -value.factor, 1.0)
 
             return None
@@ -771,10 +775,14 @@ class SlicedTensor:
     def __mul__(self, other):
         if isinstance(other, numbers.Number):
             return SlicedTensor(self.tensor, self.range, other * self.factor)
+        else:
+            raise NotImplementedError("SlicedTensor.__mul__(%s) is not implemented" % (type(other)))
 
     def __rmul__(self, other):
         if isinstance(other, numbers.Number):
             return SlicedTensor(self.tensor, self.range, other * self.factor)
+        else:
+            raise NotImplementedError("SlicedTensor.__rmul__(%s) is not implemented" % (type(other)))
 
     def __neg__(self):
         return SlicedTensor(self.tensor, self.range, -self.factor)
