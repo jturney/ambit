@@ -83,20 +83,20 @@ class TestOperatorOverloading(unittest.TestCase):
             nC = nA * nB
             self.assert_allclose(aC, nC)
 
-    @unittest.expectedFailure
-    def test_tensor_tensor_imul(self):
-        # Inplace Hadamard product
+    # Not yet implemented
+    #def test_tensor_tensor_imul(self):
+    #    # Inplace Hadamard product
 
-        for rank in range(1, max_test_rank):
-            tmp_dims = dim_sizes[:rank]
-            tmp_inds = dim_inds[:rank]
+    #    for rank in range(1, max_test_rank):
+    #        tmp_dims = dim_sizes[:rank]
+    #        tmp_inds = dim_inds[:rank]
 
-            [aA, nA] = self.build("A", tmp_dims)
-            [aC, nC] = self.build("C", tmp_dims)
+    #        [aA, nA] = self.build("A", tmp_dims)
+    #        [aC, nC] = self.build("C", tmp_dims)
 
-            aC[tmp_inds] *= aA[tmp_inds]
-            nC *= nA
-            self.assert_allclose(aC, nC)
+    #        aC[tmp_inds] *= aA[tmp_inds]
+    #        nC *= nA
+    #        self.assert_allclose(aC, nC)
 
     def test_tensor_tensor_add(self):
 
@@ -199,6 +199,37 @@ class TestOperatorOverloading(unittest.TestCase):
                     aC[iret_inds] = aA[left_inds] * aB[right_inds]
                     np.einsum(einsum_string, nA, nB, out=nC)
                     self.assert_allclose(aC, nC)
+
+    def test_slices(self):
+        [aA, nA] = self.build("A", [10, 10])
+        [aB, nB] = self.build("B", [10, 10])
+
+        aA[[3,5], [5,7]] += aB[[2,4], [4,6]]
+        nA[3:5, 5:7] += nB[2:4, 4:6]
+        self.assert_allclose(aA, nA)
+
+        aA[:, :] += aB[:, :]
+        nA[:, :] += nB[:, :]
+        self.assert_allclose(aA, nA)
+
+        aA[[3,5], [0,10]] -= aB[[2,4], :]
+        nA[3:5, :] -= nB[2:4, :]
+        self.assert_allclose(aA, nA)
+
+        aA[5:, [0,10]] -= aB[[0,5], :]
+        nA[5:, :] -= nB[:5, :]
+        self.assert_allclose(aA, nA)
+
+        aA[3:5, 5:7] = aB[2:4, 4:6]
+        nA[3:5, 5:7] = nB[2:4, 4:6]
+        self.assert_allclose(aA, nA)
+
+        aA[:5, :] = aB[1:6, :]
+        nA[:5, :] = nB[1:6, :]
+        self.assert_allclose(aA, nA)
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
