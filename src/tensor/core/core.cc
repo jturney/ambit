@@ -477,6 +477,8 @@ void CoreTensorImpl::permute(
     double alpha,
     double beta)
 {
+    ambit::timer::timer_push("P: " + std::to_string(beta) + " " + A->name() + "[" + indices::to_string(CindsS) + "] = " + std::to_string(alpha) + " " + A->name() + "[" + indices::to_string(AindsS) + "]");
+
     // => Convert to indices of A <= //
 
     std::vector<size_t> Ainds = indices::permutation_order(CindsS, AindsS);
@@ -516,6 +518,7 @@ void CoreTensorImpl::permute(
     if (slow_dims == 0) {
         //::memcpy(Cp,Ap,sizeof(double)*fast_size);
         C_DAXPY(fast_size,alpha,Ap,1,Cp,1);
+        ambit::timer::timer_pop();
         return;
     }
 
@@ -691,6 +694,8 @@ void CoreTensorImpl::permute(
             C_DAXPY(fast_size,alpha,Atp,1,Ctp,1);
         }
     }
+
+    ambit::timer::timer_pop();
 }
 void CoreTensorImpl::gemm(
     ConstTensorImplPtr A,

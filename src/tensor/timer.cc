@@ -79,7 +79,8 @@ void print_timer_info(TimerDetail *timer)
                 std::chrono::duration_cast<std::chrono::milliseconds>(timer->total_time) / timer->total_calls);
         print("%s%*s%s\n",
               buffer,
-              60 - ambit::current_indent() - strlen(buffer),
+//              60 - ambit::current_indent() - strlen(buffer),
+              60 - strlen(buffer),
               "",
               timer->name.c_str());
     }
@@ -87,13 +88,13 @@ void print_timer_info(TimerDetail *timer)
         print("\nTiming information:\n\n");
     }
     if (!timer->children.empty()) {
-        indent();
+        indent(2);
 
         for (auto &child : timer->children) {
             print_timer_info(&child.second);
         }
 
-        unindent();
+        unindent(2);
     }
 }
 
