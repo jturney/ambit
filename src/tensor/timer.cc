@@ -79,7 +79,7 @@ void print_timer_info(TimerDetail *timer)
                 std::chrono::duration_cast<std::chrono::milliseconds>(timer->total_time) / timer->total_calls);
         print("%s%*s%s\n",
               buffer,
-              50 - ambit::current_indent() - strlen(buffer),
+              60 - ambit::current_indent() - strlen(buffer),
               "",
               timer->name.c_str());
     }
