@@ -98,6 +98,8 @@ void CoreTensorImpl::contract(
     double alpha,
     double beta)
 {
+    ambit::timer::timer_push("pre-BLAS: internal overhead");
+
     TensorImplPtr C = this;
 
     // => Permutation Logic <= //
@@ -327,6 +329,8 @@ void CoreTensorImpl::contract(
     printf("\n");
     **/
 
+    ambit::timer::timer_pop();
+    
     // => Alias or Allocate A, B, C <= //
 
     Dimension Cdims2 = indices::permuted_dimension(C->dims(), Cinds2, Cinds);
@@ -344,29 +348,47 @@ void CoreTensorImpl::contract(
     shared_ptr<CoreTensorImpl> B2;
     shared_ptr<CoreTensorImpl> A2;
     if (permC) {
+        ambit::timer::timer_push("pre-BLAS: internal C allocation");
         C2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("C2", Cdims2));
         C2p = C2->data().data();
+        ambit::timer::timer_pop();
     }
     if (permA) {
+        ambit::timer::timer_push("pre-BLAS: internal A allocation");
         A2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("A2", Adims2));
         A2p = A2->data().data();
+        ambit::timer::timer_pop();
     }
     if (permB) {
+        ambit::timer::timer_push("pre-BLAS: internal B allocation");
         B2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("B2", Bdims2));
         B2p = B2->data().data();
+        ambit::timer::timer_pop();
     }
 
     // => Permute A, B, and C if Necessary <= //
 
-    if (permC) C2->permute(C,Cinds2,Cinds);
-    if (permA) A2->permute(A,Ainds2,Ainds);
-    if (permB) B2->permute(B,Binds2,Binds);
+    if (permC) {
+        ambit::timer::timer_push("pre-BLAS: internal C permutation");
+        C2->permute(C,Cinds2,Cinds);
+        ambit::timer::timer_pop();
+    }
+    if (permA) {
+        ambit::timer::timer_push("pre-BLAS: internal A permutation");
+        A2->permute(A, Ainds2, Ainds);
+        ambit::timer::timer_pop();
+    }
+    if (permB) {
+        ambit::timer::timer_push("pre-BLAS: internal B permutation");
+        B2->permute(B, Binds2, Binds);
+        ambit::timer::timer_pop();
+    }
 
     // => GEMM Indexing <= //
 
     // => GEMM <= //
 
-    ambit::timer::timer_push("BLAS call");
+    ambit::timer::timer_push("BLAS");
     for (size_t P = 0L; P < ABC_size; P++) {
 
         char transL;
@@ -442,7 +464,7 @@ void CoreTensorImpl::contract(
     // => Permute C if Necessary <= //
 
     if (permC) {
-        ambit::timer::timer_push("internal permute call");
+        ambit::timer::timer_push("post-BLAS: internal C permutation");
         C->permute(C2.get(), Cinds, Cinds2);
         ambit::timer::timer_pop();
     }
