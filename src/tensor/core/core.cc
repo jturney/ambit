@@ -1,6 +1,7 @@
 #include "core.h"
 #include "math/math.h"
 #include "tensor/indices.h"
+#include <ambit/timer.h>
 #include <algorithm>
 #include <string.h>
 #include <cmath>
@@ -365,6 +366,7 @@ void CoreTensorImpl::contract(
 
     // => GEMM <= //
 
+    ambit::timer::timer_push("BLAS call");
     for (size_t P = 0L; P < ABC_size; P++) {
 
         char transL;
@@ -435,10 +437,15 @@ void CoreTensorImpl::contract(
         A2p += AB_size * AC_size;
         B2p += AB_size * BC_size;
     }
+    ambit::timer::timer_pop();
 
     // => Permute C if Necessary <= //
 
-    if (permC) C->permute(C2.get(),Cinds,Cinds2);
+    if (permC) {
+        ambit::timer::timer_push("internal permute call");
+        C->permute(C2.get(), Cinds, Cinds2);
+        ambit::timer::timer_pop();
+    }
 }
 
 void CoreTensorImpl::permute(
