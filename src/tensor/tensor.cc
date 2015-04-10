@@ -370,9 +370,9 @@ void Tensor::contract(
     double beta)
 {
     if (ambit::settings::debug)
-        ambit::print("    #: " + name() + "[" + indices::to_string(Cinds) + "] = " + A.name() + "[" + indices::to_string(Ainds) + "] * " + B.name() + "[" + indices::to_string(Binds) + "]\n");
+        ambit::print("    #: " + std::to_string(beta) + " " + name() + "[" + indices::to_string(Cinds) + "] = " + std::to_string(alpha) + " " + A.name() + "[" + indices::to_string(Ainds) + "] * " + B.name() + "[" + indices::to_string(Binds) + "]\n");
 
-    timer::timer_push("#: " + name() + "[" + indices::to_string(Cinds) + "] = " + A.name() + "[" + indices::to_string(Ainds) + "] * " + B.name() + "[" + indices::to_string(Binds) + "]");
+    timer::timer_push("#: " + std::to_string(beta) + " " + name() + "[" + indices::to_string(Cinds) + "] = " + std::to_string(alpha) + " " + A.name() + "[" + indices::to_string(Ainds) + "] * " + B.name() + "[" + indices::to_string(Binds) + "]");
 
     tensor_->contract(
         A.tensor_.get(),
