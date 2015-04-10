@@ -330,7 +330,7 @@ void CoreTensorImpl::contract(
     **/
 
     ambit::timer::timer_pop();
-    
+
     // => Alias or Allocate A, B, C <= //
 
     Dimension Cdims2 = indices::permuted_dimension(C->dims(), Cinds2, Cinds);
@@ -368,7 +368,7 @@ void CoreTensorImpl::contract(
 
     // => Permute A, B, and C if Necessary <= //
 
-    if (permC) {
+    if (permC && beta != 0.0) {
         ambit::timer::timer_push("pre-BLAS: internal C permutation");
         C2->permute(C,Cinds2,Cinds);
         ambit::timer::timer_pop();
