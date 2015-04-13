@@ -166,6 +166,11 @@ void Tensor::copy(const Tensor& other)
 Tensor::Tensor()
 {}
 
+void Tensor::reset()
+{
+    tensor_.reset();
+}
+
 TensorType Tensor::type() const
 {
     return tensor_->type();

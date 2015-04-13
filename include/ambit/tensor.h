@@ -147,6 +147,14 @@ public:
      **/
     Tensor();
 
+    /**
+     * Frees the Tensor's internal memory allocation. This is for users
+     * that want finer control on memory consumption. After calling this
+     * function the Tensor is no longer valid and cannot be used in
+     * furthur calls.
+     */
+    void reset();
+
     // => Accessors <= //
 
     /// @return The tensor type enum, one of kCore, kDisk, kDistributed
