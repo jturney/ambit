@@ -718,6 +718,24 @@ double test_syev()
     return 0.0;
 }
 
+double test_geev()
+{
+    size_t ni = 9;
+
+    Tensor C = build_and_fill("C", {ni, ni}, c2);
+
+    auto result = C.geev(kAscending);
+
+//    Tensor vectors = result["eigenvectors"];
+
+//    result["v"].print(stdout, 1);
+//    result["u"].print(stdout, 1);
+//    result["lambda"].print(stdout, 1);
+//    result["lambda i"].print(stdout, 1);
+
+    return 0.0;
+}
+
 double test_Cilkj_equal_Aibaj_Bblak()
 {
     size_t ni = 9;
@@ -1340,6 +1358,7 @@ int main(int argc, char* argv[])
             std::make_tuple(kPass, test_Dij_equal_2_times_Aij_plus_Bij, "C(\"ij\") = 2.0 * (A(\"ij\") - B(\"ij\"))"),
             std::make_tuple(kPass, test_Dij_equal_negate_Aij_plus_Bij, "C(\"ij\") = - (A(\"ij\") - B(\"ij\"))"),
             std::make_tuple(kPass, test_syev, "Diagonalization (not confirmed)"),
+            std::make_tuple(kPass, test_geev, "Diagonalization (not confirmed)"),
             std::make_tuple(kPass, test_power, "C^(-1/2) (not confirmed)"),
             std::make_tuple(kPass, test_dot_product, "double = A(\"ij\")\" * B(\"ij\")"),
             std::make_tuple(kException, test_dot_product2, "double = A(\"ij\") * B(\"ik\") exception expected"),
