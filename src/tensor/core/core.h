@@ -63,7 +63,7 @@ public:
     // => Order-2 Operations <= //
 
     std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const;
-    //std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const;
+    std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const;
     //std::map<std::string, TensorImplPtr> svd() const;
 
     //TensorImplPtr cholesky() const;

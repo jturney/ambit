@@ -781,11 +781,67 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
     return result;
 }
 
-//std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder /*order*/) const
-//{
-//    ThrowNotImplementedException;
-//}
-//
+std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order) const
+{
+    squareCheck(this, true);
+
+    CoreTensorImpl *A = new CoreTensorImpl("A of " + name(), dims());
+    CoreTensorImpl *vl = new CoreTensorImpl("u of " + name(), dims());
+    CoreTensorImpl *vr = new CoreTensorImpl("v of " + name(), dims());
+    CoreTensorImpl *lambda = new CoreTensorImpl("lambda of " + name(), {dims()[0]});
+    CoreTensorImpl *lambdai = new CoreTensorImpl("lambda i of " + name(), {dims()[0]});
+
+    A->copy(this);
+
+    int n = static_cast<int>(dims()[0]);
+    double dwork;
+    int info;
+    info = C_DGEEV('V',
+                   'V',
+                   n,
+                   A->data().data(),
+                   n,
+                   lambda->data().data(),
+                   lambdai->data().data(),
+                   vl->data().data(),
+                   n,
+                   vr->data().data(),
+                   n,
+                   &dwork,
+                   -1);
+    int lwork = (int)dwork;
+    std::vector<double> work(static_cast<size_t>(lwork));
+    info = C_DGEEV('V',
+                   'V',
+                   n,
+                   A->data().data(),
+                   n,
+                   lambda->data().data(),
+                   lambdai->data().data(),
+                   vl->data().data(),
+                   n,
+                   vr->data().data(),
+                   n,
+                   work.data(),
+                   lwork);
+
+    if (info != 0) {
+        throw std::runtime_error("CoreTensorImpl::geev: LAPACK call failed");
+    }
+
+    if (order == kDescending) {
+        throw std::runtime_error("Unable to order descending");
+    }
+
+    std::map<std::string, TensorImplPtr> result;
+    result["lambda"] = lambda;
+    result["lambda i"] = lambdai;
+    result["u"] = vl;
+    result["v"] = vr;
+
+    return result;
+}
+
 //std::map<std::string, TensorImplPtr> CoreTensorImpl::svd() const
 //{
 //    ThrowNotImplementedException;

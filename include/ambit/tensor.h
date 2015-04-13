@@ -439,10 +439,52 @@ public:
 
     // => Rank-2 LAPACK-Type Tensor Operations <= //
 
+    /**
+     * This routine computes all the eigenvalues and eigenvectors of
+     * a square real symmetric matrix (this, A).
+     *
+     * The eigenvector v(j) of this satifies the following formula:
+     *
+     * A*v(j) = lambda(j)*v(j)
+     *
+     * where
+     *
+     * lambda(j) is its eigenvalue.
+     *
+     * The computed eigenvectors are orthonormal.
+     *
+     * @returns map of Tensor with the keys "eigenvalues" and "eigenvectors".
+     */
     std::map<std::string, Tensor> syev(EigenvalueOrder order) const;
     Tensor power(double power, double condition = 1.0E-12) const;
 
-    //std::map<std::string, Tensor> geev(EigenvalueOrder order) const;
+    /**
+     * This routine computes a square real general matrix (this, A), the
+     * eigenvalues and the left and right eigenvectors.
+     *
+     * The right eigenvector v(j) of A satisfies the following formula:
+     *
+     * A*v(j) = lambda(j)*v(j)
+     *
+     * where
+     *
+     * lambda(j) is its eigenvalue.
+     *
+     * The left eigenvector u(j) of A satisfies the following formula:
+     *
+     * u(j)H*A = lambda(j)*u(j)H
+     *
+     * where
+     *
+     * u(j)H denotes the conjugate transpose of u(j).
+     *
+     * The computed eigenvectors are normalized so that their Euclidean
+     * norm equals one and the largest component is real.
+     *
+     * @returns map of Tensor with the keys "lambda", "lambda i", "v", and "u". See
+     * definitions above.
+     */
+    std::map<std::string, Tensor> geev(EigenvalueOrder order) const;
     //std::map<std::string, Tensor> svd() const;
 
     //void potrf();

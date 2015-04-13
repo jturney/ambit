@@ -135,7 +135,9 @@ public:
 
     virtual std::map<std::string, TensorImplPtr> syev(EigenvalueOrder order) const
         { throw std::runtime_error("Operation not supported in this tensor implementation."); }
-    //virtual std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const = 0;
+    virtual std::map<std::string, TensorImplPtr> geev(EigenvalueOrder order) const
+        { throw std::runtime_error("Operation not supported in this tensor implementation."); }
+
     //virtual std::map<std::string, TensorImplPtr> svd() const = 0;
 
     //virtual TensorImplPtr cholesky() const = 0;

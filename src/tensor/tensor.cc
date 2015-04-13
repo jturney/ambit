@@ -325,11 +325,13 @@ std::map<std::string, Tensor> Tensor::syev(EigenvalueOrder order) const
     return result;
 }
 
-//std::map<std::string, Tensor> Tensor::geev(EigenvalueOrder order) const
-//{
-//    return map_to_tensor(tensor_->geev(order));
-//}
-//
+std::map<std::string, Tensor> Tensor::geev(EigenvalueOrder order) const
+{
+    timer::timer_push("Tensor::geev");
+    return map_to_tensor(tensor_->geev(order));
+    timer::timer_pop();
+}
+
 //std::map<std::string, Tensor> Tensor::svd() const
 //{
 //    return map_to_tensor(tensor_->svd());
