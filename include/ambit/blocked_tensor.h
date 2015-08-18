@@ -151,7 +151,7 @@ public:
      * Print some tensor information to fh
      * \param level If level = false, just print name and dimensions.  If level = true, print the entire tensor.
      **/
-    void print(FILE* fh, bool level = true, const std::string& format = std::string("%11.6f"), int maxcols = 5) const;
+    void print(FILE* fh = stdout, bool level = true, const std::string& format = std::string("%11.6f"), int maxcols = 5) const;
 
     // => Data Access <= //
 
