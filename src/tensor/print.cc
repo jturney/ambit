@@ -1,8 +1,8 @@
 #include <ambit/print.h>
-
-#include <cstdio>
-#include <cstdarg>
+#include <ambit/settings.h>
 #include <ambit/tensor.h>
+
+#include <cstdarg>
 
 namespace ambit {
 
@@ -35,7 +35,7 @@ void unindent(int decrement)
         indent_size = 0;
 }
 
-void print(const std::string& format, ...)
+void print(const string& format, ...)
 {
     if (ambit::settings::rank == 0) {
         va_list args;
@@ -46,7 +46,7 @@ void print(const std::string& format, ...)
     }
 }
 
-void printn(const std::string& format, ...)
+void printn(const string& format, ...)
 {
     for (int proc=0; proc < settings::nprocess; proc++) {
         if (proc == settings::rank) {

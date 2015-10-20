@@ -2,13 +2,13 @@
 // Created by Justin Turney on 3/30/15.
 //
 
+#include <ambit/common_types.h>
+#include <ambit/settings.h>
 #include <ambit/timer.h>
 #include <ambit/print.h>
-#include <ambit/tensor.h>
 
-#include <cstdio>
+#include <chrono>
 #include <cassert>
-#include <string.h>
 
 namespace ambit {
 namespace timer {
@@ -21,7 +21,7 @@ namespace {
 struct TimerDetail
 {
     // Description of the timing block
-    std::string name;
+    string name;
 
     // Accumulated runtime
     clock::duration total_time;
@@ -29,7 +29,7 @@ struct TimerDetail
     size_t total_calls;
 
     TimerDetail *parent;
-    std::map<std::string, TimerDetail> children;
+    map<string, TimerDetail> children;
 
     time_point start_time;
 
@@ -72,7 +72,7 @@ void print_timer_info(TimerDetail *timer)
 {
     char buffer[512];
     if (timer != root) {
-        sprintf(buffer,
+        snprintf(buffer, 512,
                 "%lld ms : %lld calls : %lld ms per call : ",
                 std::chrono::duration_cast<std::chrono::milliseconds>(timer->total_time),
                 timer->total_calls,
@@ -106,7 +106,7 @@ void report()
         print_timer_info(root);
 }
 
-void timer_push(const std::string &name)
+void timer_push(const string &name)
 {
     if (settings::timers) {
         assert(current_timer != nullptr);

@@ -5,10 +5,7 @@
 #ifndef AMBIT_TIMER_H
 #define AMBIT_TIMER_H
 
-#include <string>
-#include <map>
-#include <tuple>
-#include <chrono>
+#include "common_types.h"
 
 namespace ambit {
 namespace timer {
@@ -21,7 +18,7 @@ void finalize();
 
 void report();
 
-void timer_push(const std::string& name);
+void timer_push(const string& name);
 void timer_pop();
 
 }

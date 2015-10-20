@@ -11,7 +11,7 @@ namespace ambit {
 
 TensorImpl::TensorImpl(
     TensorType type,
-    const std::string& name,
+    const string& name,
     const Dimension& dims) :
     type_(type),
     name_(name),
@@ -67,7 +67,7 @@ TensorImplPtr TensorImpl::clone(TensorType t) const
     tensor->copy(this);
     return tensor;
 }
-void TensorImpl::print(FILE* fh, bool level, const std::string& /*format*/, int maxcols) const
+void TensorImpl::print(FILE* fh, bool level, const string& /*format*/, int maxcols) const
 {
     fprintf(fh, "  ## %s ##\n\n", name_.c_str());
     fprintf(fh, "  Rank = %zu\n", rank());
@@ -205,7 +205,5 @@ bool TensorImpl::dimensionCheck(ConstTensorImplPtr A, ConstTensorImplPtr B, bool
         return diff;
     }
 }
-
-
 
 }

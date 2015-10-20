@@ -1,5 +1,6 @@
+#include <ambit/common_types.h>
+
 #include <algorithm>
-#include <iterator>
 #include "indices.h"
 
 namespace ambit {
@@ -9,36 +10,36 @@ namespace indices {
 namespace {
 
 // trim from start
-static inline std::string &ltrim(std::string &s)
+static inline string &ltrim(string &s)
 {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
     return s;
 }
 
 // trim from end
-static inline std::string &rtrim(std::string &s)
+static inline string &rtrim(string &s)
 {
     s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
     return s;
 }
 
 // trim from both ends
-static inline std::string &trim(std::string &s)
+static inline string &trim(string &s)
 {
     return ltrim(rtrim(s));
 }
 
 }
 
-Indices split(const std::string &indices)
+Indices split(const string &indices)
 {
     std::istringstream f(indices);
-    std::string s;
-    std::vector<std::string> v;
+    string s;
+    Indices v;
 
-    if (indices.find(",") != std::string::npos) {
+    if (indices.find(",") != string::npos) {
         while (std::getline(f, s, ',')) {
-            std::string trimmed = trim(s);
+            string trimmed = trim(s);
             v.push_back(trimmed);
         }
     }
@@ -51,7 +52,7 @@ Indices split(const std::string &indices)
     return v;
 }
 
-bool equivalent(const std::vector<std::string> &left, const std::vector<std::string> &right)
+bool equivalent(const Indices &left, const Indices &right)
 {
     return left == right;
 }
@@ -61,8 +62,8 @@ std::vector<size_t> permutation_order(const Indices& left, const Indices& right)
     /// Check that these strings have the same number of indices
     if (left.size() != right.size()) throw std::runtime_error("Permutation indices not of same rank");
 
-    std::vector<std::string> left2 = left;
-    std::vector<std::string> right2 = right;
+    Indices left2 = left;
+    Indices right2 = right;
     std::sort(left2.begin(),left2.end());
     std::sort(right2.begin(),right2.end());
 
@@ -111,8 +112,8 @@ bool contiguous(const std::vector<std::pair<int, std::string>>& vec)
 }
 Dimension permuted_dimension(
     const Dimension& old_dim,
-    const std::vector<std::string>& new_order,
-    const std::vector<std::string>& old_order)
+    const Indices& new_order,
+    const Indices& old_order)
 {
     std::vector<size_t> order = indices::permutation_order(new_order,old_order);
     Dimension new_dim(order.size(),0L);
@@ -132,14 +133,14 @@ void print(const Indices &indices)
 }
 
 
-std::string to_string(const Indices& indices, const std::string& sep)
+string to_string(const Indices& indices, const std::string& sep)
 {
     if (indices.size() == 0)
         return std::string();
 
     std::ostringstream ss;
 
-    std::copy(indices.begin(), indices.end() - 1, std::ostream_iterator<std::string>(ss,sep.c_str()));
+    std::copy(indices.begin(), indices.end() - 1, std::ostream_iterator<string>(ss,sep.c_str()));
     ss << indices.back();
 
     return ss.str();

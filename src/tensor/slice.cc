@@ -331,7 +331,7 @@ void slice(
         // => Index Logic <= //
 
         /// Sizes of stripes
-        std::vector<size_t> sizes(C->rank(), 0L);
+        vector<size_t> sizes(C->rank(), 0L);
         for (size_t ind = 0L; ind < C->rank(); ind++) {
             sizes[ind] = Cinds[ind][1] - Cinds[ind][0];
         }
@@ -358,13 +358,13 @@ void slice(
             slow_size *= sizes[dim];
         }
 
-        std::vector<size_t> Astrides(C->rank());
+        vector<size_t> Astrides(C->rank());
         Astrides[C->rank() - 1] = 1L;
         for (int ind = ((int) C->rank() - 2); ind >= 0; ind--) {
             Astrides[ind] = Astrides[ind + 1] * A->dims()[ind + 1];
         }
 
-        std::vector<size_t> Cstrides(C->rank());
+        vector<size_t> Cstrides(C->rank());
         Cstrides[C->rank() - 1] = 1L;
         for (int ind = ((int) C->rank() - 2); ind >= 0; ind--) {
             Cstrides[ind] = Cstrides[ind + 1] * C->dims()[ind + 1];
@@ -435,7 +435,7 @@ void slice(
         // => Index Logic <= //
 
         /// Sizes of stripes
-        std::vector<size_t> sizes(C->rank(), 0L);
+        vector<size_t> sizes(C->rank(), 0L);
         for (size_t ind = 0L; ind < C->rank(); ind++) {
             sizes[ind] = Cinds[ind][1] - Cinds[ind][0];
         }
@@ -462,13 +462,13 @@ void slice(
             slow_size *= sizes[dim];
         }
 
-        std::vector<size_t> Astrides(C->rank());
+        vector<size_t> Astrides(C->rank());
         Astrides[C->rank() - 1] = 1L;
         for (int ind = ((int) C->rank() - 2); ind >= 0; ind--) {
             Astrides[ind] = Astrides[ind + 1] * A->dims()[ind + 1];
         }
 
-        std::vector<size_t> Cstrides(C->rank());
+        vector<size_t> Cstrides(C->rank());
         Cstrides[C->rank() - 1] = 1L;
         for (int ind = ((int) C->rank() - 2); ind >= 0; ind--) {
             Cstrides[ind] = Cstrides[ind + 1] * C->dims()[ind + 1];
@@ -549,7 +549,7 @@ void slice(
         // => Index Logic <= //
 
         /// Sizes of stripes
-        std::vector<size_t> sizes(C->rank(), 0L);
+        vector<size_t> sizes(C->rank(), 0L);
         for (size_t ind = 0L; ind < C->rank(); ind++) {
             sizes[ind] = Cinds[ind][1] - Cinds[ind][0];
         }
@@ -576,13 +576,13 @@ void slice(
             slow_size *= sizes[dim];
         }
 
-        std::vector<size_t> Astrides(C->rank());
+        vector<size_t> Astrides(C->rank());
         Astrides[C->rank() - 1] = 1L;
         for (int ind = ((int) C->rank() - 2); ind >= 0; ind--) {
             Astrides[ind] = Astrides[ind + 1] * A->dims()[ind + 1];
         }
 
-        std::vector<size_t> Cstrides(C->rank());
+        vector<size_t> Cstrides(C->rank());
         Cstrides[C->rank() - 1] = 1L;
         for (int ind = ((int) C->rank() - 2); ind >= 0; ind--) {
             Cstrides[ind] = Cstrides[ind + 1] * C->dims()[ind + 1];

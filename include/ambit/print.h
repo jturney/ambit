@@ -1,17 +1,17 @@
 #if !defined(TENSOR_INCLUDE_PRINT_H)
 #define TENSOR_INCLUDE_PRINT_H
 
-#include <string>
+#include "common_types.h"
 
 namespace ambit {
 
 /// Print function. Only the master node is allowed to print to the screen.
-void print(const std::string& format, ...);
+void print(const string& format, ...);
 
-/** Each proces will print to their respective output file.
+/** Each process will print to their respective output file.
  *  The master process will print to both the screen and its output file.
  */
-void printn(const std::string& format, ...);
+void printn(const string& format, ...);
 
 /** Increases printing column offset by increment.
  * @param increment the amount to increase indentation.

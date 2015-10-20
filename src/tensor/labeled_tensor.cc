@@ -8,7 +8,7 @@
 
 namespace ambit {
 
-LabeledTensor::LabeledTensor(Tensor T, const std::vector<std::string> &indices, double factor) :
+LabeledTensor::LabeledTensor(Tensor T, const Indices& indices, double factor) :
         T_(T), indices_(indices), factor_(factor)
 {
     if (T_.rank() != indices.size())
@@ -22,7 +22,7 @@ void LabeledTensor::set(const LabeledTensor &to)
     factor_ = to.factor_;
 }
 
-size_t LabeledTensor::dim_by_index(const std::string& idx) const
+size_t LabeledTensor::dim_by_index(const string& idx) const
 {
     // determine location of idx in indices_
     Indices::const_iterator location = std::find(indices_.begin(),
@@ -289,7 +289,7 @@ LabeledTensorProduct::operator double() const
     return C.data()[0];
 }
 
-std::pair<double, double> LabeledTensorProduct::compute_contraction_cost(const std::vector<size_t> &perm) const
+pair<double, double> LabeledTensorProduct::compute_contraction_cost(const vector<size_t> &perm) const
 {
 #if 0
     printf("\n\n  Testing the cost of the contraction pattern: ");
@@ -301,7 +301,7 @@ std::pair<double, double> LabeledTensorProduct::compute_contraction_cost(const s
     }
 #endif
 
-    std::map<std::string, size_t> indices_to_size;
+    map<string, size_t> indices_to_size;
 
     for (const LabeledTensor &ti : tensors_) {
         const Indices &indices = ti.indices();
@@ -326,19 +326,19 @@ std::pair<double, double> LabeledTensorProduct::compute_contraction_cost(const s
         std::set_difference(second.begin(), second.end(), first.begin(), first.end(), back_inserter(second_unique));
 
         double common_size = 1.0;
-        for (std::string s : common) common_size *= indices_to_size[s];
+        for (const string& s : common) common_size *= indices_to_size[s];
         double first_size = 1.0;
-        for (std::string s : first) first_size *= indices_to_size[s];
+        for (const string& s : first) first_size *= indices_to_size[s];
         double second_size = 1.0;
-        for (std::string s : second) second_size *= indices_to_size[s];
+        for (const string& s : second) second_size *= indices_to_size[s];
         double first_unique_size = 1.0;
-        for (std::string s : first_unique) first_unique_size *= indices_to_size[s];
+        for (const string& s : first_unique) first_unique_size *= indices_to_size[s];
         double second_unique_size = 1.0;
-        for (std::string s : second_unique) second_unique_size *= indices_to_size[s];
+        for (const string& s : second_unique) second_unique_size *= indices_to_size[s];
         double result_size = first_unique_size + second_unique_size;
 
 
-        std::vector<std::string> stored_indices(first_unique);
+        Indices stored_indices(first_unique);
         stored_indices.insert(stored_indices.end(), second_unique.begin(), second_unique.end());
 
         double cpu_cost = common_size * result_size;

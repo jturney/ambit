@@ -11,7 +11,7 @@
 
 namespace ambit {
 
-CoreTensorImpl::CoreTensorImpl(const std::string& name, const Dimension& dims)
+CoreTensorImpl::CoreTensorImpl(const string& name, const Dimension& dims)
         : TensorImpl(kCore, name, dims)
 {
     data_.resize(numel(),0L);
@@ -43,13 +43,13 @@ double CoreTensorImpl::norm(
     }
 }
 
-std::tuple<double, std::vector<size_t>> CoreTensorImpl::max() const
+tuple<double, vector<size_t>> CoreTensorImpl::max() const
 {
-    std::tuple<double, std::vector<size_t>> element;
+    tuple<double, vector<size_t>> element;
 
     std::get<0>(element) = std::numeric_limits<double>::lowest();
 
-    citerate([&](const std::vector<size_t>& indices, const double& value) {
+    citerate([&](const vector<size_t>& indices, const double& value) {
         if (std::get<0>(element) < value) {
             std::get<0>(element) = value;
             std::get<1>(element) = indices;
@@ -59,13 +59,13 @@ std::tuple<double, std::vector<size_t>> CoreTensorImpl::max() const
     return element;
 }
 
-std::tuple<double, std::vector<size_t>> CoreTensorImpl::min() const
+tuple<double, vector<size_t>> CoreTensorImpl::min() const
 {
-    std::tuple<double, std::vector<size_t>> element;
+    tuple<double, vector<size_t>> element;
 
     std::get<0>(element) = std::numeric_limits<double>::max();
 
-    citerate([&](const std::vector<size_t>& indices, const double& value) {
+    citerate([&](const vector<size_t>& indices, const double& value) {
         if (std::get<0>(element) > value) {
             std::get<0>(element) = value;
             std::get<1>(element) = indices;
@@ -105,12 +105,12 @@ void CoreTensorImpl::contract(
     // => Permutation Logic <= //
 
     // Determine unique indices
-    std::vector<std::string> inds;
+    Indices inds;
     inds.insert(inds.end(),Cinds.begin(),Cinds.end());
     inds.insert(inds.end(),Ainds.begin(),Ainds.end());
     inds.insert(inds.end(),Binds.begin(),Binds.end());
     std::sort(inds.begin(), inds.end());
-    std::vector<std::string>::iterator it = std::unique(inds.begin(), inds.end());
+    Indices::iterator it = std::unique(inds.begin(), inds.end());
     inds.resize(std::distance(inds.begin(),it));
 
     // Determine index types and positions (and GEMM sizes while we are there)
@@ -118,13 +118,13 @@ void CoreTensorImpl::contract(
     size_t BC_size = 1L;
     size_t AC_size = 1L;
     size_t AB_size = 1L;
-    std::vector<std::string> compound_names = {"PC", "PA", "PB", "iC", "iA", "jC", "jB", "kA", "kB"};
-    std::map<std::string, std::vector<std::pair<int, std::string>>> compound_inds;
+    Indices compound_names = {"PC", "PA", "PB", "iC", "iA", "jC", "jB", "kA", "kB"};
+    map<string, vector<pair<int, string>>> compound_inds;
     for (size_t ind = 0L; ind < compound_names.size(); ind++) {
-        compound_inds[compound_names[ind]] = std::vector<std::pair<int, std::string>>();
+        compound_inds[compound_names[ind]] = vector<pair<int, string>>();
     }
     for (size_t ind = 0L; ind < inds.size(); ind++) {
-        std::string index = inds[ind];
+        string index = inds[ind];
         int Cpos = indices::find_index_in_vector(Cinds,index);
         int Apos = indices::find_index_in_vector(Ainds,index);
         int Bpos = indices::find_index_in_vector(Binds,index);
@@ -196,10 +196,10 @@ void CoreTensorImpl::contract(
     if (compound_inds["jB"].size() && compound_inds["jB"][0].first == Psize) B_transpose = true;
 
     // Fix contiguous considerations (already in correct order for contiguous cases)
-    std::map<std::string, std::vector<std::string> > compound_inds2;
+    map<string, vector<string> > compound_inds2;
     for (size_t ind = 0L; ind < compound_names.size(); ind++) {
-        std::string key = compound_names[ind];
-        std::vector<std::string> vals;
+        string key = compound_names[ind];
+        vector<string> vals;
         for (size_t ind2 = 0L; ind2 < compound_inds[key].size(); ind2++) {
             vals.push_back(compound_inds[key][ind2].second);
         }
@@ -266,9 +266,9 @@ void CoreTensorImpl::contract(
     }
 
     /// Assign the permuted indices (if flagged for permute) or the original indices
-    std::vector<std::string> Cinds2;
-    std::vector<std::string> Ainds2;
-    std::vector<std::string> Binds2;
+    Indices Cinds2;
+    Indices Ainds2;
+    Indices Binds2;
     if (permC) {
         Cinds2.insert(Cinds2.end(),compound_inds2["PC"].begin(),compound_inds2["PC"].end());
         Cinds2.insert(Cinds2.end(),compound_inds2["iC"].begin(),compound_inds2["iC"].end());
@@ -481,7 +481,7 @@ void CoreTensorImpl::permute(
 
     // => Convert to indices of A <= //
 
-    std::vector<size_t> Ainds = indices::permutation_order(CindsS, AindsS);
+    vector<size_t> Ainds = indices::permutation_order(CindsS, AindsS);
     for (size_t dim = 0; dim < rank(); dim++) {
         if (dims()[dim] != A->dims()[Ainds[dim]])
             throw std::runtime_error("Permuted tensors do not have same dimensions");
@@ -529,27 +529,27 @@ void CoreTensorImpl::permute(
     }
 
     /// Strides of slow indices of tensor A in its own ordering
-    std::vector<size_t> Astrides(slow_dims,0L);
+    vector<size_t> Astrides(slow_dims,0L);
     if (slow_dims != 0) Astrides[slow_dims-1] = fast_size;
     for (int dim = slow_dims-2; dim >= 0; dim--) {
         Astrides[dim] = Astrides[dim+1] * A->dims()[dim+1];
     }
 
     /// Strides of slow indices of tensor A in the ordering of tensor C
-    std::vector<size_t> AstridesC(slow_dims,0L);
+    vector<size_t> AstridesC(slow_dims,0L);
     for (int dim = 0; dim < slow_dims; dim++) {
         AstridesC[dim] = Astrides[Ainds[dim]];
     }
 
     /// Strides of slow indices of tensor C in its own ordering
-    std::vector<size_t> Cstrides(slow_dims,0L);
+    vector<size_t> Cstrides(slow_dims,0L);
     if (slow_dims != 0) Cstrides[slow_dims-1] = fast_size;
     for (int dim = slow_dims-2; dim >= 0; dim--) {
         Cstrides[dim] = Cstrides[dim+1] * dims()[dim+1];
     }
 
     /// Handle to dimensions of C
-    const std::vector<size_t>& Csizes = dims();
+    const Dimension& Csizes = dims();
 
     // => Permute Operation <= //
 
@@ -734,7 +734,7 @@ void CoreTensorImpl::gemm(
         ldaC);
 }
 
-std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
+map<string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
 {
     squareCheck(this, true);
 
@@ -774,14 +774,14 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order)
         delete[] Temp_sqrsp_col;
     }
 
-    std::map<std::string, TensorImplPtr> result;
+    map<string, TensorImplPtr> result;
     result["eigenvectors"] = vecs;
     result["eigenvalues"] = vals;
 
     return result;
 }
 
-std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order) const
+map<string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order) const
 {
     squareCheck(this, true);
 
@@ -810,7 +810,7 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order)
                    &dwork,
                    -1);
     int lwork = (int)dwork;
-    std::vector<double> work(static_cast<size_t>(lwork));
+    vector<double> work(static_cast<size_t>(lwork));
     info = C_DGEEV('V',
                    'V',
                    n,
@@ -833,7 +833,7 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order)
         throw std::runtime_error("Unable to order descending");
     }
 
-    std::map<std::string, TensorImplPtr> result;
+    map<string, TensorImplPtr> result;
     result["lambda"] = lambda;
     result["lambda i"] = lambdai;
     result["u"] = vl;
@@ -842,7 +842,7 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order)
     return result;
 }
 
-//std::map<std::string, TensorImplPtr> CoreTensorImpl::svd() const
+//map<string, TensorImplPtr> CoreTensorImpl::svd() const
 //{
 //    ThrowNotImplementedException;
 //}
@@ -852,11 +852,11 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order)
 //    ThrowNotImplementedException;
 //}
 //
-//std::map<std::string, TensorImplPtr> CoreTensorImpl::lu() const
+//map<string, TensorImplPtr> CoreTensorImpl::lu() const
 //{
 //    ThrowNotImplementedException;
 //}
-//std::map<std::string, TensorImplPtr> CoreTensorImpl::qr() const
+//map<string, TensorImplPtr> CoreTensorImpl::qr() const
 //{
 //    ThrowNotImplementedException;
 //}
@@ -874,7 +874,7 @@ std::map<std::string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order)
 TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
 {
     // this call will ensure squareness
-    std::map<std::string, TensorImplPtr> diag = syev(kAscending);
+    map<string, TensorImplPtr> diag = syev(kAscending);
 
     size_t n = diag["eigenvalues"]->dims()[0];
     double *a = dynamic_cast<CoreTensorImplPtr>(diag["eigenvalues"])->data().data();
@@ -915,10 +915,10 @@ TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
     return powered;
 }
 
-void CoreTensorImpl::iterate(const std::function<void (const std::vector<size_t>&, double&)>& func)
+void CoreTensorImpl::iterate(const function<void (const vector<size_t>&, double&)>& func)
 {
-    std::vector<size_t> indices(rank(), 0);
-    std::vector<size_t> addressing(rank(), 1);
+    vector<size_t> indices(rank(), 0);
+    vector<size_t> addressing(rank(), 1);
 
     // form addressing array
     for (int n=rank()-2; n >= 0; --n) {
@@ -938,10 +938,10 @@ void CoreTensorImpl::iterate(const std::function<void (const std::vector<size_t>
     }
 }
 
-void CoreTensorImpl::citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const
+void CoreTensorImpl::citerate(const function<void (const vector<size_t>&, const double&)>& func) const
 {
-    std::vector<size_t> indices(rank(), 0);
-    std::vector<size_t> addressing(rank(), 1);
+    vector<size_t> indices(rank(), 0);
+    vector<size_t> addressing(rank(), 1);
 
     // form addressing array
     for (int n=rank()-2; n >= 0; --n) {

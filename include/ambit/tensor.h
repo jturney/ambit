@@ -1,23 +1,10 @@
 #if !defined(TENSOR_INCLUDE_TENSOR_H)
 #define TENSOR_INCLUDE_TENSOR_H
 
-#include <cstdio>
-#include <utility>
-#include <vector>
-#include <map>
-#include <string>
-#include <functional>
-
-#include <memory>
-#include <tuple>
+#include "common_types.h"
+#include "settings.h"
 
 namespace ambit {
-
-using std::tuple;
-using std::shared_ptr;
-using std::unique_ptr;
-
-static constexpr double numerical_zero__ = 1.0e-15;
 
 // => Forward Declarations <=
 class TensorImpl;
@@ -43,35 +30,9 @@ enum EigenvalueOrder {
 };
 
 // => Typedefs <=
-typedef std::vector<size_t> Dimension;
-typedef std::vector<std::vector<size_t>> IndexRange;
-typedef std::vector<std::string> Indices;
-
-// => Settings Namespace <=
-namespace settings {
-
-/** Number of MPI processes.
- *
- * For single process runs this will always be 1.
- */
-extern int nprocess;
-
-/// Rank of this process. (zero-based)
-extern int rank;
-
-/// Print debug information? true, or false
-extern bool debug;
-
-/// Memory usage limit. Default is 1GB.
-extern size_t memory_limit;
-
-/// Distributed capable?
-extern const bool distributed_capable;
-
-/// Enable timers
-extern bool timers;
-
-}
+using Dimension  = vector<size_t>;
+using IndexRange = vector<vector<size_t>>;
+using Indices    = vector<string>;
 
 /** Initializes the tensor library.
  *
@@ -90,7 +51,7 @@ void finalize();
 
 /** Barrier function
  *
- * If called in MPI process it equivalent to calling MPI_Barrier.
+ * If called in MPI process is equivalent to calling MPI_Barrier.
  * Otherwise this call is nop.
  */
 void barrier();
@@ -117,7 +78,7 @@ public:
      **/
     static Tensor build(
         TensorType type,
-        const std::string& name,
+        const string& name,
         const Dimension& dims);
 
     /**
@@ -160,7 +121,7 @@ public:
     /// @return The tensor type enum, one of kCore, kDisk, kDistributed
     TensorType type() const;
     /// @return The name of the tensor for use in printing
-    std::string name() const;
+    string name() const;
     /// @return The dimension of each index in the tensor
     const Dimension& dims() const;
     /// @return The dimension of the ind-th index
@@ -171,7 +132,7 @@ public:
     size_t numel() const;
 
     /// Set the name of the tensor to name
-    void set_name(const std::string& name);
+    void set_name(const string& name);
 
     /// @return Does this Tensor point to the same underlying tensor as Tensor other?
     bool operator==(const Tensor& other) const;
@@ -182,7 +143,7 @@ public:
      * Print some tensor information to fh
      * \param level If level = false, just print name and dimensions.  If level = true, print the entire tensor.
      **/
-    void print(FILE* fh = stdout, bool level = true, const std::string& format = std::string("%11.6f"), int maxcols = 5) const;
+    void print(FILE* fh = stdout, bool level = true, const string& format = string("%11.6f"), int maxcols = 5) const;
 
     // => Data Access <= //
 
@@ -201,18 +162,18 @@ public:
      *
      * Example successful use case:
      *  Tensor A = Tensor::build(kCore, "A3", {4,5,6});
-     *  std::vector<double>& Av = A.data();
+     *  vector<double>& Av = A.data();
      *  double* Ap = Av.data(); // In case the raw pointer is needed
      *  In this case, Av[0] = A(0,0,0), Av[1] = A(0,0,1), etc.
      *
      *  Tensor B = Tensor::build(kDisk, "B3", {4,5,6});
-     *  std::vector<double>& Bv = B.data(); // throws
+     *  vector<double>& Bv = B.data(); // throws
      *
      * Results:
      *  @return data pointer, if tensor object supports it
      **/
-    std::vector<double>& data();
-    const std::vector<double>& data() const;
+    vector<double>& data();
+    const vector<double>& data() const;
 
     // => BLAS-Type Tensor Operations <= //
 
@@ -234,13 +195,13 @@ public:
      *
      * @return maximum value along with its indices
      */
-    std::tuple<double, std::vector<size_t>> max() const;
+    tuple<double, vector<size_t>> max() const;
 
     /** Find the minimum value.
      *
      * @return minimum value along with its indices
      */
-    std::tuple<double, std::vector<size_t>> min() const;
+    tuple<double, vector<size_t>> min() const;
 
     /**
      * Sets the data of the tensor to zeros
@@ -443,7 +404,7 @@ public:
      * This routine computes all the eigenvalues and eigenvectors of
      * a square real symmetric matrix (this, A).
      *
-     * The eigenvector v(j) of this satifies the following formula:
+     * The eigenvector v(j) of this satisfies the following formula:
      *
      * A*v(j) = lambda(j)*v(j)
      *
@@ -455,7 +416,7 @@ public:
      *
      * @returns map of Tensor with the keys "eigenvalues" and "eigenvectors".
      */
-    std::map<std::string, Tensor> syev(EigenvalueOrder order) const;
+    map<string, Tensor> syev(EigenvalueOrder order) const;
     Tensor power(double power, double condition = 1.0E-12) const;
 
     /**
@@ -484,8 +445,8 @@ public:
      * @returns map of Tensor with the keys "lambda", "lambda i", "v", and "u". See
      * definitions above.
      */
-    std::map<std::string, Tensor> geev(EigenvalueOrder order) const;
-    //std::map<std::string, Tensor> svd() const;
+    map<string, Tensor> geev(EigenvalueOrder order) const;
+    //map<string, Tensor> svd() const;
 
     //void potrf();
     //void potri();
@@ -499,8 +460,8 @@ public:
     //void getrs(const Tensor& LU);
     //void gesv(const Tensor& A);
 
-    //std::map<std::string, Tensor> lu() const;
-    //std::map<std::string, Tensor> qr() const;
+    //map<string, Tensor> lu() const;
+    //map<string, Tensor> qr() const;
 
     //Tensor inverse() const;
 
@@ -508,12 +469,12 @@ public:
 
     // => Utility Operations <= //
 
-    static Tensor cat(const std::vector<Tensor>, int dim);
+    static Tensor cat(const vector<Tensor>, int dim);
 
     // => Iterators <= //
 
-    void iterate(const std::function<void (const std::vector<size_t>&, double&)>& func);
-    void citerate(const std::function<void (const std::vector<size_t>&, const double&)>& func) const;
+    void iterate(const function<void (const vector<size_t>&, double&)>& func);
+    void citerate(const function<void (const vector<size_t>&, const double&)>& func) const;
 
 private:
 
@@ -523,13 +484,13 @@ protected:
 
     Tensor(shared_ptr<TensorImpl> tensor);
 
-    static std::map<std::string, Tensor> map_to_tensor(const std::map<std::string, TensorImpl*>& x);
+    static map<string, Tensor> map_to_tensor(const map<string, TensorImpl*>& x);
 
 public:
 
     // => Operator Overloading API <= //
 
-    LabeledTensor operator()(const std::string& indices) const;
+    LabeledTensor operator()(const string& indices) const;
 
     SlicedTensor operator()(const IndexRange& range) const;
     SlicedTensor operator()() const;
@@ -538,17 +499,17 @@ public:
 
 private:
 
-    static std::string scratch_path__;
+    static string scratch_path__;
 
 public:
 
-    static void set_scratch_path(const std::string& path) { scratch_path__ = path; }
-    static std::string scratch_path() { return scratch_path__; }
+    static void set_scratch_path(const string& path) { scratch_path__ = path; }
+    static string scratch_path() { return scratch_path__; }
 
 };
 
-class LabeledTensor {
-
+class LabeledTensor
+{
 public:
     LabeledTensor(Tensor T, const Indices& indices, double factor = 1.0);
 
@@ -587,7 +548,7 @@ public:
 //    bool operator!=(const LabeledTensor& other) const;
 
     size_t numdim() const { return indices_.size(); }
-    size_t dim_by_index(const std::string& idx) const;
+    size_t dim_by_index(const string& idx) const;
 
     // negation
     LabeledTensor operator-() const {
@@ -637,11 +598,11 @@ public:
     // conversion operator
     operator double() const;
 
-    std::pair<double, double> compute_contraction_cost(const std::vector<size_t>& perm) const;
+    pair<double, double> compute_contraction_cost(const vector<size_t>& perm) const;
 
 private:
 
-    std::vector<LabeledTensor> tensors_;
+    vector<LabeledTensor> tensors_;
 };
 
 class LabeledTensorAddition
@@ -657,11 +618,11 @@ public:
 
     const LabeledTensor& operator[](size_t i) const { return tensors_[i]; }
 
-    std::vector<LabeledTensor>::iterator begin() { return tensors_.begin(); }
-    std::vector<LabeledTensor>::const_iterator begin() const { return tensors_.begin(); }
+    vector<LabeledTensor>::iterator begin() { return tensors_.begin(); }
+    vector<LabeledTensor>::const_iterator begin() const { return tensors_.begin(); }
 
-    std::vector<LabeledTensor>::iterator end() { return tensors_.end(); }
-    std::vector<LabeledTensor>::const_iterator end() const { return tensors_.end(); }
+    vector<LabeledTensor>::iterator end() { return tensors_.end(); }
+    vector<LabeledTensor>::const_iterator end() const { return tensors_.end(); }
 
     LabeledTensorAddition& operator+(const LabeledTensor& other) {
         tensors_.push_back(other);
@@ -683,7 +644,7 @@ public:
 private:
 
     // This handles cases like T("ijab")
-    std::vector<LabeledTensor> tensors_;
+    vector<LabeledTensor> tensors_;
 
 };
 

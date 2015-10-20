@@ -14,10 +14,10 @@ namespace ambit {
 static size_t disk_next_id__ = 0L;
 size_t disk_next_id() { return disk_next_id__++; }
 
-DiskTensorImpl::DiskTensorImpl(const std::string& name, const Dimension& dims)
+DiskTensorImpl::DiskTensorImpl(const string& name, const Dimension& dims)
         : TensorImpl(kDisk, name, dims)
 {
-    std::stringstream ss;
+    stringstream ss;
     ss << Tensor::scratch_path();
     ss << "/";
     ss << "kDisk.";

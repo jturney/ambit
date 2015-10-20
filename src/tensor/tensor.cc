@@ -102,13 +102,13 @@ void barrier()
 #endif
 }
 
-std::string Tensor::scratch_path__ = ".";
+string Tensor::scratch_path__ = ".";
 
 Tensor::Tensor(shared_ptr<TensorImpl> tensor)
     : tensor_(tensor)
 {}
 
-Tensor Tensor::build(TensorType type, const std::string& name, const Dimension& dims)
+Tensor Tensor::build(TensorType type, const string& name, const Dimension& dims)
 {
     if (settings::ninitialized == 0)
         throw std::runtime_error("ambit::Tensor::build: Ambit has not been initialized.");
@@ -181,12 +181,12 @@ std::string Tensor::name() const
     return tensor_->name();
 }
 
-void Tensor::set_name(const std::string& name)
+void Tensor::set_name(const string& name)
 {
     tensor_->set_name(name);
 }
 
-const std::vector<size_t>& Tensor::dims() const
+const Dimension& Tensor::dims() const
 {
     return tensor_->dims();
 }
@@ -206,12 +206,12 @@ size_t Tensor::numel() const
     return tensor_->numel();
 }
 
-void Tensor::print(FILE *fh, bool level, std::string const &format, int maxcols) const
+void Tensor::print(FILE *fh, bool level, string const &format, int maxcols) const
 {
     tensor_->print(fh, level, format, maxcols);
 }
 
-LabeledTensor Tensor::operator()(const std::string& indices) const
+LabeledTensor Tensor::operator()(const string& indices) const
 {
     return LabeledTensor(*this, indices::split(indices));
 }
@@ -296,7 +296,7 @@ std::tuple<double, std::vector<size_t>> Tensor::max() const
     return result;
 }
 
-std::tuple<double, std::vector<size_t>> Tensor::min() const
+tuple<double, vector<size_t>> Tensor::min() const
 {
     timer::timer_push("Tensor::min");
     auto result = tensor_->min();
@@ -305,11 +305,11 @@ std::tuple<double, std::vector<size_t>> Tensor::min() const
     return result;
 }
 
-std::map<std::string, Tensor> Tensor::map_to_tensor(const std::map<std::string, TensorImplPtr>& x)
+map<string, Tensor> Tensor::map_to_tensor(const map<string, TensorImplPtr>& x)
 {
-    std::map<std::string, Tensor> result;
+    map<string, Tensor> result;
 
-    for (std::map<std::string, TensorImplPtr>::const_iterator iter = x.begin();
+    for (map<string, TensorImplPtr>::const_iterator iter = x.begin();
             iter != x.end();
             ++iter) {
         result.insert(make_pair(iter->first, Tensor(shared_ptr<TensorImpl>(iter->second))));
@@ -317,7 +317,7 @@ std::map<std::string, Tensor> Tensor::map_to_tensor(const std::map<std::string, 
     return result;
 }
 
-std::map<std::string, Tensor> Tensor::syev(EigenvalueOrder order) const
+map<string, Tensor> Tensor::syev(EigenvalueOrder order) const
 {
     timer::timer_push("Tensor::syev");
     auto result = map_to_tensor(tensor_->syev(order));
@@ -325,7 +325,7 @@ std::map<std::string, Tensor> Tensor::syev(EigenvalueOrder order) const
     return result;
 }
 
-std::map<std::string, Tensor> Tensor::geev(EigenvalueOrder order) const
+map<string, Tensor> Tensor::geev(EigenvalueOrder order) const
 {
     timer::timer_push("Tensor::geev");
     return map_to_tensor(tensor_->geev(order));
