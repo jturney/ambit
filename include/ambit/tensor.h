@@ -9,10 +9,10 @@ namespace ambit {
 // => Forward Declarations <=
 class TensorImpl;
 class LabeledTensor;
-class LabeledTensorProduct;
+class LabeledTensorContraction;
 class LabeledTensorAddition;
 class LabeledTensorSubtraction;
-class LabeledTensorDistributive;
+class LabeledTensorDistribution;
 class LabeledTensorSumOfProducts;
 class SlicedTensor;
 
@@ -518,24 +518,24 @@ public:
     Indices& indices() { return indices_; }
     const Tensor& T() const { return T_; }
 
-    LabeledTensorProduct operator*(const LabeledTensor& rhs);
+    LabeledTensorContraction operator*(const LabeledTensor& rhs);
     LabeledTensorAddition operator+(const LabeledTensor& rhs);
     LabeledTensorAddition operator-(const LabeledTensor& rhs);
 
-    LabeledTensorDistributive operator*(const LabeledTensorAddition& rhs);
+    LabeledTensorDistribution operator*(const LabeledTensorAddition& rhs);
 
     /** Copies data from rhs to this sorting the data if needed. */
     void operator=(const LabeledTensor& rhs);
     void operator+=(const LabeledTensor& rhs);
     void operator-=(const LabeledTensor& rhs);
 
-    void operator=(const LabeledTensorDistributive& rhs);
-    void operator+=(const LabeledTensorDistributive& rhs);
-    void operator-=(const LabeledTensorDistributive& rhs);
+    void operator=(const LabeledTensorDistribution& rhs);
+    void operator+=(const LabeledTensorDistribution& rhs);
+    void operator-=(const LabeledTensorDistribution& rhs);
 
-    void operator=(const LabeledTensorProduct& rhs);
-    void operator+=(const LabeledTensorProduct& rhs);
-    void operator-=(const LabeledTensorProduct& rhs);
+    void operator=(const LabeledTensorContraction& rhs);
+    void operator+=(const LabeledTensorContraction& rhs);
+    void operator-=(const LabeledTensorContraction& rhs);
 
     void operator=(const LabeledTensorAddition& rhs);
     void operator+=(const LabeledTensorAddition& rhs);
@@ -555,7 +555,7 @@ public:
         return LabeledTensor(T_, indices_, -factor_);
     }
 
-    void contract(const LabeledTensorProduct& rhs, bool zero_result, bool add);
+    void contract(const LabeledTensorContraction& rhs, bool zero_result, bool add);
 
 private:
 
@@ -571,22 +571,23 @@ inline LabeledTensor operator*(double factor, const LabeledTensor& ti) {
     return LabeledTensor(ti.T(), ti.indices(), factor*ti.factor());
 };
 
-class LabeledTensorProduct {
+class LabeledTensorContraction
+{
 
 public:
-    LabeledTensorProduct(const LabeledTensor& A, const LabeledTensor& B)
+    LabeledTensorContraction(const LabeledTensor& A, const LabeledTensor& B)
     {
         tensors_.push_back(A);
         tensors_.push_back(B);
     }
 
-    LabeledTensorProduct() {}
+    LabeledTensorContraction() {}
 
     size_t size() const { return tensors_.size(); }
 
     const LabeledTensor& operator[](size_t i) const { return tensors_[i]; }
 
-    LabeledTensorProduct& operator*(const LabeledTensor& other) {
+    LabeledTensorContraction& operator*(const LabeledTensor& other) {
         tensors_.push_back(other);
         return *this;
     }
@@ -634,7 +635,7 @@ public:
         return *this;
     }
 
-    LabeledTensorDistributive operator*(const LabeledTensor& other);
+    LabeledTensorDistribution operator*(const LabeledTensor& other);
 
     LabeledTensorAddition& operator*(double scalar);
 
@@ -654,10 +655,10 @@ inline LabeledTensorAddition operator*(double factor, const LabeledTensorAdditio
 }
 
 // Is responsible for expressions like D * (J - K) --> D*J - D*K
-class LabeledTensorDistributive
+class LabeledTensorDistribution
 {
 public:
-    LabeledTensorDistributive(const LabeledTensor& A, const LabeledTensorAddition& B)
+    LabeledTensorDistribution(const LabeledTensor& A, const LabeledTensorAddition& B)
             : A_(A), B_(B)
     {}
 

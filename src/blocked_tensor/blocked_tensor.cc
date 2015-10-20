@@ -709,7 +709,7 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
         if (do_contract) {
             LabeledTensor result(BT().block(result_key), indices(), factor());
 
-            LabeledTensorProduct prod;
+            LabeledTensorContraction prod;
             for (size_t n = 0; n < nterms; ++n) {
                 const LabeledBlockedTensor &lbt = rhs[n];
                 std::vector<size_t> term_key;
@@ -882,7 +882,7 @@ LabeledBlockedTensorProduct::operator double() const
         }
 
         if (do_contract) {
-            LabeledTensorProduct prod;
+            LabeledTensorContraction prod;
             for (size_t n = 0; n < nterms; ++n) {
                 const LabeledBlockedTensor &lbt = tensors_[n];
                 std::vector<size_t> term_key;

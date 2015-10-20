@@ -56,9 +56,9 @@ void LabeledTensor::operator-=(const LabeledTensor &rhs)
     T_.permute(rhs.T(), indices_, rhs.indices(), -rhs.factor(), 1.0);
 }
 
-LabeledTensorProduct LabeledTensor::operator*(const LabeledTensor &rhs)
+LabeledTensorContraction LabeledTensor::operator*(const LabeledTensor &rhs)
 {
-    return LabeledTensorProduct(*this, rhs);
+    return LabeledTensorContraction(*this, rhs);
 }
 
 LabeledTensorAddition LabeledTensor::operator+(const LabeledTensor &rhs)
@@ -96,7 +96,7 @@ LabeledTensor tensor_product_get_temp_AB(const LabeledTensor &A, const LabeledTe
 
 }
 
-void LabeledTensor::contract(const LabeledTensorProduct& rhs, bool zero_result, bool add)
+void LabeledTensor::contract(const LabeledTensorContraction& rhs, bool zero_result, bool add)
 {
     size_t nterms = rhs.size();
     std::vector<size_t> perm(nterms);
@@ -166,17 +166,17 @@ void LabeledTensor::contract(const LabeledTensorProduct& rhs, bool zero_result, 
                 zero_result ? 0.0 : 1.0);
 }
 
-void LabeledTensor::operator=(const LabeledTensorProduct &rhs)
+void LabeledTensor::operator=(const LabeledTensorContraction&rhs)
 {
     contract(rhs, true, true);
 }
 
-void LabeledTensor::operator+=(const LabeledTensorProduct &rhs)
+void LabeledTensor::operator+=(const LabeledTensorContraction&rhs)
 {
     contract(rhs, false, true);
 }
 
-void LabeledTensor::operator-=(const LabeledTensorProduct &rhs)
+void LabeledTensor::operator-=(const LabeledTensorContraction&rhs)
 {
     contract(rhs, false, false);
 }
@@ -222,12 +222,12 @@ void LabeledTensor::operator/=(double scale)
     T_.scale(1.0 / scale);
 }
 
-LabeledTensorDistributive LabeledTensor::operator*(const LabeledTensorAddition &rhs)
+LabeledTensorDistribution LabeledTensor::operator*(const LabeledTensorAddition &rhs)
 {
-    return LabeledTensorDistributive(*this, rhs);
+    return LabeledTensorDistribution(*this, rhs);
 }
 
-void LabeledTensor::operator=(const LabeledTensorDistributive &rhs)
+void LabeledTensor::operator=(const LabeledTensorDistribution&rhs)
 {
     T_.zero();
 
@@ -236,23 +236,23 @@ void LabeledTensor::operator=(const LabeledTensorDistributive &rhs)
     }
 }
 
-void LabeledTensor::operator+=(const LabeledTensorDistributive &rhs)
+void LabeledTensor::operator+=(const LabeledTensorDistribution&rhs)
 {
     for (const LabeledTensor &B : rhs.B()) {
         *this += const_cast<LabeledTensor &>(rhs.A()) * const_cast<LabeledTensor &>(B);
     }
 }
 
-void LabeledTensor::operator-=(const LabeledTensorDistributive &rhs)
+void LabeledTensor::operator-=(const LabeledTensorDistribution&rhs)
 {
     for (const LabeledTensor &B : rhs.B()) {
         *this -= const_cast<LabeledTensor &>(rhs.A()) * const_cast<LabeledTensor &>(B);
     }
 }
 
-LabeledTensorDistributive LabeledTensorAddition::operator*(const LabeledTensor &other)
+LabeledTensorDistribution LabeledTensorAddition::operator*(const LabeledTensor &other)
 {
-    return LabeledTensorDistributive(other, *this);
+    return LabeledTensorDistribution(other, *this);
 }
 
 LabeledTensorAddition &LabeledTensorAddition::operator*(double scalar)
@@ -274,7 +274,7 @@ LabeledTensorAddition &LabeledTensorAddition::operator-()
     return *this;
 }
 
-LabeledTensorProduct::operator double() const
+LabeledTensorContraction::operator double() const
 {
     Tensor R = Tensor::build(tensors_[0].T().type(), "R", {});
     LabeledTensor lR(R, { }, 1.0);
@@ -289,7 +289,7 @@ LabeledTensorProduct::operator double() const
     return C.data()[0];
 }
 
-pair<double, double> LabeledTensorProduct::compute_contraction_cost(const vector<size_t> &perm) const
+pair<double, double> LabeledTensorContraction::compute_contraction_cost(const vector<size_t> &perm) const
 {
 #if 0
     printf("\n\n  Testing the cost of the contraction pattern: ");
@@ -375,7 +375,7 @@ pair<double, double> LabeledTensorProduct::compute_contraction_cost(const vector
     return std::make_pair(cpu_cost_total, memory_cost_max);
 }
 
-LabeledTensorDistributive::operator double() const
+LabeledTensorDistribution::operator double() const
 {
     Tensor R = Tensor::build(A_.T().type(), "R", {});
 
