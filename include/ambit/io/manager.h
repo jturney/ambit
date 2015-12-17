@@ -24,7 +24,10 @@
 #include <map>
 #include <string>
 
-namespace ambit { namespace io {
+namespace ambit
+{
+namespace io
+{
 
 struct Manager
 {
@@ -32,14 +35,14 @@ struct Manager
     * Will create base_directory, if needed.
     * \param base_directory The directory the scratch files will be created in.
     */
-    Manager(const std::string& base_directory);
+    Manager(const std::string &base_directory);
 
     /** Returns a file object associated with the basename given.
     * \param basename The name of the file to be created.
     */
-    File scratch_file(const std::string& basename);
+    File scratch_file(const std::string &basename);
 
-private:
+  private:
     /** Base directory for the scratch files.
     * When in an MPI environment this is the directory for "global" files.
     */
@@ -50,7 +53,7 @@ private:
     */
     std::string mpi_base_directory_;
 };
-
-}}
+}
+}
 
 #endif

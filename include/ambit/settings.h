@@ -5,10 +5,12 @@
 #ifndef AMBIT_SETTINGS_H
 #define AMBIT_SETTINGS_H
 
-namespace ambit {
+namespace ambit
+{
 
 // => Settings Namespace <=
-namespace settings {
+namespace settings
+{
 
 /** Number of MPI processes.
  *
@@ -30,9 +32,7 @@ extern const bool distributed_capable;
 
 /// Enable timers
 extern bool timers;
-
+}
 }
 
-}
-
-#endif //AMBIT_SETTINGS_H
+#endif // AMBIT_SETTINGS_H

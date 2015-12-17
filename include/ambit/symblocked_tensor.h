@@ -8,13 +8,12 @@
 #include "common_types.h"
 #include "composite_tensor.h"
 
-namespace ambit {
+namespace ambit
+{
 
 class SymmetryBlockedTensor : public CompositeTensor
 {
-
 };
-
 }
 
-#endif //AMBIT_SYMBLOCKED_TENSOR_H
+#endif // AMBIT_SYMBLOCKED_TENSOR_H

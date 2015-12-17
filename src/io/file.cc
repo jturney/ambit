@@ -26,22 +26,31 @@
 
 //#include <util/print.h>
 
-namespace ambit { namespace io {
+namespace ambit
+{
+namespace io
+{
 
-namespace util {
+namespace util
+{
 
-Address get_address(const Address & start, uint64_t shift)
+Address get_address(const Address &start, uint64_t shift)
 {
     Address new_address;
     uint64_t bytes_left;
 
     bytes_left = kIOPageLength - start.offset;
 
-    if (shift >= bytes_left) { // shift to later page
-        new_address.page = start.page + (shift - bytes_left) / kIOPageLength + 1;
-        new_address.offset = shift - bytes_left - (new_address.page - start.page - 1) * kIOPageLength;
+    if (shift >= bytes_left)
+    { // shift to later page
+        new_address.page =
+            start.page + (shift - bytes_left) / kIOPageLength + 1;
+        new_address.offset =
+            shift - bytes_left -
+            (new_address.page - start.page - 1) * kIOPageLength;
     }
-    else { // block starts on current page
+    else
+    { // block starts on current page
         new_address.page = start.page;
         new_address.offset = start.offset + shift;
     }
@@ -49,7 +58,7 @@ Address get_address(const Address & start, uint64_t shift)
     return new_address;
 }
 
-uint64_t get_length(const Address & start, const Address & end)
+uint64_t get_length(const Address &start, const Address &end)
 {
     uint64_t full_page_bytes;
 
@@ -60,43 +69,33 @@ uint64_t get_length(const Address & start, const Address & end)
     else
         return ((kIOPageLength - start.offset) + full_page_bytes + end.offset);
 }
-
 }
 
-namespace toc {
-
-Manager::Manager(File& owner)
-        : owner_(owner)
-{
-}
-
-void Manager::initialize()
+namespace toc
 {
 
-}
+Manager::Manager(File &owner) : owner_(owner) {}
 
-void Manager::finalize()
-{
-    write();
-}
+void Manager::initialize() {}
 
-unsigned int Manager::size() const
-{
-    return contents_.size();
-}
+void Manager::finalize() { write(); }
 
-bool Manager::exists(const std::string& key) const
+unsigned int Manager::size() const { return contents_.size(); }
+
+bool Manager::exists(const std::string &key) const
 {
-    for (const Entry& e : contents_) {
+    for (const Entry &e : contents_)
+    {
         if (key == e.key)
             return true;
     }
     return false;
 }
 
-Entry& Manager::entry(const std::string& key)
+Entry &Manager::entry(const std::string &key)
 {
-    for (Entry& e : contents_) {
+    for (Entry &e : contents_)
+    {
         if (key == e.key)
             return e;
     }
@@ -118,11 +117,13 @@ Entry& Manager::entry(const std::string& key)
     return contents_.back();
 }
 
-uint64_t Manager::size(const std::string& key)
+uint64_t Manager::size(const std::string &key)
 {
-    if (exists(key)) {
-        const Entry& found = entry(key);
-        return util::get_length(found.start_address, found.end_address) - sizeof(Entry);
+    if (exists(key))
+    {
+        const Entry &found = entry(key);
+        return util::get_length(found.start_address, found.end_address) -
+               sizeof(Entry);
     }
 
     return 0;
@@ -143,7 +144,7 @@ uint64_t Manager::read_size() const
     if (error_code != sizeof(uint64_t))
         len = 0;
 
-//    ambit::util::print0("read_length: length %lu\n", len);
+    //    ambit::util::print0("read_length: length %lu\n", len);
 
     return len;
 }
@@ -169,13 +170,15 @@ void Manager::read()
 
     // clear out existing vector
     contents_.clear();
-    if (len) {
+    if (len)
+    {
         Address zero = {0, 0};
         Address add;
 
         // start one uint64_t from the start of the file
         add = util::get_address(zero, sizeof(uint64_t));
-        for (uint64_t i=0; i<len; ++i) {
+        for (uint64_t i = 0; i < len; ++i)
+        {
             Entry new_entry;
             owner_.read(&new_entry, add, 1);
 
@@ -189,55 +192,59 @@ void Manager::write() const
 {
     write_size();
 
-    for (const Entry& e : contents_) {
+    for (const Entry &e : contents_)
+    {
         owner_.write(&e, e.start_address, 1);
     }
 }
 
 void Manager::print() const
 {
-    printf("----------------------------------------------------------------------------\n");
-    printf("Key                                   Spage    Soffset      Epage    Eoffset\n");
-    printf("----------------------------------------------------------------------------\n");
+    printf("-------------------------------------------------------------------"
+           "---------\n");
+    printf("Key                                   Spage    Soffset      Epage  "
+           "  Eoffset\n");
+    printf("-------------------------------------------------------------------"
+           "---------\n");
 
-    for (const Entry& e : contents_) {
-        printf("%-32s %10zu %10zu %10zu %10zu\n",
-                            e.key,
-                            e.start_address.page,
-                            e.start_address.offset,
-                            e.end_address.page,
-                            e.end_address.offset);
+    for (const Entry &e : contents_)
+    {
+        printf("%-32s %10zu %10zu %10zu %10zu\n", e.key, e.start_address.page,
+               e.start_address.offset, e.end_address.page,
+               e.end_address.offset);
     }
 }
 
 } // namespace toc
 
-File::File(const std::string& full_pathname, enum OpenMode om, enum DeleteMode dm)
-        : handle_(-1), name_(full_pathname), read_stat_(0), write_stat_(0), toc_(*this), open_mode_(om), delete_mode_(dm)
+File::File(const std::string &full_pathname, enum OpenMode om,
+           enum DeleteMode dm)
+    : handle_(-1), name_(full_pathname), read_stat_(0), write_stat_(0),
+      toc_(*this), open_mode_(om), delete_mode_(dm)
 {
     if (open(full_pathname, om) == false)
         throw std::runtime_error("file: Unable to open file " + name_);
 }
 
-File::~File()
-{
-    close();
-}
+File::~File() { close(); }
 
-bool File::open(const std::string& full_pathname, enum OpenMode om)
+bool File::open(const std::string &full_pathname, enum OpenMode om)
 {
     if (handle_ != -1)
         return false;
 
     name_ = full_pathname;
-    if (om == kOpenModeOpenExisting) {
-        handle_ = ::open(full_pathname.c_str(), O_CREAT|O_RDWR, 0644);
+    if (om == kOpenModeOpenExisting)
+    {
+        handle_ = ::open(full_pathname.c_str(), O_CREAT | O_RDWR, 0644);
         if (handle_ == -1)
             throw std::runtime_error("unable to open file: " + full_pathname);
         toc_.read();
     }
-    else {
-        handle_ = ::open(full_pathname.c_str(), O_CREAT|O_RDWR|O_TRUNC, 0644);
+    else
+    {
+        handle_ =
+            ::open(full_pathname.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0644);
         if (handle_ == -1)
             throw std::runtime_error("unable to open file: " + full_pathname);
         toc_.initialize();
@@ -250,7 +257,8 @@ bool File::open(const std::string& full_pathname, enum OpenMode om)
 
 void File::close()
 {
-    if (handle_ != -1) {
+    if (handle_ != -1)
+    {
         toc_.finalize();
         ::close(handle_);
 
@@ -263,26 +271,23 @@ void File::close()
 void File::error(Error code)
 {
     static const char *error_message[] = {
-            "file not open or open call failed",
-            "file is already open",
-            "file close failed",
-            "file is already closed",
-            "invalid status flag for file open",
-            "lseek failed",
-            "error reading from file",
-            "error writing to file",
-            "no such TOC entry",
-            "TOC entry size mismatch",
-            "TOC key too long",
-            "requested block size is invalid",
-            "incorrect block start address",
-            "incorrect block end address",
+        "file not open or open call failed",
+        "file is already open",
+        "file close failed",
+        "file is already closed",
+        "invalid status flag for file open",
+        "lseek failed",
+        "error reading from file",
+        "error writing to file",
+        "no such TOC entry",
+        "TOC entry size mismatch",
+        "TOC key too long",
+        "requested block size is invalid",
+        "incorrect block start address",
+        "incorrect block end address",
     };
 
-    printf("io error: %d, %s; errno %d\n",
-                        code,
-                        error_message[code],
-                        errno);
+    printf("io error: %d, %s; errno %d\n", code, error_message[code], errno);
 
     ::exit(EXIT_FAILURE);
 }
@@ -301,7 +306,8 @@ int File::seek(uint64_t page, uint64_t offset)
         return error_code;
 
     // lseek through large chunks of the file to avoid offset overflows
-    for (; page > bignum; page -= bignum) {
+    for (; page > bignum; page -= bignum)
+    {
         total_offset = bignum * kIOPageLength;
         error_code = ::lseek(handle_, total_offset, SEEK_CUR);
         if (error_code == -1)
@@ -313,8 +319,9 @@ int File::seek(uint64_t page, uint64_t offset)
     total_offset *= kIOPageLength;
     total_offset += offset; // add the page-relative term
 
-//    ambit::util::print0("seeking to %lu (page %lu, offset %lu, page length %lu)\n",
-//                        total_offset, page, offset, kIOPageLength);
+    //    ambit::util::print0("seeking to %lu (page %lu, offset %lu, page length
+    //    %lu)\n",
+    //                        total_offset, page, offset, kIOPageLength);
 
     error_code = ::lseek(handle_, total_offset, SEEK_CUR);
     if (error_code == -1)
@@ -323,7 +330,7 @@ int File::seek(uint64_t page, uint64_t offset)
     return 0;
 }
 
-void File::read_raw(void *buffer, const Address& add, uint64_t size)
+void File::read_raw(void *buffer, const Address &add, uint64_t size)
 {
     uint64_t error_code;
 
@@ -331,14 +338,15 @@ void File::read_raw(void *buffer, const Address& add, uint64_t size)
     seek(add);
 
     error_code = ::read(handle_, buffer, size);
-    if (error_code != size) {
+    if (error_code != size)
+    {
         printf("size = %zu error_code %zu\n", size, error_code);
         error(kIOErrorRead);
     }
     read_stat_ += size;
 }
 
-void File::write_raw(const void *buffer, const Address& add, uint64_t size)
+void File::write_raw(const void *buffer, const Address &add, uint64_t size)
 {
     uint64_t error_code;
 
@@ -351,5 +359,5 @@ void File::write_raw(const void *buffer, const Address& add, uint64_t size)
 
     write_stat_ += size;
 }
-
-}}
+}
+}

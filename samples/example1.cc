@@ -3,7 +3,7 @@
 
 using namespace ambit;
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     ambit::initialize(argc, argv);
 
@@ -19,4 +19,3 @@ int main(int argc, char* argv[])
 
     return EXIT_SUCCESS;
 }
-

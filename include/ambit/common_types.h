@@ -14,7 +14,8 @@
 #include <memory>
 #include <tuple>
 
-namespace ambit {
+namespace ambit
+{
 
 using std::tuple;
 using std::shared_ptr;
@@ -27,7 +28,6 @@ using std::function;
 using std::stringstream;
 
 static constexpr double numerical_zero__ = 1.0e-15;
-
 }
 
-#endif //AMBIT_COMMON_TYPES_H
+#endif // AMBIT_COMMON_TYPES_H

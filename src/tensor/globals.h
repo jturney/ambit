@@ -5,19 +5,19 @@
 #include <mpi.h>
 #endif
 
-namespace ambit {
+namespace ambit
+{
 
 // These are private globals to be use internally used by Ambit
-namespace globals {
+namespace globals
+{
 
 #if defined(HAVE_MPI)
 
 extern MPI_Comm communicator;
 
 #endif
-
 }
-
 }
 
 #endif //_AMBIT_GLOBALS_H_

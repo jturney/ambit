@@ -4,29 +4,20 @@
 
 #include <cstdarg>
 
-namespace ambit {
+namespace ambit
+{
 
-namespace {
+namespace
+{
 
 int indent_size = 0;
 
-
-void print_indentation()
-{
-    printf("%*s", indent_size, "");
+void print_indentation() { printf("%*s", indent_size, ""); }
 }
 
-}
+int current_indent() { return indent_size; }
 
-int current_indent()
-{
-    return indent_size;
-}
-
-void indent(int increment)
-{
-    indent_size += increment;
-}
+void indent(int increment) { indent_size += increment; }
 
 void unindent(int decrement)
 {
@@ -35,9 +26,10 @@ void unindent(int decrement)
         indent_size = 0;
 }
 
-void print(const string& format, ...)
+void print(const string &format, ...)
 {
-    if (ambit::settings::rank == 0) {
+    if (ambit::settings::rank == 0)
+    {
         va_list args;
         va_start(args, format);
         print_indentation();
@@ -46,10 +38,12 @@ void print(const string& format, ...)
     }
 }
 
-void printn(const string& format, ...)
+void printn(const string &format, ...)
 {
-    for (int proc=0; proc < settings::nprocess; proc++) {
-        if (proc == settings::rank) {
+    for (int proc = 0; proc < settings::nprocess; proc++)
+    {
+        if (proc == settings::rank)
+        {
             printf("%d: ", settings::rank);
             va_list args;
             va_start(args, format);
@@ -61,5 +55,4 @@ void printn(const string& format, ...)
         barrier();
     }
 }
-
 }

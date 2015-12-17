@@ -24,38 +24,48 @@
 //#include <util/print.h>
 
 #if defined(HAVE_MPI)
-#   include <mpi.h>
+#include <mpi.h>
 #endif
 
-namespace ambit { namespace io {
-
-namespace {
-
-void create_directory(const std::string& directory)
+namespace ambit
 {
-    if (boost::filesystem::exists(directory) == false) {
+namespace io
+{
+
+namespace
+{
+
+void create_directory(const std::string &directory)
+{
+    if (boost::filesystem::exists(directory) == false)
+    {
         // create directory
         boost::filesystem::create_directory(directory);
     }
-    else if (boost::filesystem::is_directory(directory) == false) {
+    else if (boost::filesystem::is_directory(directory) == false)
+    {
         // it exists and is not a directory
-        throw std::runtime_error("base directory name given already exists and is not a directory: " + directory);
+        throw std::runtime_error("base directory name given already exists and "
+                                 "is not a directory: " +
+                                 directory);
     }
 }
-
 }
 
-Manager::Manager(const std::string& base_directory)
-        : base_directory_(base_directory)
+Manager::Manager(const std::string &base_directory)
+    : base_directory_(base_directory)
 {
     create_directory(base_directory_);
 
-    // if we are running with MPI create a "local" scratch directory
+// if we are running with MPI create a "local" scratch directory
 #if defined(HAVE_MPI)
     int flag = 0;
     MPI_Initialized(&flag);
-    if (flag) {
-        mpi_base_directory_ = base_directory_ + "/" + boost::lexical_cast<std::string>(MPI::COMM_WORLD.Get_rank());
+    if (flag)
+    {
+        mpi_base_directory_ =
+            base_directory_ + "/" +
+            boost::lexical_cast<std::string>(MPI::COMM_WORLD.Get_rank());
         create_directory(mpi_base_directory_);
     }
     else
@@ -72,9 +82,9 @@ Manager::Manager(const std::string& base_directory)
     printf("mpi_base_directory_ %s\n", mpi_base_directory_.c_str());
 }
 
-File Manager::scratch_file(const std::string& basename)
+File Manager::scratch_file(const std::string &basename)
 {
     return File(mpi_base_directory_ + basename, kOpenModeOpenExisting);
 }
-
-}}
+}
+}

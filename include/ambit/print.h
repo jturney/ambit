@@ -3,15 +3,16 @@
 
 #include "common_types.h"
 
-namespace ambit {
+namespace ambit
+{
 
 /// Print function. Only the master node is allowed to print to the screen.
-void print(const string& format, ...);
+void print(const string &format, ...);
 
 /** Each process will print to their respective output file.
  *  The master process will print to both the screen and its output file.
  */
-void printn(const string& format, ...);
+void printn(const string &format, ...);
 
 /** Increases printing column offset by increment.
  * @param increment the amount to increase indentation.
@@ -31,10 +32,9 @@ struct indenter
     indenter(int increment = 4) : size(increment) { indent(size); }
     ~indenter() { unindent(size); }
 
-private:
+  private:
     int size;
 };
-
 }
 
 #endif // TENSOR_INCLUDE_PRINT_H

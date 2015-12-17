@@ -23,30 +23,36 @@
 
 #include <ambit/tensor.h>
 
-namespace ambit {
-namespace io {
+namespace ambit
+{
+namespace io
+{
 
-namespace details {
+namespace details
+{
 
 /// The number of integrals per batch to be read in.
 static constexpr int integrals_per_buffer__ = 2980;
-/// The label in the integral file to use. Should probably be abstracted away but this is what PSI3/4 uses.
+/// The label in the integral file to use. Should probably be abstracted away
+/// but this is what PSI3/4 uses.
 static constexpr const char *buffer_key__ = "IWL Buffers";
-
 }
 
 struct IWL : public File
 {
     /**
     * This version uses an existing file object to create an iwl object.
-    * The act of using this constructor is that the file object you pass is moved into
-    * the file parent class of the new iwl object. You do not own the file object you
+    * The act of using this constructor is that the file object you pass is
+    * moved into
+    * the file parent class of the new iwl object. You do not own the file
+    * object you
     * passed in anymore.
     * @param f File object to take ownership of
     * @param cutoff Numerical zero
     * @param psi34_compatible Follow Psi3/4 nomenclature?
     */
-    IWL(File &&f, double cutoff = numerical_zero__, bool psi34_compatible = true);
+    IWL(File &&f, double cutoff = numerical_zero__,
+        bool psi34_compatible = true);
 
     /**
     * This version does not use the file manager class to determine the location
@@ -58,7 +64,8 @@ struct IWL : public File
     * @param cutoff numerical zero
     * @param psi34_compatible Follow Psi3/4 nomenclature?
     */
-    IWL(const std::string &full_pathname, enum OpenMode om, enum DeleteMode dm = kDeleteModeKeepOnClose,
+    IWL(const std::string &full_pathname, enum OpenMode om,
+        enum DeleteMode dm = kDeleteModeKeepOnClose,
         double cutoff = numerical_zero__, bool psi34_compatible = true);
 
     virtual ~IWL();
@@ -83,8 +90,7 @@ struct IWL : public File
 
     static void read_two(IWL &io, Tensor &tensor);
 
-private:
-
+  private:
     /// psi3/4 compatible label structure.
     std::vector<short int> labels_;
 
@@ -93,7 +99,6 @@ private:
 
     Address read_position_;
 };
-
 }
 }
 

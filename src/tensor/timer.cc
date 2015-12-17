@@ -10,13 +10,16 @@
 #include <chrono>
 #include <cassert>
 
-namespace ambit {
-namespace timer {
+namespace ambit
+{
+namespace timer
+{
 
 using clock = std::chrono::high_resolution_clock;
 using time_point = std::chrono::time_point<clock>;
 
-namespace {
+namespace
+{
 
 struct TimerDetail
 {
@@ -33,13 +36,14 @@ struct TimerDetail
 
     time_point start_time;
 
-    TimerDetail() : name("(no name)"), total_time(0), total_calls(0), parent(nullptr)
-    { }
+    TimerDetail()
+        : name("(no name)"), total_time(0), total_calls(0), parent(nullptr)
+    {
+    }
 };
 
 TimerDetail *current_timer = nullptr;
 TimerDetail *root = nullptr;
-
 }
 
 void initialize()
@@ -52,7 +56,8 @@ void initialize()
     current_timer = root;
 
     // Determine timer overhead
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 1000; ++i)
+    {
         timer_push("Timer Overhead");
         timer_pop();
     }
@@ -65,39 +70,42 @@ void finalize()
     root = current_timer = nullptr;
 }
 
-namespace {
+namespace
+{
 
 // This is a recursive function
 void print_timer_info(TimerDetail *timer)
 {
     char buffer[512];
-    if (timer != root) {
-        snprintf(buffer, 512,
-                "%lld ms : %lld calls : %lld ms per call : ",
-                std::chrono::duration_cast<std::chrono::milliseconds>(timer->total_time),
-                timer->total_calls,
-                std::chrono::duration_cast<std::chrono::milliseconds>(timer->total_time) / timer->total_calls);
-        print("%s%*s%s\n",
-              buffer,
-//              60 - ambit::current_indent() - strlen(buffer),
-              60 - strlen(buffer),
-              "",
-              timer->name.c_str());
+    if (timer != root)
+    {
+        snprintf(buffer, 512, "%lld ms : %lld calls : %lld ms per call : ",
+                 std::chrono::duration_cast<std::chrono::milliseconds>(
+                     timer->total_time),
+                 timer->total_calls,
+                 std::chrono::duration_cast<std::chrono::milliseconds>(
+                     timer->total_time) /
+                     timer->total_calls);
+        print("%s%*s%s\n", buffer,
+              //              60 - ambit::current_indent() - strlen(buffer),
+              60 - strlen(buffer), "", timer->name.c_str());
     }
-    else {
+    else
+    {
         print("\nTiming information:\n\n");
     }
-    if (!timer->children.empty()) {
+    if (!timer->children.empty())
+    {
         indent(2);
 
-        for (auto &child : timer->children) {
+        for (auto &child : timer->children)
+        {
             print_timer_info(&child.second);
         }
 
         unindent(2);
     }
 }
-
 }
 
 void report()
@@ -108,10 +116,12 @@ void report()
 
 void timer_push(const string &name)
 {
-    if (settings::timers) {
+    if (settings::timers)
+    {
         assert(current_timer != nullptr);
 
-        if (current_timer->children.count(name) == 0) {
+        if (current_timer->children.count(name) == 0)
+        {
             current_timer->children[name].name = name;
             current_timer->children[name].parent = current_timer;
         }
@@ -121,16 +131,15 @@ void timer_push(const string &name)
     }
 }
 
-
 void timer_pop()
 {
-    if (settings::timers) {
+    if (settings::timers)
+    {
         current_timer->total_time += clock::now() - current_timer->start_time;
         current_timer->total_calls++;
 
         current_timer = current_timer->parent;
     }
 }
-
 }
 }

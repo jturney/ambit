@@ -3,9 +3,12 @@
 
 #include <ambit/io/io.h>
 
-namespace ambit {
-namespace helpers {
-namespace psi4 {
+namespace ambit
+{
+namespace helpers
+{
+namespace psi4
+{
 
 /** Loads a matrix from a Psi4 data file.
  *
@@ -16,15 +19,15 @@ namespace psi4 {
  * @param entry The TOC entry in the Psi4 file to load.
  * @param target The target tensor to place the data.
  */
-void load_matrix(const std::string& fn, const std::string& entry, Tensor& target);
+void load_matrix(const std::string &fn, const std::string &entry,
+                 Tensor &target);
 
 /** Loads two-electron integrals from an IWL file into the tensor.
 *
 * @param fn The filename to read from.
 * @param target The tensor to place data into.
 */
-void load_iwl(const std::string& fn, Tensor& target);
-
+void load_iwl(const std::string &fn, Tensor &target);
 }
 }
 }

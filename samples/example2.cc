@@ -18,9 +18,11 @@ int main(int argc, char *argv[])
 
         BlockedTensor F = BlockedTensor::build(kCore, "F", {"oo", "ov", "vo"});
 
-        F.iterate([](const std::vector<size_t>& /*indices*/, const std::vector<SpinType>& /*spin*/, double& value) {
-            value = double(std::rand()) / double(RAND_MAX);
-        });
+        F.iterate([](const std::vector<size_t> & /*indices*/,
+                     const std::vector<SpinType> & /*spin*/, double &value)
+                  {
+                      value = double(std::rand()) / double(RAND_MAX);
+                  });
 
         F.print(stdout);
     }
@@ -29,5 +31,3 @@ int main(int argc, char *argv[])
 
     return EXIT_SUCCESS;
 }
-
-

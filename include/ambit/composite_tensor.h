@@ -7,19 +7,19 @@
 
 #include "tensor.h"
 
-namespace ambit {
+namespace ambit
+{
 
 class CompositeTensor
 {
-public:
-
+  public:
     CompositeTensor();
-    CompositeTensor(const CompositeTensor& other);
+    CompositeTensor(const CompositeTensor &other);
 
     /*
      * Makes a copy of the given tensor. The copy is returned.
      */
-    Tensor& add_tensor(Tensor&& new_tensor);
+    Tensor &add_tensor(Tensor &&new_tensor);
 
     vector<Tensor>::size_type ntensor() const { return tensors_.size(); }
 
@@ -30,8 +30,10 @@ public:
         else
             return false;
     }
-    Tensor operator()(int idx) {
-        if (!exists(idx)) {
+    Tensor operator()(int idx)
+    {
+        if (!exists(idx))
+        {
             throw std::logic_error("tensor component does not exist");
         }
         return tensors_[idx];
@@ -39,17 +41,17 @@ public:
 
     const Tensor operator()(int idx) const
     {
-        if (!exists(idx)) {
+        if (!exists(idx))
+        {
             throw std::logic_error("tensor component does not exist");
         }
         return tensors_[idx];
     }
 
-protected:
+  protected:
     string name_;
     vector<Tensor> tensors_;
 };
-
 }
 
-#endif //AMBIT_COMPOSITE_TENSOR_H_HPP
+#endif // AMBIT_COMPOSITE_TENSOR_H_HPP

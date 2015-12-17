@@ -19,74 +19,74 @@
 #include <ambit/io/iwl.h>
 #include <stdexcept>
 
-namespace ambit {
-namespace io {
+namespace ambit
+{
+namespace io
+{
 
 IWL::IWL(File &&f, double cutoff, bool psi34_compatible)
-        : File(std::move(f)),
-          nintegral(0),
-          last_buffer(0),
-          values(details::integrals_per_buffer__),
-          p(details::integrals_per_buffer__),
-          q(details::integrals_per_buffer__),
-          r(details::integrals_per_buffer__),
-          s(details::integrals_per_buffer__),
-          labels_(details::integrals_per_buffer__ * 4),
-          psi34_compatible_(psi34_compatible),
-          cutoff_(cutoff),
-          read_position_({0, 0})
+    : File(std::move(f)), nintegral(0), last_buffer(0),
+      values(details::integrals_per_buffer__),
+      p(details::integrals_per_buffer__), q(details::integrals_per_buffer__),
+      r(details::integrals_per_buffer__), s(details::integrals_per_buffer__),
+      labels_(details::integrals_per_buffer__ * 4),
+      psi34_compatible_(psi34_compatible), cutoff_(cutoff),
+      read_position_({0, 0})
 {
     // ensure the iwl buffer exists in the file.
-    if (open_mode_ == kOpenModeOpenExisting) {
+    if (open_mode_ == kOpenModeOpenExisting)
+    {
         if (toc().exists(details::buffer_key__) == false)
-            throw std::runtime_error("IWL buffer does not exist in file: " + name_);
+            throw std::runtime_error("IWL buffer does not exist in file: " +
+                                     name_);
         // go ahead and fetch the first buffer
         fetch();
     }
 }
 
-IWL::IWL(const std::string &full_pathname, enum OpenMode om, enum DeleteMode dm, double cutoff, bool psi34_compatible)
-        : File(full_pathname, om, dm),
-          nintegral(0),
-          last_buffer(0),
-          values(details::integrals_per_buffer__),
-          p(details::integrals_per_buffer__),
-          q(details::integrals_per_buffer__),
-          r(details::integrals_per_buffer__),
-          s(details::integrals_per_buffer__),
-          labels_(details::integrals_per_buffer__ * 4),
-          psi34_compatible_(psi34_compatible),
-          cutoff_(cutoff),
-          read_position_({0, 0})
+IWL::IWL(const std::string &full_pathname, enum OpenMode om, enum DeleteMode dm,
+         double cutoff, bool psi34_compatible)
+    : File(full_pathname, om, dm), nintegral(0), last_buffer(0),
+      values(details::integrals_per_buffer__),
+      p(details::integrals_per_buffer__), q(details::integrals_per_buffer__),
+      r(details::integrals_per_buffer__), s(details::integrals_per_buffer__),
+      labels_(details::integrals_per_buffer__ * 4),
+      psi34_compatible_(psi34_compatible), cutoff_(cutoff),
+      read_position_({0, 0})
 {
     // ensure the iwl buffer exists in the file.
-    if (om == kOpenModeOpenExisting) {
+    if (om == kOpenModeOpenExisting)
+    {
         if (toc().exists(details::buffer_key__) == false)
-            throw std::runtime_error("IWL buffer does not exist in file: " + full_pathname);
+            throw std::runtime_error("IWL buffer does not exist in file: " +
+                                     full_pathname);
 
         // go ahead and fetch the first buffer
         fetch();
     }
 }
 
-IWL::~IWL()
-{
-}
+IWL::~IWL() {}
 
 void IWL::fetch()
 {
-    read_entry_stream(details::buffer_key__, read_position_, (int *) &last_buffer, 1);
-    read_entry_stream(details::buffer_key__, read_position_, (int *) &nintegral, 1);
+    read_entry_stream(details::buffer_key__, read_position_,
+                      (int *)&last_buffer, 1);
+    read_entry_stream(details::buffer_key__, read_position_, (int *)&nintegral,
+                      1);
 
     if (psi34_compatible_)
-        read_entry_stream(details::buffer_key__, read_position_, labels_.data(), 4 * details::integrals_per_buffer__);
+        read_entry_stream(details::buffer_key__, read_position_, labels_.data(),
+                          4 * details::integrals_per_buffer__);
     else
         throw std::runtime_error("Not implemented");
 
-    read_entry_stream(details::buffer_key__, read_position_, values.data(), details::integrals_per_buffer__);
+    read_entry_stream(details::buffer_key__, read_position_, values.data(),
+                      details::integrals_per_buffer__);
 
     // distribute the labels to their respective p, q, r, s
-    for (int i = 0; i < details::integrals_per_buffer__; ++i) {
+    for (int i = 0; i < details::integrals_per_buffer__; ++i)
+    {
         p[i] = labels_[4 * i + 0];
         q[i] = labels_[4 * i + 1];
         r[i] = labels_[4 * i + 2];
@@ -102,9 +102,10 @@ void IWL::read_one(File &io, const std::string &label, Tensor &tensor)
     if (tensor.dims()[0] != tensor.dims()[1])
         throw std::runtime_error("tensor must be square.");
 
-    // psi stores lower triangle full block (may be symmetry blocked, but we don't care).
+    // psi stores lower triangle full block (may be symmetry blocked, but we
+    // don't care).
 
-    std::vector<double>& data = tensor.data();
+    std::vector<double> &data = tensor.data();
     size_t n = tensor.dims()[0];
     size_t ntri = n * (n + 1) / 2;
 
@@ -112,19 +113,22 @@ void IWL::read_one(File &io, const std::string &label, Tensor &tensor)
     io.read(label, ints);
 
     // Walk through lower triangle and mirror it to the upper triangle
-    for (size_t x = 0, xy = 0; x < n; ++x) {
-        for (size_t y = 0; y <= x; ++y, ++xy) {
+    for (size_t x = 0, xy = 0; x < n; ++x)
+    {
+        for (size_t y = 0; y <= x; ++y, ++xy)
+        {
             data[x * n + y] = ints[xy];
             data[y * n + x] = ints[xy];
         }
     }
 }
 
-namespace {
+namespace
+{
 size_t position(size_t dim, short int p, short int q, short int r, short int s)
 {
-//    return ((p * dim + q) * dim + r) * dim + s;
-    return p*dim*dim*dim + q*dim*dim + r*dim + s;
+    //    return ((p * dim + q) * dim + r) * dim + s;
+    return p * dim * dim * dim + q * dim * dim + r * dim + s;
 }
 }
 
@@ -135,20 +139,24 @@ void IWL::read_two(IWL &io, Tensor &tensor)
         throw std::runtime_error("tensor must be rank 4");
 
     size_t dim = tensor.dim(0);
-    for (size_t i = 1; i < 4; ++i) {
+    for (size_t i = 1; i < 4; ++i)
+    {
         if (dim != tensor.dim(i))
-            throw std::runtime_error("tensor must have equivalent length indices");
+            throw std::runtime_error(
+                "tensor must have equivalent length indices");
     }
 
     // psi stores 1 of the 8 possible permutations
 
-    std::vector<double>& values = tensor.data();
+    std::vector<double> &values = tensor.data();
 
     size_t count = 0;
-    do {
+    do
+    {
         size_t c = 0;
 
-        for (int i = 0; i < io.nintegral; ++i) {
+        for (int i = 0; i < io.nintegral; ++i)
+        {
             short int p, q, r, s;
             p = io.p[i];
             q = io.q[i];
@@ -163,7 +171,6 @@ void IWL::read_two(IWL &io, Tensor &tensor)
             values[position(dim, r, s, q, p)] = io.values[i];
             values[position(dim, s, r, p, q)] = io.values[i];
             values[position(dim, s, r, q, p)] = io.values[i];
-
         }
 
         count += c;
@@ -175,6 +182,5 @@ void IWL::read_two(IWL &io, Tensor &tensor)
         io.fetch();
     } while (1);
 }
-
 }
 }
