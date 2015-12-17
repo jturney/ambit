@@ -5,8 +5,6 @@ set(TENSOR_HEADERS
     ${PROJECT_SOURCE_DIR}/include/ambit/blocked_tensor.h
     ${PROJECT_SOURCE_DIR}/include/ambit/common_types.h
     ${PROJECT_SOURCE_DIR}/include/ambit/settings.h
-    ${PROJECT_SOURCE_DIR}/include/ambit/composite_tensor.h
-    ${PROJECT_SOURCE_DIR}/include/ambit/symblocked_tensor.h
 
     ${PROJECT_SOURCE_DIR}/include/ambit/io/file.h
     ${PROJECT_SOURCE_DIR}/include/ambit/io/io.h
@@ -38,7 +36,6 @@ set(TENSOR_SOURCES
     tensor/core/core.cc
     tensor/disk/disk.cc
 
-    tensor/composite_tensor.cc
     tensor/indices.cc
     tensor/globals.cc
     tensor/labeled_tensor.cc
