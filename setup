@@ -48,12 +48,6 @@ def parse_input():
             default=None,
             help='set the C++ compiler [default: pick automatically or based on CXX=...]',
             metavar='STRING')
-    ## The Fortran compiler
-    #group.add_argument('--fc',
-    #        action='store',
-    #        default=None,
-    #        help='set the Fortran compiler [default: pick automatically or based on FC=...]',
-    #        metavar='STRING')
     # Release, debug or profiling build
     group.add_argument('--type',
             nargs='?',
@@ -107,10 +101,10 @@ def parse_input():
             action='store_true',
             default=False,
             help='enable MPI [default: %(default)s]')
-    group.add_argument('--sgi-mpt',
-            action='store_true',
-            default=False,
-            help='enable SGI MPT [default: %(default)s]')
+#    group.add_argument('--sgi-mpt',
+#            action='store_true',
+#            default=False,
+#            help='enable SGI MPT [default: %(default)s]')
     group.add_argument('--omp',
             action='store_true',
             default=True,
@@ -146,10 +140,10 @@ def parse_input():
             default=None,
             help='explicit linker specification for extra libraries; passed directly to the linker',
             metavar='STRING')
-    group.add_argument('--accelerate',
-            action='store_true',
-            default=False,
-            help='build using Mac OS X Accelerate Framework [default: %(default)s]')
+#    group.add_argument('--accelerate',
+#            action='store_true',
+#            default=False,
+#            help='build using Mac OS X Accelerate Framework [default: %(default)s]')
     group.add_argument('--cray',
             action='store_true',
             default=False,
@@ -175,12 +169,12 @@ def parse_input():
             help="Any extra flags to pass to the linker (usually -Llibdir -llibname type arguments). You shouldn't need this.",
             metavar='STRING')
     # C++11 support (CMake will detect what's available)
-    group.add_argument('--cxx11',
-            nargs='?',
-            action='store',
-            choices=('on', 'off'),
-            default='on',
-            help='C++11 support [default: %(default)s]')
+#    group.add_argument('--cxx11',
+#            nargs='?',
+#            action='store',
+#            choices=('on', 'off'),
+#            default='on',
+#            help='C++11 support [default: %(default)s]')
     group.add_argument('--check',
             action='store_true',
             default=False,
@@ -334,7 +328,6 @@ def gen_cmake_command(args):
     command += ' -DENABLE_SCALAPACK=%s'      % translate_cmake(args.scalapack)
     #command += ' -DENABLE_SCALASCA=%s'       % translate_cmake(args.scalasca)
     command += ' -DENABLE_STATIC_LINKING=%s' % translate_cmake(args.static)
-    command += ' -DENABLE_CXX11_SUPPORT=%s'  % translate_cmake(args.cxx11)
 
     if args.blas == 'builtin':
         command += ' -DENABLE_BUILTIN_BLAS=ON'

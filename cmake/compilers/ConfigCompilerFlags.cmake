@@ -1,7 +1,5 @@
 include(SaveCompilerFlags)
-if(ENABLE_CXX11_SUPPORT)
-   include(CheckCXX11Features)
-endif()   
+include(CheckCXX11Features)
 include(CheckCXXCompilerFlag)
 include(CheckCCompilerFlag)
 include(CheckFortranCompilerFlag)
@@ -23,7 +21,7 @@ if(ENABLE_VECTORIZATION)
    message(STATUS "  C      : ${C_ARCHITECTURE_FLAGS}")
    message(STATUS "  Fortran: ${Fortran_ARCHITECTURE_FLAGS}")
    set(CMAKE_REQUIRED_QUIET ${tmp})
-endif()	
+endif()
 
 # This is to pass the right option to the linker using -Xlinker
 # might need to be modified for Windows
