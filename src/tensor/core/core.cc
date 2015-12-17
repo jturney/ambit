@@ -104,6 +104,29 @@ void CoreTensorImpl::set(double alpha)
         data_[i] = alpha;
 }
 
+namespace
+{
+
+std::string describe_tensor(ConstTensorImplPtr A, const Indices &Ainds)
+{
+    std::ostringstream buffer;
+    buffer << A->name() << "[" << indices::to_string(Ainds) << "]";
+    return buffer.str();
+}
+std::string describe_contraction(ConstTensorImplPtr C, const Indices &Cinds,
+                                 ConstTensorImplPtr A, const Indices &Ainds,
+                                 ConstTensorImplPtr B, const Indices &Binds,
+                                 const double &alpha, const double &beta)
+{
+    std::ostringstream buffer;
+    buffer << beta << " " << describe_tensor(C, Cinds) << " += ";
+    buffer << alpha << " " << describe_tensor(A, Ainds) << " * "
+           << describe_tensor(B, Binds);
+    return buffer.str();
+}
+
+} // anonymous namespace
+
 void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
                               const Indices &Cinds, const Indices &Ainds,
                               const Indices &Binds, double alpha, double beta)
@@ -145,7 +168,10 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         {
             if (C->dims()[Cpos] != A->dims()[Apos] ||
                 C->dims()[Cpos] != B->dims()[Bpos])
-                throw std::runtime_error("Invalid ABC (Hadamard) index size");
+                throw std::runtime_error("Invalid ABC (Hadamard) index size\n" +
+                                         describe_contraction(C, Cinds, A,
+                                                              Ainds, B, Binds,
+                                                              alpha, beta));
             compound_inds["PC"].push_back(std::make_pair(Cpos, index));
             compound_inds["PA"].push_back(std::make_pair(Apos, index));
             compound_inds["PB"].push_back(std::make_pair(Bpos, index));
@@ -154,7 +180,10 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         else if (Cpos != -1 && Apos != -1 && Bpos == -1)
         {
             if (C->dims()[Cpos] != A->dims()[Apos])
-                throw std::runtime_error("Invalid AC (Left) index size");
+                throw std::runtime_error("Invalid AC (Left) index size\n" +
+                                         describe_contraction(C, Cinds, A,
+                                                              Ainds, B, Binds,
+                                                              alpha, beta));
             compound_inds["iC"].push_back(std::make_pair(Cpos, index));
             compound_inds["iA"].push_back(std::make_pair(Apos, index));
             AC_size *= C->dims()[Cpos];
@@ -162,7 +191,10 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         else if (Cpos != -1 && Apos == -1 && Bpos != -1)
         {
             if (C->dims()[Cpos] != B->dims()[Bpos])
-                throw std::runtime_error("Invalid BC (Right) index size");
+                throw std::runtime_error("Invalid BC (Right) index size\n" +
+                                         describe_contraction(C, Cinds, A,
+                                                              Ainds, B, Binds,
+                                                              alpha, beta));
             compound_inds["jC"].push_back(std::make_pair(Cpos, index));
             compound_inds["jB"].push_back(std::make_pair(Bpos, index));
             BC_size *= C->dims()[Cpos];
@@ -170,7 +202,10 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         else if (Cpos == -1 && Apos != -1 && Bpos != -1)
         {
             if (A->dims()[Apos] != B->dims()[Bpos])
-                throw std::runtime_error("Invalid AB (Contraction) index size");
+                throw std::runtime_error(
+                    "Invalid AB (Contraction) index size\n" +
+                    describe_contraction(C, Cinds, A, Ainds, B, Binds, alpha,
+                                         beta));
             compound_inds["kA"].push_back(std::make_pair(Apos, index));
             compound_inds["kB"].push_back(std::make_pair(Bpos, index));
             AB_size *= B->dims()[Bpos];
@@ -178,7 +213,9 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         else
         {
             throw std::runtime_error(
-                "Invalid contraction topology - index only occurs once.");
+                "Invalid contraction topology - index only occurs once.\n" +
+                describe_contraction(C, Cinds, A, Ainds, B, Binds, alpha,
+                                     beta));
         }
     }
 
