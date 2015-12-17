@@ -5,7 +5,7 @@ import numpy as np
 import itertools as it
 
 # Tuneage, will move later
-tensor_type = ambit.TensorType.kCore
+tensor_type = ambit.TensorType.CoreTensor
 max_test_rank = 4
 
 # Full test expands considerably on the number of permutations tried
@@ -28,8 +28,8 @@ class TestOperatorOverloading(unittest.TestCase):
         # Builds arbitrary Tensors and numpy arrys
         # Accepts a list of integers or a string for dimensions
 
-        if ttype != ambit.TensorType.kCore:
-            raise ValueError("Only kCore is currently supported")
+        if ttype != ambit.TensorType.CoreTensor:
+            raise ValueError("Only CoreTensor is currently supported")
 
         if isinstance(dims, str):
             dims = [dim_size_dict[i] for i in dims]
@@ -50,10 +50,10 @@ class TestOperatorOverloading(unittest.TestCase):
 
     def assert_allclose(self, T, N):
         # Can test arbitrary tensor types once implemented
-        if T.dtype == ambit.TensorType.kCore:
+        if T.dtype == ambit.TensorType.CoreTensor:
             self.assertTrue(np.allclose(T, N))
         else:
-            raise ValueError("Assert Allclose: Only kCore is currently supported")
+            raise ValueError("Assert Allclose: Only CoreTensor is currently supported")
 
     def test_float_tensor_mul(self):
 

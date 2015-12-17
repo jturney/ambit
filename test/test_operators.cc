@@ -52,7 +52,7 @@ difference(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR]);
 
 double zero = 1.0e-11;
 
-TensorType tensor_type = kCore;
+TensorType tensor_type = CoreTensor;
 
 Tensor build_and_fill(const std::string &name, const Dimension &dims,
                       double matrix[MAXTWO])
@@ -796,7 +796,7 @@ double test_syev()
 
     Tensor C = build_and_fill("C", {ni, ni}, c2);
 
-    auto result = C.syev(kDescending);
+    auto result = C.syev(DescendingEigenvalue);
 
     //    Tensor vectors = result["eigenvectors"];
 
@@ -812,7 +812,7 @@ double test_geev()
 
     Tensor C = build_and_fill("C", {ni, ni}, c2);
 
-    auto result = C.geev(kAscending);
+    auto result = C.geev(AscendingEigenvalue);
 
     //    Tensor vectors = result["eigenvectors"];
 
@@ -1471,7 +1471,7 @@ int main(int argc, char *argv[])
     {
         if (strcmp(argv[1], "cyclops") == 0)
         {
-            tensor_type = kDistributed;
+            tensor_type = DistributedTensor;
             printf("  *** Testing distributed tensors. ***\n");
         }
         else

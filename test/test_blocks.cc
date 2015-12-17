@@ -46,7 +46,7 @@ double beta = 0.0;
 /// 0 - explicit call, 1 - = OO, 2 - += OO, 3 - -= OO
 int mode = 0;
 
-TensorType tensor_type = kCore;
+TensorType tensor_type = CoreTensor;
 
 void initialize_random(Tensor &tensor, double matrix[MAXTWO])
 {
@@ -315,7 +315,7 @@ double test_block_creation1()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("o", "i,j", {0, 1, 2}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor::build(kCore, "T", {"oo", "vv"});
+    BlockedTensor::build(CoreTensor, "T", {"oo", "vv"});
     return 0.0;
 }
 
@@ -325,8 +325,8 @@ double test_block_creation2()
     BlockedTensor::add_mo_space("o", "i,j", {0, 1, 2}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
-    BlockedTensor::build(kCore, "F", {"gg"});
-    BlockedTensor::build(kCore, "V", {"gggg"});
+    BlockedTensor::build(CoreTensor, "F", {"gg"});
+    BlockedTensor::build(CoreTensor, "V", {"gggg"});
     return 0.0;
 }
 
@@ -338,8 +338,8 @@ double test_block_creation3()
     BlockedTensor::add_mo_space("v", "e,f", {5, 6, 7, 8, 9}, AlphaSpin);
     BlockedTensor::add_composite_mo_space("h", "i,j,k,l", {"c", "a"});
     BlockedTensor::add_composite_mo_space("p", "a,b,c,d", {"a", "v"});
-    BlockedTensor::build(kCore, "T1", {"hp"});
-    BlockedTensor::build(kCore, "T2", {"hhpp"});
+    BlockedTensor::build(CoreTensor, "T1", {"hp"});
+    BlockedTensor::build(CoreTensor, "T2", {"hhpp"});
     return 0.0;
 }
 
@@ -348,7 +348,7 @@ double test_block_creation_bad_rank()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("o", "i,j", {0, 1, 2}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor::build(kCore, "T", {"oo", "ovv"});
+    BlockedTensor::build(CoreTensor, "T", {"oo", "ovv"});
     return 0.0;
 }
 
@@ -357,7 +357,7 @@ double test_block_norm_1()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("a", "u,v", {2, 3, 4}, NoSpin);
     BlockedTensor::add_mo_space("v", "e,f", {5, 6, 7, 8, 9}, NoSpin);
-    BlockedTensor T2 = BlockedTensor::build(kCore, "T2", {"aavv"});
+    BlockedTensor T2 = BlockedTensor::build(CoreTensor, "T2", {"aavv"});
     T2.set(0.5);
     double diff = T2.norm(1) - 112.5;
     return diff;
@@ -368,7 +368,7 @@ double test_block_norm_2()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("a", "u,v", {2, 3, 4}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "e,f", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor T2 = BlockedTensor::build(kCore, "T2", {"aavv"});
+    BlockedTensor T2 = BlockedTensor::build(CoreTensor, "T2", {"aavv"});
     T2.set(0.5);
     double diff = T2.norm(2) - 7.5;
     return diff;
@@ -379,7 +379,7 @@ double test_block_norm_3()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("a", "u,v", {2, 3, 4}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "e,f", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor T2 = BlockedTensor::build(kCore, "T2", {"aavv"});
+    BlockedTensor T2 = BlockedTensor::build(CoreTensor, "T2", {"aavv"});
     T2.set(0.5);
     double diff = T2.norm(0) - 0.5;
     return diff;
@@ -390,7 +390,7 @@ double test_block_zero()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("a", "u,v", {2, 3, 4}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "e,f", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor T2 = BlockedTensor::build(kCore, "T2", {"aavv"});
+    BlockedTensor T2 = BlockedTensor::build(CoreTensor, "T2", {"aavv"});
     T2.set(0.5);
     T2.zero();
     return T2.norm(2);
@@ -401,7 +401,7 @@ double test_block_scale()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("a", "u,v", {2, 3, 4}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "e,f", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor T2 = BlockedTensor::build(kCore, "T2", {"aavv"});
+    BlockedTensor T2 = BlockedTensor::build(CoreTensor, "T2", {"aavv"});
     T2.set(2.0);
     T2.scale(0.25);
     double diff = T2.norm(2) - 7.5;
@@ -413,7 +413,7 @@ double test_block_labels1()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("o", "i,j", {0, 1, 2}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor T = BlockedTensor::build(kCore, "T", {"oo", "vv"});
+    BlockedTensor T = BlockedTensor::build(CoreTensor, "T", {"oo", "vv"});
     T("ij");
     return 0.0;
 }
@@ -423,7 +423,7 @@ double test_block_retrive_block1()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("o", "i,j", {0, 1, 2}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor T = BlockedTensor::build(kCore, "T", {"oo", "vv"});
+    BlockedTensor T = BlockedTensor::build(CoreTensor, "T", {"oo", "vv"});
     T.block("oo");
     return 0.0;
 }
@@ -434,7 +434,7 @@ double test_block_retrive_block2()
     BlockedTensor::add_mo_space("o", "i,j", {0, 1, 2}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
-    BlockedTensor T = BlockedTensor::build(kCore, "T", {"oo", "vv"});
+    BlockedTensor T = BlockedTensor::build(CoreTensor, "T", {"oo", "vv"});
     T.block("og");
     return 0.0;
 }
@@ -444,7 +444,7 @@ double test_block_retrive_block3()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("o", "i,j", {0, 1, 2}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor T = BlockedTensor::build(kCore, "T", {"oo", "vv"});
+    BlockedTensor T = BlockedTensor::build(CoreTensor, "T", {"oo", "vv"});
     T.block("ov");
     return 0.0;
 }
@@ -455,7 +455,7 @@ double test_block_retrive_block4()
     BlockedTensor::add_mo_space("o", "i,j", {0, 1, 2}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
-    BlockedTensor T = BlockedTensor::build(kCore, "T", {"oo", "vv"});
+    BlockedTensor T = BlockedTensor::build(CoreTensor, "T", {"oo", "vv"});
     T.block("");
     return 0.0;
 }
@@ -466,8 +466,8 @@ double test_block_retrive_block4()
 //    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
 //    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
 
-//    BlockedTensor A = BlockedTensor::build(kCore,"A",{"oo","vv","ov","vo"});
-//    BlockedTensor C = BlockedTensor::build(kCore,"C",{"oo","vv","ov","vo"});
+//    BlockedTensor A = BlockedTensor::build(CoreTensor,"A",{"oo","vv","ov","vo"});
+//    BlockedTensor C = BlockedTensor::build(CoreTensor,"C",{"oo","vv","ov","vo"});
 
 //    size_t no = 3;
 //    size_t nv = 5;
@@ -504,7 +504,7 @@ double test_block_iterator_1()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("a", "u,v", {2, 3, 4}, NoSpin);
     BlockedTensor::add_mo_space("v", "e,f", {5, 6, 7, 8, 9}, NoSpin);
-    BlockedTensor T2 = BlockedTensor::build(kCore, "T2", {"aaaa", "vvvv"});
+    BlockedTensor T2 = BlockedTensor::build(CoreTensor, "T2", {"aaaa", "vvvv"});
     T2.iterate([](const std::vector<size_t> &indices,
                   const std::vector<SpinType> &spin, double &value)
                {
@@ -530,9 +530,9 @@ double test_Cij_equal_Aji()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "vv", "ov", "vo"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "vv", "ov", "vo"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "vv", "ov", "vo"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "vv", "ov", "vo"});
 
     Tensor Aoo = A.block("oo");
     Tensor Coo = C.block("oo");
@@ -610,7 +610,7 @@ double test_Aij_equal_Aji()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "vv", "ov", "vo"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "vv", "ov", "vo"});
 
     A("ij") = A("ji");
 
@@ -624,9 +624,9 @@ double test_Cijab_plus_equal_Aaibj()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"vovo", "ovvo", "voov"});
+        BlockedTensor::build(CoreTensor, "A", {"vovo", "ovvo", "voov"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oovv", "ovvo", "voov"});
+        BlockedTensor::build(CoreTensor, "C", {"oovv", "ovvo", "voov"});
 
     size_t no = 3;
     size_t nv = 5;
@@ -666,9 +666,9 @@ double test_Cbija_minus_equal_Ajabi()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"vovo", "ovvo", "voov"});
+        BlockedTensor::build(CoreTensor, "A", {"vovo", "ovvo", "voov"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oovv", "ovvo", "voov"});
+        BlockedTensor::build(CoreTensor, "C", {"oovv", "ovvo", "voov"});
 
     size_t no = 3;
     size_t nv = 5;
@@ -708,7 +708,7 @@ double test_Cij_times_equal_double()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "vv", "ov", "vo"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "vv", "ov", "vo"});
 
     size_t no = 3;
     size_t nv = 5;
@@ -756,7 +756,7 @@ double test_Cip_times_equal_double()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "vv", "ov", "vo"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "vv", "ov", "vo"});
 
     size_t no = 3;
     size_t nv = 5;
@@ -802,11 +802,11 @@ double test_Cij_equal_Aik_B_jk()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 3;
 
@@ -847,11 +847,11 @@ double test_Cij_equal_Aip_B_jp()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 5;
     size_t nv = 7;
@@ -903,10 +903,10 @@ double test_Cij_equal_Aip_B_jp_fail()
                                 AlphaSpin);
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
-    BlockedTensor A = BlockedTensor::build(kCore, "A", {"oo", "vo", "vv"});
-    BlockedTensor B = BlockedTensor::build(kCore, "B", {"oo", "vo", "vv"});
+    BlockedTensor A = BlockedTensor::build(CoreTensor, "A", {"oo", "vo", "vv"});
+    BlockedTensor B = BlockedTensor::build(CoreTensor, "B", {"oo", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 5;
     size_t nv = 7;
@@ -950,10 +950,10 @@ double test_Cij_equal_Aip_B_jp_expert()
                                 AlphaSpin);
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
-    BlockedTensor A = BlockedTensor::build(kCore, "A", {"oo", "vo", "vv"});
-    BlockedTensor B = BlockedTensor::build(kCore, "B", {"oo", "vo", "vv"});
+    BlockedTensor A = BlockedTensor::build(CoreTensor, "A", {"oo", "vo", "vv"});
+    BlockedTensor B = BlockedTensor::build(CoreTensor, "B", {"oo", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 5;
     size_t nv = 7;
@@ -999,9 +999,9 @@ double test_Cpq_equal_Apq_B_pq_expert()
                                 AlphaSpin);
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
-    BlockedTensor A = BlockedTensor::build(kCore, "A", {"oo", "vo", "ov"});
-    BlockedTensor B = BlockedTensor::build(kCore, "B", {"oo", "vo", "ov"});
-    BlockedTensor C = BlockedTensor::build(kCore, "C", {"oo"});
+    BlockedTensor A = BlockedTensor::build(CoreTensor, "A", {"oo", "vo", "ov"});
+    BlockedTensor B = BlockedTensor::build(CoreTensor, "B", {"oo", "vo", "ov"});
+    BlockedTensor C = BlockedTensor::build(CoreTensor, "C", {"oo"});
 
     size_t no = 5;
     size_t nv = 7;
@@ -1041,11 +1041,11 @@ double test_Cij_equal_half_Aia_B_aj()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 3;
     size_t nv = 5;
@@ -1086,11 +1086,11 @@ double test_Cij_plus_equal_half_Aai_B_ja()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 3;
     size_t nv = 5;
@@ -1130,11 +1130,11 @@ double test_Cij_minus_equal_Aik_B_jk()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 3;
 
@@ -1173,11 +1173,11 @@ double test_greek_Cij_equal_Aik_B_jk()
     BlockedTensor::add_composite_mo_space("g", "ρ,σ", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 3;
 
@@ -1216,9 +1216,9 @@ double test_Aij_equal_Aik_B_jk()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
 
     A("ij") = A("ik") * B("jk");
 
@@ -1233,13 +1233,13 @@ double test_chain_multiply()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
     BlockedTensor D =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 3;
 
@@ -1282,12 +1282,12 @@ double test_chain_multiply2()
                                 AlphaSpin);
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
-    BlockedTensor A = BlockedTensor::build(kCore, "A", {"vvoo"});
+    BlockedTensor A = BlockedTensor::build(CoreTensor, "A", {"vvoo"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
-    BlockedTensor D = BlockedTensor::build(kCore, "D", {"oovv", "ovvo"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
+    BlockedTensor D = BlockedTensor::build(CoreTensor, "D", {"oovv", "ovvo"});
 
     size_t no = 5;
     size_t nv = 8;
@@ -1337,11 +1337,11 @@ double test_Cij_equal_Aij_plus_Bij()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 3;
 
@@ -1375,11 +1375,11 @@ double test_Cia_plus_equal_Aia_minus_three_Bai()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 3;
     size_t nv = 5;
@@ -1413,13 +1413,13 @@ double test_Dij_equal_Aij_times_Bij_plus_Cij()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
     BlockedTensor D =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 5;
 
@@ -1454,13 +1454,13 @@ double test_Dij_equal_Bij_plus_Cij_times_Aij()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
     BlockedTensor D =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 5;
 
@@ -1495,13 +1495,13 @@ double test_Dij_plus_equal_Bij_plus_Cij_times_Aij()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
     BlockedTensor D =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 5;
 
@@ -1536,10 +1536,10 @@ double test_F_equal_D_times_2g_minus_g()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor F =
-        BlockedTensor::build(kCore, "F", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "F", {"oo", "ov", "vo", "vv"});
     BlockedTensor D =
-        BlockedTensor::build(kCore, "D", {"oo", "ov", "vo", "vv"});
-    BlockedTensor g = BlockedTensor::build(kCore, "g", {"oooo", "vvvv"});
+        BlockedTensor::build(CoreTensor, "D", {"oo", "ov", "vo", "vv"});
+    BlockedTensor g = BlockedTensor::build(CoreTensor, "g", {"oooo", "vvvv"});
 
     size_t no = 5;
 
@@ -1581,11 +1581,11 @@ double test_Dij_equal_2_times_Aij_plus_Bij()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 3;
 
@@ -1618,11 +1618,11 @@ double test_Cij_minus_equal_3_times_Aij_minus_2_Bji()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 3;
 
@@ -1655,11 +1655,11 @@ double test_Cij_equal_negate_Aij_plus_Bij()
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
     BlockedTensor C =
-        BlockedTensor::build(kCore, "C", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
 
     size_t no = 3;
 
@@ -1694,9 +1694,9 @@ double test_dot_product()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
 
     size_t no = 5;
     size_t nv = 7;
@@ -1730,9 +1730,9 @@ double test_dot_product_fail1()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
 
     size_t no = 5;
     size_t nv = 7;
@@ -1766,9 +1766,9 @@ double test_dot_product_fail2()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
 
     size_t no = 5;
     size_t nv = 7;
@@ -1801,10 +1801,10 @@ double test_contraction_exception1()
     BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
 
     BlockedTensor A =
-        BlockedTensor::build(kCore, "A", {"oo", "ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
     BlockedTensor B =
-        BlockedTensor::build(kCore, "B", {"oo", "ov", "vo", "vv"});
-    BlockedTensor C = BlockedTensor::build(kCore, "C", {"ov", "vo", "vv"});
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
+    BlockedTensor C = BlockedTensor::build(CoreTensor, "C", {"ov", "vo", "vv"});
 
     C("ij") = A("ia") * B("aj");
 

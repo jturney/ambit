@@ -39,21 +39,21 @@ void TensorImpl::copy(ConstTensorImplPtr other)
 }
 TensorImplPtr TensorImpl::clone(TensorType t) const
 {
-    if (t == kCurrent)
+    if (t == CurrentTensor)
     {
         t = type();
     }
     TensorImpl *tensor;
-    if (t == kCore)
+    if (t == CoreTensor)
     {
         tensor = new CoreTensorImpl(name(), dims());
     }
-    else if (t == kDisk)
+    else if (t == DiskTensor)
     {
         tensor = new DiskTensorImpl(name(), dims());
     }
 #if defined(HAVE_ELEMENTAL)
-    else if (t == kDistributed)
+    else if (t == DistributedTensor)
     {
         tensor = new cyclops::CyclopsTensorImpl(name(), dims());
     }
@@ -80,13 +80,13 @@ void TensorImpl::print(FILE *fh, bool level, const string & /*format*/,
     {
         double *temp;
         shared_ptr<TensorImpl> T;
-        if (type() == kCore)
+        if (type() == CoreTensor)
         {
             temp = const_cast<double *>(data().data());
         }
         else
         {
-            T = shared_ptr<TensorImpl>(clone(kCore));
+            T = shared_ptr<TensorImpl>(clone(CoreTensor));
             temp = const_cast<double *>(T->data().data());
         }
 

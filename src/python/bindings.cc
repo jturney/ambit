@@ -130,15 +130,15 @@ BOOST_PYTHON_MODULE(pyambit)
 
     // Typedefs
     enum_<TensorType>("TensorType", "docstring")
-        .value("kCurrent", kCurrent)
-        .value("kCore", kCore)
-        .value("kDisk", kDisk)
-        .value("kDistributed", kDistributed)
-        .value("kAgnostic", kAgnostic);
+        .value("CurrentTensor", CurrentTensor)
+        .value("CoreTensor", CoreTensor)
+        .value("DiskTensor", DiskTensor)
+        .value("DistributedTensor", DistributedTensor)
+        .value("AgnosticTensor", AgnosticTensor);
 
     enum_<EigenvalueOrder>("EigenvalueOrder", "docstring")
-        .value("kAscending", kAscending)
-        .value("kDescending", kDescending);
+        .value("AscendingEigenvalue", AscendingEigenvalue)
+        .value("DescendingEigenvalue", DescendingEigenvalue);
 
     class_<Indices>("Indices")
         .def(vector_indexing_suite<Indices>())

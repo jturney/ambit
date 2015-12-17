@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 
         BlockedTensor::print_mo_spaces();
 
-        BlockedTensor F = BlockedTensor::build(kCore, "F", {"oo", "ov", "vo"});
+        BlockedTensor F = BlockedTensor::build(CoreTensor, "F", {"oo", "ov", "vo"});
 
         F.iterate([](const std::vector<size_t> & /*indices*/,
                      const std::vector<SpinType> & /*spin*/, double &value)

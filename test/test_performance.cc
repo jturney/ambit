@@ -14,7 +14,7 @@
 
 using namespace ambit;
 
-TensorType tensor_type = kCore;
+TensorType tensor_type = CoreTensor;
 
 void progress_bar(const std::string &label, int len, double percent)
 {
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
     {
         if (settings::distributed_capable && strcmp(argv[1], "cyclops") == 0)
         {
-            tensor_type = kDistributed;
+            tensor_type = DistributedTensor;
             ambit::print("  *** Testing distributed tensors. ***\n");
             ambit::print("      Running in %d processes.\n",
                          ambit::settings::nprocess);

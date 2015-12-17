@@ -20,17 +20,17 @@ class SlicedTensor;
 // => Tensor Types <=
 enum TensorType
 {
-    kCurrent,     // <= If cloning from existing tensor use its type.
-    kCore,        // <= In-core only tensor
-    kDisk,        // <= Disk cachable tensor
-    kDistributed, // <= Tensor suitable for parallel distributed
-    kAgnostic     // <= Let the library decide for you.
+    CurrentTensor,     // <= If cloning from existing tensor use its type.
+    CoreTensor,        // <= In-core only tensor
+    DiskTensor,        // <= Disk cachable tensor
+    DistributedTensor, // <= Tensor suitable for parallel distributed
+    AgnosticTensor     // <= Let the library decide for you.
 };
 
 enum EigenvalueOrder
 {
-    kAscending,
-    kDescending
+    AscendingEigenvalue,
+    DescendingEigenvalue
 };
 
 // => Typedefs <=
@@ -88,9 +88,9 @@ class Tensor
      * dimensions, and data of this tensor.
      *
      * E.g.:
-     *  Tensor A = C.clone(kDisk);
+     *  Tensor A = C.clone(DiskTensor);
      * is equivalent to:
-     *  Tensor A = Tensor::build(kDisk, C.name(), C.dims());
+     *  Tensor A = Tensor::build(DiskTensor, C.name(), C.dims());
      *  A->copy(C);
      *
      * Parameters:
@@ -99,7 +99,7 @@ class Tensor
      * Results:
      *  @return new Tensor of TensorType type with the name and contents of this
      **/
-    Tensor clone(TensorType type = kCurrent) const;
+    Tensor clone(TensorType type = CurrentTensor) const;
 
     /**
      * Default constructor, builds a Tensor with a null underlying
@@ -120,7 +120,7 @@ class Tensor
 
     // => Accessors <= //
 
-    /// @return The tensor type enum, one of kCore, kDisk, kDistributed
+    /// @return The tensor type enum, one of CoreTensor, DiskTensor, DistributedTensor
     TensorType type() const;
     /// @return The name of the tensor for use in printing
     string name() const;
@@ -156,23 +156,23 @@ class Tensor
     /**
      * Returns the raw data vector underlying the tensor object if the
      * underlying tensor object supports a raw data vector. This is only the
-     * case if the underlying tensor is of type kCore.
+     * case if the underlying tensor is of type CoreTensor.
      *
      * This routine is intended to facilitate rapid filling of data into a
-     * kCore buffer tensor, following which the user may stripe the buffer
-     * tensor into a kDisk or kDistributed tensor via slice operations.
+     * CoreTensor buffer tensor, following which the user may stripe the buffer
+     * tensor into a DiskTensor or DistributedTensor tensor via slice operations.
      *
      * If a vector is successfully returned, it points to the unrolled data of
      * the tensor, with the right-most dimensions running fastest and left-most
      * dimensions running slowest.
      *
      * Example successful use case:
-     *  Tensor A = Tensor::build(kCore, "A3", {4,5,6});
+     *  Tensor A = Tensor::build(CoreTensor, "A3", {4,5,6});
      *  vector<double>& Av = A.data();
      *  double* Ap = Av.data(); // In case the raw pointer is needed
      *  In this case, Av[0] = A(0,0,0), Av[1] = A(0,0,1), etc.
      *
-     *  Tensor B = Tensor::build(kDisk, "B3", {4,5,6});
+     *  Tensor B = Tensor::build(DiskTensor, "B3", {4,5,6});
      *  vector<double>& Bv = B.data(); // throws
      *
      * Results:
@@ -343,7 +343,7 @@ class Tensor
      *  where, e.g., Ap = A.data().data();
      *
      * Notes:
-     *  - This is only implemented for kCore
+     *  - This is only implemented for CoreTensor
      *  - No bounds checking on the GEMM is performed
      *  - This function is intended to help advanced users get optimal
      *    performance from single-node codes.

@@ -16,7 +16,7 @@ void load_matrix(const std::string &fn, const std::string &entry,
     if (settings::rank == 0)
     {
         io::File handle(fn, io::kOpenModeOpenExisting);
-        Tensor local_data = Tensor::build(kCore, "Local Data", target.dims());
+        Tensor local_data = Tensor::build(CoreTensor, "Local Data", target.dims());
         io::IWL::read_one(handle, entry, local_data);
 
         target() = local_data();
@@ -31,7 +31,7 @@ void load_matrix(const std::string &fn, const std::string &entry,
             zero.push_back(0);
             zero_range.push_back({0, 0});
         }
-        Tensor local_data = Tensor::build(kCore, "Local Data", zero);
+        Tensor local_data = Tensor::build(CoreTensor, "Local Data", zero);
 
         target(zero_range) = local_data(zero_range);
     }
@@ -43,7 +43,7 @@ void load_iwl(const std::string &fn, Tensor &target)
     timer::timer_push("ambit::helpers::psi4::load_iwl");
     if (settings::rank == 0)
     {
-        Tensor local_data = Tensor::build(kCore, "g", target.dims());
+        Tensor local_data = Tensor::build(CoreTensor, "g", target.dims());
         io::IWL iwl(fn, ambit::io::kOpenModeOpenExisting);
         io::IWL::read_two(iwl, local_data);
 
@@ -59,7 +59,7 @@ void load_iwl(const std::string &fn, Tensor &target)
             zero.push_back(0);
             zero_range.push_back({0, 0});
         }
-        Tensor local_data = Tensor::build(kCore, "Local Data", zero);
+        Tensor local_data = Tensor::build(CoreTensor, "Local Data", zero);
 
         target(zero_range) = local_data(zero_range);
     }

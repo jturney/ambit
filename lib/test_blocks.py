@@ -12,7 +12,7 @@ class TestBlocks(unittest.TestCase):
         ambit.finalize()
 
     def build_and_fill2(self, name, dims):
-        T = ambit.Tensor(ambit.TensorType.kCore, name, dims)
+        T = ambit.Tensor(ambit.TensorType.CoreTensor, name, dims)
         N = [[0 for x in range(dims[1])] for x in range(dims[0])]
 
         data = T.tensor.data()
@@ -43,7 +43,7 @@ class TestBlocks(unittest.TestCase):
         return max_diff
 
     def build_and_fill3(self, name, dims):
-        T = ambit.Tensor(ambit.TensorType.kCore, name, dims)
+        T = ambit.Tensor(ambit.TensorType.CoreTensor, name, dims)
         N = [[[0 for x in range(dims[2])] for x in range(dims[1])] for x in range(dims[0])]
 
         data = T.tensor.data()
@@ -73,7 +73,7 @@ class TestBlocks(unittest.TestCase):
         return max_diff
 
     def build_and_fill4(self, name, dims):
-        T = ambit.Tensor(ambit.TensorType.kCore, name, dims)
+        T = ambit.Tensor(ambit.TensorType.CoreTensor, name, dims)
         N = [[[[0 for x in range(dims[3])] for x in range(dims[2])] for x in range(dims[1])] for x in range(dims[0])]
 
         data = T.tensor.data()
@@ -206,15 +206,15 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "T", ["oo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T", ["oo", "vv"])
 
     def test_block_creation2(self):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "F", ["gg"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "V", ["gggg"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "F", ["gg"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "V", ["gggg"])
 
     def test_block_creation3(self):
         ambit.BlockedTensor.reset_mo_space()
@@ -223,21 +223,21 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "e,f", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("h", "i,j,k,l", ["c", "a"])
         ambit.BlockedTensor.add_composite_mo_space("p", "a,b,c,d", ["a", "v"])
-        ambit.BlockedTensor.build(ambit.TensorType.kCore, "T1", ["hp"])
-        ambit.BlockedTensor.build(ambit.TensorType.kCore, "T2", ["hhpp"])
+        ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T1", ["hp"])
+        ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T2", ["hhpp"])
 
     @unittest.expectedFailure
     def test_block_creation_bad_rank(self):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
-        ambit.BlockedTensor.build(ambit.TensorType.kCore, "T", ["oo", "ovv"])
+        ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T", ["oo", "ovv"])
 
     def test_block_norm_1(self):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("a", "u,v", [2,3,4], ambit.SpinType.NoSpin)
         ambit.BlockedTensor.add_mo_space("v", "e,f", [5,6,7,8,9], ambit.SpinType.NoSpin)
-        T2 = ambit.BlockedTensor.build(ambit.TensorType.kCore, "T2", ["aavv"])
+        T2 = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T2", ["aavv"])
         T2.set(0.5)
         self.assertAlmostEqual(112.5, T2.norm(1), places=12)
 
@@ -245,7 +245,7 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("a", "u,v", [2,3,4], ambit.SpinType.NoSpin)
         ambit.BlockedTensor.add_mo_space("v", "e,f", [5,6,7,8,9], ambit.SpinType.NoSpin)
-        T2 = ambit.BlockedTensor.build(ambit.TensorType.kCore, "T2", ["aavv"])
+        T2 = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T2", ["aavv"])
         T2.set(0.5)
         self.assertAlmostEqual(7.5, T2.norm(2), places=12)
 
@@ -253,7 +253,7 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("a", "u,v", [2,3,4], ambit.SpinType.NoSpin)
         ambit.BlockedTensor.add_mo_space("v", "e,f", [5,6,7,8,9], ambit.SpinType.NoSpin)
-        T2 = ambit.BlockedTensor.build(ambit.TensorType.kCore, "T2", ["aavv"])
+        T2 = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T2", ["aavv"])
         T2.set(0.5)
         self.assertAlmostEqual(0.5, T2.norm(0), places=12)
 
@@ -261,7 +261,7 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("a", "u,v", [2,3,4], ambit.SpinType.NoSpin)
         ambit.BlockedTensor.add_mo_space("v", "e,f", [5,6,7,8,9], ambit.SpinType.NoSpin)
-        T2 = ambit.BlockedTensor.build(ambit.TensorType.kCore, "T2", ["aavv"])
+        T2 = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T2", ["aavv"])
         T2.set(0.5)
         T2.zero()
         self.assertAlmostEqual(0.0, T2.norm(2), places=12)
@@ -270,7 +270,7 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("a", "u,v", [2,3,4], ambit.SpinType.NoSpin)
         ambit.BlockedTensor.add_mo_space("v", "e,f", [5,6,7,8,9], ambit.SpinType.NoSpin)
-        T2 = ambit.BlockedTensor.build(ambit.TensorType.kCore, "T2", ["aavv"])
+        T2 = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T2", ["aavv"])
         T2.set(2.0)
         T2.scale(0.25)
         self.assertAlmostEqual(7.5, T2.norm(2), places=12)
@@ -282,7 +282,7 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
-        T = ambit.BlockedTensor.build(ambit.TensorType.kCore, "T", ["oo", "vv"])
+        T = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T", ["oo", "vv"])
         T.block("oo")
 
     @unittest.expectedFailure
@@ -291,7 +291,7 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", {"o", "v"})
-        T = ambit.BlockedTensor.build(ambit.TensorType.kCore, "T", {"oo", "vv"})
+        T = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T", {"oo", "vv"})
         T.block("og")
 
     @unittest.expectedFailure
@@ -299,7 +299,7 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
-        T = ambit.BlockedTensor.build(ambit.TensorType.kCore, "T", ["oo", "vv"])
+        T = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T", ["oo", "vv"])
         T.block("ov")
 
     @unittest.expectedFailure
@@ -307,7 +307,7 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
-        T = ambit.BlockedTensor.build(ambit.TensorType.kCore, "T", ["oo", "vv"])
+        T = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "T", ["oo", "vv"])
         T.block("")
 
     def test_block_iterator1(self):
@@ -318,8 +318,8 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "vv", "ov", "vo"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "vv", "ov", "vo"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "vv", "ov", "vo"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "vv", "ov", "vo"])
 
         Aoo = A.block("oo")
         Coo = C.block("oo")
@@ -386,8 +386,8 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["vovo", "ovvo", "voov"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oovv", "ovvo", "voov"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["vovo", "ovvo", "voov"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oovv", "ovvo", "voov"])
 
         no = 3
         nv = 5
@@ -416,8 +416,8 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["vovo", "ovvo", "voov"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oovv", "ovvo", "voov"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["vovo", "ovvo", "voov"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oovv", "ovvo", "voov"])
 
         no = 3
         nv = 5
@@ -446,7 +446,7 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "vv", "ov", "vo"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "vv", "ov", "vo"])
 
         no = 3
         nv = 5
@@ -482,7 +482,7 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "vv", "ov", "vo"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "vv", "ov", "vo"])
 
         no = 3
         nv = 5
@@ -517,9 +517,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
 
         no = 3
 
@@ -547,9 +547,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9,3,4], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
 
         no = 5
         nv = 7
@@ -588,9 +588,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
 
         no = 3
         nv = 5
@@ -619,9 +619,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
 
         no = 3
         nv = 5
@@ -649,9 +649,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
 
         no = 3
 
@@ -678,10 +678,10 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
-        D = ambit.BlockedTensor.build(ambit.TensorType.kCore, "D", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
+        D = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "D", ["oo", "ov", "vo", "vv"])
 
         no = 3
 
@@ -712,10 +712,10 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9,10,15,20], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["vvoo"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
-        D = ambit.BlockedTensor.build(ambit.TensorType.kCore, "D", ["oovv", "ovvo"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["vvoo"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
+        D = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "D", ["oovv", "ovvo"])
 
         no = 5
         nv = 8
@@ -748,9 +748,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
 
         no = 3
 
@@ -776,9 +776,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
 
         no = 3
         nv = 5
@@ -805,10 +805,10 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
-        D = ambit.BlockedTensor.build(ambit.TensorType.kCore, "D", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
+        D = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "D", ["oo", "ov", "vo", "vv"])
 
         no = 5
 
@@ -836,10 +836,10 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
-        D = ambit.BlockedTensor.build(ambit.TensorType.kCore, "D", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
+        D = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "D", ["oo", "ov", "vo", "vv"])
 
         no = 5
 
@@ -867,10 +867,10 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
-        D = ambit.BlockedTensor.build(ambit.TensorType.kCore, "D", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
+        D = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "D", ["oo", "ov", "vo", "vv"])
 
         no = 5
 
@@ -898,10 +898,10 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "p,q,r,s", ["o", "v"])
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
-        D = ambit.BlockedTensor.build(ambit.TensorType.kCore, "D", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
+        D = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "D", ["oo", "ov", "vo", "vv"])
 
         no = 5
 
@@ -928,9 +928,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [6,7,8,9], ambit.SpinType.AlphaSpin)
 
-        F = ambit.BlockedTensor.build(ambit.TensorType.kCore, "F", ["oo", "ov", "vo", "vv"])
-        D = ambit.BlockedTensor.build(ambit.TensorType.kCore, "D", ["oo", "ov", "vo", "vv"])
-        g = ambit.BlockedTensor.build(ambit.TensorType.kCore, "g", ["oooo", "vvvv"])
+        F = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "F", ["oo", "ov", "vo", "vv"])
+        D = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "D", ["oo", "ov", "vo", "vv"])
+        g = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "g", ["oooo", "vvvv"])
 
         no = 5
 
@@ -959,9 +959,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
 
         no = 3
 
@@ -986,9 +986,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
 
         no = 3
 
@@ -1013,9 +1013,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
 
         no = 3
 
@@ -1040,8 +1040,8 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9,10,11], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
 
         no = 5
         nv = 7
@@ -1067,8 +1067,8 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9,10,11], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
 
         no = 5
         nv = 7
@@ -1094,8 +1094,8 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9,10,11], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
 
         no = 5
         nv = 7
@@ -1120,9 +1120,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,4,5], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["oo", "ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["oo", "ov", "vo", "vv"])
 
         no = 5
 
@@ -1149,9 +1149,9 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
 
-        A = ambit.BlockedTensor.build(ambit.TensorType.kCore, "A", ["oo", "ov", "vo", "vv"])
-        B = ambit.BlockedTensor.build(ambit.TensorType.kCore, "B", ["oo", "ov", "vo", "vv"])
-        C = ambit.BlockedTensor.build(ambit.TensorType.kCore, "C", ["ov", "vo", "vv"])
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["ov", "vo", "vv"])
 
         C['ij'] = A['ia'] * B['aj']
 

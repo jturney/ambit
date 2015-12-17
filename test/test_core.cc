@@ -155,8 +155,8 @@ double relative_difference(const Tensor &A1, const Tensor &A2)
 double try_relative_difference()
 {
     Dimension Adims = {4, 5, 6};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
-    Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor A1 = Tensor::build(CoreTensor, "A1", Adims);
+    Tensor A2 = Tensor::build(CoreTensor, "A2", Adims);
     initialize_random(A1, A2);
     return relative_difference(A1, A2);
 }
@@ -164,8 +164,8 @@ double try_relative_difference()
 double try_1_norm()
 {
     Dimension Adims = {4, 5, 6};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
-    Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor A1 = Tensor::build(CoreTensor, "A1", Adims);
+    Tensor A2 = Tensor::build(CoreTensor, "A2", Adims);
     initialize_random(A1, A2);
 
     double normA1 = A2.norm(1);
@@ -188,8 +188,8 @@ double try_1_norm()
 double try_2_norm()
 {
     Dimension Adims = {4, 5, 6};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
-    Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor A1 = Tensor::build(CoreTensor, "A1", Adims);
+    Tensor A2 = Tensor::build(CoreTensor, "A2", Adims);
     initialize_random(A1, A2);
 
     double normA1 = A2.norm(2);
@@ -213,8 +213,8 @@ double try_2_norm()
 double try_inf_norm()
 {
     Dimension Adims = {4, 5, 6};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
-    Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor A1 = Tensor::build(CoreTensor, "A1", Adims);
+    Tensor A2 = Tensor::build(CoreTensor, "A2", Adims);
     initialize_random(A1, A2);
 
     double normA1 = A2.norm(0);
@@ -237,8 +237,8 @@ double try_inf_norm()
 double try_zero()
 {
     Dimension Adims = {4, 5, 6};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
-    Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor A1 = Tensor::build(CoreTensor, "A1", Adims);
+    Tensor A2 = Tensor::build(CoreTensor, "A2", Adims);
     initialize_random(A1, A2);
 
     A1.zero();
@@ -256,8 +256,8 @@ double try_zero()
 double try_copy()
 {
     Dimension Adims = {4, 5, 6};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
-    Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor A1 = Tensor::build(CoreTensor, "A1", Adims);
+    Tensor A2 = Tensor::build(CoreTensor, "A2", Adims);
     initialize_random(A1, A2);
 
     A1.zero();
@@ -269,8 +269,8 @@ double try_copy()
 double try_scale()
 {
     Dimension Adims = {4, 5, 6};
-    Tensor A1 = Tensor::build(kCore, "A1", Adims);
-    Tensor A2 = Tensor::build(kCore, "A2", Adims);
+    Tensor A1 = Tensor::build(CoreTensor, "A1", Adims);
+    Tensor A2 = Tensor::build(CoreTensor, "A2", Adims);
     initialize_random(A1, A2);
 
     double s = random_double();
@@ -289,12 +289,12 @@ double try_scale()
 double try_slice_rank0_same1()
 {
     Dimension Cdims = {};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -318,12 +318,12 @@ double try_slice_rank0_same1()
 double try_slice_rank1_same1()
 {
     Dimension Cdims = {4};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{0L, 4L}};
     IndexRange Ainds = {{0L, 4L}};
@@ -353,12 +353,12 @@ double try_slice_rank1_same1()
 double try_slice_rank1_same2()
 {
     Dimension Cdims = {4};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{1L, 3L}};
     IndexRange Ainds = {{2L, 4L}};
@@ -388,12 +388,12 @@ double try_slice_rank1_same2()
 double try_slice_rank1_diff1()
 {
     Dimension Cdims = {4};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{1L, 4L}};
     IndexRange Ainds = {{0L, 3L}};
@@ -423,12 +423,12 @@ double try_slice_rank1_diff1()
 double try_slice_rank1_diff2()
 {
     Dimension Cdims = {4};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{2L, 4L}};
     IndexRange Ainds = {{1L, 3L}};
@@ -459,12 +459,12 @@ double try_slice_rank1_diff2()
 double try_slice_rank2_same1()
 {
     Dimension Cdims = {4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{0L, 4L}, {0L, 5L}};
     IndexRange Ainds = {{0L, 4L}, {0L, 5L}};
@@ -498,12 +498,12 @@ double try_slice_rank2_same1()
 double try_slice_rank2_same2()
 {
     Dimension Cdims = {4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{1L, 3L}, {0L, 5L}};
     IndexRange Ainds = {{2L, 4L}, {0L, 5L}};
@@ -537,12 +537,12 @@ double try_slice_rank2_same2()
 double try_slice_rank2_same3()
 {
     Dimension Cdims = {4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{1L, 3L}, {2L, 5L}};
     IndexRange Ainds = {{2L, 4L}, {1L, 4L}};
@@ -576,12 +576,12 @@ double try_slice_rank2_same3()
 double try_slice_rank2_diff1()
 {
     Dimension Cdims = {4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{1L, 4L}, {1L, 5L}};
     IndexRange Ainds = {{0L, 3L}, {0L, 4L}};
@@ -615,12 +615,12 @@ double try_slice_rank2_diff1()
 double try_slice_rank2_diff2()
 {
     Dimension Cdims = {4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{2L, 4L}, {1L, 5L}};
     IndexRange Ainds = {{1L, 3L}, {0L, 4L}};
@@ -654,12 +654,12 @@ double try_slice_rank2_diff2()
 double try_slice_rank2_diff3()
 {
     Dimension Cdims = {4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{2L, 4L}, {2L, 5L}};
     IndexRange Ainds = {{1L, 3L}, {1L, 4L}};
@@ -694,12 +694,12 @@ double try_slice_rank2_diff3()
 double try_slice_rank3_same1()
 {
     Dimension Cdims = {4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 5, 6};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{0L, 4L}, {0L, 5L}, {0L, 6L}};
     IndexRange Ainds = {{0L, 4L}, {0L, 5L}, {0L, 6L}};
@@ -740,12 +740,12 @@ double try_slice_rank3_same1()
 double try_slice_rank3_same2()
 {
     Dimension Cdims = {4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 5, 6};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{1L, 3L}, {0L, 5L}, {0L, 6L}};
     IndexRange Ainds = {{2L, 4L}, {0L, 5L}, {0L, 6L}};
@@ -786,12 +786,12 @@ double try_slice_rank3_same2()
 double try_slice_rank3_same3()
 {
     Dimension Cdims = {4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 5, 6};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{1L, 3L}, {2L, 5L}, {0L, 6L}};
     IndexRange Ainds = {{2L, 4L}, {1L, 4L}, {0L, 6L}};
@@ -832,12 +832,12 @@ double try_slice_rank3_same3()
 double try_slice_rank3_same4()
 {
     Dimension Cdims = {4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 5, 6};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{1L, 3L}, {2L, 5L}, {2L, 4L}};
     IndexRange Ainds = {{2L, 4L}, {1L, 4L}, {3L, 5L}};
@@ -878,12 +878,12 @@ double try_slice_rank3_same4()
 double try_slice_rank3_diff1()
 {
     Dimension Cdims = {4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 4, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{1L, 4L}, {1L, 5L}, {1L, 6L}};
     IndexRange Ainds = {{0L, 3L}, {0L, 4L}, {0L, 5L}};
@@ -924,12 +924,12 @@ double try_slice_rank3_diff1()
 double try_slice_rank3_diff2()
 {
     Dimension Cdims = {4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 4, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{2L, 4L}, {1L, 5L}, {1L, 6L}};
     IndexRange Ainds = {{1L, 3L}, {0L, 4L}, {0L, 5L}};
@@ -970,12 +970,12 @@ double try_slice_rank3_diff2()
 double try_slice_rank3_diff3()
 {
     Dimension Cdims = {4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 4, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{2L, 4L}, {2L, 5L}, {1L, 6L}};
     IndexRange Ainds = {{1L, 3L}, {1L, 4L}, {0L, 5L}};
@@ -1016,12 +1016,12 @@ double try_slice_rank3_diff3()
 double try_slice_rank3_diff4()
 {
     Dimension Cdims = {4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 4, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
 
     IndexRange Cinds = {{2L, 4L}, {2L, 5L}, {2L, 6L}};
     IndexRange Ainds = {{1L, 3L}, {1L, 4L}, {1L, 5L}};
@@ -1062,32 +1062,32 @@ double try_slice_rank3_diff4()
 
 double try_slice_label_fail()
 {
-    Tensor C1 = Tensor::build(kCore, "C1", {4, 5});
-    Tensor C2 = Tensor::build(kCore, "C2", {4, 5});
+    Tensor C1 = Tensor::build(CoreTensor, "C1", {4, 5});
+    Tensor C2 = Tensor::build(CoreTensor, "C2", {4, 5});
 
     C1((IndexRange){{0L, 4L}}) = C2();
     return 0.0;
 }
 double try_slice_rank_fail()
 {
-    Tensor C1 = Tensor::build(kCore, "C1", {4, 5});
-    Tensor C2 = Tensor::build(kCore, "C2", {4});
+    Tensor C1 = Tensor::build(CoreTensor, "C1", {4, 5});
+    Tensor C2 = Tensor::build(CoreTensor, "C2", {4});
 
     C1() = C2();
     return 0.0;
 }
 double try_slice_size_fail()
 {
-    Tensor C1 = Tensor::build(kCore, "C1", {4, 5});
-    Tensor C2 = Tensor::build(kCore, "C2", {4, 5});
+    Tensor C1 = Tensor::build(CoreTensor, "C1", {4, 5});
+    Tensor C2 = Tensor::build(CoreTensor, "C2", {4, 5});
 
     C1({{0, 4}, {0, 4}}) = C2();
     return 0.0;
 }
 double try_slice_bounds_fail()
 {
-    Tensor C1 = Tensor::build(kCore, "C1", {4, 5});
-    Tensor C2 = Tensor::build(kCore, "C2", {4, 5});
+    Tensor C1 = Tensor::build(CoreTensor, "C1", {4, 5});
+    Tensor C2 = Tensor::build(CoreTensor, "C2", {4, 5});
 
     C1({{0, 6}, {0, 5}}) = C2({{0, 6}, {0, 5}});
     return 0.0;
@@ -1096,12 +1096,12 @@ double try_slice_bounds_fail()
 double try_permute_rank0()
 {
     Dimension Cdims = {};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1125,12 +1125,12 @@ double try_permute_rank0()
 double try_permute_rank1_i()
 {
     Dimension Cdims = {3};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1157,12 +1157,12 @@ double try_permute_rank1_i()
 double try_permute_rank2_ij()
 {
     Dimension Cdims = {3, 4};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1193,12 +1193,12 @@ double try_permute_rank2_ij()
 double try_permute_rank2_ji()
 {
     Dimension Cdims = {3, 4};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 3};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1229,12 +1229,12 @@ double try_permute_rank2_ji()
 double try_permute_rank3_ijk()
 {
     Dimension Cdims = {3, 4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 4, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1269,12 +1269,12 @@ double try_permute_rank3_ijk()
 double try_permute_rank3_ikj()
 {
     Dimension Cdims = {3, 4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 5, 4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1309,12 +1309,12 @@ double try_permute_rank3_ikj()
 double try_permute_rank3_jik()
 {
     Dimension Cdims = {3, 4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 3, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1349,12 +1349,12 @@ double try_permute_rank3_jik()
 double try_permute_rank3_jki()
 {
     Dimension Cdims = {3, 4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 5, 3};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1389,12 +1389,12 @@ double try_permute_rank3_jki()
 double try_permute_rank3_kij()
 {
     Dimension Cdims = {3, 4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {5, 3, 4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1429,12 +1429,12 @@ double try_permute_rank3_kij()
 double try_permute_rank3_kji()
 {
     Dimension Cdims = {3, 4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {5, 4, 3};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1469,12 +1469,12 @@ double try_permute_rank3_kji()
 double try_permute_rank4_ijkl()
 {
     Dimension Cdims = {3, 4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 4, 5, 6};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1515,12 +1515,12 @@ double try_permute_rank4_ijkl()
 double try_permute_rank4_ijlk()
 {
     Dimension Cdims = {3, 4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 4, 6, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1561,12 +1561,12 @@ double try_permute_rank4_ijlk()
 double try_permute_rank4_jikl()
 {
     Dimension Cdims = {3, 4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 3, 5, 6};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1607,12 +1607,12 @@ double try_permute_rank4_jikl()
 double try_permute_rank4_ikjl()
 {
     Dimension Cdims = {3, 4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {3, 5, 4, 6};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1653,12 +1653,12 @@ double try_permute_rank4_ikjl()
 double try_permute_rank4_lkji()
 {
     Dimension Cdims = {3, 4, 5, 6};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {6, 5, 4, 3};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     if (mode == 0)
@@ -1699,11 +1699,11 @@ double try_permute_rank4_lkji()
 double try_permute_label_fail()
 {
     Dimension Cdims = {3, 4};
-    Tensor C = Tensor::build(kCore, "C", Cdims);
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
     initialize_random(C);
 
     Dimension Adims = {3, 4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     C("ij") = A("i");
@@ -1714,11 +1714,11 @@ double try_permute_label_fail()
 double try_permute_rank_fail()
 {
     Dimension Cdims = {3, 4};
-    Tensor C = Tensor::build(kCore, "C", Cdims);
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
     initialize_random(C);
 
     Dimension Adims = {4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     C("ij") = A("i");
@@ -1729,11 +1729,11 @@ double try_permute_rank_fail()
 double try_permute_index_fail()
 {
     Dimension Cdims = {3, 4};
-    Tensor C = Tensor::build(kCore, "C", Cdims);
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
     initialize_random(C);
 
     Dimension Adims = {3, 4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     C("ij") = A("jk");
@@ -1744,11 +1744,11 @@ double try_permute_index_fail()
 double try_permute_size_fail()
 {
     Dimension Cdims = {3, 4};
-    Tensor C = Tensor::build(kCore, "C", Cdims);
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
     initialize_random(C);
 
     Dimension Adims = {3, 4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     C("ij") = A("ji");
@@ -1759,16 +1759,16 @@ double try_permute_size_fail()
 double try_contract_scalar()
 {
     Dimension Cdims = {};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     if (mode == 0)
@@ -1793,16 +1793,16 @@ double try_contract_scalar()
 double try_contract_hadamard()
 {
     Dimension Cdims = {4};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {4};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     if (mode == 0)
@@ -1830,16 +1830,16 @@ double try_contract_hadamard()
 double try_contract_dot()
 {
     Dimension Cdims = {};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {4};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     if (mode == 0)
@@ -1868,16 +1868,16 @@ double try_contract_dot()
 double try_contract_axpy1()
 {
     Dimension Cdims = {4};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {4};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     if (mode == 0)
@@ -1905,16 +1905,16 @@ double try_contract_axpy1()
 double try_contract_axpy2()
 {
     Dimension Cdims = {4};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     if (mode == 0)
@@ -1942,16 +1942,16 @@ double try_contract_axpy2()
 double try_contract_ger1()
 {
     Dimension Cdims = {4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {5};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     if (mode == 0)
@@ -1983,16 +1983,16 @@ double try_contract_ger1()
 double try_contract_ger2()
 {
     Dimension Cdims = {4, 5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {4};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     if (mode == 0)
@@ -2024,16 +2024,16 @@ double try_contract_ger2()
 double try_contract_gemv1()
 {
     Dimension Cdims = {4};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {5};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     if (mode == 0)
@@ -2065,16 +2065,16 @@ double try_contract_gemv1()
 double try_contract_gemv2()
 {
     Dimension Cdims = {4};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {5, 4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {5};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     if (mode == 0)
@@ -2106,16 +2106,16 @@ double try_contract_gemv2()
 double try_contract_gemv3()
 {
     Dimension Cdims = {5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {4, 5};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     if (mode == 0)
@@ -2147,16 +2147,16 @@ double try_contract_gemv3()
 double try_contract_gemv4()
 {
     Dimension Cdims = {5};
-    Tensor C1 = Tensor::build(kCore, "C1", Cdims);
-    Tensor C2 = Tensor::build(kCore, "C2", Cdims);
+    Tensor C1 = Tensor::build(CoreTensor, "C1", Cdims);
+    Tensor C2 = Tensor::build(CoreTensor, "C2", Cdims);
     initialize_random(C1, C2);
 
     Dimension Adims = {4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {5, 4};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     if (mode == 0)
@@ -2198,12 +2198,12 @@ double try_C_equal_A_B(std::string c_ind, std::string a_ind, std::string b_ind,
     size_t nj = 4;
     size_t nk = 5;
 
-    Tensor A = Tensor::build(kCore, "A", {dims[a_dim[0]], dims[a_dim[1]]});
+    Tensor A = Tensor::build(CoreTensor, "A", {dims[a_dim[0]], dims[a_dim[1]]});
     initialize_random(A);
-    Tensor B = Tensor::build(kCore, "B", {dims[b_dim[0]], dims[b_dim[1]]});
+    Tensor B = Tensor::build(CoreTensor, "B", {dims[b_dim[0]], dims[b_dim[1]]});
     initialize_random(B);
-    Tensor C1 = Tensor::build(kCore, "C1", {dims[c_dim[0]], dims[c_dim[1]]});
-    Tensor C2 = Tensor::build(kCore, "C2", {dims[c_dim[0]], dims[c_dim[1]]});
+    Tensor C1 = Tensor::build(CoreTensor, "C1", {dims[c_dim[0]], dims[c_dim[1]]});
+    Tensor C2 = Tensor::build(CoreTensor, "C2", {dims[c_dim[0]], dims[c_dim[1]]});
     initialize_random(C1, C2);
 
     std::vector<std::string> c_inds = {std::string(1, c_ind[0]),
@@ -2285,15 +2285,15 @@ double try_contract_gemm8()
 double try_contract_label_fail()
 {
     Dimension Cdims = {3, 4};
-    Tensor C = Tensor::build(kCore, "C", Cdims);
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
     initialize_random(C);
 
     Dimension Adims = {3, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {4, 5};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     C("i") = A("ik") * B("jk");
@@ -2303,15 +2303,15 @@ double try_contract_label_fail()
 double try_contract_einsum_fail1()
 {
     Dimension Cdims = {3};
-    Tensor C = Tensor::build(kCore, "C", Cdims);
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
     initialize_random(C);
 
     Dimension Adims = {3, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {4, 5};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     C("i") = A("ik") * B("jk");
@@ -2321,15 +2321,15 @@ double try_contract_einsum_fail1()
 double try_contract_einsum_fail2()
 {
     Dimension Cdims = {3};
-    Tensor C = Tensor::build(kCore, "C", Cdims);
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
     initialize_random(C);
 
     Dimension Adims = {3, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {4, 5};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     C("ij") = A("ji") * B("jj");
@@ -2339,15 +2339,15 @@ double try_contract_einsum_fail2()
 double try_contract_size_fail1()
 {
     Dimension Cdims = {2, 2, 4};
-    Tensor C = Tensor::build(kCore, "C", Cdims);
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
     initialize_random(C);
 
     Dimension Adims = {2, 3, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {2, 4, 5};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     C("Pij") = A("Pik") * B("Pjk");
@@ -2357,15 +2357,15 @@ double try_contract_size_fail1()
 double try_contract_size_fail2()
 {
     Dimension Cdims = {2, 3, 3};
-    Tensor C = Tensor::build(kCore, "C", Cdims);
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
     initialize_random(C);
 
     Dimension Adims = {2, 3, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {2, 4, 5};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     C("Pij") = A("Pik") * B("Pjk");
@@ -2375,15 +2375,15 @@ double try_contract_size_fail2()
 double try_contract_size_fail3()
 {
     Dimension Cdims = {2, 3, 4};
-    Tensor C = Tensor::build(kCore, "C", Cdims);
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
     initialize_random(C);
 
     Dimension Adims = {2, 3, 4};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {2, 4, 5};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     C("Pij") = A("Pik") * B("Pjk");
@@ -2393,15 +2393,15 @@ double try_contract_size_fail3()
 double try_contract_size_fail4()
 {
     Dimension Cdims = {1, 3, 4};
-    Tensor C = Tensor::build(kCore, "C", Cdims);
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
     initialize_random(C);
 
     Dimension Adims = {2, 3, 5};
-    Tensor A = Tensor::build(kCore, "A", Adims);
+    Tensor A = Tensor::build(CoreTensor, "A", Adims);
     initialize_random(A);
 
     Dimension Bdims = {2, 4, 5};
-    Tensor B = Tensor::build(kCore, "B", Bdims);
+    Tensor B = Tensor::build(CoreTensor, "B", Bdims);
     initialize_random(B);
 
     C("Pij") = A("Pik") * B("Pjk");

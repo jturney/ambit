@@ -308,7 +308,7 @@ LabeledTensorContraction::operator double() const
     LabeledTensor lR(R, {}, 1.0);
     lR.contract(*this, true, true);
 
-    Tensor C = Tensor::build(kCore, "C", {});
+    Tensor C = Tensor::build(CoreTensor, "C", {});
     C.slice(R, {}, {});
 
     return C.data()[0];
@@ -424,7 +424,7 @@ LabeledTensorDistribution::operator double() const
                    A_.factor() * B_[ind].factor(), 1.0);
     }
 
-    Tensor C = Tensor::build(kCore, "C", {});
+    Tensor C = Tensor::build(CoreTensor, "C", {});
     C.slice(R, {}, {});
 
     return C.data()[0];

@@ -13,7 +13,7 @@ namespace ambit
 {
 
 CoreTensorImpl::CoreTensorImpl(const string &name, const Dimension &dims)
-    : TensorImpl(kCore, name, dims)
+    : TensorImpl(CoreTensor, name, dims)
 {
     data_.resize(numel(), 0L);
 }
@@ -975,7 +975,7 @@ map<string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
 
     // If descending is required, the canonical order must be reversed
     // Sort is stable
-    if (order == kDescending)
+    if (order == DescendingEigenvalue)
     {
         double *Temp_sqrsp_col = new double[n];
         double w_Temp_sqrsp;
@@ -1036,7 +1036,7 @@ map<string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order) const
         throw std::runtime_error("CoreTensorImpl::geev: LAPACK call failed");
     }
 
-    if (order == kDescending)
+    if (order == DescendingEigenvalue)
     {
         throw std::runtime_error("Unable to order descending");
     }
@@ -1082,7 +1082,7 @@ map<string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order) const
 TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
 {
     // this call will ensure squareness
-    map<string, TensorImplPtr> diag = syev(kAscending);
+    map<string, TensorImplPtr> diag = syev(AscendingEigenvalue);
 
     size_t n = diag["eigenvalues"]->dims()[0];
     double *a =

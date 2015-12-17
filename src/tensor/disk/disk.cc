@@ -16,12 +16,12 @@ static size_t disk_next_id__ = 0L;
 size_t disk_next_id() { return disk_next_id__++; }
 
 DiskTensorImpl::DiskTensorImpl(const string &name, const Dimension &dims)
-    : TensorImpl(kDisk, name, dims)
+    : TensorImpl(DiskTensor, name, dims)
 {
     stringstream ss;
     ss << Tensor::scratch_path();
     ss << "/";
-    ss << "kDisk.";
+    ss << "DiskTensor.";
     ss << getpid();
     ss << ".";
     ss << disk_next_id();

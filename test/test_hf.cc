@@ -12,7 +12,7 @@
 
 using namespace ambit;
 
-TensorType tensor_type = kCore;
+TensorType tensor_type = CoreTensor;
 
 Tensor build(const std::string &name, const Dimension &dims)
 {
@@ -87,7 +87,7 @@ void hf()
 
     Ft("i,j") = Smhalf("mu,i") * Smhalf("nu,j") * H("mu,nu");
     //    Ft.print(stdout, true);
-    auto Feigen = Ft.syev(kAscending);
+    auto Feigen = Ft.syev(AscendingEigenvalue);
     //    Feigen["eigenvectors"].print(stdout, true);
 
     Tensor C = build("C", AO2);
@@ -129,7 +129,7 @@ void hf()
         Ft("i,j") = Smhalf("mu,i") * Smhalf("nu,j") * F("mu,nu");
 
         // Diagonalize Fock matrix
-        Feigen = Ft.syev(kAscending);
+        Feigen = Ft.syev(AscendingEigenvalue);
 
         // Construct new SCF eigenvector matrix.
         C("i,j") = Smhalf("k,j") * Feigen["eigenvectors"]("i,k");
@@ -170,7 +170,7 @@ void hf()
 
     // the energy eigenvalues
 
-    Tensor t_eigev = Tensor::build(kCore, "eigenvalues", {(size_t)nso});
+    Tensor t_eigev = Tensor::build(CoreTensor, "eigenvalues", {(size_t)nso});
     IndexRange all = {{0L, (size_t)nso}};
     t_eigev(all) = Feigen["eigenvalues"](all);
     std::vector<double> e_eigev = t_eigev.data();
@@ -185,7 +185,7 @@ void hf()
                 {
                     //        value =
                     //        1.0/(e_eigev[indices[0]]-e_eigev[indices[1]+ndocc]);
-                    printf("indices %d %d: %lf %lf\n", indices[0], indices[1],
+                    printf("indices %lu %lu: %lf %lf\n", indices[0], indices[1],
                            e_eigev[indices[0]], e_eigev[indices[1] + 5]);
                     value = 1.0 / (t_eigev.data()[indices[0]] -
                                    t_eigev.data()[indices[1] + 5]);
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
     {
         if (settings::distributed_capable && strcmp(argv[1], "cyclops") == 0)
         {
-            tensor_type = kDistributed;
+            tensor_type = DistributedTensor;
             ambit::print("  *** Testing distributed tensors. ***\n");
             ambit::print("      Running in %d processes.\n",
                          ambit::settings::nprocess);

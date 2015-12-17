@@ -47,7 +47,7 @@ class TensorImpl
     TensorImpl(TensorType type, const std::string &name, const Dimension &dims);
     virtual ~TensorImpl() {}
 
-    virtual TensorImplPtr clone(TensorType type = kCurrent) const;
+    virtual TensorImplPtr clone(TensorType type = CurrentTensor) const;
 
     // => Reflectors <= //
 

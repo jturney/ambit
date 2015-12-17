@@ -122,25 +122,25 @@ Tensor Tensor::build(TensorType type, const string &name, const Dimension &dims)
 
     Tensor newObject;
 
-    if (type == kAgnostic)
+    if (type == AgnosticTensor)
     {
 #if defined(HAVE_CYCLOPS)
-        type = kDistributed;
+        type = DistributedTensor;
 #else
-        type = kCore;
+        type = CoreTensor;
 #endif
     }
     switch (type)
     {
-    case kCore:
+    case CoreTensor:
         newObject.tensor_.reset(new CoreTensorImpl(name, dims));
         break;
 
-    case kDisk:
+    case DiskTensor:
         newObject.tensor_.reset(new DiskTensorImpl(name, dims));
         break;
 
-    case kDistributed:
+    case DistributedTensor:
 #if defined(HAVE_CYCLOPS)
         newObject.tensor_.reset(new cyclops::CyclopsTensorImpl(name, dims));
 #else

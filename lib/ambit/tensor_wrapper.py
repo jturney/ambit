@@ -66,7 +66,7 @@ class LabeledTensorProduct:
         R.contract(self.tensors[0], self.tensors[1], [], self.tensors[0].indices, self.tensors[1].indices,
                    self.tensors[0].factor * self.tensors[1].factor, 1.0)
 
-        C = Tensor(pyambit.TensorType.kCore, "C", [])
+        C = Tensor(pyambit.TensorType.CoreTensor, "C", [])
         C.slice(R, [], [])
 
         return C.data()[0]
@@ -169,7 +169,7 @@ class LabeledTensorDistributive:
         for tensor in self.B.tensors:
             R.contract(self.A, tensor, [], self.A.indices, tensor.indices, self.A.factor * tensor.factor, 1.0)
 
-        C = Tensor(pyambit.TensorType.kCore, "C", [])
+        C = Tensor(pyambit.TensorType.CoreTensor, "C", [])
         C.slice(R, [], [])
 
         return C.data()[0]
@@ -400,10 +400,10 @@ class Tensor:
 
     @property
     def __array_interface__(self):
-       if self.dtype == pyambit.TensorType.kCore:
+       if self.dtype == pyambit.TensorType.CoreTensor:
            return self.tensor.__array_interface__()
        else:
-           raise TypeError('Only kCore tensors can be converted to ndarrays.')
+           raise TypeError('Only CoreTensor tensors can be converted to ndarrays.')
 
     def __getitem__(self, indices):
 
@@ -522,23 +522,23 @@ class Tensor:
         """
         Returns the raw data vector underlying the tensor object if the
         underlying tensor object supports a raw data vector. This is only the
-        case if the underlying tensor is of type kCore.
+        case if the underlying tensor is of type CoreTensor.
 
         This routine is intended to facilitate rapid filling of data into a
-        kCore buffer tensor, following which the user may stripe the buffer
-        tensor into a kDisk or kDistributed tensor via slice operations.
+        CoreTensor buffer tensor, following which the user may stripe the buffer
+        tensor into a DiskTensor or DistributedTensor tensor via slice operations.
 
         If a vector is successfully returned, it points to the unrolled data o
         the tensor, with the right-most dimensions running fastest and left-mo
         dimensions running slowest.
 
         Example successful use case:
-         Tensor A = Tensor::build(kCore, "A3", {4,5,6});
+         Tensor A = Tensor::build(CoreTensor, "A3", {4,5,6});
          std::vector<double>& Av = A.data();
          double* Ap = Av.data(); // In case the raw pointer is needed
          In this case, Av[0] = A(0,0,0), Av[1] = A(0,0,1), etc.
 
-         Tensor B = Tensor::build(kDisk, "B3", {4,5,6});
+         Tensor B = Tensor::build(DiskTensor, "B3", {4,5,6});
          std::vector<double>& Bv = B.data(); // throws
 
         :return: data pointer, if tensor object supports it
@@ -670,7 +670,7 @@ class Tensor:
          where, e.g., Ap = A.data().data();
 
         Notes:
-         - This is only implemented for kCore
+         - This is only implemented for CoreTensor
          - No bounds checking on the GEMM is performed
          - This function is intended to help advanced users get optimal
            performance from single-node codes.
@@ -702,7 +702,7 @@ class Tensor:
     def syev(self, order=None):
 
         if order is None:
-            order = pyambit.EigenvalueOrder.names["kAscending"]
+            order = pyambit.EigenvalueOrder.names["AscendingEigenvalue"]
         elif isinstance(order, str):
             order = pyambit.EigenvalueOrder.names[order]
         elif isinstance(order, pyambit.EigenvalueOrder):

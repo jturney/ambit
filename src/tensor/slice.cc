@@ -22,39 +22,39 @@ void slice(TensorImplPtr C, ConstTensorImplPtr A, const IndexRange &Cinds,
 
     // => Type Logic <= //
 
-    if (C->type() == kCore and A->type() == kCore)
+    if (C->type() == CoreTensor and A->type() == CoreTensor)
     {
         slice((CoreTensorImplPtr)C, (ConstCoreTensorImplPtr)A, Cinds, Ainds,
               alpha, beta);
     }
-    else if (C->type() == kCore and A->type() == kDisk)
+    else if (C->type() == CoreTensor and A->type() == DiskTensor)
     {
         slice((CoreTensorImplPtr)C, (ConstDiskTensorImplPtr)A, Cinds, Ainds,
               alpha, beta);
     }
-    else if (C->type() == kDisk and A->type() == kCore)
+    else if (C->type() == DiskTensor and A->type() == CoreTensor)
     {
         slice((DiskTensorImplPtr)C, (ConstCoreTensorImplPtr)A, Cinds, Ainds,
               alpha, beta);
     }
-    else if (C->type() == kDisk and A->type() == kDisk)
+    else if (C->type() == DiskTensor and A->type() == DiskTensor)
     {
         slice((DiskTensorImplPtr)C, (ConstDiskTensorImplPtr)A, Cinds, Ainds,
               alpha, beta);
 
 #ifdef HAVE_CYCLOPS
     }
-    else if (C->type() == kCore and A->type() == kDistributed)
+    else if (C->type() == CoreTensor and A->type() == DistributedTensor)
     {
         slice((CoreTensorImplPtr)C, (ConstCyclopsTensorImplPtr)A, Cinds, Ainds,
               alpha, beta);
     }
-    else if (C->type() == kDistributed and A->type() == kCore)
+    else if (C->type() == DistributedTensor and A->type() == CoreTensor)
     {
         slice((CyclopsTensorImplPtr)C, (ConstCoreTensorImplPtr)A, Cinds, Ainds,
               alpha, beta);
     }
-    else if (C->type() == kDistributed and A->type() == kDistributed)
+    else if (C->type() == DistributedTensor and A->type() == DistributedTensor)
     {
         slice((CyclopsTensorImplPtr)C, (ConstCyclopsTensorImplPtr)A, Cinds,
               Ainds, alpha, beta);
