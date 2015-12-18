@@ -200,7 +200,7 @@ def parse_input():
             dest='define',
             default=[],
             help="""forward directly to cmake (example: -D ENABLE_THIS=1 -D ENABLE_THAT=1);
-                    you can also forward CPP defintions all the way to the program
+                    you can also forward CPP definitions all the way to the program
                     (example: -D CPP="-DDEBUG")""",
                     metavar='STRING')
     group.add_argument('--host',

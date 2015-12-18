@@ -110,6 +110,11 @@ if (ENABLE_ELEMENTAL AND ELEMENTAL)
     add_definitions(-DHAVE_ELEMENTAL)
 endif()
 
+if (PSI4_SOURCE_DIR AND PSI4_BINARY_DIR)
+    set(ENABLE_PSI4 TRUE)
+    include_directories(${PSI4_SOURCE_DIR}/include ${PSI4_SOURCE_DIR}/src/lib ${PSI4_BINARY_DIR}/include)
+endif()
+
 # library directory
 add_subdirectory(lib)
 
