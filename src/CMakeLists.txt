@@ -61,20 +61,19 @@ if(ENABLE_PSI4)
 endif()
 
 # build libray
-add_library(ambit SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
-add_library(ambit-static STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
-set_target_properties(ambit-static PROPERTIES OUTPUT_NAME ambit)
+if(ENABLE_PSI4)
+    add_library(ambit STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
+    install(TARGETS ambit ARCHIVE DESTINATION lib)
+else()
+    add_library(ambit SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
+    install(TARGETS ambit LIBRARY DESTINATION lib)
+endif()
 
 if(ENABLE_CYCLOPS)
     target_link_libraries(ambit ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
-    target_link_libraries(ambit-static ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
 endif()
 
 target_link_libraries(ambit ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${Boost_LIBRARIES})
-target_link_libraries(ambit-static ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${Boost_LIBRARIES})
-
-install(TARGETS ambit LIBRARY DESTINATION lib)
-install(TARGETS ambit-static ARCHIVE DESTINATION lib)
 
 if(ENABLE_PYTHON)
     add_subdirectory(python)

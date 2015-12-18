@@ -112,7 +112,12 @@ endif()
 
 if (PSI4_SOURCE_DIR AND PSI4_BINARY_DIR)
     set(ENABLE_PSI4 TRUE)
-    include_directories(${PSI4_SOURCE_DIR}/include ${PSI4_SOURCE_DIR}/src/lib ${PSI4_BINARY_DIR}/include)
+    include_directories(
+            ${PSI4_SOURCE_DIR}/include
+            ${PSI4_SOURCE_DIR}/src/lib
+            ${PSI4_BINARY_DIR}/include
+            ${PSI4_BINARY_DIR}/src/lib
+    )
 endif()
 
 # library directory
