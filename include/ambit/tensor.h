@@ -4,6 +4,11 @@
 #include "common_types.h"
 #include "settings.h"
 
+#if defined(ENABLE_PSI4)
+#include <libmints/typedefs.h>
+#include <ambit/helpers/psi4/integrals.h>
+#endif
+
 namespace ambit
 {
 
@@ -459,13 +464,16 @@ class Tensor
                       &func) const;
 
   private:
-    shared_ptr<TensorImpl> tensor_;
 
   protected:
+    shared_ptr<TensorImpl> tensor_;
+
     Tensor(shared_ptr<TensorImpl> tensor);
 
     static map<string, Tensor>
     map_to_tensor(const map<string, TensorImpl *> &x);
+
+    void reshape(const Dimension& dims);
 
   public:
     // => Operator Overloading API <= //
@@ -483,6 +491,10 @@ class Tensor
   public:
     static void set_scratch_path(const string &path) { scratch_path__ = path; }
     static string scratch_path() { return scratch_path__; }
+
+#if defined(ENABLE_PSI4)
+    friend void ambit::helpers::psi4::integrals(psi::TwoBodyAOInt *integral, ambit::Tensor *target);
+#endif
 };
 
 class LabeledTensor

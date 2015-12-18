@@ -112,6 +112,7 @@ endif()
 
 if (PSI4_SOURCE_DIR AND PSI4_BINARY_DIR)
     set(ENABLE_PSI4 TRUE)
+    add_definitions(-DENABLE_PSI4=1)
     include_directories(
             ${PSI4_SOURCE_DIR}/include
             ${PSI4_SOURCE_DIR}/src/lib

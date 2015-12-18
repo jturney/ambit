@@ -11,6 +11,11 @@ class CoreTensorImpl : public TensorImpl
   public:
     CoreTensorImpl(const string &name, const Dimension &dims);
 
+    // Changes the internal dims_ object but does not change memory
+    // allocation. This is an expert function. Used to change
+    // the strides in the slice codes.
+    void reshape(const Dimension& dims);
+
     vector<double> &data() { return data_; }
     const vector<double> &data() const { return data_; }
 
