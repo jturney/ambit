@@ -10,11 +10,15 @@ addons:
       - boost-latest
     packages:
 #      - gdb
-#      - gcc-4.9
-#      - g++-4.9
-#      - gfortran-4.9
+      - gcc-4.9
+      - g++-4.9
+      - gfortran-4.9
       - liblapack-dev
-      - libboost1.55-all-dev
+#      - libboost1.55-all-dev
+      - libboost-filesystem1.55-dev
+      - libboost-chrono1.55-dev
+      - libboost-system1.55-dev
+      - libboost-timer1.55-dev
 
 script:
   - mkdir objdir && cd objdir && ../setup && make
