@@ -1,11 +1,18 @@
-language: c++
-compiler:
-  - gcc
-before_install:
-  - sudo apt-get install libblas-dev liblapack-dev -y
-script:
-  - mkdir objdir && cd objdir && ../setup && make
+language: cpp
+
 os:
   - linux
-sudo: required
-group: edge
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+#      - gdb
+#      - gcc-4.9
+#      - g++-4.9
+#      - gfortran-4.9
+      - liblapack-dev
+
+script:
+  - mkdir objdir && cd objdir && ../setup && make
