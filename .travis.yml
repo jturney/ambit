@@ -22,4 +22,4 @@ addons:
       - libboost-python1.55-dev
 
 script:
-  - mkdir objdir && cd objdir && ../setup --cxx=g++-4.9 && make
+  - mkdir objdir && cd objdir && ../setup --cxx=g++-4.9 --fc=gfortran-4.9 --cc=gcc-4.9 && make

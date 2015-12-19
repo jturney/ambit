@@ -2,7 +2,7 @@ include(SaveCompilerFlags)
 include(CheckCXX11Features)
 include(CheckCXXCompilerFlag)
 include(CheckCCompilerFlag)
-#include(CheckFortranCompilerFlag)
+include(CheckFortranCompilerFlag)
 include(TestRestrict)
 
 if(ENABLE_VECTORIZATION)
