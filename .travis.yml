@@ -2,7 +2,7 @@ language: c++
 compiler:
   - gcc
 before_install:
-  - sudo apt-get install liblapack3gf -y
+  - sudo apt-get install libblas-dev liblapack-dev -y
 script:
   - mkdir objdir && cd objdir && ../setup && make
 os:
