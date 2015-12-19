@@ -359,10 +359,10 @@ def gen_cmake_command(args):
         command += ' -DEXPLICIT_LAPACK_LIB=%s' % args.lapack
         command += ' -DENABLE_AUTO_LAPACK=OFF'
 
-    if args.accelerate:
-        command += ' -DENABLE_ACCELERATE=ON'
-        command += ' -DENABLE_AUTO_BLAS=OFF'
-        command += ' -DENABLE_AUTO_LAPACK=OFF'
+    #if args.accelerate:
+    #    command += ' -DENABLE_ACCELERATE=ON'
+    #    command += ' -DENABLE_AUTO_BLAS=OFF'
+    #    command += ' -DENABLE_AUTO_LAPACK=OFF'
 
     if args.cray:
         command += ' -DENABLE_CRAY_WRAPPERS=ON'
