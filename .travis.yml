@@ -8,7 +8,9 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
       - boost-latest
+      - kalakris-cmake
     packages:
+      - cmake
 #      - gdb
       - gcc-4.9
       - g++-4.9
