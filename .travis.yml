@@ -19,6 +19,7 @@ addons:
       - libboost-chrono1.55-dev
       - libboost-system1.55-dev
       - libboost-timer1.55-dev
+      - libboost-python1.55-dev
 
 script:
-  - mkdir objdir && cd objdir && ../setup && make
+  - mkdir objdir && cd objdir && ../setup --cxx=g++-4.9 && make
