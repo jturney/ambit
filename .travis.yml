@@ -7,4 +7,4 @@ script:
   - mkdir objdir && cd objdir && ../setup && make
 os:
   - linux
-sudo: false
+sudo: required
