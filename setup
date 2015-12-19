@@ -319,7 +319,7 @@ def gen_cmake_command(args):
     command = ' %s ' % args.cmake + command
 
     command += ' -DENABLE_MPI=%s'            % translate_cmake(args.mpi)
-    command += ' -DENABLE_SGI_MPT=%s'        % translate_cmake(args.sgi_mpt)
+    #command += ' -DENABLE_SGI_MPT=%s'        % translate_cmake(args.sgi_mpt)
     command += ' -DENABLE_OMP=%s'            % translate_cmake(args.omp)
     command += ' -DENABLE_VECTORIZATION=%s'  % translate_cmake(args.vectorization)
     command += ' -DENABLE_CYCLOPS=%s'        % translate_cmake(args.cyclops)
