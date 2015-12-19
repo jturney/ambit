@@ -10,7 +10,7 @@ addons:
       - boost-latest
       - kalakris-cmake
     packages:
-      - cmake
+      - cmake3
 #      - gdb
       - gcc-4.9
       - g++-4.9
