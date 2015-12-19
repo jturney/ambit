@@ -9,6 +9,7 @@
 
 #include <chrono>
 #include <cassert>
+#include <cstring>
 
 namespace ambit
 {

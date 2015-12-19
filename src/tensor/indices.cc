@@ -64,7 +64,7 @@ bool equivalent(const Indices &left, const Indices &right)
     return left == right;
 }
 
-std::vector<size_t> permutation_order(const Indices &left, const Indices &right)
+vector<size_t> permutation_order(const Indices &left, const Indices &right)
 {
     /// Check that these strings have the same number of indices
     if (left.size() != right.size())
@@ -90,7 +90,7 @@ std::vector<size_t> permutation_order(const Indices &left, const Indices &right)
     }
 
     /// Find the indices of the tokens of left in right
-    std::vector<size_t> ret(left.size(), -1);
+    vector<size_t> ret(left.size(), -1);
     for (size_t ind = 0; ind < left.size(); ind++)
     {
         for (size_t ind2 = 0; ind2 < right.size(); ind2++)
@@ -107,7 +107,7 @@ std::vector<size_t> permutation_order(const Indices &left, const Indices &right)
 
 // => Stuff for contract <= //
 
-int find_index_in_vector(const std::vector<std::string> &vec,
+int find_index_in_vector(const vector<std::string> &vec,
                          const std::string &key)
 {
     for (size_t ind = 0L; ind < vec.size(); ind++)
@@ -119,7 +119,7 @@ int find_index_in_vector(const std::vector<std::string> &vec,
     }
     return -1;
 }
-bool contiguous(const std::vector<std::pair<int, std::string>> &vec)
+bool contiguous(const vector<std::pair<int, std::string>> &vec)
 {
     for (int prim = 0L; prim < ((int)vec.size()) - 1; prim++)
     {
@@ -133,7 +133,7 @@ bool contiguous(const std::vector<std::pair<int, std::string>> &vec)
 Dimension permuted_dimension(const Dimension &old_dim, const Indices &new_order,
                              const Indices &old_order)
 {
-    std::vector<size_t> order =
+    vector<size_t> order =
         indices::permutation_order(new_order, old_order);
     Dimension new_dim(order.size(), 0L);
     for (size_t ind = 0L; ind < order.size(); ind++)
@@ -158,19 +158,19 @@ string to_string(const Indices &indices, const std::string &sep)
     if (indices.size() == 0)
         return std::string();
 
-    std::ostringstream ss;
+    ostringstream ss;
 
     std::copy(indices.begin(), indices.end() - 1,
-              std::ostream_iterator<string>(ss, sep.c_str()));
+              ostream_iterator<string>(ss, sep.c_str()));
     ss << indices.back();
 
     return ss.str();
 }
 
-std::vector<Indices> determine_contraction_result_from_indices(Indices Aindices,
+vector<Indices> determine_contraction_result_from_indices(Indices Aindices,
                                                                Indices Bindices)
 {
-    std::vector<Indices> result;
+    vector<Indices> result;
 
     size_t dimAB = Aindices.size() + Bindices.size();
 
@@ -211,8 +211,8 @@ std::vector<Indices> determine_contraction_result_from_indices(Indices Aindices,
     return result;
 }
 
-std::vector<Indices> determine_contraction_result(const LabeledTensor &A,
-                                                  const LabeledTensor &B)
+vector<Indices> determine_contraction_result(const LabeledTensor &A,
+                                             const LabeledTensor &B)
 {
     return determine_contraction_result_from_indices(A.indices(), B.indices());
 }
