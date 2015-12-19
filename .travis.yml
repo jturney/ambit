@@ -8,3 +8,4 @@ script:
 os:
   - linux
 sudo: required
+group: edge
