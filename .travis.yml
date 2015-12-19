@@ -11,6 +11,7 @@ addons:
       - george-edison55-precise-backports
     packages:
       - cmake
+      - cmake-data
 #      - gdb
       - gcc-4.9
       - g++-4.9
