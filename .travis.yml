@@ -8,9 +8,9 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
       - boost-latest
-      - kalakris-cmake
+      - george-edison55-precise-backports
     packages:
-      - cmake3
+      - cmake
 #      - gdb
       - gcc-4.9
       - g++-4.9
