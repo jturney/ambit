@@ -20,6 +20,7 @@
 #define TENSOR_IO_FILE
 
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <functional>

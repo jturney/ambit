@@ -5,6 +5,7 @@
 #include <cmath>
 #include <assert.h>
 #include <cstdlib>
+#include <stdexcept>
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"

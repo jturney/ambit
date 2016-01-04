@@ -2,6 +2,8 @@
 // Created by Justin Turney on 12/17/15.
 //
 
+#include <stdexcept>
+
 #include <ambit/helpers/psi4/integrals.h>
 #include <ambit/tensor.h>
 #include <tensor/core/core.h>

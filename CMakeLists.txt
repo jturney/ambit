@@ -140,6 +140,8 @@ add_subdirectory(include)
 add_subdirectory(src)
 
 # test suite
+enable_testing()
+include(CTest)
 add_subdirectory(test)
 
 # sample suite

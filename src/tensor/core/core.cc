@@ -3,6 +3,7 @@
 #include "tensor/indices.h"
 #include <ambit/timer.h>
 #include <algorithm>
+#include <stdexcept>
 #include <string.h>
 #include <cmath>
 #include <limits>

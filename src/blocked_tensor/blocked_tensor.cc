@@ -1,4 +1,5 @@
 #include <cmath>
+#include <stdexcept>
 #include <string>
 #include <algorithm>
 #include <ambit/blocked_tensor.h>

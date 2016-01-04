@@ -2,6 +2,8 @@
 #error The Cyclops interface is being compiled without Cyclops present.
 #endif
 
+#include <stdexcept>
+
 #include "cyclops.h"
 #include "../globals.h"
 #include <ambit/print.h>
