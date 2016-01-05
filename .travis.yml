@@ -265,8 +265,8 @@ install:
 - |
   if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
     brew install cmake python gcc
-    brew install boost --with-python
-    brew install boost-python
+    brew install boost --with-python --c++11
+    brew install boost-python --c++11
   fi
 before_script:
 - cd ${TRAVIS_BUILD_DIR}
@@ -277,4 +277,4 @@ before_script:
 - cd objdir
 script:
 - VERBOSE=1 make -j 2
-- ctest -V -j 2
+- ctest -V
