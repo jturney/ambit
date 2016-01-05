@@ -1,6 +1,7 @@
 #include <ambit/common_types.h>
 
 #include <algorithm>
+#include <stdexcept>
 #include "indices.h"
 
 namespace ambit

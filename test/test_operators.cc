@@ -4,6 +4,7 @@
 //#include <cstdio>
 #include <cmath>
 //#include <utility>
+#include <stdexcept>
 
 #define MAXTWO 10
 #define MAXFOUR 10

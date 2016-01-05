@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <ambit/tensor.h>
 
 namespace ambit

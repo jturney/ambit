@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <assert.h>
+#include <stdexcept>
 
 #include <ambit/print.h>
 #include <ambit/tensor.h>
