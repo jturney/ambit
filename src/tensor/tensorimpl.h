@@ -189,11 +189,9 @@ class TensorImpl
             "Operation not supported in this tensor implementation.");
     }
 
-    void reshape(const Dimension& dims) {
-        dims_ = dims;
-    }
+    void reshape(const Dimension &dims) { dims_ = dims; }
 
-protected:
+  protected:
     static bool typeCheck(TensorType type, ConstTensorImplPtr A,
                           bool throwIfDiff = true);
     static bool rankCheck(size_t rank, ConstTensorImplPtr A,

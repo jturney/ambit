@@ -467,8 +467,10 @@ double test_block_retrive_block4()
 //    BlockedTensor::add_mo_space("o","i,j",{0,1,2},AlphaSpin);
 //    BlockedTensor::add_mo_space("v","a,b,c,d",{5,6,7,8,9},AlphaSpin);
 
-//    BlockedTensor A = BlockedTensor::build(CoreTensor,"A",{"oo","vv","ov","vo"});
-//    BlockedTensor C = BlockedTensor::build(CoreTensor,"C",{"oo","vv","ov","vo"});
+//    BlockedTensor A =
+//    BlockedTensor::build(CoreTensor,"A",{"oo","vv","ov","vo"});
+//    BlockedTensor C =
+//    BlockedTensor::build(CoreTensor,"C",{"oo","vv","ov","vo"});
 
 //    size_t no = 3;
 //    size_t nv = 5;

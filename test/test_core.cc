@@ -2203,8 +2203,10 @@ double try_C_equal_A_B(std::string c_ind, std::string a_ind, std::string b_ind,
     initialize_random(A);
     Tensor B = Tensor::build(CoreTensor, "B", {dims[b_dim[0]], dims[b_dim[1]]});
     initialize_random(B);
-    Tensor C1 = Tensor::build(CoreTensor, "C1", {dims[c_dim[0]], dims[c_dim[1]]});
-    Tensor C2 = Tensor::build(CoreTensor, "C2", {dims[c_dim[0]], dims[c_dim[1]]});
+    Tensor C1 =
+        Tensor::build(CoreTensor, "C1", {dims[c_dim[0]], dims[c_dim[1]]});
+    Tensor C2 =
+        Tensor::build(CoreTensor, "C2", {dims[c_dim[0]], dims[c_dim[1]]});
     initialize_random(C1, C2);
 
     std::vector<std::string> c_inds = {std::string(1, c_ind[0]),

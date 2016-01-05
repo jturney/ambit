@@ -125,7 +125,8 @@ class Tensor
 
     // => Accessors <= //
 
-    /// @return The tensor type enum, one of CoreTensor, DiskTensor, DistributedTensor
+    /// @return The tensor type enum, one of CoreTensor, DiskTensor,
+    /// DistributedTensor
     TensorType type() const;
     /// @return The name of the tensor for use in printing
     string name() const;
@@ -165,7 +166,8 @@ class Tensor
      *
      * This routine is intended to facilitate rapid filling of data into a
      * CoreTensor buffer tensor, following which the user may stripe the buffer
-     * tensor into a DiskTensor or DistributedTensor tensor via slice operations.
+     * tensor into a DiskTensor or DistributedTensor tensor via slice
+     *operations.
      *
      * If a vector is successfully returned, it points to the unrolled data of
      * the tensor, with the right-most dimensions running fastest and left-most
@@ -464,7 +466,6 @@ class Tensor
                       &func) const;
 
   private:
-
   protected:
     shared_ptr<TensorImpl> tensor_;
 
@@ -473,7 +474,7 @@ class Tensor
     static map<string, Tensor>
     map_to_tensor(const map<string, TensorImpl *> &x);
 
-    void reshape(const Dimension& dims);
+    void reshape(const Dimension &dims);
 
   public:
     // => Operator Overloading API <= //
@@ -493,7 +494,8 @@ class Tensor
     static string scratch_path() { return scratch_path__; }
 
 #if defined(ENABLE_PSI4)
-    friend void ambit::helpers::psi4::integrals(psi::TwoBodyAOInt& integral, ambit::Tensor *target);
+    friend void ambit::helpers::psi4::integrals(psi::TwoBodyAOInt &integral,
+                                                ambit::Tensor *target);
 #endif
 };
 

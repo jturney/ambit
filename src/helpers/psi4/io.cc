@@ -16,7 +16,8 @@ void load_matrix(const std::string &fn, const std::string &entry,
     if (settings::rank == 0)
     {
         io::File handle(fn, io::kOpenModeOpenExisting);
-        Tensor local_data = Tensor::build(CoreTensor, "Local Data", target.dims());
+        Tensor local_data =
+            Tensor::build(CoreTensor, "Local Data", target.dims());
         io::IWL::read_one(handle, entry, local_data);
 
         target() = local_data();

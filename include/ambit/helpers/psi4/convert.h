@@ -7,15 +7,18 @@
 
 #include <libmints/mints.h>
 
-namespace ambit {
+namespace ambit
+{
 
 class Tensor;
 
-namespace helpers {
+namespace helpers
+{
 
-namespace psi4 {
+namespace psi4
+{
 
-void convert(const psi::Matrix& matrix, ambit::Tensor* target);
+void convert(const psi::Matrix &matrix, ambit::Tensor *target);
 
 } // namespace psi4
 
@@ -23,4 +26,4 @@ void convert(const psi::Matrix& matrix, ambit::Tensor* target);
 
 } // namespace ambit
 
-#endif //AMBIT_CONVERTER_H
+#endif // AMBIT_CONVERTER_H

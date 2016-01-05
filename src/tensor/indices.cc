@@ -108,8 +108,7 @@ vector<size_t> permutation_order(const Indices &left, const Indices &right)
 
 // => Stuff for contract <= //
 
-int find_index_in_vector(const vector<std::string> &vec,
-                         const std::string &key)
+int find_index_in_vector(const vector<std::string> &vec, const std::string &key)
 {
     for (size_t ind = 0L; ind < vec.size(); ind++)
     {
@@ -134,8 +133,7 @@ bool contiguous(const vector<std::pair<int, std::string>> &vec)
 Dimension permuted_dimension(const Dimension &old_dim, const Indices &new_order,
                              const Indices &old_order)
 {
-    vector<size_t> order =
-        indices::permutation_order(new_order, old_order);
+    vector<size_t> order = indices::permutation_order(new_order, old_order);
     Dimension new_dim(order.size(), 0L);
     for (size_t ind = 0L; ind < order.size(); ind++)
     {
@@ -169,7 +167,7 @@ string to_string(const Indices &indices, const std::string &sep)
 }
 
 vector<Indices> determine_contraction_result_from_indices(Indices Aindices,
-                                                               Indices Bindices)
+                                                          Indices Bindices)
 {
     vector<Indices> result;
 

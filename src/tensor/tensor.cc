@@ -167,10 +167,7 @@ Tensor Tensor::clone(TensorType type) const
     return current;
 }
 
-void Tensor::reshape(const Dimension& dims)
-{
-    tensor_->reshape(dims);
-}
+void Tensor::reshape(const Dimension &dims) { tensor_->reshape(dims); }
 
 void Tensor::copy(const Tensor &other) { tensor_->copy(other.tensor_.get()); }
 

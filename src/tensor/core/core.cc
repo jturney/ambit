@@ -19,7 +19,7 @@ CoreTensorImpl::CoreTensorImpl(const string &name, const Dimension &dims)
     data_.resize(numel(), 0L);
 }
 
-void CoreTensorImpl::reshape(const Dimension& dims)
+void CoreTensorImpl::reshape(const Dimension &dims)
 {
     TensorImpl::reshape(dims);
 }

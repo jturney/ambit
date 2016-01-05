@@ -124,7 +124,8 @@ class BlockedTensor
     /**
      * Build a BlockedTensor object
      *
-     * @param type            The tensor type enum, one of CoreTensor, DiskTensor,
+     * @param type            The tensor type enum, one of CoreTensor,
+     * DiskTensor,
      * DistributedTensor.
      * @param name            The name of the tensor for use in printing.
      * @param blocks          A vector of strings that specify which blocks are
@@ -132,9 +133,11 @@ class BlockedTensor
      *
      * Example of use.
      * Here "o","O","v","V" are names of orbital spaces.
-     * build(CoreTensor,"T2",{"o,O,v,V"});    // <- creates the alpha-alpha block of
+     * build(CoreTensor,"T2",{"o,O,v,V"});    // <- creates the alpha-alpha
+     * block of
      * the tensor T2 in core
-     * build(DiskTensor,"T1",{"o,v","O,V"}); // <- creates the alpha and beta blocks
+     * build(DiskTensor,"T1",{"o,v","O,V"}); // <- creates the alpha and beta
+     * blocks
      * of the tensor T1 on disk
      */
     static BlockedTensor build(TensorType type, const std::string &name,
