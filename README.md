@@ -27,9 +27,9 @@ Continuous integration builds
   The following compilers are used, both in release and debug:
 
   1. XCode 6.4 with Clang and GFortran 5.2
-  2. XCode 6.4 with GCC 5.2
+  2. XCode 6.4 with GCC 5.2 (not tested: need Boost C++11 support)
   3. XCode 7.0 with Clang and GFortran 5.2
-  4. XCode 7.0 with GCC 5.2
+  4. XCode 7.0 with GCC 5.2 (not tested: need Boost C++11 support)
 
 Nightly builds
 --------------
