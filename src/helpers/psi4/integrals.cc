@@ -12,17 +12,17 @@ namespace helpers {
 
 namespace psi4 {
 
-void integrals(psi::OneBodyAOInt *integral, ambit::Tensor *target)
+void integrals(psi::OneBodyAOInt& integral, ambit::Tensor *target)
 {
     // One-electron integrals are generally small enough to compute
     // on a single core and broadcast them out.
 
     if (settings::rank == 0) {
-        size_t row = static_cast<size_t>(integral->basis1()->nbf());
-        size_t col = static_cast<size_t>(integral->basis2()->nbf());
+        size_t row = static_cast<size_t>(integral.basis1()->nbf());
+        size_t col = static_cast<size_t>(integral.basis2()->nbf());
 
         psi::SharedMatrix tmp(new psi::Matrix(row, col));
-        integral->compute(tmp);
+        integral.compute(tmp);
 
         Tensor local_tensor = Tensor::build(CoreTensor,
                                             "Local Data",
@@ -50,17 +50,17 @@ void integrals(psi::OneBodyAOInt *integral, ambit::Tensor *target)
     }
 }
 
-void integrals(psi::TwoBodyAOInt *integral, Tensor *target)
+void integrals(psi::TwoBodyAOInt& integral, Tensor *target)
 {
     if (target->type() != CoreTensor)
         throw std::runtime_error("integrals(TwoBodyAOInt, Tensor) is only compatible with CoreTensor type");
 
     Dimension max_quartet;
 
-    const psi::BasisSet& basis1 = *integral->basis1().get();
-    const psi::BasisSet& basis2 = *integral->basis2().get();
-    const psi::BasisSet& basis3 = *integral->basis3().get();
-    const psi::BasisSet& basis4 = *integral->basis4().get();
+    const psi::BasisSet& basis1 = *integral.basis1().get();
+    const psi::BasisSet& basis2 = *integral.basis2().get();
+    const psi::BasisSet& basis3 = *integral.basis3().get();
+    const psi::BasisSet& basis4 = *integral.basis4().get();
 
     int centers_dim[4] = {-1, -1, -1, -1};
 
@@ -101,7 +101,7 @@ void integrals(psi::TwoBodyAOInt *integral, Tensor *target)
         local_range[i]  = { 0L, 0L };
     }
 
-    const double *buffer = integral->buffer();
+    const double *buffer = integral.buffer();
     for (int P = 0; P < basis1.nshell(); P++) {
         int nP = basis1.shell(P).nfunction();
         int startP = basis1.shell(P).function_index();
@@ -143,7 +143,7 @@ void integrals(psi::TwoBodyAOInt *integral, Tensor *target)
                     }
 
                     // Have Psi4 compute the integral
-                    integral->compute_shell(P, Q, R, S);
+                    integral.compute_shell(P, Q, R, S);
 
                     // Unfortunately we have to perform a memcpy :(
                     // from Psi4 integral buffer to local_tensor

@@ -15,9 +15,9 @@ namespace helpers {
 
 namespace psi4 {
 
-void integrals(psi::OneBodyAOInt* integral, ambit::Tensor* target);
+void integrals(psi::OneBodyAOInt& integral, ambit::Tensor* target);
 
-void integrals(psi::TwoBodyAOInt* integral, ambit::Tensor* target);
+void integrals(psi::TwoBodyAOInt& integral, ambit::Tensor* target);
 
 } // namespace psi4
 
