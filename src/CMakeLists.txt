@@ -56,9 +56,15 @@ if(ENABLE_CYCLOPS)
 endif()
 
 if(ENABLE_PSI4)
-    list(APPEND TENSOR_HEADERS ${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/integrals.h)
-    list(APPEND TENSOR_SOURCES helpers/psi4/integrals.cc)
+    list(APPEND TENSOR_HEADERS
+            ${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/integrals.h
+            ${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/convert.h)
+    list(APPEND TENSOR_SOURCES
+            helpers/psi4/integrals.cc
+            helpers/psi4/convert.cc)
 endif()
+
+list(SORT TENSOR_SOURCES)
 
 # build libray
 if(ENABLE_PSI4)
