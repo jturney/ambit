@@ -61,7 +61,7 @@ void test_performance()
 {
     size_t nv = 100;
     size_t no = 25;
-    int repeats = 5;
+    int repeats = 1;
 
     ambit::print("no %d; nv %d, repeats %d\n", no, nv, repeats);
 
