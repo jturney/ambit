@@ -51,7 +51,7 @@ void initialize_random(Tensor &tensor,
 std::pair<double, double>
 difference(Tensor &tensor, double matrix[MAXFOUR][MAXFOUR][MAXFOUR][MAXFOUR]);
 
-double zero = 1.0e-11;
+double zero = 1.0e-09;
 
 TensorType tensor_type = CoreTensor;
 
