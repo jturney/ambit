@@ -16,31 +16,37 @@ void slice(TensorImplPtr C, ConstTensorImplPtr A, const IndexRange &Cinds,
         size_t Asize = Ainds[ind][1] - Ainds[ind][0];
         size_t Csize = Cinds[ind][1] - Cinds[ind][0];
         if (Asize != Csize)
+        {
             throw std::runtime_error(
                 "Slice range sizes must agree between tensors A and C.");
+        }
     }
 
     // => Type Logic <= //
 
     if (C->type() == CoreTensor and A->type() == CoreTensor)
     {
-        slice((CoreTensorImplPtr)C, (ConstCoreTensorImplPtr)A, Cinds, Ainds,
-              alpha, beta);
+        slice(dynamic_cast<CoreTensorImplPtr>(C),
+              dynamic_cast<ConstCoreTensorImplPtr>(A), Cinds, Ainds, alpha,
+              beta);
     }
     else if (C->type() == CoreTensor and A->type() == DiskTensor)
     {
-        slice((CoreTensorImplPtr)C, (ConstDiskTensorImplPtr)A, Cinds, Ainds,
-              alpha, beta);
+        slice(dynamic_cast<CoreTensorImplPtr>(C),
+              dynamic_cast<ConstDiskTensorImplPtr>(A), Cinds, Ainds, alpha,
+              beta);
     }
     else if (C->type() == DiskTensor and A->type() == CoreTensor)
     {
-        slice((DiskTensorImplPtr)C, (ConstCoreTensorImplPtr)A, Cinds, Ainds,
-              alpha, beta);
+        slice(dynamic_cast<DiskTensorImplPtr>(C),
+              dynamic_cast<ConstCoreTensorImplPtr>(A), Cinds, Ainds, alpha,
+              beta);
     }
     else if (C->type() == DiskTensor and A->type() == DiskTensor)
     {
-        slice((DiskTensorImplPtr)C, (ConstDiskTensorImplPtr)A, Cinds, Ainds,
-              alpha, beta);
+        slice(dynamic_cast<DiskTensorImplPtr>(C),
+              dynamic_cast<ConstDiskTensorImplPtr>(A), Cinds, Ainds, alpha,
+              beta);
 
 #ifdef HAVE_CYCLOPS
     }
@@ -73,7 +79,7 @@ void slice(CoreTensorImplPtr C, ConstCoreTensorImplPtr A,
     timer::timer_push("slice Core -> Core");
     /// Data pointers
     double *Cp = C->data().data();
-    double *Ap = ((CoreTensorImplPtr)A)->data().data();
+    double *Ap = const_cast<CoreTensorImplPtr>(A)->data().data();
 
     // => Special Case: Rank-0 <= //
 

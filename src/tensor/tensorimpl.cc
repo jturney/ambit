@@ -1,3 +1,4 @@
+#include <numeric>
 #include "tensorimpl.h"
 #include "core/core.h"
 #include "disk/disk.h"
@@ -14,11 +15,8 @@ TensorImpl::TensorImpl(TensorType type, const string &name,
                        const Dimension &dims)
     : type_(type), name_(name), dims_(dims)
 {
-    numel_ = 1L;
-    for (size_t ind = 0; ind < dims_.size(); ind++)
-    {
-        numel_ *= dims_[ind];
-    }
+    numel_ = std::accumulate(dims_.begin(), dims_.end(), static_cast<size_t>(1),
+                             std::multiplies<size_t>());
 }
 void TensorImpl::slice(ConstTensorImplPtr A, const IndexRange &Cinds,
                        const IndexRange &Ainds, double alpha, double beta)
@@ -76,7 +74,7 @@ void TensorImpl::print(FILE *fh, bool level, const string & /*format*/,
         fprintf(fh, "  Dimension %zu: %zu\n", dim + 1, dims_[dim]);
     }
 
-    if (level > 0)
+    if (level)
     {
         double *temp;
         shared_ptr<TensorImpl> T;
@@ -90,7 +88,7 @@ void TensorImpl::print(FILE *fh, bool level, const string & /*format*/,
             temp = const_cast<double *>(T->data().data());
         }
 
-        int order = rank();
+        size_t order = rank();
         size_t nelem = numel();
 
         size_t page_size = 1L;
@@ -148,10 +146,12 @@ void TensorImpl::print(FILE *fh, bool level, const string & /*format*/,
                 }
                 else
                 {
-                    for (size_t j = 0; j < cols; j += maxcols)
+                    for (size_t j = 0; j < cols;
+                         j += static_cast<size_t>(maxcols))
                     {
-                        size_t ncols =
-                            (j + maxcols >= cols ? cols - j : maxcols);
+                        size_t ncols = (j + static_cast<size_t>(maxcols) >= cols
+                                            ? cols - j
+                                            : static_cast<size_t>(maxcols));
 
                         // Column Header
                         fprintf(fh, "    %5s", "");

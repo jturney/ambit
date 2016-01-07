@@ -250,7 +250,7 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     permB = permB || !indices::contiguous(compound_inds["kB"]);
 
     // Hadamard Test (always requires permutation)
-    int Psize = compound_inds["PC"].size();
+    size_t Psize = compound_inds["PC"].size();
     if (Psize)
     {
         permC = permC || (compound_inds["PC"][0].first != 0);
@@ -1147,7 +1147,7 @@ void CoreTensorImpl::iterate(
     vector<size_t> addressing(rank(), 1);
 
     // form addressing array
-    for (int n = rank() - 2; n >= 0; --n)
+    for (int n = static_cast<int>(rank() - 2); n >= 0; --n)
     {
         addressing[n] = addressing[n + 1] * dim(n + 1);
     }
@@ -1174,7 +1174,7 @@ void CoreTensorImpl::citerate(
     vector<size_t> addressing(rank(), 1);
 
     // form addressing array
-    for (int n = rank() - 2; n >= 0; --n)
+    for (int n = static_cast<int>(rank() - 2); n >= 0; --n)
     {
         addressing[n] = addressing[n + 1] * dim(n + 1);
     }

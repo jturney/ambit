@@ -52,9 +52,10 @@ namespace
 
 void common_initialize(int /*argc*/, char *const * /*argv*/)
 {
-    if (settings::ninitialized != 0)
+    if (settings::ninitialized != 0) {
         throw std::runtime_error(
-            "ambit::initialize: Ambit has already been initialized.");
+                "ambit::initialize: Ambit has already been initialized.");
+    }
 
     settings::ninitialized++;
 
@@ -87,9 +88,10 @@ int initialize(int argc, char **argv)
 
 void finalize()
 {
-    if (settings::ninitialized == 0)
+    if (settings::ninitialized == 0) {
         throw std::runtime_error(
-            "ambit::finalize: Ambit has already been finalized.");
+                "ambit::finalize: Ambit has already been finalized.");
+    }
 
     settings::ninitialized--;
 
@@ -110,13 +112,14 @@ void barrier()
 
 string Tensor::scratch_path__ = ".";
 
-Tensor::Tensor(shared_ptr<TensorImpl> tensor) : tensor_(tensor) {}
+Tensor::Tensor(shared_ptr<TensorImpl> tensor) : tensor_(std::move(tensor)) {}
 
 Tensor Tensor::build(TensorType type, const string &name, const Dimension &dims)
 {
-    if (settings::ninitialized == 0)
+    if (settings::ninitialized == 0) {
         throw std::runtime_error(
-            "ambit::Tensor::build: Ambit has not been initialized.");
+                "ambit::Tensor::build: Ambit has not been initialized.");
+    }
 
     ambit::timer::timer_push("Tensor::build");
 
@@ -238,10 +241,10 @@ void Tensor::zero()
     timer::timer_pop();
 }
 
-void Tensor::scale(double a)
+void Tensor::scale(double beta)
 {
     timer::timer_push("Tensor::scale");
-    tensor_->scale(a);
+    tensor_->scale(beta);
     timer::timer_pop();
 }
 
@@ -290,11 +293,10 @@ map<string, Tensor> Tensor::map_to_tensor(const map<string, TensorImplPtr> &x)
 {
     map<string, Tensor> result;
 
-    for (map<string, TensorImplPtr>::const_iterator iter = x.begin();
-         iter != x.end(); ++iter)
+    for (auto iter : x)
     {
-        result.insert(make_pair(iter->first,
-                                Tensor(shared_ptr<TensorImpl>(iter->second))));
+        result.insert(make_pair(iter.first,
+                                Tensor(shared_ptr<TensorImpl>(iter.second))));
     }
     return result;
 }
@@ -310,8 +312,9 @@ map<string, Tensor> Tensor::syev(EigenvalueOrder order) const
 map<string, Tensor> Tensor::geev(EigenvalueOrder order) const
 {
     timer::timer_push("Tensor::geev");
-    return map_to_tensor(tensor_->geev(order));
+    auto result = map_to_tensor(tensor_->geev(order));
     timer::timer_pop();
+    return result;
 }
 
 // std::map<std::string, Tensor> Tensor::svd() const
@@ -353,12 +356,13 @@ void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
                       const Indices &Ainds, const Indices &Binds, double alpha,
                       double beta)
 {
-    if (ambit::settings::debug)
+    if (ambit::settings::debug) {
         ambit::print("    #: " + std::to_string(beta) + " " + name() + "[" +
                      indices::to_string(Cinds) + "] = " +
                      std::to_string(alpha) + " " + A.name() + "[" +
                      indices::to_string(Ainds) + "] * " + B.name() + "[" +
                      indices::to_string(Binds) + "]\n");
+    }
 
     timer::timer_push("#: " + std::to_string(beta) + " " + name() + "[" +
                       indices::to_string(Cinds) + "] = " +
@@ -374,10 +378,12 @@ void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
 void Tensor::permute(const Tensor &A, const Indices &Cinds,
                      const Indices &Ainds, double alpha, double beta)
 {
-    if (ambit::settings::debug)
+    if (ambit::settings::debug) {
         ambit::print("    P: " + name() + "[" + indices::to_string(Cinds) +
                      "] = " + A.name() + "[" + indices::to_string(Ainds) +
                      "]\n");
+    }
+
     timer::timer_push("P: " + name() + "[" + indices::to_string(Cinds) +
                       "] = " + A.name() + "[" + indices::to_string(Ainds) +
                       "]");
