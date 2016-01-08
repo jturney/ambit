@@ -27,9 +27,9 @@ namespace ambit
 {
 namespace io
 {
+namespace psi4 {
 
-namespace details
-{
+namespace details {
 
 /// The number of integrals per batch to be read in.
 static constexpr int integrals_per_buffer__ = 2980;
@@ -51,7 +51,7 @@ struct IWL : public File
     * @param cutoff Numerical zero
     * @param psi34_compatible Follow Psi3/4 nomenclature?
     */
-    IWL(File &&f, double cutoff = numerical_zero__,
+    IWL(File&& f, double cutoff = numerical_zero__,
         bool psi34_compatible = true);
 
     /**
@@ -64,7 +64,7 @@ struct IWL : public File
     * @param cutoff numerical zero
     * @param psi34_compatible Follow Psi3/4 nomenclature?
     */
-    IWL(const std::string &full_pathname, enum OpenMode om,
+    IWL(const std::string& full_pathname, enum OpenMode om,
         enum DeleteMode dm = kDeleteModeKeepOnClose,
         double cutoff = numerical_zero__, bool psi34_compatible = true);
 
@@ -86,11 +86,11 @@ struct IWL : public File
     /// fetch the next batch of integrals.
     void fetch();
 
-    static void read_one(File &io, const std::string &label, Tensor &tensor);
+    static void read_one(File& io, const std::string& label, Tensor& tensor);
 
-    static void read_two(IWL &io, Tensor &tensor);
+    static void read_two(IWL& io, Tensor& tensor);
 
-  private:
+private:
     /// psi3/4 compatible label structure.
     std::vector<short int> labels_;
 
@@ -99,6 +99,7 @@ struct IWL : public File
 
     Address read_position_;
 };
+}
 }
 }
 

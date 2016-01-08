@@ -7,7 +7,7 @@
 
 #include <ambit/print.h>
 #include <ambit/tensor.h>
-#include <ambit/io/io.h>
+#include <ambit/io/psi4/io.h>
 #include <ambit/helpers/psi4/io.h>
 #include <ambit/timer.h>
 
@@ -58,7 +58,7 @@ void hf()
     double Enuc = 0.0, Eref = 0.0;
 
     {
-        ambit::io::File file32("test.32", ambit::io::kOpenModeOpenExisting);
+        ambit::io::psi4::File file32("test.32", ambit::io::psi4::kOpenModeOpenExisting);
 
         file32.read("::Num. irreps", &nirrep, 1);
         print("nirrep = %d\n", nirrep);

@@ -19,7 +19,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <ambit/io/io.h>
+#include <ambit/io/psi4/io.h>
 
 //#include <util/print.h>
 
@@ -31,29 +31,27 @@ namespace ambit
 {
 namespace io
 {
+namespace psi4 {
 
-namespace
-{
+namespace {
 
-void create_directory(const std::string &directory)
+void create_directory(const std::string& directory)
 {
-    if (boost::filesystem::exists(directory) == false)
-    {
+    if (boost::filesystem::exists(directory) == false) {
         // create directory
         boost::filesystem::create_directory(directory);
     }
-    else if (boost::filesystem::is_directory(directory) == false)
-    {
+    else if (boost::filesystem::is_directory(directory) == false) {
         // it exists and is not a directory
         throw std::runtime_error("base directory name given already exists and "
-                                 "is not a directory: " +
+                                         "is not a directory: " +
                                  directory);
     }
 }
 }
 
-Manager::Manager(const std::string &base_directory)
-    : base_directory_(base_directory)
+Manager::Manager(const std::string& base_directory)
+        : base_directory_(base_directory)
 {
     create_directory(base_directory_);
 
@@ -82,9 +80,10 @@ Manager::Manager(const std::string &base_directory)
     printf("mpi_base_directory_ %s\n", mpi_base_directory_.c_str());
 }
 
-File Manager::scratch_file(const std::string &basename)
+File Manager::scratch_file(const std::string& basename)
 {
     return File(mpi_base_directory_ + basename, kOpenModeOpenExisting);
+}
 }
 }
 }

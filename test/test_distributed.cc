@@ -1,6 +1,6 @@
 #include <ambit/tensor.h>
 #include <ambit/print.h>
-#include <ambit/io/io.h>
+#include <ambit/io/psi4/io.h>
 #include <ambit/helpers/psi4/io.h>
 #include <cmath>
 #include <assert.h>

@@ -33,6 +33,7 @@ namespace ambit
 {
 namespace io
 {
+namespace psi4 {
 
 struct File;
 
@@ -79,17 +80,17 @@ struct Address
     uint64_t offset;
 };
 
-inline bool operator==(const Address &a1, const Address &a2)
+inline bool operator==(const Address& a1, const Address& a2)
 {
     return (a1.page == a2.page && a1.offset == a2.offset);
 }
 
-inline bool operator!=(const Address &a1, const Address &a2)
+inline bool operator!=(const Address& a1, const Address& a2)
 {
     return !(a1 == a2);
 }
 
-inline bool operator>(const Address &a1, const Address &a2)
+inline bool operator>(const Address& a1, const Address& a2)
 {
     if (a1.page > a2.page)
         return true;
@@ -98,7 +99,7 @@ inline bool operator>(const Address &a1, const Address &a2)
     return false;
 }
 
-inline bool operator<(const Address &a1, const Address &a2)
+inline bool operator<(const Address& a1, const Address& a2)
 {
     if (a1.page < a2.page)
         return true;
@@ -107,10 +108,9 @@ inline bool operator<(const Address &a1, const Address &a2)
     return false;
 }
 
-namespace util
-{
+namespace util {
 
-Address get_address(const Address &start, uint64_t shift);
+Address get_address(const Address& start, uint64_t shift);
 
 /**
 * @brief Given a start and end Address compute the number of bytes
@@ -120,11 +120,10 @@ Address get_address(const Address &start, uint64_t shift);
 * @param end ending address
 * @return the distance in bytes
 */
-uint64_t get_length(const Address &start, const Address &end);
+uint64_t get_length(const Address& start, const Address& end);
 }
 
-namespace toc
-{
+namespace toc {
 
 struct Entry
 {
@@ -135,7 +134,7 @@ struct Entry
 
 struct Manager
 {
-    Manager(File &owner);
+    Manager(File& owner);
 
     void initialize();
     void finalize();
@@ -144,7 +143,7 @@ struct Manager
     unsigned int size() const;
 
     /// Returns the number of bytes the data identified by key is.
-    uint64_t size(const std::string &key);
+    uint64_t size(const std::string& key);
 
     /// Reads the TOC entries from the file.
     void read();
@@ -159,24 +158,24 @@ struct Manager
     * @param key The key to search for.
     * @return true, if found; else false.
     */
-    bool exists(const std::string &key) const;
+    bool exists(const std::string& key) const;
     /**
     * @brief For the given key return the entry structure.
     * @param key The key to search for
     * @return The entry struct. If not found will create new entry.
     */
-    Entry &entry(const std::string &key);
+    Entry& entry(const std::string& key);
 
-    Manager(const Manager &&other)
-        : owner_(other.owner_), contents_(std::move(other.contents_))
+    Manager(const Manager&& other)
+            : owner_(other.owner_), contents_(std::move(other.contents_))
     {
     }
 
-  private:
+private:
     uint64_t read_size() const;
     void write_size() const;
 
-    File &owner_;
+    File& owner_;
     std::vector<Entry> contents_;
 };
 
@@ -184,30 +183,35 @@ struct Manager
 
 struct File
 {
-    File(const std::string &full_pathname, enum OpenMode om,
+    File(const std::string& full_pathname, enum OpenMode om,
          enum DeleteMode dm = kDeleteModeKeepOnClose);
 
     virtual ~File();
 
     /// Open a file.
-    bool open(const std::string &full_pathname, enum OpenMode om);
+    bool open(const std::string& full_pathname, enum OpenMode om);
 
     /// Close the file.
     void close();
 
     /// Access the internal handle
-    int handle() const { return handle_; }
+    int handle() const
+    { return handle_; }
 
     /// Set delete mode
-    void set_delete_mode(DeleteMode dm) { delete_mode_ = dm; }
+    void set_delete_mode(DeleteMode dm)
+    { delete_mode_ = dm; }
 
     /// Access the internal TOC manager
-    toc::Manager &toc() { return toc_; }
-    const toc::Manager &toc() const { return toc_; }
+    toc::Manager& toc()
+    { return toc_; }
+    const toc::Manager& toc() const
+    { return toc_; }
 
     /** Seek to a specific Address
     */
-    int seek(const Address &add) { return seek(add.page, add.offset); }
+    int seek(const Address& add)
+    { return seek(add.page, add.offset); }
 
     /** Seeks to a specific page and offset in the file.
     * \param page page to go to.
@@ -220,8 +224,8 @@ struct File
     * \param add Address to read from.
     * \param count Number of T's to read in.
     */
-    template <typename T>
-    void read(T *buffer, const Address &add, uint64_t count)
+    template<typename T>
+    void read(T *buffer, const Address& add, uint64_t count)
     {
         read_raw(buffer, add, count * sizeof(T));
     }
@@ -231,22 +235,22 @@ struct File
     * \param add Address to read from.
     * \param count Number of T's to read in.
     */
-    template <typename T>
-    void write(const T *buffer, const Address &add, uint64_t count)
+    template<typename T>
+    void write(const T *buffer, const Address& add, uint64_t count)
     {
         write_raw(buffer, add, count * sizeof(T));
     }
 
     /** Performs a write of the data for an entry.
     */
-    template <typename T>
-    void write(const std::string &label, const T *buffer, uint64_t count)
+    template<typename T>
+    void write(const std::string& label, const T *buffer, uint64_t count)
     {
         // obtain or create the entry in the TOC
-        toc::Entry &entry = toc_.entry(label);
+        toc::Entry& entry = toc_.entry(label);
         // compute location where to start the write
         Address write_start =
-            util::get_address(entry.start_address, sizeof(toc::Entry));
+                util::get_address(entry.start_address, sizeof(toc::Entry));
         // perform a raw write at the location
         write(buffer, write_start, count);
         // update the end_address for the entry.
@@ -259,19 +263,19 @@ struct File
     * \param buffer Memory location to read into.
     * \param label Address to read from.
     */
-    template <typename T>
-    void write(const std::string &label, const std::vector<T> &buffer)
+    template<typename T>
+    void write(const std::string& label, const std::vector<T>& buffer)
     {
         // obtain or create the entry in the TOC
-        toc::Entry &entry = toc_.entry(label);
+        toc::Entry& entry = toc_.entry(label);
         // compute location where to start the write
         Address write_start =
-            util::get_address(entry.start_address, sizeof(toc::Entry));
+                util::get_address(entry.start_address, sizeof(toc::Entry));
         // perform a raw write at the location
         write(buffer.data(), write_start, buffer.size());
         // update the end_address for the entry.
         entry.end_address =
-            util::get_address(write_start, sizeof(T) * buffer.size());
+                util::get_address(write_start, sizeof(T) * buffer.size());
     }
 
     /** Performs a write of the data for an entry.
@@ -281,18 +285,18 @@ struct File
     * \param label Address to read from.
     * \param count Number of T's to read in.
     */
-    template <typename T>
-    void read(const std::string &label, T *buffer, uint64_t count)
+    template<typename T>
+    void read(const std::string& label, T *buffer, uint64_t count)
     {
         // ensure the entry exists
         if (toc_.exists(label) == false)
             throw std::runtime_error("entry does not exist in the file: " +
                                      label);
         // obtain the entry (if we get here it is guaranteed to exist
-        toc::Entry &entry = toc_.entry(label);
+        toc::Entry& entry = toc_.entry(label);
         // compute location where to start the write
         Address read_start =
-            util::get_address(entry.start_address, sizeof(toc::Entry));
+                util::get_address(entry.start_address, sizeof(toc::Entry));
         // perform a raw write at the location
         read(buffer, read_start, count);
         // no update to the entry is performed.
@@ -300,7 +304,7 @@ struct File
         Address end = util::get_address(read_start, sizeof(T) * count);
         if (end > entry.end_address)
             throw std::runtime_error(
-                "read past the end address of this entry: " + label);
+                    "read past the end address of this entry: " + label);
     }
 
     /** Performs a write of the data for an entry.
@@ -309,18 +313,18 @@ struct File
     * \param buffer Memory location to read into.
     * \param label Address to read into.
     */
-    template <typename T>
-    void read(const std::string &label, std::vector<T> &buffer)
+    template<typename T>
+    void read(const std::string& label, std::vector<T>& buffer)
     {
         // ensure the entry exists
         if (toc_.exists(label) == false)
             throw std::runtime_error("entry does not exist in the file: " +
                                      label);
         // obtain the entry (if we get here it is guaranteed to exist
-        toc::Entry &entry = toc_.entry(label);
+        toc::Entry& entry = toc_.entry(label);
         // compute location where to start the write
         Address read_start =
-            util::get_address(entry.start_address, sizeof(toc::Entry));
+                util::get_address(entry.start_address, sizeof(toc::Entry));
         // perform a raw write at the location
         read(buffer.data(), read_start, buffer.size());
         // no update to the entry is performed.
@@ -328,7 +332,7 @@ struct File
         Address end = util::get_address(read_start, sizeof(T) * buffer.size());
         if (end > entry.end_address)
             throw std::runtime_error(
-                "read past the end address of this entry: " + label);
+                    "read past the end address of this entry: " + label);
     }
 
     /** Performs a write of the data for an entry.
@@ -338,12 +342,12 @@ struct File
     * \param entry Address to read from.
     * \param count Number of T's to read in.
     */
-    template <typename T>
-    void write(toc::Entry &entry, const T *buffer, uint64_t count)
+    template<typename T>
+    void write(toc::Entry& entry, const T *buffer, uint64_t count)
     {
         // compute location where to start the write
         Address write_start =
-            util::get_address(entry.start_address, sizeof(toc::Entry));
+                util::get_address(entry.start_address, sizeof(toc::Entry));
         // perform a raw write at the location
         write(buffer, write_start, count);
         // update the end_address for the entry.
@@ -357,12 +361,12 @@ struct File
     * \param entry Address to read from.
     * \param count Number of T's to read in.
     */
-    template <typename T>
-    void read(const toc::Entry &entry, T *buffer, uint64_t count)
+    template<typename T>
+    void read(const toc::Entry& entry, T *buffer, uint64_t count)
     {
         // compute location where to start the write
         Address read_start =
-            util::get_address(entry.start_address, sizeof(toc::Entry));
+                util::get_address(entry.start_address, sizeof(toc::Entry));
         // perform a raw write at the location
         read(buffer, read_start, count);
         // no update to the entry is performed.
@@ -374,12 +378,12 @@ struct File
     * \param buffer Memory location to read into.
     * \param entry TOC entry read from.
     */
-    template <typename T>
-    void read(const toc::Entry &entry, std::vector<T> &buffer)
+    template<typename T>
+    void read(const toc::Entry& entry, std::vector<T>& buffer)
     {
         // compute location where to start the write
         Address read_start =
-            util::get_address(entry.start_address, sizeof(toc::Entry));
+                util::get_address(entry.start_address, sizeof(toc::Entry));
         // perform a raw write at the location
         read(buffer.data(), read_start, buffer.size());
         // no update to the entry is performed.
@@ -391,12 +395,12 @@ struct File
     * \param entry Address to read from.
     * \param count Number of T's to read in.
     */
-    template <typename T>
-    void write_stream(toc::Entry &entry, const T *buffer, uint64_t count)
+    template<typename T>
+    void write_stream(toc::Entry& entry, const T *buffer, uint64_t count)
     {
         // compute location where to start the write
         Address write_start =
-            util::get_address(entry.end_address, sizeof(toc::Entry));
+                util::get_address(entry.end_address, sizeof(toc::Entry));
         // perform a raw write at the location
         write(buffer, write_start, count);
         // update the end_address for the entry.
@@ -408,8 +412,8 @@ struct File
     * \param entry Address to read from.
     * \param count Number of T's to read in.
     */
-    template <typename T>
-    void read_stream(const toc::Entry &entry, Address &next, T *buffer,
+    template<typename T>
+    void read_stream(const toc::Entry& entry, Address& next, T *buffer,
                      uint64_t count)
     {
         if (next.page == 0 && next.offset == 0)
@@ -424,7 +428,7 @@ struct File
 
         if (next > entry.end_address)
             throw std::runtime_error(
-                "read_stream: read beyond the extend of the entry.");
+                    "read_stream: read beyond the extend of the entry.");
     }
 
     /** Performs a streaming read of the data for the entry.
@@ -433,8 +437,8 @@ struct File
     * \param buffer Where to place the data.
     * \param count How many units of the buffer to read.
     */
-    template <typename T>
-    void read_entry_stream(const std::string &label, Address &next, T *buffer,
+    template<typename T>
+    void read_entry_stream(const std::string& label, Address& next, T *buffer,
                            uint64_t count)
     {
         // ensure the label exists
@@ -442,10 +446,9 @@ struct File
             throw std::runtime_error("entry does not exist in the file: " +
                                      label);
         // obtain the entry (if we get here it will exist
-        toc::Entry &entry = toc_.entry(label);
+        toc::Entry& entry = toc_.entry(label);
         // our first time in the call, initialize next
-        if (next.page == 0 && next.offset == 0)
-        {
+        if (next.page == 0 && next.offset == 0) {
 
             // compute location where to start the write
             next = util::get_address(entry.start_address, sizeof(toc::Entry));
@@ -457,7 +460,7 @@ struct File
         next = util::get_address(next, sizeof(T) * count);
         if (next > entry.end_address)
             throw std::runtime_error(
-                "read past the end address of this entry: " + label);
+                    "read past the end address of this entry: " + label);
     }
 
     //    file& operator=(file&& other)
@@ -470,25 +473,25 @@ struct File
     //        return *this;
     //    }
 
-    File(File &&other)
-        : handle_(other.handle_), name_(other.name_),
-          read_stat_(other.read_stat_), write_stat_(other.write_stat_),
-          toc_(std::move(other.toc_)), open_mode_(std::move(other.open_mode_)),
-          delete_mode_(std::move(other.delete_mode_))
+    File(File&& other)
+            : handle_(other.handle_), name_(other.name_),
+              read_stat_(other.read_stat_), write_stat_(other.write_stat_),
+              toc_(std::move(other.toc_)), open_mode_(std::move(other.open_mode_)),
+              delete_mode_(std::move(other.delete_mode_))
     {
         other.handle_ = -1;
     }
 
-  protected:
+protected:
     /** Performs the ultimate reading from the file. Will seek to add and read
      * size number of bytes into buffer.
     */
-    void read_raw(void *buffer, const Address &add, uint64_t size);
+    void read_raw(void *buffer, const Address& add, uint64_t size);
 
     /** Performs the ultimate writing to the file. Will seek to add and write
      * size number of bytes from buffer.
     */
-    void write_raw(const void *buffer, const Address &add, uint64_t size);
+    void write_raw(const void *buffer, const Address& add, uint64_t size);
 
     /** Used internally to report an error to the user.
     */
@@ -510,6 +513,7 @@ struct File
 
     friend struct toc::Manager;
 };
+}
 }
 }
 

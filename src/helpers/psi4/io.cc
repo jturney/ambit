@@ -15,10 +15,10 @@ void load_matrix(const std::string &fn, const std::string &entry,
     timer::timer_push("ambit::helpers::psi4::load_matrix");
     if (settings::rank == 0)
     {
-        io::File handle(fn, io::kOpenModeOpenExisting);
+        io::psi4::File handle(fn, io::psi4::kOpenModeOpenExisting);
         Tensor local_data =
             Tensor::build(CoreTensor, "Local Data", target.dims());
-        io::IWL::read_one(handle, entry, local_data);
+        io::psi4::IWL::read_one(handle, entry, local_data);
 
         target() = local_data();
     }
@@ -45,8 +45,8 @@ void load_iwl(const std::string &fn, Tensor &target)
     if (settings::rank == 0)
     {
         Tensor local_data = Tensor::build(CoreTensor, "g", target.dims());
-        io::IWL iwl(fn, ambit::io::kOpenModeOpenExisting);
-        io::IWL::read_two(iwl, local_data);
+        io::psi4::IWL iwl(fn, io::psi4::kOpenModeOpenExisting);
+        io::psi4::IWL::read_two(iwl, local_data);
 
         target() = local_data();
     }

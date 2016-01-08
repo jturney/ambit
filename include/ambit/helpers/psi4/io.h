@@ -1,7 +1,7 @@
 #if !defined(TENSOR_HELPERS_PSI4_IO_H)
 #define TENSOR_HELPERS_PSI4_IO_H
 
-#include <ambit/io/io.h>
+#include <ambit/io/psi4/io.h>
 
 namespace ambit
 {
