@@ -38,6 +38,7 @@ matrix:
         - boost-latest
         - george-edison55-precise-backports
         packages:
+        - libhdf5-serial-dev
         - cmake
         - cmake-data
         - liblapack-dev
@@ -88,6 +89,7 @@ matrix:
         - boost-latest
         - george-edison55-precise-backports
         packages:
+        - libhdf5-serial-dev
         - cmake
         - cmake-data
         - liblapack-dev
@@ -137,6 +139,7 @@ matrix:
         - boost-latest
         - george-edison55-precise-backports
         packages:
+        - libhdf5-serial-dev
         - cmake
         - cmake-data
         - liblapack-dev
@@ -187,6 +190,7 @@ matrix:
         - boost-latest
         - george-edison55-precise-backports
         packages:
+        - libhdf5-serial-dev
         - cmake
         - cmake-data
         - liblapack-dev
@@ -212,6 +216,7 @@ matrix:
         - boost-latest
         - george-edison55-precise-backports
         packages:
+        - libhdf5-serial-dev
         - cmake
         - cmake-data
         - liblapack-dev
@@ -268,6 +273,7 @@ install:
     brew install cmake python gcc
     brew install boost --with-python
     brew install boost-python
+    brew install hdf5
   fi
 before_script:
 - cd ${TRAVIS_BUILD_DIR}
