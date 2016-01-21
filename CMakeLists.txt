@@ -83,6 +83,10 @@ init_FCMangle()
 find_package(Threads REQUIRED)
 link_libraries("${CMAKE_THREAD_LIBS_INIT}")
 
+# HDF5 detection
+find_package(HDF5 REQUIRED)
+include_directories(SYSTEM ${HDF5_INCLUDE_DIRS})
+
 # Python Detection
 include(ConfigPython)
 link_libraries("${PYTHON_LIBRARIES}")

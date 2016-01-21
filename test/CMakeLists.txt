@@ -68,3 +68,7 @@ configure_file(test.33 test.33 COPYONLY)
 configure_file(test.34 test.34 COPYONLY)
 configure_file(test.35 test.35 COPYONLY)
 
+add_executable(test_hdf5 test_hdf5.cc)
+add_dependencies(test_hdf5 ambit)
+target_link_libraries(test_hdf5 ambit ${Boost_LIBRARIES})
+add_test(NAME hdf5 COMMAND test_hdf5)

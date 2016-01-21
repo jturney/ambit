@@ -54,7 +54,7 @@ class CoreTensorImpl : public TensorImpl
     // std::map<string, TensorImplPtr> qr() const;
 
     // TensorImplPtr cholesky_inverse() const;
-    // TensorImplPtr inverse() const;
+    TensorImplPtr inverse() const;
     TensorImplPtr power(double power, double condition = 1.0E-12) const;
 
     void iterate(const function<void(const vector<size_t> &, double &)> &func);

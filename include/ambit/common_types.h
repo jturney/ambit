@@ -15,6 +15,7 @@
 #include <tuple>
 #include <sstream>
 #include <iterator>
+#include <cassert>
 
 namespace ambit
 {
@@ -33,6 +34,12 @@ using std::ostream_iterator;
 using std::istringstream;
 
 static constexpr double numerical_zero__ = 1.0e-15;
+
+// => Typedefs <=
+using Dimension = vector<size_t>;
+using IndexRange = vector<vector<size_t>>;
+using Indices = vector<string>;
+
 }
 
 #endif // AMBIT_COMMON_TYPES_H

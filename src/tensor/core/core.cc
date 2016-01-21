@@ -2,6 +2,7 @@
 #include "math/math.h"
 #include "tensor/indices.h"
 #include <ambit/timer.h>
+#include <ambit/print.h>
 #include <algorithm>
 #include <stdexcept>
 #include <string.h>
@@ -1079,11 +1080,64 @@ map<string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order) const
 //{
 //    ThrowNotImplementedException;
 //}
-//
-// TensorImplPtr CoreTensorImpl::inverse() const
-//{
-//    ThrowNotImplementedException;
-//}
+
+TensorImplPtr CoreTensorImpl::inverse() const
+{
+    squareCheck(this, true);
+
+    size_t n = dim(0);
+    CoreTensorImpl *inverted = new CoreTensorImpl(name() + " Inverse", dims());
+    vector<double> &a = inverted->data();
+
+    memcpy(a.data(), data().data(), sizeof(double) * n * n);
+
+    vector<int> ipiv(n);
+    int err = C_DGETRF(static_cast<int>(n), static_cast<int>(n), a.data(),
+                       static_cast<int>(n), ipiv.data());
+
+    if (err != 0)
+    {
+        if (err < 0)
+        {
+            ambit::print("CoreTensorImpl::inverse: C_DGETRF: argument %d has "
+                         "invalid parameter.\n",
+                         -err);
+        }
+        if (err > 0)
+        {
+            ambit::print("CoreTensorImpl::inverse: C_DGETRF: the (%d, %d) "
+                         "element of the factor U or L is zero, inverse could "
+                         "not be computed.\n",
+                         err, err);
+        }
+        throw std::runtime_error(
+            "CoreTensorImpl::inverse: C_DGETRF failed. See output.");
+    }
+
+    vector<double> work(n * n);
+    err = C_DGETRI(static_cast<int>(n), a.data(), static_cast<int>(n),
+                   ipiv.data(), work.data(), static_cast<int>(n * n));
+
+    if (err != 0)
+    {
+        if (err < 0)
+        {
+            ambit::print("CoreTensorImpl::inverse: C_DGETRI: argument %d has "
+                                 "invalid parameter.\n",
+                         -err);
+        }
+        if (err > 0)
+        {
+            ambit::print("CoreTensorImpl::inverse: C_DGETRI: the (%d, %d) "
+                                 "element of the factor U or L is zero, inverse could "
+                                 "not be computed.\n",
+                         err, err);
+        }
+        throw std::runtime_error(
+                "CoreTensorImpl::inverse: C_DGETRI failed. See output.");
+    }
+    return inverted;
+}
 
 TensorImplPtr CoreTensorImpl::power(double alpha, double condition) const
 {

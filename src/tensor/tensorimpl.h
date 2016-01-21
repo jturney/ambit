@@ -167,7 +167,9 @@ class TensorImpl
     // virtual std::map<std::string, TensorImplPtr> qr() const = 0;
 
     // virtual TensorImplPtr cholesky_inverse() const = 0;
-    // virtual TensorImplPtr inverse() const = 0;
+    virtual TensorImplPtr inverse() const {
+        throw std::runtime_error("Operation not support in this tensor implementation.");
+    }
     virtual TensorImplPtr power(double power, double condition = 1.0E-12) const
     {
         throw std::runtime_error(

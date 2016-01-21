@@ -6,6 +6,12 @@ set(TENSOR_HEADERS
         ${PROJECT_SOURCE_DIR}/include/ambit/common_types.h
         ${PROJECT_SOURCE_DIR}/include/ambit/settings.h
 
+        ../include/ambit/io/hdf5/attribute.h
+        ../include/ambit/io/hdf5/dataset.h
+        ../include/ambit/io/hdf5/dataspace.h
+        ../include/ambit/io/hdf5/file.h
+        ../include/ambit/io/hdf5/group.h
+        ../include/ambit/io/hdf5/location.h
         ../include/ambit/io/psi4/file.h
         ../include/ambit/io/psi4/io.h
         ../include/ambit/io/psi4/iwl.h
@@ -25,6 +31,13 @@ set(TENSOR_HEADERS
 
 set(TENSOR_SOURCES
         helpers/psi4/io.cc
+
+        io/hdf5/attribute.cc
+        io/hdf5/dataset.cc
+        io/hdf5/dataspace.cc
+        io/hdf5/file.cc
+        io/hdf5/group.cc
+        io/hdf5/location.cc
 
         io/psi4/file.cc
         io/psi4/iwl.cc
@@ -79,7 +92,12 @@ if (ENABLE_CYCLOPS)
     target_link_libraries(ambit ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
 endif ()
 
-target_link_libraries(ambit ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(ambit
+        ${LAPACK_LIBRARIES}
+        ${BLAS_LIBRARIES}
+        ${Boost_LIBRARIES}
+        ${HDF5_LIBRARIES}
+        )
 
 if (ENABLE_PYTHON)
     add_subdirectory(python)

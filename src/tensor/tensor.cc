@@ -341,11 +341,11 @@ map<string, Tensor> Tensor::geev(EigenvalueOrder order) const
 //{
 //    return Tensor(shared_ptr<TensorImpl>(tensor_->cholesky_inverse()));
 //}
-//
-// Tensor Tensor::inverse() const
-//{
-//    return Tensor(shared_ptr<TensorImpl>(tensor_->inverse()));
-//}
+
+Tensor Tensor::inverse() const
+{
+    return Tensor(shared_ptr<TensorImpl>(tensor_->inverse()));
+}
 
 Tensor Tensor::power(double alpha, double condition) const
 {

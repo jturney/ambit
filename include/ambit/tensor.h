@@ -38,11 +38,6 @@ enum EigenvalueOrder
     DescendingEigenvalue
 };
 
-// => Typedefs <=
-using Dimension = vector<size_t>;
-using IndexRange = vector<vector<size_t>>;
-using Indices = vector<string>;
-
 /** Initializes the tensor library.
  *
  * Calls any necessary initialization of utilized frameworks.
@@ -453,7 +448,7 @@ class Tensor
     // map<string, Tensor> lu() const;
     // map<string, Tensor> qr() const;
 
-    // Tensor inverse() const;
+    Tensor inverse() const;
 
     // => Utility Operations <= //
 
