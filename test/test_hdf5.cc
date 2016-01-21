@@ -58,6 +58,8 @@ void test_hdf5()
     H5Aclose(attribute_id);
 
     Dataset<double>::write(test, testTensor);
+    testTensor.set_name("test2");
+    write(test, testTensor);
 }
 
 int main(int argc, char *argv[])

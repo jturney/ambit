@@ -105,6 +105,11 @@ template <typename T> struct Dataset
     hid_t id_;
 };
 
+inline void write(const Location& location, const Tensor& data)
+{
+    Dataset<double>::write(location, data);
+}
+
 } // namespace hdf5
 
 } // namespace io
