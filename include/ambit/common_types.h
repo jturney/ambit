@@ -16,6 +16,7 @@
 #include <sstream>
 #include <iterator>
 #include <cassert>
+#include <stdexcept>
 
 namespace ambit
 {
