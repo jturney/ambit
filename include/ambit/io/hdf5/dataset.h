@@ -94,6 +94,13 @@ template <typename T> struct Dataset
 
     const hid_t &id() const { return id_; }
 
+    static void write(const Location& location, const Tensor& data)
+    {
+        Dataspace space(data);
+        Dataset<T> set(location, data.name(), space);
+        set.write(data);
+    }
+
   private:
     hid_t id_;
 };

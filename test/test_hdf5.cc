@@ -56,6 +56,8 @@ void test_hdf5()
                                    dims.id(), H5P_DEFAULT, H5P_DEFAULT);
     H5Awrite(attribute_id, detail::ctype<size_t>::hid(), testTensor.dims().data());
     H5Aclose(attribute_id);
+
+    Dataset<double>::write(test, testTensor);
 }
 
 int main(int argc, char *argv[])
