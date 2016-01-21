@@ -272,6 +272,7 @@ install:
 - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
 - |
   if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
+    brew tap homebrew/science
     brew install cmake python gcc
     brew install boost --with-python
     brew install boost-python
