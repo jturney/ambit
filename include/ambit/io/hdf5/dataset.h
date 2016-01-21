@@ -44,7 +44,7 @@ template <typename T> struct Dataset
     {
         close();
 
-        id_ = H5Dopen(location.id(), name.c_str(), H5P_DEFAULT);
+        id_ = H5Dopen2(location.id(), name.c_str(), H5P_DEFAULT);
         if (id_ == -1)
             throw std::runtime_error("Unable to open dataset");
     }
@@ -54,7 +54,7 @@ template <typename T> struct Dataset
     {
         close();
 
-        id_ = H5Dcreate(location.id(), name.c_str(), detail::ctype<T>::hid(),
+        id_ = H5Dcreate2(location.id(), name.c_str(), detail::ctype<T>::hid(),
                         space.id(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
         if (id_ == -1)

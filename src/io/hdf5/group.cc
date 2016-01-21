@@ -27,14 +27,14 @@ Group::~Group()
 void Group::create(const Location& loc, const string& name)
 {
     close();
-    id_ = H5Gcreate(loc.id(), name.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    id_ = H5Gcreate2(loc.id(), name.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     assert(id_  >= 0);
 }
 
 void Group::open(const Location& loc, const string& name)
 {
     close();
-    id_ = H5Gopen(loc.id(), name.c_str(), H5P_DEFAULT);
+    id_ = H5Gopen2(loc.id(), name.c_str(), H5P_DEFAULT);
     assert(id_ >= 0);
 }
 
