@@ -12,6 +12,7 @@ matrix:
         - boost-latest
         - george-edison55-precise-backports
         packages:
+        - libhdf5-dev
         - cmake
         - cmake-data
         - liblapack-dev
