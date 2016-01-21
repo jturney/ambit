@@ -1091,7 +1091,7 @@ TensorImplPtr CoreTensorImpl::inverse() const
 
     memcpy(a.data(), data().data(), sizeof(double) * n * n);
 
-    vector<int> ipiv(n);
+    vector<int> ipiv(n, 0);
     int err = C_DGETRF(static_cast<int>(n), static_cast<int>(n), a.data(),
                        static_cast<int>(n), ipiv.data());
 

@@ -6,6 +6,7 @@ set(TENSOR_HEADERS
         ${PROJECT_SOURCE_DIR}/include/ambit/common_types.h
         ${PROJECT_SOURCE_DIR}/include/ambit/settings.h
 
+        ../include/ambit/io/hdf5.h
         ../include/ambit/io/hdf5/attribute.h
         ../include/ambit/io/hdf5/dataset.h
         ../include/ambit/io/hdf5/dataspace.h
