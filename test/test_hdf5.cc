@@ -52,7 +52,7 @@ void test_hdf5()
     set.write(testTensor);
 
     Dataspace dims({2});
-    hid_t attribute_id = H5Acreate(set.id(), "Dimensions", detail::ctype<size_t>::hid(),
+    hid_t attribute_id = H5Acreate2(set.id(), "Dimensions", detail::ctype<size_t>::hid(),
                                    dims.id(), H5P_DEFAULT, H5P_DEFAULT);
     H5Awrite(attribute_id, detail::ctype<size_t>::hid(), testTensor.dims().data());
     H5Aclose(attribute_id);
