@@ -6,6 +6,7 @@
 
 #include <FCMangle.h>
 
+#define F_DGESVD FC_GLOBAL(dgesvd, DGESVD)
 #define F_DGEEV FC_GLOBAL(dgeev, DGEEV)
 #define F_DGESV FC_GLOBAL(dgesv, DGESV)
 #define F_DGETRF FC_GLOBAL(dgetrf, DGETRF)
@@ -203,6 +204,10 @@
 #define F_DTZRZF FC_GLOBAL(dtzrzf, DTZRZF)
 
 extern "C" {
+extern int F_DGESVD(const char *jobu, const char *jobvt, const int *m,
+                    const int *n, double *A, const int *lda, double *S,
+                    double *U, const int *ldu, double *Vt, const int *ldvt,
+                    double *work, int *lwork, int *info);
 extern int F_DBDSDC(char *, char *, int *, double *, double *, double *, int *,
                     double *, int *, double *, int *, double *, int *, int *);
 extern int F_DBDSQR(char *, int *, int *, int *, int *, double *, double *,
@@ -626,6 +631,15 @@ extern int F_DTZRZF(int *, int *, double *, int *, double *, double *, int *,
 
 namespace ambit
 {
+
+int C_DGESVD(char jobu, char jobvt, int m, int n, double *A, int lda, double *S,
+             double *U, int ldu, double *Vt, int ldvt, double *work, int lwork)
+{
+    int info;
+    ::F_DGESVD(&jobu, &jobvt, &m, &n, A, &lda, S, U, &ldu, Vt, &ldvt, work,
+               &lwork, &info);
+    return info;
+}
 
 /**
  *  Purpose

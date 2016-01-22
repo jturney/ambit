@@ -47,7 +47,7 @@ class CoreTensorImpl : public TensorImpl
 
     map<string, TensorImplPtr> syev(EigenvalueOrder order) const;
     map<string, TensorImplPtr> geev(EigenvalueOrder order) const;
-    // std::map<string, TensorImplPtr> svd() const;
+    map<string, TensorImplPtr> gesvd() const;
 
     // TensorImplPtr cholesky() const;
     // std::map<string, TensorImplPtr> lu() const;

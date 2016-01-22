@@ -160,15 +160,20 @@ class TensorImpl
             "Operation not supported in this tensor implementation.");
     }
 
-    // virtual std::map<std::string, TensorImplPtr> svd() const = 0;
-
+    virtual std::map<std::string, TensorImplPtr> gesvd() const
+    {
+        throw std::runtime_error(
+            "Operation not supported in this tensor implementation.");
+    }
     // virtual TensorImplPtr cholesky() const = 0;
     // virtual std::map<std::string, TensorImplPtr> lu() const = 0;
     // virtual std::map<std::string, TensorImplPtr> qr() const = 0;
 
     // virtual TensorImplPtr cholesky_inverse() const = 0;
-    virtual TensorImplPtr inverse() const {
-        throw std::runtime_error("Operation not support in this tensor implementation.");
+    virtual TensorImplPtr inverse() const
+    {
+        throw std::runtime_error(
+            "Operation not support in this tensor implementation.");
     }
     virtual TensorImplPtr power(double power, double condition = 1.0E-12) const
     {

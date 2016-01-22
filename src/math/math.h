@@ -68,6 +68,8 @@ void C_DTRSV(char uplo, char trans, char diag, int n, double *a, int lda,
              double *x, int incx);
 
 // => LAPACK <=
+int C_DGESVD(char jobu, char jobvt, int m, int n, double *A, int lda, double *S,
+             double *U, int ldu, double *Vt, int ldvt, double *work, int lwork);
 int C_DBDSDC(char uplo, char compq, int n, double *d, double *e, double *u,
              int ldu, double *vt, int ldvt, double *q, int *iq, double *work,
              int *iwork);

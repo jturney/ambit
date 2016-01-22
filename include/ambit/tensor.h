@@ -427,11 +427,11 @@ class Tensor
      * norm equals one and the largest component is real.
      *
      * @returns map of Tensor with the keys "lambda", "lambda i", "v", and "u".
-     * See
-     * definitions above.
+     * See definitions above.
      */
     map<string, Tensor> geev(EigenvalueOrder order) const;
-    // map<string, Tensor> svd() const;
+
+    map<string, Tensor> gesvd() const;
 
     // void potrf();
     // void potri();

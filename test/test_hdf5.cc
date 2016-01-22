@@ -60,6 +60,12 @@ void test_hdf5()
     Dataset<double>::write(test, testTensor);
     testTensor.set_name("test2");
     write(test, testTensor);
+
+    // Save to the HDF5 file to test against Mathematica.
+    auto result = testTensor.gesvd();
+    write(test, result["U"]);
+    write(test, result["V"]);
+    write(test, result["Sigma"]);
 }
 
 int main(int argc, char *argv[])

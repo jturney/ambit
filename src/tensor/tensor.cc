@@ -317,11 +317,11 @@ map<string, Tensor> Tensor::geev(EigenvalueOrder order) const
     return result;
 }
 
-// std::map<std::string, Tensor> Tensor::svd() const
-//{
-//    return map_to_tensor(tensor_->svd());
-//}
-//
+std::map<std::string, Tensor> Tensor::gesvd() const
+{
+    return map_to_tensor(tensor_->gesvd());
+}
+
 // Tensor Tensor::cholesky() const
 //{
 //    return Tensor(shared_ptr<TensorImpl>(tensor_->cholesky()));

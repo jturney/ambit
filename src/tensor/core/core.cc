@@ -1057,11 +1057,39 @@ map<string, TensorImplPtr> CoreTensorImpl::geev(EigenvalueOrder order) const
     return result;
 }
 
-// map<string, TensorImplPtr> CoreTensorImpl::svd() const
-//{
-//    ThrowNotImplementedException;
-//}
-//
+map<string, TensorImplPtr> CoreTensorImpl::gesvd() const
+{
+    rankCheck(2, this, true);
+
+    int m = static_cast<int>(dim(0));
+    int n = static_cast<int>(dim(1));
+    int nsigma = m < n ? m : n;
+    int lwork = m < n ? 5 * n : 5 * m;
+    char jobvt = 'A';
+    char jobu = 'A';
+
+    CoreTensorImpl *U = new CoreTensorImpl("U", { static_cast<size_t>(m), static_cast<size_t>(m) });
+    CoreTensorImpl *V = new CoreTensorImpl("V", { static_cast<size_t>(n), static_cast<size_t>(n) });
+    CoreTensorImpl *Sigma = new CoreTensorImpl("Sigma", { static_cast<size_t>(nsigma) });
+    vector<double> work(lwork, 0);
+
+    // Make a copy of this's data into A since it will be destroyed in the LAPACK call.
+    vector<double> A(data().begin(), data().end());
+
+    int info = C_DGESVD(jobu, jobvt, n, m, A.data(), n, Sigma->data().data(), V->data().data(), n, U->data().data(), m, work.data(), lwork);
+
+    if (info != 0) {
+        throw std::runtime_error("CoreTensorImpl::gesvd: LAPACK call failed");
+    }
+
+    map<string, TensorImplPtr> results;
+    results["U"] = U;
+    results["V"] = V;
+    results["Sigma"] = Sigma;
+
+    return results;
+}
+
 // TensorImplPtr CoreTensorImpl::cholesky() const
 //{
 //    ThrowNotImplementedException;
