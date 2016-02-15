@@ -39,9 +39,11 @@ void convert(const psi::Matrix &matrix, ambit::Tensor *target)
 
     Tensor local_tensor = Tensor::build(CoreTensor, "Local Data", {row, col});
 
-    // copy data from SharedMatrix to local_tensor
-    std::copy(matrix.pointer()[0], matrix.pointer()[0] + (row * col),
-              local_tensor.data().begin());
+    if (row && col) {
+        // copy data from SharedMatrix to local_tensor
+        std::copy(matrix.pointer()[0], matrix.pointer()[0] + (row * col),
+                  local_tensor.data().begin());
+    }
 
     // Splice data into the target tensor
     (*target)() = local_tensor();

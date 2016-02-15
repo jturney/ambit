@@ -18,12 +18,16 @@ TensorImpl::TensorImpl(TensorType type, const string &name,
     numel_ = std::accumulate(dims_.begin(), dims_.end(), static_cast<size_t>(1),
                              std::multiplies<size_t>());
 }
+
 void TensorImpl::slice(ConstTensorImplPtr A, const IndexRange &Cinds,
                        const IndexRange &Ainds, double alpha, double beta)
 {
     ambit::slice(this, A, Cinds, Ainds, alpha, beta);
 }
-void TensorImpl::zero() { scale(0.0); }
+
+void TensorImpl::zero()
+{ scale(0.0); }
+
 void TensorImpl::copy(ConstTensorImplPtr other)
 {
     TensorImpl::dimensionCheck(this, other);
@@ -35,6 +39,7 @@ void TensorImpl::copy(ConstTensorImplPtr other)
     }
     slice(other, ranges, ranges, 1.0, 0.0);
 }
+
 TensorImplPtr TensorImpl::clone(TensorType t) const
 {
     if (t == CurrentTensor)
@@ -51,10 +56,10 @@ TensorImplPtr TensorImpl::clone(TensorType t) const
         tensor = new DiskTensorImpl(name(), dims());
     }
 #if defined(HAVE_ELEMENTAL)
-    else if (t == DistributedTensor)
-    {
-        tensor = new cyclops::CyclopsTensorImpl(name(), dims());
-    }
+        else if (t == DistributedTensor)
+        {
+            tensor = new cyclops::CyclopsTensorImpl(name(), dims());
+        }
 #endif
     else
     {
@@ -63,6 +68,7 @@ TensorImplPtr TensorImpl::clone(TensorType t) const
     tensor->copy(this);
     return tensor;
 }
+
 void TensorImpl::print(FILE *fh, bool level, const string & /*format*/,
                        int maxcols) const
 {
@@ -150,8 +156,8 @@ void TensorImpl::print(FILE *fh, bool level, const string & /*format*/,
                          j += static_cast<size_t>(maxcols))
                     {
                         size_t ncols = (j + static_cast<size_t>(maxcols) >= cols
-                                            ? cols - j
-                                            : static_cast<size_t>(maxcols));
+                                        ? cols - j
+                                        : static_cast<size_t>(maxcols));
 
                         // Column Header
                         fprintf(fh, "    %5s", "");
@@ -180,13 +186,16 @@ void TensorImpl::print(FILE *fh, bool level, const string & /*format*/,
         }
     }
 }
+
 bool TensorImpl::typeCheck(TensorType type, ConstTensorImplPtr A,
                            bool throwIfDiff)
 {
     if (A->type() != type)
     {
         if (throwIfDiff)
+        {
             throw std::runtime_error("TensorImpl::typeCheck: type mismatch");
+        }
         return true;
     }
     else
@@ -194,12 +203,15 @@ bool TensorImpl::typeCheck(TensorType type, ConstTensorImplPtr A,
         return false;
     }
 }
+
 bool TensorImpl::rankCheck(size_t rank, ConstTensorImplPtr A, bool throwIfDiff)
 {
     if (A->rank() != rank)
     {
         if (throwIfDiff)
+        {
             throw std::runtime_error("TensorImpl::rankCheck: Rank mismatch");
+        }
         return true;
     }
     else
@@ -207,6 +219,7 @@ bool TensorImpl::rankCheck(size_t rank, ConstTensorImplPtr A, bool throwIfDiff)
         return false;
     }
 }
+
 bool TensorImpl::squareCheck(ConstTensorImplPtr A, bool throwIfDiff)
 {
     if (TensorImpl::rankCheck(2, A, throwIfDiff))
@@ -217,11 +230,14 @@ bool TensorImpl::squareCheck(ConstTensorImplPtr A, bool throwIfDiff)
     {
         bool diff = (A->dims()[0] != A->dims()[1]);
         if (diff && throwIfDiff)
+        {
             throw std::runtime_error(
                 "TensorImpl::squareCheck: Dimension mismatch");
+        }
         return diff;
     }
 }
+
 bool TensorImpl::dimensionCheck(ConstTensorImplPtr A, ConstTensorImplPtr B,
                                 bool throwIfDiff)
 {
@@ -243,8 +259,10 @@ bool TensorImpl::dimensionCheck(ConstTensorImplPtr A, ConstTensorImplPtr B,
             }
         }
         if (diff && throwIfDiff)
+        {
             throw std::runtime_error(
-                "TensorImpl::dimensionCheck: Dimension mismatch"); // Minor TODO
+                "TensorImpl::dimensionCheck: Dimension mismatch");
+        } // Minor TODO
         return diff;
     }
 }
