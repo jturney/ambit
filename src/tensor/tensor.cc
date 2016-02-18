@@ -165,6 +165,8 @@ Tensor Tensor::build(TensorType type, const string &name, const Dimension &dims)
 
 Tensor Tensor::clone(TensorType type) const
 {
+    if (type == CurrentTensor)
+        type = this->type();
     Tensor current = Tensor::build(type, name(), dims());
     current.copy(*this);
     return current;
