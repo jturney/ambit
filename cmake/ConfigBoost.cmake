@@ -1,5 +1,7 @@
 # Oldest version of Boost tested against
 set(BOOSTVER 1.53.0)
+set(Boost_USE_STATIC_LIBS TRUE)
+set(Boost_USE_MULTITHREADED FALSE)
 
 list(APPEND needed_components filesystem system)
 
