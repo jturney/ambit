@@ -1,11 +1,13 @@
 # Oldest version of Boost tested against
 set(BOOSTVER 1.53.0)
 
-if (NOT ENABLE_STATIC)
+if (ENABLE_STATIC)
     set(Boost_USE_STATIC_LIBS TRUE)
 endif()
 
-set(Boost_USE_MULTITHREADED FALSE)
+if (ENABLE_PSI4)
+    set(Boost_USE_MULTITHREADED FALSE)
+endif()
 
 list(APPEND needed_components filesystem system)
 
