@@ -1,7 +1,7 @@
 # Oldest version of Boost tested against
 set(BOOSTVER 1.53.0)
 
-list(APPEND needed_components)
+list(APPEND needed_components filesystem system)
 
 if(ENABLE_PYTHON)
     # On Macs with Boost Python installed with Homebrew with Python 3 the library
