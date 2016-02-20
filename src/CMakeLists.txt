@@ -81,7 +81,7 @@ endif ()
 list(SORT TENSOR_SOURCES)
 
 # build libray
-if (ENABLE_PSI4)
+if (ENABLE_STATIC)
     add_library(ambit STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
     install(TARGETS ambit ARCHIVE DESTINATION lib)
 else ()

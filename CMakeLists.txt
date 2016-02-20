@@ -49,6 +49,7 @@ option(ENABLE_PYTHON        "Enable Python interface" ON)
 option(CYCLOPS              "Location of the Cyclops build directory" "")
 option(ELEMENTAL            "Location of the Elemental build directory" "")
 option(ENABLE_PSI4          "Enables PSI4 interface." OFF)
+option(ENABLE_STATIC        "Build only static library, Python library is not built." OFF)
 
 include(CMakeDependentOption)
 cmake_dependent_option(
