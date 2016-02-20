@@ -1,3 +1,5 @@
+if (NOT ENABLE_PSI4)
+
 set(PYTHON_HEADERS
 )
 
@@ -23,3 +25,4 @@ set_target_properties(pyambit PROPERTIES SUFFIX ${PYTHON_MODULE_EXTENSION})
 
 install(TARGETS pyambit DESTINATION lib/ambit)
 
+endif()
