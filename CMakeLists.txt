@@ -152,13 +152,15 @@ add_subdirectory(include)
 # recursively add source directories
 add_subdirectory(src)
 
-# test suite
-enable_testing()
-include(CTest)
-add_subdirectory(test)
+if (NOT ENABLE_PSI4)
+    # test suite
+    enable_testing()
+    include(CTest)
+    add_subdirectory(test)
 
-# sample suite
-add_subdirectory(samples)
+    # sample suite
+    add_subdirectory(samples)
+endif()
 
 # Add all targets to the build-tree export set
 
