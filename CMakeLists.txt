@@ -60,7 +60,7 @@ cmake_dependent_option(
         "ENABLE_PSI4"       ON)
 cmake_dependent_option(
         PSI4_INCLUDE_DIRS   "PSI4 include directories" ""
-        "ENABLE_PSI4"       ON
+        "ENABLE_PSI4"       ON)
 
 # include cmake modules as needed
 include(ConfigVersion)
