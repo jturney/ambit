@@ -89,9 +89,11 @@ find_package(HDF5 REQUIRED)
 include_directories(SYSTEM ${HDF5_INCLUDE_DIRS})
 
 # Python Detection
-include(ConfigPython)
-link_libraries("${PYTHON_LIBRARIES}")
-include_directories(SYSTEM "${PYTHON_INCLUDE_DIRS}")
+if (NOT ENABLE_STATIC AND NOT ENABLE_PSI4)
+    include(ConfigPython)
+    link_libraries("${PYTHON_LIBRARIES}")
+    include_directories(SYSTEM "${PYTHON_INCLUDE_DIRS}")
+endif()
 
 # Boost Detection
 # We need Boost.Python, so this has to come _after_ Python detection
