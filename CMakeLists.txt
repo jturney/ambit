@@ -58,7 +58,9 @@ cmake_dependent_option(
 cmake_dependent_option(
         PSI4_BINARY_DIR     "PSI4 objdir directory" ""
         "ENABLE_PSI4"       ON)
-
+cmake_dependent_option(
+        PSI4_INCLUDE_DIRS   "PSI4 include directories" ""
+        "ENABLE_PSI4"       ON
 
 # include cmake modules as needed
 include(ConfigVersion)
@@ -100,6 +102,10 @@ endif()
 include(ConfigBoost)
 link_directories("${Boost_LIBRARY_DIRS}")
 include_directories(SYSTEM "${Boost_INCLUDE_DIRS}")
+
+if (ENABLE_PSI4)
+    include_directories(SYSTEM ${PSI4_INCLUDE_DIRS})
+endif()
 
 # Append the suffix given from input to all generated executables
 if(EXECUTABLE_SUFFIX)
