@@ -58,6 +58,16 @@ add_dependencies(test_blocks ambit)
 target_link_libraries(test_blocks ambit ${Boost_LIBRARIES})
 add_test(NAME blocks COMMAND test_blocks)
 
+set(TEST_SYM_BLOCKS_SOURCES
+    test_sym_blocks.cc
+)
+
+# build static libray
+add_executable(test_sym_blocks ${TEST_SYM_BLOCKS_SOURCES})
+add_dependencies(test_sym_blocks ambit)
+target_link_libraries(test_sym_blocks ambit ${Boost_LIBRARIES})
+add_test(NAME sym_blocks COMMAND test_sym_blocks)
+
 add_executable(test_performance test_performance.cc)
 add_dependencies(test_performance ambit)
 target_link_libraries(test_performance ambit ${Boost_LIBRARIES})

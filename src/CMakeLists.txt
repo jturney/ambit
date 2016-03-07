@@ -3,6 +3,7 @@ set(TENSOR_HEADERS
         ${PROJECT_SOURCE_DIR}/include/ambit/tensor.h
         ${PROJECT_SOURCE_DIR}/include/ambit/timer.h
         ${PROJECT_SOURCE_DIR}/include/ambit/blocked_tensor.h
+        ${PROJECT_SOURCE_DIR}/include/ambit/sym_blocked_tensor.h
         ${PROJECT_SOURCE_DIR}/include/ambit/common_types.h
         ${PROJECT_SOURCE_DIR}/include/ambit/settings.h
 
@@ -61,6 +62,7 @@ set(TENSOR_SOURCES
         tensor/timer.cc
 
         blocked_tensor/blocked_tensor.cc
+        blocked_tensor/sym_blocked_tensor.cc
         )
 
 # if we have MPI and Cyclops is enabled
