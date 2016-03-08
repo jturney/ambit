@@ -307,7 +307,7 @@ double test_add_mo_space_repeated_space2()
     BlockedTensor::reset_mo_spaces();
     BlockedTensor::add_mo_space("o", "i,j,k,l", {0, 1, 2, 3, 4}, AlphaSpin);
     BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor::add_composite_mo_space("o", "p,q,r,s,c", {"o", "v"});
+    BlockedTensor::add_composite_mo_space("o", "p,q,r,s", {"o", "v"});
     return 0.0;
 }
 

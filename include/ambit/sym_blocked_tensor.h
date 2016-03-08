@@ -36,33 +36,15 @@ class SymMOSpace
      * @param name            The MO space name.
      * @param mo_indices      The MO indices that identify this space.
      * @param nirrep          The number of irreducible representations
-     * @param mos             The list of MOs that belong to this space.
-     * @param symmetry        The symmetry of the MOs that belong to this space.
+     * @param mos             The list of pairs (MOs,irrep) that belong to this space.
      * @param spin            The spin of this MO space.
      *
      * Example of use:
      *  // Create a space of alpha occupied orbitals.
-     *  MOSpace alpha_occupied("o","i,j,k,l",4,{0,1,2,3,4},{0,0,2,2,3},AlphaSpin);
+     *  MOSpace alpha_occupied("o","i,j,k,l",4,{{0,0}, {1,0}, {2,1}, {3,1} ,{4,3}},AlphaSpin);
      */
     SymMOSpace(const std::string &name, const std::string &mo_indices, int nirrep,
-            std::vector<size_t> mos, std::vector<int> symmetry, SpinType spin);
-
-    /**
-     * Constructor.
-     *
-     * @param name            The MO space name.
-     * @param mo_indices      The MO indices that identify this space.
-     * @param nirrep          The number of irreducible representations
-     * @param mo_list         The list of pairs (MO,symmetry,spin) for all the spin
-     * orbitals that belong to this space.
-     *
-     * Example of use:
-     *  // Create a space of alpha and beta occupied orbitals.
-     *  MOSpace
-     * alpha_occupied("o","i,j,k,l",2,{(0,0,AlphaSpin),(0,0,BetaSpin),(1,1,AlphaSpin),(2,1,BetaSpin)});
-     */
-    SymMOSpace(const std::string &name, const std::string &mo_indices, int nirrep,
-            std::vector<std::tuple<size_t, int, SpinType>> mo_list);
+            std::vector<std::pair<size_t,int>> mos, SpinType spin);
 
     // => Accessors <= //
 
@@ -73,7 +55,7 @@ class SymMOSpace
     const std::vector<std::string> &mo_indices() const { return mo_indices_; }
 
     /// @return The list of molecular orbitals that belong to this space
-    const std::vector<size_t> &mos() const { return mos_; }
+    const std::vector<std::pair<size_t,int>> &mos() const { return mos_; }
 
     /// @return The dimension of the molecular orbital space
     size_t dim() const { return mos_.size(); }
@@ -92,9 +74,7 @@ class SymMOSpace
     /// The number of irreducible representations
     int nirrep_;
     /// The list of molecular orbitals that belong to this space
-    std::vector<size_t> mos_;
-    /// The symmetry of the molecular orbitals that belong to this space
-    std::vector<int> symmetry_;
+    std::vector<std::pair<size_t,int>> mos_;
     /// The spin of this set of molecular orbitals
     std::vector<SpinType> spin_;
     /// The molecular orbitals sorted according to their irrep
@@ -104,80 +84,79 @@ class SymMOSpace
     std::vector<std::pair<int,size_t>> mos_map_;
 };
 
-///**
-// * Class BlockedTensor
-// * Represent a tensor aware of spin and MO spaces.
-// * This class holds several tensors, blocked according to spin and MO spaces.
-// *
-// * Sample usage:
-// *  BlockedTensor::add_mo_space("O" ,"i,j,k,l"    ,{0,1,2,3,4},AlphaSpin);
-// *  BlockedTensor::add_mo_space("V" ,"a,b,c,d"    ,{7,8,9},AlphaSpin);
-// *  BlockedTensor::add_mo_space("I" ,"p,q,r,s,t"  ,{"O","A","V"}); // create a
-// *composite space
-// *  BlockedTensor::add_mo_space("A" ,"u,v,w,x,y,z",{5,6},AlphaSpin);
-// *  BlockedTensor::add_composite_mo_space("H","m,n",{"O","A"}); // BlockedTensor
-// *can deal with redundant spaces
-// *  BlockedTensor::add_composite_mo_space("P","e,f",{"A","V"});
-// *
-// *  BlockedTensor T("T","O,O,V,V");
-// *  BlockedTensor V("V","O,O,V,V");
-// *  E = 0.25 * T("ijab") * V("ijab")
-// **/
-//class BlockedTensor
-//{
-//    friend class LabeledBlockedTensor;
+/**
+ * Class SymBlockedTensor
+ * Represent a tensor aware of spin and MO spaces.
+ * This class holds several tensors, blocked according to spin and MO spaces.
+ *
+ * Sample usage:
+ *  BlockedTensor::add_mo_space("O" ,"i,j,k,l"    ,{0,1,2,3,4},AlphaSpin);
+ *  BlockedTensor::add_mo_space("V" ,"a,b,c,d"    ,{7,8,9},AlphaSpin);
+ *  BlockedTensor::add_mo_space("I" ,"p,q,r,s,t"  ,{"O","A","V"}); // create a
+ *composite space
+ *  BlockedTensor::add_mo_space("A" ,"u,v,w,x,y,z",{5,6},AlphaSpin);
+ *  BlockedTensor::add_composite_mo_space("H","m,n",{"O","A"}); // BlockedTensor
+ *can deal with redundant spaces
+ *  BlockedTensor::add_composite_mo_space("P","e,f",{"A","V"});
+ *
+ *  BlockedTensor T("T","O,O,V,V");
+ *  BlockedTensor V("V","O,O,V,V");
+ *  E = 0.25 * T("ijab") * V("ijab")
+ **/
+class SymBlockedTensor
+{
+    friend class LabeledBlockedTensor;
 
-//  public:
-//    // => Constructors <= //
+  public:
+    // => Constructors <= //
 
-//    /// Default constructor.  Does nothing.
-//    BlockedTensor();
+    /// Default constructor.  Does nothing.
+    SymBlockedTensor();
 
-//    /**
-//     * Build a BlockedTensor object
-//     *
-//     * @param type            The tensor type enum, one of CoreTensor,
-//     * DiskTensor,
-//     * DistributedTensor.
-//     * @param name            The name of the tensor for use in printing.
-//     * @param blocks          A vector of strings that specify which blocks are
-//     * contained in this object.
-//     *
-//     * Example of use.
-//     * Here "o","O","v","V" are names of orbital spaces.
-//     * build(CoreTensor,"T2",{"o,O,v,V"});    // <- creates the alpha-alpha
-//     * block of
-//     * the tensor T2 in core
-//     * build(DiskTensor,"T1",{"o,v","O,V"}); // <- creates the alpha and beta
-//     * blocks
-//     * of the tensor T1 on disk
-//     */
-//    static BlockedTensor build(TensorType type, const std::string &name,
-//                               const std::vector<std::string> &blocks);
+    /**
+     * Build a SymBlockedTensor object
+     *
+     * @param type            The tensor type enum, one of CoreTensor,
+     * DiskTensor,
+     * DistributedTensor.
+     * @param name            The name of the tensor for use in printing.
+     * @param blocks          A vector of strings that specify which blocks are
+     * contained in this object.
+     *
+     * Example of use.
+     * Here "o","O","v","V" are names of orbital spaces.
+     * build(CoreTensor,"T2",{"o,O,v,V"});    // <- creates the alpha-alpha
+     * block of
+     * the tensor T2 in core
+     * build(DiskTensor,"T1",{"o,v","O,V"}); // <- creates the alpha and beta
+     * blocks
+     * of the tensor T1 on disk
+     */
+    static SymBlockedTensor build(TensorType type, const std::string &name,
+                               const std::vector<std::string> &blocks);
 
-//    static void add_mo_space(const std::string &name,
-//                             const std::string &mo_indices,
-//                             std::vector<size_t> mos, SpinType spin);
-//    static void add_mo_space(const std::string &name,
-//                             const std::string &mo_indices,
-//                             std::vector<std::pair<size_t, SpinType>> mo_spin);
-//    static void
-//    add_composite_mo_space(const std::string &name,
-//                           const std::string &mo_indices,
-//                           const std::vector<std::string> &subspaces);
-//    static void reset_mo_spaces();
+    static void add_mo_space(const std::string &name,
+                             const std::string &mo_indices,
+                             int nirrep,
+                             std::vector<std::pair<size_t,int>> mos,
+                             SpinType spin);
+    static void
+    add_composite_mo_space(const std::string &name,
+                           const std::string &mo_indices,
+                           const std::vector<std::string> &subspaces);
+    static void reset_mo_spaces();
 //    static void print_mo_spaces();
 
 //    static void set_expert_mode(bool mode) { expert_mode_ = mode; }
 
-//    // => Accessors <= //
+    // => Accessors <= //
 
-//    /// @return The name of the tensor for use in printing
-//    std::string name() const;
-//    /// @return The number of indices in the tensor
-//    size_t rank() const;
-//    /// @return The number of blocks
-//    size_t numblocks() const;
+    /// @return The name of the tensor for use in printing
+    std::string name() const;
+    /// @return The number of indices in the tensor
+    size_t rank() const;
+    /// @return The number of blocks
+    size_t numblocks() const;
 
 //    /// Set the name of the tensor to name
 //    void set_name(const std::string &name);
@@ -301,11 +280,11 @@ class SymMOSpace
 //    static std::vector<std::vector<size_t>>
 //    label_to_block_keys(const std::vector<std::string> &indices);
 
-//  private:
-//    std::string name_;
-//    std::size_t rank_;
-//    std::vector<std::string> block_labels_;
-//    std::map<std::vector<size_t>, Tensor> blocks_;
+  private:
+    std::string name_;
+    std::size_t rank_;
+    std::vector<std::string> block_labels_;
+    std::map<std::vector<std::pair<size_t,int>>, Tensor> blocks_;
 
 //    /// A vector of MOSpace objects
 //    size_t add_mo_space(MOSpace mo_space);
@@ -326,26 +305,26 @@ class SymMOSpace
 //    /// @return The MOSpace objects corresponding to an orbital index
 //    std::vector<size_t> &index_to_mo_spaces(const std::string &index);
 
-//    // => Static Class Data <= //
+    // => Static Class Data <= //
 
-//    /// A vector of MOSpace objects
-//    static std::vector<MOSpace> mo_spaces_;
-//    /// Maps the name of MOSpace (e.g. "o") to the position of the object in the
-//    /// vector mo_spaces_
-//    static std::map<std::string, size_t> name_to_mo_space_;
-//    /// Maps the name of a composite orbital space (e.g. "h") to the MOSpace
-//    /// objects that it spans
-//    static std::map<std::string, std::vector<size_t>>
-//        composite_name_to_mo_spaces_;
-//    /// Maps an orbital index (e.g. "i","j") to the MOSpace objects that contain
-//    /// it
-//    static std::map<std::string, std::vector<size_t>> index_to_mo_spaces_;
-//    /// Enables expert mode, which overides some default error checking
-//    static bool expert_mode_;
+    /// A vector of SymMOSpace objects
+    static std::vector<SymMOSpace> mo_spaces_;
+    /// Maps the name of MOSpace (e.g. "o") to the position of the object in the
+    /// vector mo_spaces_
+    static std::map<std::string, size_t> name_to_mo_space_;
+    /// Maps the name of a composite orbital space (e.g. "h") to the MOSpace
+    /// objects that it spans
+    static std::map<std::string, std::vector<size_t>>
+        composite_name_to_mo_spaces_;
+    /// Maps an orbital index (e.g. "i","j") to the MOSpace objects that contain
+    /// it
+    static std::map<std::string, std::vector<size_t>> index_to_mo_spaces_;
+    /// Enables expert mode, which overides some default error checking
+    static bool expert_mode_;
 
-//  public:
-//    /// @return Is BlockedTensor using "expert mode"?
-//    static bool expert_mode() { return expert_mode_; }
+  public:
+    /// @return Is BlockedTensor using "expert mode"?
+    static bool expert_mode() { return expert_mode_; }
 
 //  protected:
 //  public:
@@ -353,7 +332,7 @@ class SymMOSpace
 
 //    LabeledBlockedTensor operator()(const std::string &indices);
 //    LabeledBlockedTensor operator[](const std::string &indices);
-//};
+};
 
 //class LabeledBlockedTensor
 //{

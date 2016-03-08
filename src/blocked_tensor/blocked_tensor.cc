@@ -58,7 +58,7 @@ void BlockedTensor::add_mo_space(const std::string &name,
     if (mo_indices.size() == 0)
     {
         throw std::runtime_error(
-            "No MO indices were specified for the MO space \"" + name);
+            "No MO indices were specified for the MO space \"" + name + "\"");
     }
     if (name_to_mo_space_.count(name) != 0)
     {
@@ -104,7 +104,7 @@ void BlockedTensor::add_mo_space(
     if (mo_indices.size() == 0)
     {
         throw std::runtime_error(
-            "No MO indices were specified for the MO space \"" + name);
+            "No MO indices were specified for the MO space \"" + name + "\"");
     }
     if (name_to_mo_space_.count(name) != 0)
     {
@@ -152,7 +152,7 @@ void BlockedTensor::add_composite_mo_space(
     {
         throw std::runtime_error(
             "No MO indices were specified for the composite MO space \"" +
-            name);
+            name + "\"");
     }
     if (name_to_mo_space_.count(name) != 0)
     {

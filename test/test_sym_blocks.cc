@@ -208,115 +208,122 @@ Tensor build_and_fill(const std::string &name, const Dimension &dims,
 
 double test_mo_space()
 {
-    SymMOSpace alpha_occ("o", "i,j,k,l", 4, {0, 1, 2, 3, 4}, {0, 0, 1, 2, 3}, AlphaSpin);
-    SymMOSpace alpha_vir("v", "a,b,c,d", 4, {5, 6, 7, 8, 9}, {0, 0, 1, 1, 3}, AlphaSpin);
-
-    SymMOSpace mixed_general("g","p,q,r,s", 4, {{1,0,AlphaSpin},{4,1,BetaSpin}});
-
-    alpha_occ.print();
-    alpha_vir.print();
-    mixed_general.print();
+    SymMOSpace alpha_occ("o", "i,j,k,l", 4, {{0,0}, {1,0}, {2,1}, {3,2}, {4,3}}, AlphaSpin);
+    SymMOSpace alpha_vir("v", "a,b,c,d", 4, {{5,0}, {6,0}, {7,1}, {8,1}, {9,3}}, AlphaSpin);
     return 0.0;
 }
 
-/*
 double test_add_mo_space()
 {
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("o", "i,j,k,l", {0, 1, 2, 3, 4}, AlphaSpin);
-    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor::add_composite_mo_space("g", "p,q,r,s,t", {"o", "v"});
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("o", "i,j,k,l", 4, {{0,0}, {1,0}, {2,1}, {3,2}, {4,3}}, AlphaSpin);
+    SymBlockedTensor::add_mo_space("v", "a,b,c,d", 4, {{5,0}, {6,0}, {7,1}, {8,1}, {9,3}}, AlphaSpin);
+    SymBlockedTensor::add_composite_mo_space("g", "p,q,r,s,t", {"o", "v"});
     return 0.0;
 }
 
 double test_add_mo_space_nonexisting_space()
 {
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("o", "i,j,k,l", {0, 1, 2, 3, 4}, AlphaSpin);
-    BlockedTensor::add_composite_mo_space("g", "p,q,r,s,t", {"o", "v"});
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("o", "i,j,k,l", 4, {{0,0}, {1,0}, {2,1}, {3,2}, {4,3}}, AlphaSpin);
+    SymBlockedTensor::add_composite_mo_space("g", "p,q,r,s,t", {"o", "v"});
     return 0.0;
 }
 
 double test_add_mo_space_repeated_index1()
 {
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("o", "i,j,k,l", {0, 1, 2, 3, 4}, AlphaSpin);
-    BlockedTensor::add_mo_space("v", "a,b,c,i", {5, 6, 7, 8, 9}, AlphaSpin);
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("o", "i,j,k,l", 4, {{0,0}, {1,0}, {2,1}}, AlphaSpin);
+    SymBlockedTensor::add_mo_space("v", "a,b,c,i", 4, {{5,0}, {6,0}, {7,1}}, AlphaSpin);
     return 0.0;
 }
 
 double test_add_mo_space_repeated_index2()
 {
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("o", "i,j,k,l", {0, 1, 2, 3, 4}, AlphaSpin);
-    BlockedTensor::add_mo_space("v", "a,b,c,a", {5, 6, 7, 8, 9}, AlphaSpin);
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("o", "i,j,k,l", 4, {{0,0}, {1,0}, {2,1}}, AlphaSpin);
+    SymBlockedTensor::add_mo_space("v", "a,b,c,a", 4, {{5,0}, {6,0}, {7,1}}, AlphaSpin);
     return 0.0;
 }
 
 double test_add_mo_space_repeated_index3()
 {
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("o", "i,j,k,l", {0, 1, 2, 3, 4}, AlphaSpin);
-    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor::add_composite_mo_space("g", "p,q,r,s,c", {"o", "v"});
-    return 0.0;
-}
-
-double test_add_mo_space_no_name1()
-{
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("", "i,j,k", {0, 1, 2, 3, 4}, AlphaSpin);
-    return 0.0;
-}
-
-double test_add_mo_space_no_name2()
-{
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("o", "i,j,k,l", {0, 1, 2, 3, 4}, AlphaSpin);
-    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor::add_composite_mo_space("", "p,q,r,s", {"o", "v"});
-    return 0.0;
-}
-
-double test_add_mo_space_no_index1()
-{
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("o", "", {0, 1, 2, 3, 4}, AlphaSpin);
-    return 0.0;
-}
-
-double test_add_mo_space_no_index2()
-{
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("o", "i,j,k,l", {0, 1, 2, 3, 4}, AlphaSpin);
-    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor::add_composite_mo_space("g", "", {"o", "v"});
-    return 0.0;
-}
-
-double test_add_mo_space_no_mos()
-{
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("o", "i,j,k,l", {}, AlphaSpin);
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("o", "i,j,k,l", 4, {{0,0}, {1,0}, {2,1}}, AlphaSpin);
+    SymBlockedTensor::add_mo_space("v", "a,b,c,d", 4, {{5,0}, {6,0}, {7,1}}, AlphaSpin);
+    SymBlockedTensor::add_composite_mo_space("g", "p,q,r,s,c", {"o", "v"});
     return 0.0;
 }
 
 double test_add_mo_space_repeated_space1()
 {
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("o", "i,j,k,l", {0, 1, 2, 3, 4}, AlphaSpin);
-    BlockedTensor::add_mo_space("o", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("o", "i,j,k,l", 4, {{0,0}, {1,0}, {2,1}}, AlphaSpin);
+    SymBlockedTensor::add_mo_space("o", "a,b,c,d", 4, {{5,0}, {6,0}, {7,1}}, AlphaSpin);
     return 0.0;
 }
 
 double test_add_mo_space_repeated_space2()
 {
-    BlockedTensor::reset_mo_spaces();
-    BlockedTensor::add_mo_space("o", "i,j,k,l", {0, 1, 2, 3, 4}, AlphaSpin);
-    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
-    BlockedTensor::add_composite_mo_space("o", "p,q,r,s,c", {"o", "v"});
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("o", "i,j,k,l", 4, {{0,0}, {1,0}, {2,1}}, AlphaSpin);
+    SymBlockedTensor::add_mo_space("v", "a,b,c,d", 4, {{5,0}, {6,0}, {7,1}}, AlphaSpin);
+    SymBlockedTensor::add_composite_mo_space("o", "p,q,r,s,t", {"o", "v"});
     return 0.0;
 }
+
+double test_add_mo_space_no_name1()
+{
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("", "i,j,k", 4, {{0,0}, {1,0}, {2,1}}, AlphaSpin);
+    return 0.0;
+}
+
+double test_add_mo_space_no_name2()
+{
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("o", "i,j,k,l", 4, {{0,0}, {1,0}, {2,1}}, AlphaSpin);
+    SymBlockedTensor::add_mo_space("v", "a,b,c,d", 4, {{5,0}, {6,0}, {7,1}}, AlphaSpin);
+    SymBlockedTensor::add_composite_mo_space("", "p,q,r,s", {"o", "v"});
+    return 0.0;
+}
+
+double test_add_mo_space_no_index1()
+{
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("o", "", 4, {{0,0}, {1,0}, {2,1}}, AlphaSpin);
+    return 0.0;
+}
+
+double test_add_mo_space_no_index2()
+{
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("o", "i,j,k,l", 4, {{0,0}, {1,0}, {2,1}}, AlphaSpin);
+    SymBlockedTensor::add_mo_space("v", "a,b,c,d", 4, {{5,0}, {6,0}, {7,1}}, AlphaSpin);
+    SymBlockedTensor::add_composite_mo_space("g", "", {"o", "v"});
+    return 0.0;
+}
+
+double test_add_mo_space_no_mos()
+{
+    SymBlockedTensor::reset_mo_spaces();
+    SymBlockedTensor::add_mo_space("o", "i,j,k,l", 4, {}, AlphaSpin);
+    return 0.0;
+}
+
+/*
+
+
+
+
+
+
+
+
+
+
+
+
 
 double test_block_creation1()
 {
@@ -1833,7 +1840,6 @@ int main(int argc, char *argv[])
     auto test_functions = {
         //            Expectation,  test function,  User friendly description
         std::make_tuple(kPass, test_mo_space, "Test"),
-        /*
         std::make_tuple(kPass, test_add_mo_space, "Testing composite spaces"),
         std::make_tuple(kException, test_add_mo_space_nonexisting_space,
                         "Testing adding nonexisting space"),
@@ -1857,6 +1863,7 @@ int main(int argc, char *argv[])
                         "Testing adding orbital space with no indices (2)"),
         std::make_tuple(kPass, test_add_mo_space_no_mos,
                         "Testing adding orbital space with no orbital list"),
+        /*
         std::make_tuple(kPass, test_block_creation1,
                         "Testing blocked tensor creation (1)"),
         std::make_tuple(kPass, test_block_creation2,
@@ -2002,7 +2009,7 @@ int main(int argc, char *argv[])
             report_result =
                 tresult == std::get<0>(test_function) ? kPass : kException;
 
-            //            printf("\n  %s",e.what());
+//            printf("\n  %s",e.what());
             if (report_result == kException)
             {
                 exception = e.what();

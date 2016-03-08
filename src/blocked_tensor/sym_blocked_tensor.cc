@@ -9,51 +9,27 @@ namespace ambit
 {
 
 // Static members of SymBlockedTensor
-//std::vector<MOSpace> BlockedTensor::mo_spaces_;
-//std::map<std::string, size_t> BlockedTensor::name_to_mo_space_;
-//std::map<std::string, std::vector<size_t>>
-//    BlockedTensor::composite_name_to_mo_spaces_;
-//std::map<std::string, std::vector<size_t>> BlockedTensor::index_to_mo_spaces_;
+std::vector<SymMOSpace> SymBlockedTensor::mo_spaces_;
+std::map<std::string, size_t> SymBlockedTensor::name_to_mo_space_;
+std::map<std::string, std::vector<size_t>>
+    SymBlockedTensor::composite_name_to_mo_spaces_;
+std::map<std::string, std::vector<size_t>> SymBlockedTensor::index_to_mo_spaces_;
 
-//bool SymBlockedTensor::expert_mode_ = false;
+bool SymBlockedTensor::expert_mode_ = false;
 
 SymMOSpace::SymMOSpace(const std::string &name, const std::string &mo_indices, int nirrep,
-                 std::vector<size_t> mos, std::vector<int> symmetry, SpinType spin)
+                 std::vector<std::pair<size_t,int>> mos, SpinType spin)
     : name_(name), mo_indices_(indices::split(mo_indices)), nirrep_(nirrep),
-      mos_(mos), symmetry_(symmetry), spin_(mos.size(), spin)
+      mos_(mos), spin_(mos.size(), spin)
 {
     // Resize mos_sym
     mos_sym_.resize(nirrep_,std::vector<size_t>(0));
 
-    size_t nmo = dim();
-    for (size_t p = 0; p < nmo; p++)
+    for (auto mo_sym : mos_)
     {
-        size_t mo = mos_[p];
-        int sym = symmetry_[p];
+        size_t mo = mo_sym.first;
+        int sym = mo_sym.second;
         mos_map_.push_back(std::make_pair(sym,mos_sym_[sym].size()));
-        mos_sym_[sym].push_back(mo);
-    }
-}
-
-SymMOSpace::SymMOSpace(const std::string &name, const std::string &mo_indices,
-                 int nirrep, std::vector<std::tuple<size_t, int, SpinType>> mo_list)
-    : name_(name), mo_indices_(indices::split(mo_indices)), nirrep_(nirrep)
-{
-    // Resize mos_sym
-    mos_sym_.resize(nirrep_,std::vector<size_t>(0));
-
-    for (const auto &mo_symmetry_spin : mo_list)
-    {
-        size_t mo = std::get<0>(mo_symmetry_spin);
-        int sym = std::get<1>(mo_symmetry_spin);
-        SpinType spin = std::get<2>(mo_symmetry_spin);
-
-        mos_.push_back(mo);
-        symmetry_.push_back(sym);
-        spin_.push_back(spin);
-
-        mos_map_.push_back(std::make_pair(sym,mos_sym_[sym].size()));
-
         mos_sym_[sym].push_back(mo);
     }
 }
@@ -62,13 +38,10 @@ void SymMOSpace::print()
 {
     std::vector<std::string> mo_list;
     std::vector<std::string> sym_list;
-    for (size_t i : mos_)
+    for (auto mo_sym : mos_)
     {
-        mo_list.push_back(std::to_string(i));
-    }
-    for (int i : symmetry_)
-    {
-        sym_list.push_back(std::to_string(i));
+        mo_list.push_back(std::to_string(mo_sym.first));
+        sym_list.push_back(std::to_string(mo_sym.second));
     }
 
     printf("\n  Orbital Space \"%s\"\n  MO Indices: {%s}\n  MO List: (%s)\n  Sym List: (%s)",
@@ -91,149 +64,105 @@ void SymMOSpace::print()
     printf("\n");
 }
 
-//void BlockedTensor::add_mo_space(const std::string &name,
-//                                 const std::string &mo_indices,
-//                                 std::vector<size_t> mos, SpinType spin)
-//{
-//    if (name.size() == 0)
-//    {
-//        throw std::runtime_error("Empty name given to orbital space.");
-//    }
-//    if (mo_indices.size() == 0)
-//    {
-//        throw std::runtime_error(
-//            "No MO indices were specified for the MO space \"" + name);
-//    }
-//    if (name_to_mo_space_.count(name) != 0)
-//    {
-//        throw std::runtime_error("The MO space \"" + name +
-//                                 "\" is already defined.");
-//    }
+void SymBlockedTensor::add_mo_space(const std::string &name,
+                                    const std::string &mo_indices,
+                                    int nirrep,
+                                    std::vector<std::pair<size_t,int>> mos,
+                                    SpinType spin)
+{
+    if (name.size() == 0)
+    {
+        throw std::runtime_error("Empty name given to orbital space.");
+    }
+    if (mo_indices.size() == 0)
+    {
+        throw std::runtime_error(
+            "No MO indices were specified for the MO space \"" + name + "\"");
+    }
+    if (name_to_mo_space_.count(name) != 0)
+    {
+        throw std::runtime_error("The MO space \"" + name +
+                                 "\" is already defined.");
+    }
 
-//    size_t mo_space_idx = mo_spaces_.size();
+    size_t mo_space_idx = mo_spaces_.size();
 
-//    MOSpace ms(name, mo_indices, mos, spin);
-//    // Add the MOSpace object
-//    mo_spaces_.push_back(ms);
+    SymMOSpace ms(name, mo_indices, nirrep, mos, spin);
+    // Add the MOSpace object
+    mo_spaces_.push_back(ms);
 
-//    // Link the name to the mo_space_ vector
-//    name_to_mo_space_[name] = mo_space_idx;
+    // Link the name to the mo_space_ vector
+    name_to_mo_space_[name] = mo_space_idx;
 
-//    // Link the composite name to the mo_space_ vector
-//    composite_name_to_mo_spaces_[name] = {mo_space_idx};
+    // Link the composite name to the mo_space_ vector
+    composite_name_to_mo_spaces_[name] = {mo_space_idx};
 
-//    // Link the indices to the mo_space_
-//    for (const std::string &mo_index : indices::split(mo_indices))
-//    {
-//        if (index_to_mo_spaces_.count(mo_index) == 0)
-//        {
-//            index_to_mo_spaces_[mo_index] = {mo_space_idx};
-//        }
-//        else
-//        {
-//            throw std::runtime_error("The MO index \"" + mo_index +
-//                                     "\" is already defined.");
-//        }
-//    }
-//}
+    // Link the indices to the mo_space_
+    for (const std::string &mo_index : indices::split(mo_indices))
+    {
+        if (index_to_mo_spaces_.count(mo_index) == 0)
+        {
+            index_to_mo_spaces_[mo_index] = {mo_space_idx};
+        }
+        else
+        {
+            throw std::runtime_error("The MO index \"" + mo_index +
+                                     "\" is already defined.");
+        }
+    }
+}
 
-//void BlockedTensor::add_mo_space(
-//    const std::string &name, const std::string &mo_indices,
-//    std::vector<std::pair<size_t, SpinType>> mo_spin)
-//{
-//    if (name.size() == 0)
-//    {
-//        throw std::runtime_error("Empty name given to orbital space.");
-//    }
-//    if (mo_indices.size() == 0)
-//    {
-//        throw std::runtime_error(
-//            "No MO indices were specified for the MO space \"" + name);
-//    }
-//    if (name_to_mo_space_.count(name) != 0)
-//    {
-//        throw std::runtime_error("The MO space \"" + name +
-//                                 "\" is already defined.");
-//    }
+void SymBlockedTensor::add_composite_mo_space(
+    const std::string &name, const std::string &mo_indices,
+    const std::vector<std::string> &subspaces)
+{
+    if (name.size() == 0)
+    {
+        throw std::runtime_error(
+            "Empty name given to composite orbital space.");
+    }
+    if (mo_indices.size() == 0)
+    {
+        throw std::runtime_error(
+            "No MO indices were specified for the composite MO space \"" +
+            name + "\"");
+    }
+    if (name_to_mo_space_.count(name) != 0)
+    {
+        throw std::runtime_error("The MO space \"" + name +
+                                 "\" is already defined.");
+    }
 
-//    size_t mo_space_idx = mo_spaces_.size();
+    std::vector<size_t> simple_spaces;
+    for (std::string subspace : subspaces)
+    {
+        // Is this simple MO space in our list of spaces?
+        if (name_to_mo_space_.count(subspace) == 0)
+        {
+            throw std::runtime_error("The simple MO space \"" + subspace +
+                                     "\" is not defined.");
+        }
+        else
+        {
+            simple_spaces.push_back(name_to_mo_space_[subspace]);
+        }
+    }
+    composite_name_to_mo_spaces_[name] = simple_spaces;
 
-//    MOSpace ms(name, mo_indices, mo_spin);
-//    // Add the MOSpace object
-//    mo_spaces_.push_back(ms);
-
-//    // Link the name to the mo_space_ vector
-//    name_to_mo_space_[name] = mo_space_idx;
-
-//    // Link the composite name to the mo_space_ vector
-//    composite_name_to_mo_spaces_[name] = {mo_space_idx};
-
-//    // Link the indices to the mo_space_
-//    for (const std::string &mo_index : indices::split(mo_indices))
-//    {
-//        if (index_to_mo_spaces_.count(mo_index) == 0)
-//        {
-//            index_to_mo_spaces_[mo_index] = {mo_space_idx};
-//        }
-//        else
-//        {
-//            throw std::runtime_error("The MO index \"" + mo_index +
-//                                     "\" is already defined.");
-//        }
-//    }
-//}
-
-//void BlockedTensor::add_composite_mo_space(
-//    const std::string &name, const std::string &mo_indices,
-//    const std::vector<std::string> &subspaces)
-//{
-//    if (name.size() == 0)
-//    {
-//        throw std::runtime_error(
-//            "Empty name given to composite orbital space.");
-//    }
-//    if (mo_indices.size() == 0)
-//    {
-//        throw std::runtime_error(
-//            "No MO indices were specified for the composite MO space \"" +
-//            name);
-//    }
-//    if (name_to_mo_space_.count(name) != 0)
-//    {
-//        throw std::runtime_error("The MO space \"" + name +
-//                                 "\" is already defined.");
-//    }
-
-//    std::vector<size_t> simple_spaces;
-//    for (std::string subspace : subspaces)
-//    {
-//        // Is this simple MO space in our list of spaces?
-//        if (name_to_mo_space_.count(subspace) == 0)
-//        {
-//            throw std::runtime_error("The simple MO space \"" + subspace +
-//                                     "\" is not defined.");
-//        }
-//        else
-//        {
-//            simple_spaces.push_back(name_to_mo_space_[subspace]);
-//        }
-//    }
-//    composite_name_to_mo_spaces_[name] = simple_spaces;
-
-//    // Link the indices to the mo_space_
-//    for (const std::string &mo_index : indices::split(mo_indices))
-//    {
-//        if (index_to_mo_spaces_.count(mo_index) == 0)
-//        {
-//            index_to_mo_spaces_[mo_index] = simple_spaces;
-//        }
-//        else
-//        {
-//            throw std::runtime_error("The MO index \"" + mo_index +
-//                                     "\" is already defined.");
-//        }
-//    }
-//}
+    // Link the indices to the mo_space_
+    for (const std::string &mo_index : indices::split(mo_indices))
+    {
+        if (index_to_mo_spaces_.count(mo_index) == 0)
+        {
+            index_to_mo_spaces_[mo_index] = simple_spaces;
+        }
+        else
+        {
+            throw std::runtime_error("The MO index \"" + mo_index +
+                                     "\" is already defined.");
+        }
+    }
+}
 
 //void BlockedTensor::print_mo_spaces()
 //{
@@ -244,20 +173,20 @@ void SymMOSpace::print()
 //    }
 //}
 
-//void BlockedTensor::reset_mo_spaces()
-//{
-//    mo_spaces_.clear();
-//    name_to_mo_space_.clear();
-//    composite_name_to_mo_spaces_.clear();
-//    index_to_mo_spaces_.clear();
-//}
+void SymBlockedTensor::reset_mo_spaces()
+{
+    mo_spaces_.clear();
+    name_to_mo_space_.clear();
+    composite_name_to_mo_spaces_.clear();
+    index_to_mo_spaces_.clear();
+}
 
-//BlockedTensor::BlockedTensor() : rank_(0) {}
+SymBlockedTensor::SymBlockedTensor() : rank_(0) {}
 
-//BlockedTensor BlockedTensor::build(TensorType type, const std::string &name,
+//SymBlockedTensor SymBlockedTensor::build(TensorType type, const std::string &name,
 //                                   const std::vector<std::string> &blocks)
 //{
-//    BlockedTensor newObject;
+//    SymBlockedTensor newObject;
 
 //    newObject.set_name(name);
 //    newObject.rank_ = 0;
@@ -337,7 +266,7 @@ void SymMOSpace::print()
 //            if (newObject.rank_ != this_block.size())
 //            {
 //                throw std::runtime_error(
-//                    "Attempting to create the BlockedTensor \"" + name +
+//                    "Attempting to create the SymBlockedTensor \"" + name +
 //                    "\" with nonunique rank.");
 //            }
 //        }
@@ -351,15 +280,15 @@ void SymMOSpace::print()
 //    return newObject;
 //}
 
-//size_t BlockedTensor::numblocks() const { return blocks_.size(); }
+size_t SymBlockedTensor::numblocks() const { return blocks_.size(); }
 
-//std::string BlockedTensor::name() const { return name_; }
+std::string SymBlockedTensor::name() const { return name_; }
 
-//size_t BlockedTensor::rank() const { return rank_; }
+size_t SymBlockedTensor::rank() const { return rank_; }
 
-//void BlockedTensor::set_name(const std::string &name) { name_ = name; }
+//void SymBlockedTensor::set_name(const std::string &name) { name_ = name; }
 
-//std::vector<size_t> BlockedTensor::indices_to_key(const std::string &indices)
+//std::vector<size_t> SymBlockedTensor::indices_to_key(const std::string &indices)
 //{
 //    std::vector<size_t> key;
 //    for (const std::string &index : indices::split(indices))
@@ -378,17 +307,17 @@ void SymMOSpace::print()
 //    return key;
 //}
 
-//bool BlockedTensor::is_block(const std::string &indices) const
+//bool SymBlockedTensor::is_block(const std::string &indices) const
 //{
 //    return is_block(indices_to_key(indices));
 //}
 
-//bool BlockedTensor::is_block(const std::vector<size_t> &key) const
+//bool SymBlockedTensor::is_block(const std::vector<size_t> &key) const
 //{
 //    return (blocks_.count(key) != 0);
 //}
 
-//Tensor BlockedTensor::block(const std::string &indices)
+//Tensor SymBlockedTensor::block(const std::string &indices)
 //{
 //    std::vector<size_t> key;
 //    for (const std::string &index : indices::split(indices))
@@ -407,7 +336,7 @@ void SymMOSpace::print()
 //    return block(key);
 //}
 
-//Tensor BlockedTensor::block(const std::vector<size_t> &key)
+//Tensor SymBlockedTensor::block(const std::vector<size_t> &key)
 //{
 //    if (!is_block(key))
 //    {
@@ -422,7 +351,7 @@ void SymMOSpace::print()
 //    return blocks_.at(key);
 //}
 
-//const Tensor BlockedTensor::block(const std::vector<size_t> &key) const
+//const Tensor SymBlockedTensor::block(const std::vector<size_t> &key) const
 //{
 //    if (!is_block(key))
 //    {
@@ -437,7 +366,7 @@ void SymMOSpace::print()
 //    return blocks_.at(key);
 //}
 
-//double BlockedTensor::norm(int type) const
+//double SymBlockedTensor::norm(int type) const
 //{
 //    if (type == 0)
 //    {
@@ -474,7 +403,7 @@ void SymMOSpace::print()
 //    return 0.0;
 //}
 
-//void BlockedTensor::zero()
+//void SymBlockedTensor::zero()
 //{
 //    for (auto block_tensor : blocks_)
 //    {
@@ -482,7 +411,7 @@ void SymMOSpace::print()
 //    }
 //}
 
-//void BlockedTensor::scale(double beta)
+//void SymBlockedTensor::scale(double beta)
 //{
 //    for (auto block_tensor : blocks_)
 //    {
@@ -490,7 +419,7 @@ void SymMOSpace::print()
 //    }
 //}
 
-//void BlockedTensor::set(double gamma)
+//void SymBlockedTensor::set(double gamma)
 //{
 //    for (auto block_tensor : blocks_)
 //    {
@@ -498,7 +427,7 @@ void SymMOSpace::print()
 //    }
 //}
 
-//bool BlockedTensor::operator==(const BlockedTensor &other) const
+//bool SymBlockedTensor::operator==(const SymBlockedTensor &other) const
 //{
 //    bool same = false;
 //    for (auto block_tensor : blocks_)
@@ -515,12 +444,12 @@ void SymMOSpace::print()
 //    return same;
 //}
 
-//bool BlockedTensor::operator!=(const BlockedTensor &other) const
+//bool SymBlockedTensor::operator!=(const SymBlockedTensor &other) const
 //{
 //    return not(*this == other);
 //}
 
-//// void BlockedTensor::copy(const BlockedTensor& other)
+//// void SymBlockedTensor::copy(const SymBlockedTensor& other)
 ////{
 ////    blocks_.clear();
 ////    for (auto key_tensor : other.blocks_){
@@ -530,7 +459,7 @@ void SymMOSpace::print()
 ////    }
 ////}(const std::vector<size_t>&,const std::vector<SpinType>&, double&)
 
-//void BlockedTensor::iterate(
+//void SymBlockedTensor::iterate(
 //    const std::function<void(const std::vector<size_t> &,
 //                             const std::vector<SpinType> &, double &)> &func)
 //{
@@ -566,7 +495,7 @@ void SymMOSpace::print()
 //    }
 //}
 
-//void BlockedTensor::citerate(
+//void SymBlockedTensor::citerate(
 //    const std::function<void(const std::vector<size_t> &,
 //                             const std::vector<SpinType> &, const double &)>
 //        &func) const
@@ -603,7 +532,7 @@ void SymMOSpace::print()
 //    }
 //}
 
-//void BlockedTensor::print(FILE *fh, bool level, std::string const &format,
+//void SymBlockedTensor::print(FILE *fh, bool level, std::string const &format,
 //                          int maxcols) const
 //{
 //    fprintf(fh, "  ## Blocked Tensor %s ##\n\n", name().c_str());
@@ -615,18 +544,18 @@ void SymMOSpace::print()
 //    }
 //}
 
-//LabeledBlockedTensor BlockedTensor::operator()(const std::string &indices)
+//LabeledBlockedTensor SymBlockedTensor::operator()(const std::string &indices)
 //{
 //    return LabeledBlockedTensor(*this, indices::split(indices));
 //}
 
-//LabeledBlockedTensor BlockedTensor::operator[](const std::string &indices)
+//LabeledBlockedTensor SymBlockedTensor::operator[](const std::string &indices)
 //{
 //    return LabeledBlockedTensor(*this, indices::split(indices));
 //}
 
 //std::vector<std::vector<size_t>>
-//BlockedTensor::label_to_block_keys(const std::vector<std::string> &indices)
+//SymBlockedTensor::label_to_block_keys(const std::vector<std::string> &indices)
 //{
 //    // This function takes in the labels used to form a LabeledBlockedTensor and
 //    // returns the keys
@@ -683,7 +612,7 @@ void SymMOSpace::print()
 //}
 
 //LabeledBlockedTensor::LabeledBlockedTensor(
-//    BlockedTensor BT, const std::vector<std::string> &indices, double factor)
+//    SymBlockedTensor BT, const std::vector<std::string> &indices, double factor)
 //    : BT_(BT), indices_(indices), factor_(factor)
 //{
 //    if (BT_.rank() != indices.size())
