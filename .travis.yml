@@ -80,32 +80,32 @@ matrix:
     compiler: clang
     addons: *3
     env: CXX_COMPILER='clang++-3.7' C_COMPILER='clang-3.7' Fortran_COMPILER='gfortran' BUILD_TYPE='debug'
-  - os: linux
-    compiler: clang
-    addons: &4
-      apt:
-        sources:
-        - llvm-toolchain-precise
-        - ubuntu-toolchain-r-test
-        - boost-latest
-        - george-edison55-precise-backports
-        packages:
-        - libhdf5-serial-dev
-        - cmake
-        - cmake-data
-        - liblapack-dev
-        - clang-3.8
-        - libboost-filesystem1.55-dev
-        - libboost-chrono1.55-dev
-        - libboost-system1.55-dev
-        - libboost-timer1.55-dev
-        - libboost-python1.55-dev
-        - gfortran
-    env: CXX_COMPILER='clang++-3.8' C_COMPILER='clang-3.8' Fortran_COMPILER='gfortran' BUILD_TYPE='release'
-  - os: linux
-    compiler: clang
-    addons: *4
-    env: CXX_COMPILER='clang++-3.8' C_COMPILER='clang-3.8' Fortran_COMPILER='gfortran' BUILD_TYPE='debug'
+#  - os: linux
+#    compiler: clang
+#    addons: &4
+#      apt:
+#        sources:
+#        - llvm-toolchain-precise
+#        - ubuntu-toolchain-r-test
+#        - boost-latest
+#        - george-edison55-precise-backports
+#        packages:
+#        - libhdf5-serial-dev
+#        - cmake
+#        - cmake-data
+#        - liblapack-dev
+#        - clang-3.8
+#        - libboost-filesystem1.55-dev
+#        - libboost-chrono1.55-dev
+#        - libboost-system1.55-dev
+#        - libboost-timer1.55-dev
+#        - libboost-python1.55-dev
+#        - gfortran
+#    env: CXX_COMPILER='clang++-3.8' C_COMPILER='clang-3.8' Fortran_COMPILER='gfortran' BUILD_TYPE='release'
+#  - os: linux
+#    compiler: clang
+#    addons: *4
+#    env: CXX_COMPILER='clang++-3.8' C_COMPILER='clang-3.8' Fortran_COMPILER='gfortran' BUILD_TYPE='debug'
 #  - os: linux
 #    compiler: gcc
 #    addons: &5
