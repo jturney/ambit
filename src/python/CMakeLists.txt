@@ -23,6 +23,6 @@ target_link_libraries(pyambit ambit ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${Boos
 set_target_properties(pyambit PROPERTIES PREFIX "")
 set_target_properties(pyambit PROPERTIES SUFFIX ${PYTHON_MODULE_EXTENSION})
 
-install(TARGETS pyambit DESTINATION lib/ambit)
+install(TARGETS pyambit DESTINATION ${PYTHON_SITE_PACKAGES}/ambit)
 
 endif()
