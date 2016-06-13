@@ -1,7 +1,7 @@
 # Oldest version of Boost tested against
 set(BOOSTVER 1.53.0)
 
-if (ENABLE_STATIC)
+if (ENABLE_STATIC_LINKING)
     set(Boost_USE_STATIC_LIBS TRUE)
 endif()
 
