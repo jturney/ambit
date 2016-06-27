@@ -82,25 +82,44 @@ endif ()
 
 list(SORT TENSOR_SOURCES)
 
-# build libray
-if (ENABLE_STATIC)
-    add_library(ambit STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
-    install(TARGETS ambit ARCHIVE DESTINATION lib)
-else ()
-    add_library(ambit SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
-    install(TARGETS ambit LIBRARY DESTINATION lib)
-endif ()
+# build library
+if (NOT STATIC_ONLY)
+    add_library(ambit-shared SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
+    set_target_properties (ambit-shared PROPERTIES CLEAN_DIRECT_OUTPUT 1 OUTPUT_NAME "ambit")
+    install(TARGETS ambit-shared LIBRARY DESTINATION lib)
+endif (NOT STATIC_ONLY)
+
+add_library(ambit-static STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
+set_target_properties (ambit-static PROPERTIES CLEAN_DIRECT_OUTPUT 1 OUTPUT_NAME "ambit")
+install(TARGETS ambit-static ARCHIVE DESTINATION lib)
 
 if (ENABLE_CYCLOPS)
-    target_link_libraries(ambit ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
+    if (NOT STATIC_ONLY)
+        target_link_libraries(ambit-shared ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
+    endif()
+    target_link_libraries(ambit-static ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
 endif ()
 
-target_link_libraries(ambit
+if (NOT STATIC_ONLY)
+    target_link_libraries(ambit-shared
         ${LAPACK_LIBRARIES}
         ${BLAS_LIBRARIES}
         ${Boost_LIBRARIES}
         ${HDF5_LIBRARIES}
         )
+endif()
+target_link_libraries(ambit-static
+        ${LAPACK_LIBRARIES}
+        ${BLAS_LIBRARIES}
+        ${Boost_LIBRARIES}
+        ${HDF5_LIBRARIES}
+        )
+
+if (NOT STATIC_ONLY)
+    add_library(ambit ALIAS ambit-shared)
+else()
+    add_library(ambit ALIAS ambit-static)
+endif()
 
 if (ENABLE_PYTHON)
     add_subdirectory(python)
