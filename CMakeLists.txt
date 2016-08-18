@@ -20,7 +20,7 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project(ambit C CXX)
 
 set(AMBIT_MAJOR_VERSION 0)
-set(AMBIT_MINOR_VERSION 1)
+set(AMBIT_MINOR_VERSION 2)
 set(AMBIT_PATCH_VERSION 0)
 set(AMBIT_VERSION ${AMBIT_MAJOR_VERSION}.${AMBIT_MINOR_VERSION}.${AMBIT_PATCH_VERSION})
 
@@ -47,11 +47,15 @@ option_with_flags(ENABLE_XHOST "Enables processor-specific optimization" ON
 
 option(CYCLOPS "Location of the Cyclops build directory" "")
 option(ELEMENTAL "Location of the Elemental build directory" "")
-option(STATIC_ONLY "Build only static library, Python library is not built." OFF)
 
-if (STATIC_ONLY)
+option(BUILD_SHARED_LIBS "Build only shared library." ON)
+
+if (NOT BUILD_SHARED_LIBS)
     set(ENABLE_PYTHON OFF)
 endif ()
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 ## Compiler Features ##
 # include cmake modules as needed
@@ -66,7 +70,7 @@ set(LAPACK_FOUND FALSE)
 set(MKL_COMPILER_BINDINGS "${CMAKE_CXX_COMPILER_ID}")
 include(ConfigMath)
 
-if (ENABLE_MP)
+if (ENABLE_MPI)
     find_package(MPI REQUIRED)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MPI_C_COMPILE_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
@@ -144,7 +148,21 @@ add_subdirectory(test)
 # sample suite
 add_subdirectory(samples)
 
-# Add all targets to the build-tree export set
+# <<<  Export Config  >>>
+
+set(CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_DATADIR}/cmake/Ambit")
+configure_package_config_file(AmbitConfig.cmake.in
+        "${CMAKE_CURRENT_BINARY_DIR}/AmbitConfig.cmake"
+        INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/AmbitConfigVersion.cmake
+        VERSION ${AMBIT_VERSION}
+        COMPATIBILITY SameMajorVersion)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AmbitConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/AmbitConfigVersion.cmake
+        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+install(EXPORT "AmbitTargets"
+        NAMESPACE "Ambit::"
+        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
 # this has to be the very last CMake module to be included
 include(ConfigInfo)
