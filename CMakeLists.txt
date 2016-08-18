@@ -49,6 +49,7 @@ option(CYCLOPS "Location of the Cyclops build directory" "")
 option(ELEMENTAL "Location of the Elemental build directory" "")
 
 option(BUILD_SHARED_LIBS "Build only shared library." ON)
+option_with_print(ENABLE_GENERIC "Enable mostly static linking in shared library" OFF)
 
 if (NOT BUILD_SHARED_LIBS)
     set(ENABLE_PYTHON OFF)
@@ -56,6 +57,7 @@ endif ()
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+include(autocmake_static_library)
 
 ## Compiler Features ##
 # include cmake modules as needed
