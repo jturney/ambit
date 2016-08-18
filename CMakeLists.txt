@@ -26,63 +26,54 @@ set(AMBIT_VERSION ${AMBIT_MAJOR_VERSION}.${AMBIT_MINOR_VERSION}.${AMBIT_PATCH_VE
 
 # Custom CMake modules location
 list(APPEND CMAKE_MODULE_PATH
-    ${CMAKE_SOURCE_DIR}/cmake
-    ${CMAKE_SOURCE_DIR}/cmake/compilers
-    ${CMAKE_SOURCE_DIR}/cmake/math
-)
+        ${CMAKE_SOURCE_DIR}/cmake
+        ${CMAKE_SOURCE_DIR}/cmake/math
+        )
+
+include(Psi4Macros)
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Options
-option(ENABLE_MPI           "Enable MPI parallelization"  OFF)
-option(ENABLE_CYCLOPS       "Enable Cyclops usage" OFF)
-option(ENABLE_OMP           "Enable OpenMP parallelization" ON)
-option(ENABLE_AUTO_BLAS     "Enable CMake to autodetect BLAS" ON)
-option(ENABLE_AUTO_LAPACK   "Enable CMake to autodetect LAPACK" ON)
-option(ENABLE_ACCELERATE    "Enable use of Mac OS X Accelerate Framework" OFF)
-option(ENABLE_PYTHON        "Enable Python interface" ON)
-#option(ENABLE_CXX11_SUPPORT "Enable C++11 compiler support" ON)
+option(ENABLE_MPI "Enable MPI parallelization" OFF)
+option(ENABLE_CYCLOPS "Enable Cyclops usage" OFF)
+option(ENABLE_PYTHON "Enable Python interface" ON)
+option(ENABLE_AUTO_BLAS "Enables CMake to auto-detect BLAS" ON)
+option(ENABLE_AUTO_LAPACK "Enables CMake to auto-detect LAPACK" ON)
+option_with_flags(ENABLE_XHOST "Enables processor-specific optimization" ON
+        "-xHost" "-march=native")
 
-option(CYCLOPS              "Location of the Cyclops build directory" "")
-option(ELEMENTAL            "Location of the Elemental build directory" "")
-option(ENABLE_PSI4          "Enables PSI4 interface." OFF)
-option(STATIC_ONLY          "Build only static library, Python library is not built." OFF)
+option(CYCLOPS "Location of the Cyclops build directory" "")
+option(ELEMENTAL "Location of the Elemental build directory" "")
+option(STATIC_ONLY "Build only static library, Python library is not built." OFF)
 
-include(CMakeDependentOption)
-cmake_dependent_option(
-        PSI4_SOURCE_DIR     "PSI4 source directory" ""
-        "ENABLE_PSI4"       ON)
-cmake_dependent_option(
-        PSI4_BINARY_DIR     "PSI4 objdir directory" ""
-        "ENABLE_PSI4"       ON)
-cmake_dependent_option(
-        PSI4_INCLUDE_DIRS   "PSI4 include directories" ""
-        "ENABLE_PSI4"       ON)
-if(STATIC_ONLY)
+if (STATIC_ONLY)
     set(ENABLE_PYTHON OFF)
-endif()
+endif ()
 
+## Compiler Features ##
 # include cmake modules as needed
-include(ConfigVersion)
-include(ConfigArchitecture)
-include(ConfigCompilerFlags)
-include(ConfigOMP)
+find_package(OpenMP)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11")
 
 # Math: find BLAS and LAPACK
-set(BLAS_LANG    "CXX")
-set(BLAS_FOUND   FALSE)
-set(LAPACK_LANG  "CXX")
+set(BLAS_LANG "CXX")
+set(BLAS_FOUND FALSE)
+set(LAPACK_LANG "CXX")
 set(LAPACK_FOUND FALSE)
 set(MKL_COMPILER_BINDINGS "${CMAKE_CXX_COMPILER_ID}")
 include(ConfigMath)
 
-include(ConfigMPI)
-include(ConfigExplicitLibs)
-include(ConfigSafeGuards)
-include(GenericMacros)
+if (ENABLE_MP)
+    find_package(MPI REQUIRED)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MPI_C_COMPILE_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${MPI_Fortran_COMPILE_FLAGS}")
+    include_directories(${MPI_INCLUDE_PATH})
+    add_definitions(-DHAVE_MPI)
+endif ()
 
 init_FCMangle()
 
@@ -93,62 +84,48 @@ link_libraries("${CMAKE_THREAD_LIBS_INIT}")
 if (HDF5_LIBRARIES AND HDF5_INCLUDE_DIRS)
     message(STATUS "HDF5 detection suppressed. Using: ${HDF5_LIBRARIES} and includes ${HDF5_INCLUDE_DIRS}")
 else (HDF5_LIBRARIES AND HDF5_INCLUDE_DIRS)
-    find_package (HDF5 REQUIRED)
+    find_package(HDF5 REQUIRED)
 endif (HDF5_LIBRARIES AND HDF5_INCLUDE_DIRS)
 include_directories(SYSTEM ${HDF5_INCLUDE_DIRS})
 
 # Python Detection
-if (NOT ENABLE_STATIC AND NOT ENABLE_PSI4)
+if (ENABLE_PYTHON)
     include(ConfigPython)
     link_libraries("${PYTHON_LIBRARIES}")
     include_directories(SYSTEM "${PYTHON_INCLUDE_DIRS}")
-endif()
+endif ()
 
 # Boost Detection
 # We need Boost.Python, so this has to come _after_ Python detection
 include(ConfigBoost)
-link_directories("${Boost_LIBRARY_DIRS}")
-include_directories(SYSTEM "${Boost_INCLUDE_DIRS}")
-
-if (ENABLE_PSI4)
-    include_directories(SYSTEM ${PSI4_INCLUDE_DIRS})
-endif()
+link_directories(${Boost_LIBRARY_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 # Append the suffix given from input to all generated executables
-if(EXECUTABLE_SUFFIX)
-   set(CMAKE_EXECUTABLE_SUFFIX "${EXECUTABLE_SUFFIX}")
-   message(STATUS "Suffix ${CMAKE_EXECUTABLE_SUFFIX} will be appended to executables")
-endif()
+if (EXECUTABLE_SUFFIX)
+    set(CMAKE_EXECUTABLE_SUFFIX "${EXECUTABLE_SUFFIX}")
+    message(STATUS "Suffix ${CMAKE_EXECUTABLE_SUFFIX} will be appended to executables")
+endif ()
 
-if(LDFLAGS)
-   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LDFLAGS}")
-endif()
+if (LDFLAGS)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LDFLAGS}")
+endif ()
 
 # tensor-specific includes and libraries
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(
-    ${PROJECT_BINARY_DIR}/include
-    ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_BINARY_DIR}/include
+        ${PROJECT_SOURCE_DIR}/include
 )
 
-if(ENABLE_CYCLOPS AND CYCLOPS)
+if (ENABLE_CYCLOPS AND CYCLOPS)
     include_directories(${CYCLOPS}/include)
     add_definitions(-DHAVE_CYCLOPS)
-endif()
+endif ()
 if (ENABLE_ELEMENTAL AND ELEMENTAL)
     include_directories(${ELEMENTAL}/include)
     add_definitions(-DHAVE_ELEMENTAL)
-endif()
-
-if (ENABLE_PSI4 AND PSI4_SOURCE_DIR AND PSI4_BINARY_DIR)
-    add_definitions(-DENABLE_PSI4=1)
-    include_directories(
-            ${PSI4_SOURCE_DIR}/include
-            ${PSI4_SOURCE_DIR}/src/lib
-            ${PSI4_BINARY_DIR}/include
-            ${PSI4_BINARY_DIR}/src/lib
-    )
-endif()
+endif ()
 
 # library directory
 add_subdirectory(lib)
@@ -159,15 +136,13 @@ add_subdirectory(include)
 # recursively add source directories
 add_subdirectory(src)
 
-if (NOT ENABLE_PSI4)
-    # test suite
-    enable_testing()
-    include(CTest)
-    add_subdirectory(test)
+# test suite
+enable_testing()
+include(CTest)
+add_subdirectory(test)
 
-    # sample suite
-    add_subdirectory(samples)
-endif()
+# sample suite
+add_subdirectory(samples)
 
 # Add all targets to the build-tree export set
 
