@@ -43,7 +43,7 @@ option(ENABLE_OMP           "Enable OpenMP parallelization" ON)
 option(ENABLE_AUTO_BLAS     "Enable CMake to autodetect BLAS" ON)
 option(ENABLE_AUTO_LAPACK   "Enable CMake to autodetect LAPACK" ON)
 option(ENABLE_ACCELERATE    "Enable use of Mac OS X Accelerate Framework" OFF)
-option(ENABLE_PYTHON        "Enable Python interface" ON)
+option(ENABLE_PYTHON        "Enable Python interface" OFF)
 #option(ENABLE_CXX11_SUPPORT "Enable C++11 compiler support" ON)
 
 option(CYCLOPS              "Location of the Cyclops build directory" "")
