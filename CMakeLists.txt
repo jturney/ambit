@@ -106,9 +106,9 @@ endif()
 
 # Boost Detection
 # We need Boost.Python, so this has to come _after_ Python detection
-include(ConfigBoost)
-link_directories("${Boost_LIBRARY_DIRS}")
-include_directories(SYSTEM "${Boost_INCLUDE_DIRS}")
+#include(ConfigBoost)
+#link_directories("${Boost_LIBRARY_DIRS}")
+#include_directories(SYSTEM "${Boost_INCLUDE_DIRS}")
 
 if (ENABLE_PSI4)
     include_directories(SYSTEM ${PSI4_INCLUDE_DIRS})
