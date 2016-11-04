@@ -173,6 +173,7 @@ endif()
 
 # <<<  Export Config  >>>
 
+include(CMakePackageConfigHelpers)
 set(CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_DATADIR}/cmake/Ambit")
 configure_package_config_file(AmbitConfig.cmake.in
         "${CMAKE_CURRENT_BINARY_DIR}/AmbitConfig.cmake"
