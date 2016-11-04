@@ -17,7 +17,7 @@ set(TENSOR_HEADERS
         ../include/ambit/io/psi4/file.h
         ../include/ambit/io/psi4/io.h
         ../include/ambit/io/psi4/iwl.h
-        ../include/ambit/io/psi4/manager.h
+#        ../include/ambit/io/psi4/manager.h
 
         ${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/io.h
 
@@ -43,7 +43,7 @@ set(TENSOR_SOURCES
 
         io/psi4/file.cc
         io/psi4/iwl.cc
-        io/psi4/manager.cc
+        #io/psi4/manager.cc
 
         math/blas.cc
         math/lapack.cc

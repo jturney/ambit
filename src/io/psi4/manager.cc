@@ -21,7 +21,7 @@
 
 #include <ambit/io/psi4/io.h>
 
-//#include <util/print.h>
+#include <util/print.h>
 
 #if defined(HAVE_MPI)
 #include <mpi.h>
