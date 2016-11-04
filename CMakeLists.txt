@@ -171,5 +171,21 @@ endif()
 
 # Add all targets to the build-tree export set
 
+# <<<  Export Config  >>>
+
+set(CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_DATADIR}/cmake/Ambit")
+configure_package_config_file(AmbitConfig.cmake.in
+        "${CMAKE_CURRENT_BINARY_DIR}/AmbitConfig.cmake"
+        INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/AmbitConfigVersion.cmake
+        VERSION ${AMBIT_VERSION}
+        COMPATIBILITY SameMajorVersion)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AmbitConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/AmbitConfigVersion.cmake
+        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+install(EXPORT "AmbitTargets"
+        NAMESPACE "Ambit::"
+        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+
 # this has to be the very last CMake module to be included
 include(ConfigInfo)

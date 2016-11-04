@@ -1,0 +1,69 @@
+
+@PACKAGE_INIT@
+
+set (_valid_components static shared)
+
+# find includes
+find_path(_ambit_h
+          NAMES ambit/tensor.h
+          PATHS ${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@
+          NO_DEFAULT_PATH)
+if (_ambit_h)
+    set(AMBIT_INCLUDE_DIR ${_ambit_h})
+    set(AMBIT_INCLUDE_DIRS ${AMBIT_INCLUDE_DIR})
+else ()
+    set(AMBIT_FOUND 0)
+    if (NOT CMAKE_REQUIRED_QUIET)
+        message(STATUS "AmbitConfig missing component: header (Ambit: ${_ambit_h})")
+    endif()
+endif ()
+
+# find library: shared, static, or whichever
+set(_hold_library_suffixes ${CMAKE_FIND_LIBRARY_SUFFIXES})
+list(FIND AMBIT_FIND_COMPONENTS "shared" _seek_shared)
+list(FIND AMBIT_FIND_COMPONENTS "static" _seek_static)
+if(_seek_shared GREATER -1)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_SHARED_LIBRARY_SUFFIX})
+elseif(_seek_static GREATER -1)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
+find_library(_temp
+             NAMES ambit
+             PATHS ${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@
+             NO_DEFAULT_PATH)
+if(_temp)
+    set(AMBIT_LIBRARY "${_temp}")
+    if(_seek_shared GREATER -1)
+        set(AMBIT_SHARED_FOUND 1)
+    elseif(_seek_static GREATER -1)
+        set(AMBIT_STATIC_FOUND 1)
+    endif()
+else()
+    if(_seek_shared GREATER -1)
+        if(NOT CMAKE_REQUIRED_QUIET)
+            message(STATUS "AmbitConfig missing component: shared library (Ambit: ${_temp})")
+        endif()
+    elseif(_seek_static GREATER -1)
+        if(NOT CMAKE_REQUIRED_QUIET)
+            message(STATUS "AmbitConfig missing component: static library (Ambit: ${_temp})")
+        endif()
+    else()
+        set(AMBIT_FOUND 0)
+        if(NOT CMAKE_REQUIRED_QUIET)
+            message(STATUS "AmbitConfig missing component: library (Ambit: ${_temp})")
+        endif()
+    endif()
+endif()
+set(CMAKE_FIND_LIBRARY_SUFFIXES ${_hold_library_suffixes})
+set(AMBIT_LIBRARIES ${AMBIT_LIBRARY})
+
+check_required_components(AMBIT)
+
+#-----------------------------------------------------------------------------
+# Don't include targets if this file is being picked up by another
+# project which has already built this as a subproject
+#-----------------------------------------------------------------------------
+if(NOT TARGET Ambit::Ambit)
+    include("${CMAKE_CURRENT_LIST_DIR}/AmbitTargets.cmake")
+endif()
+
