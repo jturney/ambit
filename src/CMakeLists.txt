@@ -85,14 +85,17 @@ list(SORT TENSOR_SOURCES)
 # build library
 if (NOT STATIC_ONLY)
     add_library(ambit-shared SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
-    set_target_properties (ambit-shared PROPERTIES CLEAN_DIRECT_OUTPUT 1 OUTPUT_NAME "ambit")
-    install(TARGETS ambit-shared LIBRARY DESTINATION lib)
-endif (NOT STATIC_ONLY)
+    set_target_properties (ambit-shared PROPERTIES OUTPUT_NAME "ambit"
+                                                   EXPORT_NAME "ambit")
+endif()
 
-add_library(ambit-static STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
-set_target_properties (ambit-static PROPERTIES CLEAN_DIRECT_OUTPUT 1 OUTPUT_NAME "ambit")
-install(TARGETS ambit-static ARCHIVE DESTINATION lib)
+if (NOT SHARED_ONLY)
+    add_library(ambit-static STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
+    set_target_properties (ambit-static PROPERTIES OUTPUT_NAME "ambit"
+                                                   EXPORT_NAME "ambit")
+endif()
 
+# LAB: not addressed
 if (ENABLE_CYCLOPS)
     if (NOT STATIC_ONLY)
         target_link_libraries(ambit-shared ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
@@ -100,28 +103,77 @@ if (ENABLE_CYCLOPS)
     target_link_libraries(ambit-static ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
 endif ()
 
-if (NOT STATIC_ONLY)
-    target_link_libraries(ambit-shared
-        ${LAPACK_LIBRARIES}
-        ${BLAS_LIBRARIES}
-        ${Boost_LIBRARIES}
-        ${HDF5_LIBRARIES}
-        )
-endif()
-target_link_libraries(ambit-static
-        ${LAPACK_LIBRARIES}
-        ${BLAS_LIBRARIES}
-        ${Boost_LIBRARIES}
-        ${HDF5_LIBRARIES}
-        )
+#if (NOT STATIC_ONLY)
+#    target_link_libraries(ambit-shared
+#        ${LAPACK_LIBRARIES}
+#        ${BLAS_LIBRARIES}
+#        ${Boost_LIBRARIES}
+#        ${HDF5_LIBRARIES}
+#        )
+#endif()
+#target_link_libraries(ambit-static
+#        ${LAPACK_LIBRARIES}
+#        ${BLAS_LIBRARIES}
+#        #${Boost_LIBRARIES}
+#        ${HDF5_LIBRARIES}
+#        )
 
-if (NOT STATIC_ONLY)
-    add_library(ambit ALIAS ambit-shared)
+if (STATIC_ONLY)
+    add_library(ambit-lib ALIAS ambit-shared)
 else()
-    add_library(ambit ALIAS ambit-static)
+    add_library(ambit-lib ALIAS ambit-static)
 endif()
 
 if (ENABLE_PYTHON)
     add_subdirectory(python)
 endif ()
+
+# <<<  Install  >>>
+
+if (NOT STATIC_ONLY)
+    install (TARGETS ambit-shared
+                     EXPORT "ambitTargets-shared"
+                     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
+
+if (NOT SHARED_ONLY)
+    install (TARGETS ambit-static
+                     EXPORT "ambitTargets-static"
+                     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()                     
+
+# <<<  Export interface  >>>
+
+if (NOT STATIC_ONLY)
+    if (APPLE)
+        set_target_properties (ambit-shared PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+    endif()
+    target_compile_definitions (ambit-shared INTERFACE USING_${PROJECT_NAME})
+    target_link_libraries      (ambit-shared INTERFACE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${HDF5_LIBRARIES})
+    target_include_directories (ambit-shared INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+                                                       $<INSTALL_INTERFACE:${HDF5_INCLUDE_DIRS}>)
+endif()
+
+if (NOT SHARED_ONLY)
+    target_compile_definitions (ambit-static INTERFACE USING_${PROJECT_NAME})
+    target_link_libraries      (ambit-static INTERFACE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${HDF5_LIBRARIES})
+    target_include_directories (ambit-static INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+                                                       $<INSTALL_INTERFACE:${HDF5_INCLUDE_DIRS}>)
+endif()
+
+
+# <<<  Export Config  >>>
+
+set(CMAKECONFIG_INSTALL_DIR "share/cmake/${PROJECT_NAME}")
+if (NOT STATIC_ONLY)
+    install (EXPORT "${PROJECT_NAME}Targets-shared"
+                    NAMESPACE "${PROJECT_NAME}::"
+                    DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+endif()
+
+if (NOT SHARED_ONLY)
+    install (EXPORT "${PROJECT_NAME}Targets-static"
+                    NAMESPACE "${PROJECT_NAME}::"
+                    DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+endif()
 

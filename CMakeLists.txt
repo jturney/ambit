@@ -50,6 +50,7 @@ option(CYCLOPS              "Location of the Cyclops build directory" "")
 option(ELEMENTAL            "Location of the Elemental build directory" "")
 option(ENABLE_PSI4          "Enables PSI4 interface." OFF)
 option(STATIC_ONLY          "Build only static library, Python library is not built." OFF)
+option(SHARED_ONLY          "Build only shared library" OFF)
 
 include(CMakeDependentOption)
 cmake_dependent_option(
@@ -63,6 +64,9 @@ cmake_dependent_option(
         "ENABLE_PSI4"       ON)
 if(STATIC_ONLY)
     set(ENABLE_PYTHON OFF)
+endif()
+if (STATIC_ONLY AND SHARED_ONLY)
+    message (FATAL_ERROR "The options STATIC_ONLY=ON and SHARED_ONLY=ON are conflicting." )
 endif()
 
 # include cmake modules as needed
@@ -154,6 +158,7 @@ endif()
 add_subdirectory(lib)
 
 # include directory (for installation)
+include(GNUInstallDirs)
 add_subdirectory(include)
 
 # recursively add source directories
@@ -174,18 +179,16 @@ endif()
 # <<<  Export Config  >>>
 
 include(CMakePackageConfigHelpers)
-set(CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_DATADIR}/cmake/Ambit")
-configure_package_config_file(AmbitConfig.cmake.in
-        "${CMAKE_CURRENT_BINARY_DIR}/AmbitConfig.cmake"
+# explicit "share" not "DATADIR" for CMake search path
+set(CMAKECONFIG_INSTALL_DIR "share/cmake/${PROJECT_NAME}")
+configure_package_config_file(cmake/${PROJECT_NAME}Config.cmake.in
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR})
-write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/AmbitConfigVersion.cmake
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
         VERSION ${AMBIT_VERSION}
         COMPATIBILITY SameMajorVersion)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AmbitConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/AmbitConfigVersion.cmake
-        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
-install(EXPORT "AmbitTargets"
-        NAMESPACE "Ambit::"
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+              ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
         DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
 # this has to be the very last CMake module to be included
