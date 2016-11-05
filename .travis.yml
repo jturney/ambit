@@ -274,8 +274,8 @@ install:
   if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
     brew tap homebrew/science
     brew install cmake python gcc
-    brew install boost --with-python
-    brew install boost-python
+    #brew install boost --with-python
+    #brew install boost-python
     brew install hdf5
   fi
 before_script:
