@@ -14,12 +14,12 @@ set(TENSOR_HEADERS
         ../include/ambit/io/hdf5/file.h
         ../include/ambit/io/hdf5/group.h
         ../include/ambit/io/hdf5/location.h
-        ../include/ambit/io/psi4/file.h
-        ../include/ambit/io/psi4/io.h
-        ../include/ambit/io/psi4/iwl.h
-#        ../include/ambit/io/psi4/manager.h
+        #../include/ambit/io/psi4/file.h
+        #../include/ambit/io/psi4/io.h
+        #../include/ambit/io/psi4/iwl.h
+#       # ../include/ambit/io/psi4/manager.h
 
-        ${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/io.h
+#${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/io.h
 
         math/math.h
 
@@ -32,7 +32,7 @@ set(TENSOR_HEADERS
         )
 
 set(TENSOR_SOURCES
-        helpers/psi4/io.cc
+    #helpers/psi4/io.cc
 
         io/hdf5/attribute.cc
         io/hdf5/dataset.cc
@@ -41,8 +41,8 @@ set(TENSOR_SOURCES
         io/hdf5/group.cc
         io/hdf5/location.cc
 
-        io/psi4/file.cc
-        io/psi4/iwl.cc
+        #io/psi4/file.cc
+        #io/psi4/iwl.cc
         #io/psi4/manager.cc
 
         math/blas.cc
@@ -71,14 +71,14 @@ if (ENABLE_CYCLOPS)
     list(APPEND TENSOR_SOURCES tensor/cyclops/cyclops.cc)
 endif ()
 
-if (ENABLE_PSI4)
-    list(APPEND TENSOR_HEADERS
-            ${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/integrals.h
-            ${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/convert.h)
-    list(APPEND TENSOR_SOURCES
-            helpers/psi4/integrals.cc
-            helpers/psi4/convert.cc)
-endif ()
+#if (ENABLE_PSI4)
+#    list(APPEND TENSOR_HEADERS
+#            ${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/integrals.h
+#            ${PROJECT_SOURCE_DIR}/include/ambit/helpers/psi4/convert.h)
+#    list(APPEND TENSOR_SOURCES
+#            helpers/psi4/integrals.cc
+#            helpers/psi4/convert.cc)
+#endif ()
 
 list(SORT TENSOR_SOURCES)
 

@@ -5,8 +5,8 @@
 #include "settings.h"
 
 #if defined(ENABLE_PSI4)
-#include <libmints/typedefs.h>
-#include <ambit/helpers/psi4/integrals.h>
+//#include <libmints/typedefs.h>
+//#include <ambit/helpers/psi4/integrals.h>
 #endif
 
 namespace ambit
@@ -489,8 +489,8 @@ class Tensor
     static string scratch_path() { return scratch_path__; }
 
 #if defined(ENABLE_PSI4)
-    friend void ambit::helpers::psi4::integrals(psi::TwoBodyAOInt &integral,
-                                                ambit::Tensor *target);
+    //friend void ambit::helpers::psi4::integrals(psi::TwoBodyAOInt &integral,
+    //                                            ambit::Tensor *target);
 #endif
 };
 
