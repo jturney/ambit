@@ -5,8 +5,8 @@
 #include "settings.h"
 
 #if defined(ENABLE_PSI4)
-#include <libmints/typedefs.h>
-#include <ambit/helpers/psi4/integrals.h>
+//#include <libmints/typedefs.h>
+//#include <ambit/helpers/psi4/integrals.h>
 #endif
 
 namespace ambit
