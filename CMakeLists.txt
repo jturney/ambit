@@ -81,7 +81,8 @@ set(BLAS_FOUND   FALSE)
 set(LAPACK_LANG  "CXX")
 set(LAPACK_FOUND FALSE)
 set(MKL_COMPILER_BINDINGS "${CMAKE_CXX_COMPILER_ID}")
-include(ConfigMath)
+
+find_package(TargetLAPACK REQUIRED)
 
 include(ConfigMPI)
 include(ConfigExplicitLibs)
@@ -94,12 +95,9 @@ find_package(Threads REQUIRED)
 link_libraries("${CMAKE_THREAD_LIBS_INIT}")
 
 # HDF5 detection
-if (HDF5_LIBRARIES AND HDF5_INCLUDE_DIRS)
-    message(STATUS "HDF5 detection suppressed. Using: ${HDF5_LIBRARIES} and includes ${HDF5_INCLUDE_DIRS}")
-else (HDF5_LIBRARIES AND HDF5_INCLUDE_DIRS)
-    find_package (HDF5 REQUIRED)
-endif (HDF5_LIBRARIES AND HDF5_INCLUDE_DIRS)
-include_directories(SYSTEM ${HDF5_INCLUDE_DIRS})
+
+find_package(TargetHDF5 REQUIRED)
+include_directories(SYSTEM $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTORIES>)
 
 # Python Detection
 if (NOT ENABLE_STATIC AND NOT ENABLE_PSI4)

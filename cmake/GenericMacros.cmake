@@ -93,12 +93,15 @@ function(test_fortran_mangling PREFIX ISUPPER POSTFIX FLAGS SUB RESULT)
       int main() { ${FUNCTION}(); return 0;}
     "
     )
+
+get_property(_illb TARGET tgt::blas PROPERTY INTERFACE_LINK_LIBRARIES)
+
   file(WRITE "${TMP_DIR}/CMakeLists.txt"
     "
      project(testf C)
      set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${FLAGS}\")
      add_executable(ctof ctof.c)
-     target_link_libraries(ctof ${BLAS_LIBRARIES})
+     target_link_libraries(ctof ${_illb})
     "
     )
   set(FORTRAN_NAME_MANGLE_TEST FALSE)

@@ -85,12 +85,16 @@ list(SORT TENSOR_SOURCES)
 # build library
 if (NOT STATIC_ONLY)
     add_library(ambit-shared SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
+    target_link_libraries (ambit-shared PRIVATE tgt::lapack
+                                                tgt::hdf5)
     set_target_properties (ambit-shared PROPERTIES OUTPUT_NAME "ambit"
                                                    EXPORT_NAME "ambit")
 endif()
 
 if (NOT SHARED_ONLY)
     add_library(ambit-static STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
+    target_link_libraries (ambit-static PRIVATE tgt::lapack
+                                                tgt::hdf5)
     set_target_properties (ambit-static PROPERTIES OUTPUT_NAME "ambit"
                                                    EXPORT_NAME "ambit")
 endif()
@@ -149,18 +153,15 @@ if (NOT STATIC_ONLY)
         set_target_properties (ambit-shared PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
     endif()
     target_compile_definitions (ambit-shared INTERFACE USING_${PROJECT_NAME})
-    target_link_libraries      (ambit-shared INTERFACE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${HDF5_LIBRARIES})
     target_include_directories (ambit-shared INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                                                       $<INSTALL_INTERFACE:${HDF5_INCLUDE_DIRS}>)
+                                                       $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTORIES>)
 endif()
 
 if (NOT SHARED_ONLY)
     target_compile_definitions (ambit-static INTERFACE USING_${PROJECT_NAME})
-    target_link_libraries      (ambit-static INTERFACE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${HDF5_LIBRARIES})
     target_include_directories (ambit-static INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                                                       $<INSTALL_INTERFACE:${HDF5_INCLUDE_DIRS}>)
+                                                       $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTORIES>)
 endif()
-
 
 # <<<  Export Config  >>>
 
