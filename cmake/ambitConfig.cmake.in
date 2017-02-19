@@ -2,9 +2,7 @@
 # -----------------
 #
 # ambit cmake module.
-# This module sets the following variables in your project:
-#
-# ::
+# This module sets the following variables in your project::
 #
 #   ambit_FOUND - true if ambit and all required components found on the system
 #   ambit_VERSION - ambit version in format Major.Minor.Release
@@ -15,17 +13,13 @@
 #   ambit_LIBRARY - same as LIBRARIES
 #
 #
-# Available components: shared static exe
-#
-# ::
+# Available components: shared static exe ::
 #
 #   shared - search for only shared library
 #   static - search for only static library
 #
 #
-# Exported targets:
-#
-# ::
+# Exported targets::
 #
 # If ambit is found, this module defines the following :prop_tgt:`IMPORTED`
 # target. ::
@@ -33,17 +27,13 @@
 #   ambit::ambit - the main ambit library with header & defs attached.
 #
 #
-# Suggested usage:
-#
-# ::
+# Suggested usage::
 #
 #   find_package(ambit)
 #   find_package(ambit 1.8 CONFIG REQUIRED COMPONENTS shared)
 #
 #
-# The following variables can be set to guide the search for this package:
-#
-# ::
+# The following variables can be set to guide the search for this package::
 #
 #   ambit_DIR - CMake variable, set to directory containing this Config file
 #   CMAKE_PREFIX_PATH - CMake variable, set to root directory of this package

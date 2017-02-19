@@ -122,10 +122,11 @@ endif ()
 #        ${HDF5_LIBRARIES}
 #        )
 
+message("ambitambit a/so ${STATIC_ONLY} ${SHARED_ONLY}")
 if (STATIC_ONLY)
-    add_library(ambit-lib ALIAS ambit-shared)
-else()
     add_library(ambit-lib ALIAS ambit-static)
+else()
+    add_library(ambit-lib ALIAS ambit-shared)
 endif()
 
 if (ENABLE_PYTHON)

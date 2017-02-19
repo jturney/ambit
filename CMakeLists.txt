@@ -16,19 +16,20 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(ambit C CXX)
+cmake_policy(SET CMP0048 NEW)  # project_VERSION* variables populated from project(... VERSION x.x.x) string
+project(ambit
+        VERSION 0.1.0
+        LANGUAGES C CXX)
+set(ambit_AUTHORS      "Justin M. Turney")
+set(ambit_DESCRIPTION  "C++ library for the implementation of tensor product calculations")
+set(ambit_URL          "https://github.com/jturney/ambit")
+set(ambit_LICENSE      "GNU General Public License v2 or later (GPLv2+)")
 
-set(AMBIT_MAJOR_VERSION 0)
-set(AMBIT_MINOR_VERSION 1)
-set(AMBIT_PATCH_VERSION 0)
-set(AMBIT_VERSION ${AMBIT_MAJOR_VERSION}.${AMBIT_MINOR_VERSION}.${AMBIT_PATCH_VERSION})
-
-# Custom CMake modules location
+cmake_minimum_required(VERSION 3.0)
 list(APPEND CMAKE_MODULE_PATH
-    ${CMAKE_SOURCE_DIR}/cmake
-    ${CMAKE_SOURCE_DIR}/cmake/compilers
-    ${CMAKE_SOURCE_DIR}/cmake/math
+    ${PROJECT_SOURCE_DIR}/cmake
+    ${PROJECT_SOURCE_DIR}/cmake/compilers
+    ${PROJECT_SOURCE_DIR}/cmake/math
 )
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
@@ -183,8 +184,8 @@ configure_package_config_file(cmake/${PROJECT_NAME}Config.cmake.in
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-        VERSION ${AMBIT_VERSION}
-        COMPATIBILITY SameMajorVersion)
+        VERSION ${${PROJECT_NAME}_VERSION}
+        COMPATIBILITY AnyNewerVersion)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
               ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
         DESTINATION ${CMAKECONFIG_INSTALL_DIR})
