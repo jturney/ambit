@@ -181,9 +181,10 @@ configure_package_config_file(AmbitConfig.cmake.in
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/AmbitConfigVersion.cmake
         VERSION ${AMBIT_VERSION}
         COMPATIBILITY SameMajorVersion)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AmbitConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/AmbitConfigVersion.cmake
-        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+#Temporary disabled because it prevented installation
+#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AmbitConfig.cmake
+#        ${CMAKE_CURRENT_BINARY_DIR}/AmbitConfigVersion.cmake
+#        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 install(EXPORT "AmbitTargets"
         NAMESPACE "Ambit::"
         DESTINATION ${CMAKECONFIG_INSTALL_DIR})
