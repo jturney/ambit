@@ -4,7 +4,9 @@
 #include <cmath>
 #include <stdexcept>
 
-#include <FCMangle.h>
+//#include <FCMangle.h>
+
+#define FC_GLOBAL(lc, UC) lc ## _
 
 #define F_DGESVD FC_GLOBAL(dgesvd, DGESVD)
 #define F_DGEEV FC_GLOBAL(dgeev, DGEEV)

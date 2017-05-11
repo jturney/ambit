@@ -17,7 +17,7 @@ if(ENABLE_CYCLOPS)
     set_target_properties(pyambit PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
 
-target_link_libraries(pyambit ambit ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+target_link_libraries(pyambit ambit tgt::lapack ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 
 # Ensure the Python module is appropriately named
 set_target_properties(pyambit PROPERTIES PREFIX "")
