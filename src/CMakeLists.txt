@@ -85,7 +85,7 @@ list(SORT TENSOR_SOURCES)
 # build library
 if (NOT STATIC_ONLY)
     add_library(ambit-shared SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
-    target_link_libraries (ambit-shared PRIVATE tgt::lapack
+    target_link_libraries (ambit-shared PUBLIC tgt::lapack
                                                 tgt::hdf5)
     set_target_properties (ambit-shared PROPERTIES OUTPUT_NAME "ambit"
                                                    EXPORT_NAME "ambit")
@@ -93,7 +93,7 @@ endif()
 
 if (NOT SHARED_ONLY)
     add_library(ambit-static STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
-    target_link_libraries (ambit-static PRIVATE tgt::lapack
+    target_link_libraries (ambit-static PUBLIC tgt::lapack
                                                 tgt::hdf5)
     set_target_properties (ambit-static PROPERTIES OUTPUT_NAME "ambit"
                                                    EXPORT_NAME "ambit")
@@ -145,7 +145,7 @@ if (NOT SHARED_ONLY)
     install (TARGETS ambit-static
                      EXPORT "ambitTargets-static"
                      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endif()                     
+endif()
 
 # <<<  Export interface  >>>
 

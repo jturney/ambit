@@ -18,79 +18,66 @@
 
 cmake_policy(SET CMP0048 NEW)  # project_VERSION* variables populated from project(... VERSION x.x.x) string
 project(ambit
-        VERSION 0.1.0
+        VERSION 0.3.0
         LANGUAGES C CXX)
 set(ambit_AUTHORS      "Justin M. Turney")
 set(ambit_DESCRIPTION  "C++ library for the implementation of tensor product calculations")
 set(ambit_URL          "https://github.com/jturney/ambit")
-set(ambit_LICENSE      "GNU General Public License v2 or later (GPLv2+)")
+set(ambit_LICENSE      "GNU Lesser General Public License v3 (LGPL-3.0)")
 
-cmake_minimum_required(VERSION 3.0)
-list(APPEND CMAKE_MODULE_PATH
-    ${PROJECT_SOURCE_DIR}/cmake
-    ${PROJECT_SOURCE_DIR}/cmake/compilers
-    ${PROJECT_SOURCE_DIR}/cmake/math
-)
+cmake_minimum_required(VERSION 3.1)
 
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-# Options
-option(ENABLE_MPI           "Enable MPI parallelization"  OFF)
-option(ENABLE_CYCLOPS       "Enable Cyclops usage" OFF)
-option(ENABLE_OMP           "Enable OpenMP parallelization" ON)
-option(ENABLE_AUTO_BLAS     "Enable CMake to autodetect BLAS" ON)
-option(ENABLE_AUTO_LAPACK   "Enable CMake to autodetect LAPACK" ON)
-option(ENABLE_ACCELERATE    "Enable use of Mac OS X Accelerate Framework" OFF)
-option(ENABLE_PYTHON        "Enable Python interface" OFF)
-#option(ENABLE_CXX11_SUPPORT "Enable C++11 compiler support" ON)
+# <<<  CMake includes  >>>
 
-option(CYCLOPS              "Location of the Cyclops build directory" "")
-option(ELEMENTAL            "Location of the Elemental build directory" "")
-option(ENABLE_PSI4          "Enables PSI4 interface." OFF)
-option(STATIC_ONLY          "Build only static library, Python library is not built." OFF)
-option(SHARED_ONLY          "Build only shared library" OFF)
+include (GNUInstallDirs)
+include (CheckCXXCompilerFlag)
+include (CMakePackageConfigHelpers)
 
-include(CMakeDependentOption)
-cmake_dependent_option(
-        PSI4_SOURCE_DIR     "PSI4 source directory" ""
-        "ENABLE_PSI4"       ON)
-cmake_dependent_option(
-        PSI4_BINARY_DIR     "PSI4 objdir directory" ""
-        "ENABLE_PSI4"       ON)
-cmake_dependent_option(
-        PSI4_INCLUDE_DIRS   "PSI4 include directories" ""
-        "ENABLE_PSI4"       ON)
-if(STATIC_ONLY)
-    set(ENABLE_PYTHON OFF)
-endif()
+# <<<  Default CMake options  >>>
+include(psi4OptionsTools)
+
+option_with_default(CMAKE_BUILD_TYPE "Build type" Release)
+option_with_print(BUILD_SHARED_LIBS "Build final library as shared, not static" OFF)
+#option_with_default(BUILD_FPIC "Libraries will be compiled with position independent code" ON)
+#if(${BUILD_SHARED_LIBS} AND NOT ${BUILD_FPIC})
+#    message(FATAL_ERROR "BUILD_SHARED_LIBS ON and BUILD_FPIC OFF are incompatible, as shared library requires position independent code")
+#endif()
+option_with_print(ENABLE_OPENMP "Enable OpenMP parallelization. Psi4 wants OFF" OFF)
+option_with_print(ENABLE_GENERIC "Enable mostly static linking in shared library" OFF)
+option_with_flags(ENABLE_XHOST "Enable processor-specific optimization" ON
+        "-xHost" "-march=native")
+
+option (BUILD_DOXYGEN        "Use Doxygen to create a HTML/PDF manual" OFF)
+option (BUILD_SPHINX         "Build the user manual with Sphinx"       OFF)
+option (STATIC_ONLY          "Compile only the static library"         OFF)
+option (SHARED_ONLY          "Compile only the shared library"         OFF)
+option (ENABLE_TESTS         "Compile the tests"                       ON)
+#option (ENABLE_XHOST         "Enable processor-specific optimizations" ON)
+#option (ENABLE_GENERIC       "Enable mostly static linking in shared library" OFF)
+#option (ENABLE_OPENMP        "Enable OpenMP parallelization"           ON)
+option (WITH_MPI             "Build the library with MPI"              OFF)
+option (ENABLE_CYCLOPS       "Enable Cyclops usage" OFF)
+option (BUILD_FPIC           "Static library in STATIC_ONLY will be compiled with position independent code" ON)
+option (CYCLOPS              "Location of the Cyclops build directory" "")
+option (ELEMENTAL            "Location of the Elemental build directory" "")
+
+########################  Process & Validate Options  ##########################
+include(GNUInstallDirs)
+include(autocmake_safeguards)
+#include(custom_color_messages)
+# external projects manage their own OpenMP and c++YY flags, so only add to CXX_FLAGS for psi4-core
+include(autocmake_omp)
+include(custom_cxxstandard)
+include(custom_static_library)
+
 if (STATIC_ONLY AND SHARED_ONLY)
     message (FATAL_ERROR "The options STATIC_ONLY=ON and SHARED_ONLY=ON are conflicting." )
 endif()
-
-# include cmake modules as needed
-include(ConfigVersion)
-include(ConfigArchitecture)
-include(ConfigCompilerFlags)
-include(ConfigOMP)
-
-# Math: find BLAS and LAPACK
-set(BLAS_LANG    "CXX")
-set(BLAS_FOUND   FALSE)
-set(LAPACK_LANG  "CXX")
-set(LAPACK_FOUND FALSE)
-set(MKL_COMPILER_BINDINGS "${CMAKE_CXX_COMPILER_ID}")
-
-find_package(TargetLAPACK REQUIRED)
-
-include(ConfigMPI)
-include(ConfigExplicitLibs)
-include(ConfigSafeGuards)
-include(GenericMacros)
-
-init_FCMangle()
 
 find_package(Threads REQUIRED)
 link_libraries("${CMAKE_THREAD_LIBS_INIT}")
@@ -100,12 +87,15 @@ link_libraries("${CMAKE_THREAD_LIBS_INIT}")
 find_package(TargetHDF5 REQUIRED)
 include_directories(SYSTEM $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTORIES>)
 
+# BLAS and LAPACK
+find_package (TargetLAPACK REQUIRED)
+
 # Python Detection
-if (NOT ENABLE_STATIC AND NOT ENABLE_PSI4)
-    include(ConfigPython)
-    link_libraries("${PYTHON_LIBRARIES}")
-    include_directories(SYSTEM "${PYTHON_INCLUDE_DIRS}")
-endif()
+#if (NOT ENABLE_STATIC AND NOT ENABLE_PSI4)
+#    include(ConfigPython)
+#    link_libraries("${PYTHON_LIBRARIES}")
+#    include_directories(SYSTEM "${PYTHON_INCLUDE_DIRS}")
+#endif()
 
 # Boost Detection
 # We need Boost.Python, so this has to come _after_ Python detection
@@ -113,20 +103,20 @@ endif()
 #link_directories("${Boost_LIBRARY_DIRS}")
 #include_directories(SYSTEM "${Boost_INCLUDE_DIRS}")
 
-if (ENABLE_PSI4)
-    include_directories(SYSTEM ${PSI4_INCLUDE_DIRS})
-endif()
+#if (ENABLE_PSI4)
+#    include_directories(SYSTEM ${PSI4_INCLUDE_DIRS})
+#endif()
 
 # Append the suffix given from input to all generated executables
-if(EXECUTABLE_SUFFIX)
-   set(CMAKE_EXECUTABLE_SUFFIX "${EXECUTABLE_SUFFIX}")
-   message(STATUS "Suffix ${CMAKE_EXECUTABLE_SUFFIX} will be appended to executables")
-endif()
-
-if(LDFLAGS)
-   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LDFLAGS}")
-endif()
-
+#if(EXECUTABLE_SUFFIX)
+#   set(CMAKE_EXECUTABLE_SUFFIX "${EXECUTABLE_SUFFIX}")
+#   message(STATUS "Suffix ${CMAKE_EXECUTABLE_SUFFIX} will be appended to executables")
+#endif()
+#
+#if(LDFLAGS)
+#   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LDFLAGS}")
+#endif()
+#
 # tensor-specific includes and libraries
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(
@@ -143,27 +133,27 @@ if (ENABLE_ELEMENTAL AND ELEMENTAL)
     add_definitions(-DHAVE_ELEMENTAL)
 endif()
 
-if (ENABLE_PSI4 AND PSI4_SOURCE_DIR AND PSI4_BINARY_DIR)
-    add_definitions(-DENABLE_PSI4=1)
-    include_directories(
-            ${PSI4_SOURCE_DIR}/include
-            ${PSI4_SOURCE_DIR}/src/lib
-            ${PSI4_BINARY_DIR}/include
-            ${PSI4_BINARY_DIR}/src/lib
-    )
-endif()
+#if (ENABLE_PSI4 AND PSI4_SOURCE_DIR AND PSI4_BINARY_DIR)
+#    add_definitions(-DENABLE_PSI4=1)
+#    include_directories(
+#            ${PSI4_SOURCE_DIR}/include
+#            ${PSI4_SOURCE_DIR}/src/lib
+#            ${PSI4_BINARY_DIR}/include
+#            ${PSI4_BINARY_DIR}/src/lib
+#    )
+#endif()
 
 # library directory
 add_subdirectory(lib)
 
 # include directory (for installation)
-include(GNUInstallDirs)
+#include(GNUInstallDirs)
 add_subdirectory(include)
 
 # recursively add source directories
 add_subdirectory(src)
 
-if (NOT ENABLE_PSI4)
+#if (NOT ENABLE_PSI4)
     # test suite
     enable_testing()
     include(CTest)
@@ -171,7 +161,7 @@ if (NOT ENABLE_PSI4)
 
     # sample suite
     add_subdirectory(samples)
-endif()
+#endif()
 
 # Add all targets to the build-tree export set
 
@@ -191,4 +181,4 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
         DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
 # this has to be the very last CMake module to be included
-include(ConfigInfo)
+#include(ConfigInfo)

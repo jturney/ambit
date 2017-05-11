@@ -34,14 +34,14 @@ if(ENABLE_CYCLOPS)
     add_test(NAME distributed COMMAND test_distributed)
 endif()
 
-set(TEST_HF_SOURCES
-    test_hf.cc
-)
+#set(TEST_HF_SOURCES
+#    test_hf.cc
+#)
 
 # build static library
-add_executable(test_hf ${TEST_HF_SOURCES})
-target_link_libraries(test_hf ambit-lib)
-add_test(NAME hf COMMAND test_hf)
+#add_executable(test_hf ${TEST_HF_SOURCES})
+#target_link_libraries(test_hf ambit-lib)
+#add_test(NAME hf COMMAND test_hf)
 
 set(TEST_BLOCKS_SOURCES
     test_blocks.cc
@@ -65,10 +65,10 @@ add_executable(test_performance test_performance.cc)
 target_link_libraries(test_performance ambit-lib)
 add_test(NAME performance COMMAND test_performance)
 
-configure_file(test.32 test.32 COPYONLY)
-configure_file(test.33 test.33 COPYONLY)
-configure_file(test.34 test.34 COPYONLY)
-configure_file(test.35 test.35 COPYONLY)
+#configure_file(test.32 test.32 COPYONLY)
+#configure_file(test.33 test.33 COPYONLY)
+#configure_file(test.34 test.34 COPYONLY)
+#configure_file(test.35 test.35 COPYONLY)
 
 add_executable(test_hdf5 test_hdf5.cc)
 target_link_libraries(test_hdf5 ambit-lib)

@@ -4,7 +4,9 @@
 #include <cmath>
 #include <stdexcept>
 
-#include <FCMangle.h>
+//#include <FCMangle.h>
+
+#define FC_GLOBAL(lc, UC) lc ## _
 
 // => BLAS level 1 <=
 #define F_DSWAP FC_GLOBAL(dswap, DSWAP)
