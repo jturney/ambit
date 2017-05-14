@@ -96,7 +96,8 @@ if (NOT SHARED_ONLY)
     target_link_libraries (ambit-static PUBLIC tgt::lapack
                                                 tgt::hdf5)
     set_target_properties (ambit-static PROPERTIES OUTPUT_NAME "ambit"
-                                                   EXPORT_NAME "ambit")
+                                                   EXPORT_NAME "ambit"
+                                                   POSITION_INDEPENDENT_CODE ${BUILD_FPIC})
 endif()
 
 # LAB: not addressed

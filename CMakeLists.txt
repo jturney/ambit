@@ -34,37 +34,36 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # <<<  CMake includes  >>>
 
-include (GNUInstallDirs)
 include (CheckCXXCompilerFlag)
 include (CMakePackageConfigHelpers)
 
 # <<<  Default CMake options  >>>
 include(psi4OptionsTools)
 
-option_with_default(CMAKE_BUILD_TYPE "Build type" Release)
-option_with_print(BUILD_SHARED_LIBS "Build final library as shared, not static" OFF)
+option_with_default(CMAKE_BUILD_TYPE "Build type (Release or Debug)" Release)
+#option_with_print(BUILD_SHARED_LIBS "Build final library as shared, not static" OFF)
 #option_with_default(BUILD_FPIC "Libraries will be compiled with position independent code" ON)
 #if(${BUILD_SHARED_LIBS} AND NOT ${BUILD_FPIC})
 #    message(FATAL_ERROR "BUILD_SHARED_LIBS ON and BUILD_FPIC OFF are incompatible, as shared library requires position independent code")
 #endif()
-option_with_print(ENABLE_OPENMP "Enable OpenMP parallelization. Psi4 wants OFF" OFF)
-option_with_print(ENABLE_GENERIC "Enable mostly static linking in shared library" OFF)
-option_with_flags(ENABLE_XHOST "Enable processor-specific optimization" ON
-        "-xHost" "-march=native")
 
 option (BUILD_DOXYGEN        "Use Doxygen to create a HTML/PDF manual" OFF)
 option (BUILD_SPHINX         "Build the user manual with Sphinx"       OFF)
 option (STATIC_ONLY          "Compile only the static library"         OFF)
 option (SHARED_ONLY          "Compile only the shared library"         OFF)
 option (ENABLE_TESTS         "Compile the tests"                       ON)
-#option (ENABLE_XHOST         "Enable processor-specific optimizations" ON)
-#option (ENABLE_GENERIC       "Enable mostly static linking in shared library" OFF)
-#option (ENABLE_OPENMP        "Enable OpenMP parallelization"           ON)
 option (WITH_MPI             "Build the library with MPI"              OFF)
 option (ENABLE_CYCLOPS       "Enable Cyclops usage" OFF)
 option (BUILD_FPIC           "Static library in STATIC_ONLY will be compiled with position independent code" ON)
 option (CYCLOPS              "Location of the Cyclops build directory" "")
 option (ELEMENTAL            "Location of the Elemental build directory" "")
+option_with_print(ENABLE_OPENMP "Enable OpenMP parallelization" ON)
+option_with_flags(ENABLE_XHOST "Enables processor-specific optimization" ON
+                  "-xHost" "-march=native")
+option_with_default(FC_SYMBOL "The type of Fortran name mangling" 2)
+option_with_default(BUILD_FPIC "Compile static libraries with position independent code" ON)
+option_with_default(CMAKE_INSTALL_LIBDIR "Directory to which libraries installed" lib)
+option_with_default(ENABLE_GENERIC "Enables mostly static linking of system and math libraries for shared library" OFF)
 
 ########################  Process & Validate Options  ##########################
 include(GNUInstallDirs)
@@ -91,6 +90,10 @@ include_directories(SYSTEM $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTO
 find_package (TargetLAPACK REQUIRED)
 
 # Python Detection
+set(Python_ADDITIONAL_VERSIONS 3.7 3.6 3.5)  # adjust with CMake minimum FindPythonInterp
+find_package(PythonLibsNew REQUIRED)
+message(STATUS "Found Python ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}: ${PYTHON_EXECUTABLE} (found version ${PYTHON_VERSION_STRING})")
+
 #if (NOT ENABLE_STATIC AND NOT ENABLE_PSI4)
 #    include(ConfigPython)
 #    link_libraries("${PYTHON_LIBRARIES}")
@@ -147,7 +150,6 @@ endif()
 add_subdirectory(lib)
 
 # include directory (for installation)
-#include(GNUInstallDirs)
 add_subdirectory(include)
 
 # recursively add source directories
@@ -168,7 +170,7 @@ add_subdirectory(src)
 # <<<  Export Config  >>>
 
 include(CMakePackageConfigHelpers)
-# explicit "share" not "DATADIR" for CMake search path
+# GNUInstallDirs "DATADIR" wrong here; CMake search path wants "share".
 set(CMAKECONFIG_INSTALL_DIR "share/cmake/${PROJECT_NAME}")
 configure_package_config_file(cmake/${PROJECT_NAME}Config.cmake.in
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
@@ -178,6 +180,7 @@ write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Conf
         COMPATIBILITY AnyNewerVersion)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
               ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+        cmake/FindTargetHDF5.cmake
         DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
 # this has to be the very last CMake module to be included
