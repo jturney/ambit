@@ -234,6 +234,11 @@ LabeledTensor Tensor::operator()(const string &indices) const
     return LabeledTensor(*this, indices::split(indices));
 }
 
+LabeledSlicedTensor Tensor::operator()(const string &indices, const string &sliced_indices) const
+{
+    return LabeledSlicedTensor(*this, indices::split(indices), indices::split(sliced_indices));
+}
+
 SlicedTensor Tensor::operator()(const IndexRange &range) const
 {
     return SlicedTensor(*this, range);

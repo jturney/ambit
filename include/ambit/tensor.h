@@ -44,6 +44,7 @@ class LabeledTensorAddition;
 class LabeledTensorSubtraction;
 class LabeledTensorDistribution;
 class LabeledTensorSumOfProducts;
+class LabeledSlicedTensor;
 class SlicedTensor;
 
 // => Tensor Types <=
@@ -500,6 +501,7 @@ class Tensor
     // => Operator Overloading API <= //
 
     LabeledTensor operator()(const string &indices) const;
+    LabeledSlicedTensor operator()(const string &indices, const string &sliced_indices) const;
 
     SlicedTensor operator()(const IndexRange &range) const;
     SlicedTensor operator()() const;
@@ -576,6 +578,34 @@ class LabeledTensor
 inline LabeledTensor operator*(double factor, const LabeledTensor &ti)
 {
     return LabeledTensor(ti.T(), ti.indices(), factor * ti.factor());
+};
+
+class LabeledSlicedTensor
+{
+  public:
+    LabeledSlicedTensor(Tensor T, const Indices &indices, const Indices &sliced_indices, double factor = 1.0);
+
+    double factor() const { return factor_; }
+    const Indices &indices() const { return indices_; }
+    Indices &indices() { return indices_; }
+    const Tensor &T() const { return T_; }
+
+    size_t numdim() const { return indices_.size(); }
+    size_t dim_by_index(const string &idx) const;
+
+    void operator=(const LabeledTensorContraction &rhs);
+    void operator+=(const LabeledTensorContraction &rhs);
+    void operator-=(const LabeledTensorContraction &rhs);
+
+    void contract(const LabeledTensorContraction &rhs, bool zero_result,
+                  bool add);
+
+  private:
+
+    Tensor T_;
+    Indices indices_;
+    Indices sliced_indices_;
+    double factor_;
 };
 
 class LabeledTensorContraction

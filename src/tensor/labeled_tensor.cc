@@ -458,4 +458,218 @@ LabeledTensorDistribution::operator double() const
 
     return C.data()[0];
 }
+
+LabeledSlicedTensor::LabeledSlicedTensor(Tensor T, const Indices &indices, const Indices &sliced_indices, double factor)
+    : T_(T), indices_(indices), sliced_indices_(sliced_indices), factor_(factor)
+{
+    if (T_.rank() != indices.size())
+        throw std::runtime_error("Labeled tensor does not have correct number "
+                                 "of indices for underlying tensor's rank");
+}
+
+size_t LabeledSlicedTensor::dim_by_index(const string &idx) const
+{
+    // determine location of idx in indices_
+    Indices::const_iterator location =
+        std::find(indices_.begin(), indices_.end(), idx);
+    if (location == indices_.end())
+        throw std::runtime_error("Index not found: " + idx);
+
+    size_t position = std::distance(indices_.begin(), location);
+    return T().dim(position);
+}
+
+void LabeledSlicedTensor::operator=(const LabeledTensorContraction &rhs)
+{
+    contract(rhs, true, true);
+}
+
+void LabeledSlicedTensor::operator+=(const LabeledTensorContraction &rhs)
+{
+    contract(rhs, false, true);
+}
+
+void LabeledSlicedTensor::operator-=(const LabeledTensorContraction &rhs)
+{
+    contract(rhs, false, false);
+}
+
+void LabeledSlicedTensor::contract(const LabeledTensorContraction &rhs,
+                             bool zero_result, bool add)
+{
+    size_t nterms = rhs.size();
+    size_t slice_size = sliced_indices_.size();
+    std::vector<size_t> slicing_axis(slice_size);
+    for (size_t l = 0; l < slice_size; ++l) {
+        auto it = std::find(indices_.begin(), indices_.end(), sliced_indices_[l]);
+        if (it != indices_.end()) {
+            slicing_axis[l] = std::distance(indices_.begin(), it);
+        } else {
+            throw std::runtime_error("Slicing indices do not exist in tensor indices.");
+        }
+    }
+    bool permute_flag = false;
+    for (size_t l = 0; l < slice_size; ++l) {
+        if (slicing_axis[l] != l) {
+            permute_flag = true;
+            break;
+        }
+    }
+    Tensor Ltp;
+    Indices permuted_indices;
+    Dimension slicing_dims;
+    for (const string& s : sliced_indices_) {
+        slicing_dims.push_back(dim_by_index(s));
+    }
+
+    if (permute_flag) {
+        permuted_indices.insert(permuted_indices.end(), sliced_indices_.begin(), sliced_indices_.end());
+        for (size_t l = 0, l_max = numdim(); l < l_max; ++l) {
+            if (std::find(slicing_axis.begin(), slicing_axis.end(),l) == slicing_axis.end()) {
+                permuted_indices.push_back(indices_[l]);
+            }
+        }
+        Dimension dims;
+        for (const string& s : permuted_indices) {
+            dims.push_back(dim_by_index(s));
+        }
+        Ltp = Tensor::build(T().type(), T().name() + " permute", dims);
+        Ltp.permute(T_, permuted_indices, indices_);
+    } else {
+        Ltp = T().clone();
+        permuted_indices = indices_;
+    }
+    LabeledTensor Lt(Ltp, permuted_indices);
+
+    std::vector<std::vector<bool>> need_slicing(nterms, std::vector<bool>(slice_size + 1));
+
+    LabeledTensorContraction rhsp;
+    for (size_t i = 0; i < nterms; ++i) {
+        const LabeledTensor& A = rhs[i];
+        const Indices& A_indices = A.indices();
+        Indices gemm_indices;
+        for (const string& s : A_indices) {
+            auto it = std::find(sliced_indices_.begin(), sliced_indices_.end(), s);
+            if (it != sliced_indices_.end()) {
+                need_slicing[i][std::distance(sliced_indices_.begin(), it)] = true;
+            } else {
+                gemm_indices.push_back(s);
+            }
+        }
+        Indices permuted_indices;
+        for (size_t l = 0; l < slice_size; ++l) {
+            if (need_slicing[i][l]) {
+                permuted_indices.push_back(sliced_indices_[l]);
+                need_slicing[i][slice_size] = true;
+            }
+        }
+        if (permuted_indices.size() == 0) {
+            rhsp.operator*(A);
+        } else {
+            permuted_indices.insert(permuted_indices.end(),gemm_indices.begin(),gemm_indices.end());
+            Dimension dims;
+            for (const string& s : permuted_indices) {
+                dims.push_back(A.dim_by_index(s));
+            }
+            Tensor Atp = Tensor::build(A.T().type(), A.T().name() + " permute", dims);
+            Atp.permute(A.T(), permuted_indices, A.indices());
+            LabeledTensor At(Atp, permuted_indices);
+            rhsp.operator*(At);
+        }
+    }
+
+    const Indices& Lt_indices = Lt.indices();
+    const Dimension& Lt_dims = Lt.T().dims();
+    Dimension sub_dims;
+    Indices sub_indices;
+    sub_dims.insert(sub_dims.end(), Lt_dims.begin()+slice_size, Lt_dims.end());
+    sub_indices.insert(sub_indices.end(), Lt_indices.begin()+slice_size, Lt_indices.end());
+    Tensor Ltp_slice = Tensor::build(Lt.T().type(), Lt.T().name() + " slice", sub_dims);
+    LabeledTensor Lt_slice(Ltp_slice, sub_indices);
+
+    size_t num_slice = 1;
+    for (size_t l = 0; l < slice_size; ++l) {
+        num_slice *= slicing_dims[l];
+    }
+    LabeledTensorContraction rhs_slice;
+
+    std::vector<Tensor> tensors;
+    for (size_t i = 0; i < nterms; ++i) {
+        const LabeledTensor& A = rhsp[i];
+        if (need_slicing[i][slice_size]) {
+            const Indices& A_indices = A.indices();
+            const Dimension& A_dims = A.T().dims();
+            Dimension dims;
+            Indices indices;
+            size_t count = 0;
+            for (size_t l = 0; l < slice_size; ++l) {
+                if (need_slicing[i][l]) {
+                    count++;
+                }
+            }
+            indices.insert(indices.end(), A_indices.begin()+count, A_indices.end());
+            dims.insert(dims.end(), A_dims.begin()+count, A_dims.end());
+
+            Tensor Atp = Tensor::build(A.T().type(), A.T().name() + " slice", dims);
+            LabeledTensor At(Atp, indices);
+            rhs_slice.operator*(At);
+            tensors.push_back(Atp);
+        } else {
+            rhs_slice.operator*(A);
+            tensors.push_back(A.T());
+        }
+    }
+
+    Dimension current_slice(slice_size, 0);
+    while (current_slice[0] < slicing_dims[0]) {
+        size_t L_shift = 0, cur_jump = 1;
+        size_t sub_numel = Lt_slice.T().numel();
+        for (int i = slice_size - 1; i >= 0; --i) {
+            L_shift += current_slice[i] * cur_jump;
+            cur_jump *= slicing_dims[i];
+        }
+        L_shift *= sub_numel;
+        std::vector<double>& Lt_slice_data = Ltp_slice.data();
+        std::vector<double>& Lt_data = Ltp.data();
+        Lt_slice_data.clear();
+        Lt_slice_data.insert(Lt_slice_data.end(), Lt_data.begin()+L_shift, Lt_data.begin()+L_shift+sub_numel);
+
+        for (size_t i = 0; i < nterms; ++i) {
+            if (need_slicing[i][slice_size]) {
+                size_t cur_shift = 0, cur_jump = 1;
+                size_t sub_numel_A = tensors[i].numel();
+                for (int l = slice_size - 1; l >= 0; --l) {
+                    if (need_slicing[i][l]) {
+                        cur_shift += current_slice[l] * cur_jump;
+                        cur_jump *= slicing_dims[l];
+                    }
+                }
+                cur_shift *= sub_numel_A;
+                std::vector<double>& A_slice_data = tensors[i].data();
+                const std::vector<double>& A_data = rhsp[i].T().data();
+                A_slice_data.clear();
+                A_slice_data.insert(A_slice_data.end(), A_data.begin()+cur_shift, A_data.begin()+cur_shift+sub_numel_A);
+            }
+        }
+
+        Lt_slice.contract(rhs_slice, zero_result, add);
+
+        const std::vector<double>& Ltc_slice_data = Lt_slice.T().data();
+        for (size_t i = 0; i < sub_numel; ++i) {
+            Lt_data[L_shift + i] = Ltc_slice_data[i];
+        }
+
+        for (int i = slice_size - 1; i >= 0; --i) {
+            current_slice[i]++;
+            if (current_slice[i] < slicing_dims[i]) {
+                break;
+            } else if (i != 0) {
+                current_slice[i] = 0;
+            }
+        }
+    }
+
+    T_.permute(Ltp, indices_, permuted_indices);
+}
+
 }
