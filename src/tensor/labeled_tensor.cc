@@ -225,6 +225,21 @@ void LabeledTensor::operator-=(const LabeledTensorContraction &rhs)
     contract(rhs, false, false);
 }
 
+void LabeledTensor::operator=(const LabeledTensorBatchedContraction &rhs)
+{
+    contract_batched(rhs, true, true);
+}
+
+void LabeledTensor::operator+=(const LabeledTensorBatchedContraction &rhs)
+{
+    contract_batched(rhs, false, true);
+}
+
+void LabeledTensor::operator-=(const LabeledTensorBatchedContraction &rhs)
+{
+    contract_batched(rhs, false, false);
+}
+
 void LabeledTensor::operator=(const LabeledTensorAddition &rhs)
 {
     T_.zero();
@@ -670,6 +685,19 @@ void LabeledSlicedTensor::contract(const LabeledTensorContraction &rhs,
     }
 
     T_.permute(Ltp, indices_, permuted_indices);
+}
+
+LabeledTensorBatchedContraction batched(const string &batched_indices, const LabeledTensorContraction &contraction) {
+    return LabeledTensorBatchedContraction(contraction, indices::split(batched_indices));
+}
+
+void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_batched,
+                             bool zero_result, bool add)
+{
+    const LabeledTensorContraction &rhs = rhs_batched.get_contraction();
+    const Indices &sliced_indices = rhs_batched.get_batched_indices();
+    LabeledSlicedTensor lst(T_, indices_, sliced_indices, factor_);
+    lst.contract(rhs, zero_result, add);
 }
 
 }

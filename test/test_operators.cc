@@ -1506,7 +1506,7 @@ double test_Cijkl_equal_Aijab_Bklab_slice()
     Tensor B = build_and_fill("B", {nk, nl, na, nb}, b4);
     Tensor C = build_and_fill("C", {ni, nj, nk, nl}, c4);
 
-    C("ijkl","j") += A("ijab") * B("klab");
+    C("ijkl") += batched("j", A("ijab") * B("klab"));
 
     for (size_t i = 0; i < ni; ++i)
     {
@@ -1551,7 +1551,7 @@ double test_chain_multiply2_slice()
     Tensor C2 = build_and_fill("C2", dimsC, c2);
     Tensor D4 = build_and_fill("D4", dimsD, d4);
 
-    D4("ijkl","i") = A4("ijmn") * B2("km") * C2("ln");
+    D4("ijkl") = batched("i", A4("ijmn") * B2("km") * C2("ln"));
 
     for (size_t i = 0; i < ni; ++i)
     {
@@ -1597,7 +1597,7 @@ double test_chain_multiply3_slice()
     Tensor C2 = build_and_fill("C2", dimsC, c2);
     Tensor D4 = build_and_fill("D4", dimsD, d4);
 
-    D4("ijkl","j") += A4("ijmn") * B2("km") * C2("ln");
+    D4("ijkl") += batched("j", A4("ijmn") * B2("km") * C2("ln"));
 
     for (size_t i = 0; i < ni; ++i)
     {
@@ -1642,7 +1642,7 @@ double test_chain_multiply4_slice()
     Tensor C2 = build_and_fill("C2", dimsC, c2);
     Tensor D4 = build_and_fill("D4", dimsD, d4);
 
-    D4("ijkl","kl") -= A4("ijmn") * B2("km") * C2("ln");
+    D4("ijkl") -= batched("kl", A4("ijmn") * B2("km") * C2("ln"));
 
     for (size_t i = 0; i < ni; ++i)
     {
@@ -1781,16 +1781,16 @@ int main(int argc, char *argv[])
             "D4(\"ijkl\") -= A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
         std::make_tuple(kPass, test_slice2, "Slice C2(1:5,0:4) = A2(0:4,2:6)"),
         std::make_tuple(kPass, test_Cijkl_equal_Aijab_Bklab_slice,
-                        "C(\"ijkl\",\"j\") += A(\"ijab\") * B(\"klab\")"),
+                        "C(\"ijkl\") += batched(\"j\",A(\"ijab\") * B(\"klab\"))"),
         std::make_tuple(
             kPass, test_chain_multiply2_slice,
-            "D4(\"ijkl\",\"i\") = A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
+            "D4(\"ijkl\") = batched(\"i\",A4(\"ijmn\") * B2(\"km\") * C2(\"ln\"))"),
         std::make_tuple(
             kPass, test_chain_multiply3_slice,
-            "D4(\"ijkl\",\"j\") += A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
+            "D4(\"ijkl\") += batched(\"j\",A4(\"ijmn\") * B2(\"km\") * C2(\"ln\"))"),
         std::make_tuple(
             kPass, test_chain_multiply4_slice,
-            "D4(\"ijkl\",\"kl\") -= A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
+            "D4(\"ijkl\") -= batched(\"kl\",A4(\"ijmn\") * B2(\"km\") * C2(\"ln\"))"),
     };
 
     std::vector<std::tuple<std::string, TestResult, double>> results;
