@@ -588,7 +588,7 @@ void LabeledSlicedTensor::contract(const LabeledTensorContraction &rhs,
             }
             Tensor Atp = Tensor::build(A.T().type(), A.T().name() + " permute", dims);
             Atp.permute(A.T(), permuted_indices, A.indices());
-            LabeledTensor At(Atp, permuted_indices);
+            LabeledTensor At(Atp, permuted_indices, A.factor());
             rhsp.operator*(At);
         }
     }
@@ -626,7 +626,7 @@ void LabeledSlicedTensor::contract(const LabeledTensorContraction &rhs,
             dims.insert(dims.end(), A_dims.begin()+count, A_dims.end());
 
             Tensor Atp = Tensor::build(A.T().type(), A.T().name() + " slice", dims);
-            LabeledTensor At(Atp, indices);
+            LabeledTensor At(Atp, indices, A.factor());
             rhs_slice.operator*(At);
             tensors.push_back(Atp);
         } else {
