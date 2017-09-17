@@ -1726,14 +1726,8 @@ double test_batched_with_factor()
     Tensor A = build_and_fill("A", dimsA, a4);
     Tensor B = build_and_fill("B", dimsB, b4);
     Tensor C = build_and_fill("C", dimsC, c4);
-    Tensor C2 = build_and_fill("C2", dimsC, d4);
 
-    C2("pqrs") = C("pqrs");
-
-    C("ijrs") = 0.5 * A("abrs") * B("ijab");
-    C2("ijrs") = batched("r", 0.5 * A("abrs") * B("ijab"));
-
-    //C2("pqrs") -= C("pqrs");
+    C("ijrs") = batched("r", 0.5 * A("abrs") * B("ijab"));
 
     for (size_t i = 0; i < no; ++i)
     {
@@ -1757,7 +1751,7 @@ double test_batched_with_factor()
         }
     }
 
-    return difference(C2, c4).second;
+    return difference(C, c4).second;
 }
 
 int main(int argc, char *argv[])

@@ -2313,7 +2313,7 @@ double test_batched_with_factor()
 
     C2["pqrs"] -= C["pqrs"];
 
-    return C2.norm();
+    return C2.norm(0);
 }
 
 int main(int argc, char *argv[])
