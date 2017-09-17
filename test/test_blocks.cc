@@ -2463,34 +2463,34 @@ int main(int argc, char *argv[])
                         "Testing blocked tensor contraction exception (1)"),
         std::make_tuple(
             kPass, test_Cij_equal_Aik_B_jk_batched,
-            "Testing blocked tensor C(\"ij\") = batched(\"i\", A(\"ik\") * B(\"jk\"))"),
+            "C(\"ij\") = batched(\"i\", A(\"ik\") * B(\"jk\"))"),
         std::make_tuple(
             kPass, test_Cij_equal_Aip_B_jp_batched,
-            "Testing blocked tensor C(\"ij\") = batched(\"j\", A(\"ip\") * B(\"jp\")) (1)"),
+            "C(\"ij\") = batched(\"j\", A(\"ip\") * B(\"jp\")) (1)"),
         std::make_tuple(
             kException, test_Cij_equal_Aip_B_jp_fail_batched,
-            "Testing blocked tensor C(\"ij\") = batched(\"i\", A(\"ip\") * B(\"jp\")) (2)"),
+            "C(\"ij\") = batched(\"i\", A(\"ip\") * B(\"jp\")) (2)"),
         std::make_tuple(
             kPass, test_Cij_equal_Aip_B_jp_expert_batched,
-            "Testing blocked tensor C(\"ij\") = batched(\"i\", A(\"ip\") * B(\"jp\")) (3)"),
+            "C(\"ij\") = batched(\"i\", A(\"ip\") * B(\"jp\")) (3)"),
         std::make_tuple(
             kPass, test_Cpq_equal_Apq_B_pq_expert_batched,
-            "Testing blocked tensor C(\"pq\") = batched(\"p\", A(\"pq\") * B(\"pq\"))"),
+            "C(\"pq\") = batched(\"p\", A(\"pq\") * B(\"pq\"))"),
         std::make_tuple(
             kPass, test_Cij_equal_half_Aia_B_aj_batched,
-            "Testing blocked tensor C(\"ij\") = batched(\"j\", 0.5 * A(\"ia\") * B(\"aj\"))"),
+            "C(\"ij\") = batched(\"j\", 0.5 * A(\"ia\") * B(\"aj\"))"),
         std::make_tuple(kPass, test_Cij_plus_equal_half_Aai_B_ja_batched,
-                        "Testing blocked tensor C(\"ij\") += batched(\"i\", A(\"ai\") * (0.5 "
+                        "C(\"ij\") += batched(\"i\", A(\"ai\") * (0.5 "
                         "* B(\"ja\")))"),
         std::make_tuple(
             kPass, test_Cij_minus_equal_Aik_B_jk_batched,
-            "Testing blocked tensor C(\"ij\") -= batched(\"i\", A(\"ik\") * B(\"jk\"))"),
+            "C(\"ij\") -= batched(\"i\", A(\"ik\") * B(\"jk\"))"),
         std::make_tuple(
             kPass, test_greek_Cij_equal_Aik_B_jk_batched,
-            "Testing blocked tensor C(\"ij\") = batched(\"j\", A(\"ik\") * B(\"jk\")) [Greek]"),
+            "C(\"ij\") = batched(\"j\", A(\"ik\") * B(\"jk\")) [Greek]"),
         std::make_tuple(
             kException, test_Aij_equal_Aik_B_jk_batched,
-            "Testing blocked tensor A(\"ij\") = batched(\"j\", A(\"ik\") * B(\"jk\"))"),
+            "A(\"ij\") = batched(\"j\", A(\"ik\") * B(\"jk\"))"),
         std::make_tuple(
             kPass, test_batched_with_factor,
             "C2[\"ijrs\"] = batched(\"r\", 0.5 * A[\"abrs\"] * B[\"ijab\"])"),
