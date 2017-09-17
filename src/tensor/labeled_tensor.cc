@@ -631,130 +631,179 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
         }
     }
 
-    // Loop over batches to perform contraction
-    std::vector<Tensor> inter_tensors;
-    std::vector<Indices> inter_indices;
-    bool first_batch = true;
-    std::vector<size_t> current_slice(slice_size, 0);
-    while (current_slice[0] < slicing_dims[0]) {
-        size_t L_shift = 0, cur_jump = 1;
-        size_t sub_numel = Lt_slice.T().numel();
-        for (int i = slice_size - 1; i >= 0; --i) {
-            L_shift += current_slice[i] * cur_jump;
-            cur_jump *= slicing_dims[i];
-        }
-        L_shift *= sub_numel;
-        std::vector<double>& Lt_slice_data = Ltp_slice.data();
-        std::vector<double>& Lt_data = Ltp.data();
-        Lt_slice_data.clear();
-        Lt_slice_data.insert(Lt_slice_data.end(), Lt_data.begin()+L_shift, Lt_data.begin()+L_shift+sub_numel);
+    if (nterms == 2) {
+        // Loop over batches to perform contraction
+        std::vector<size_t> current_slice(slice_size, 0);
+        while (current_slice[0] < slicing_dims[0]) {
+            size_t L_shift = 0, cur_jump = 1;
+            size_t sub_numel = Lt_slice.T().numel();
+            for (int i = slice_size - 1; i >= 0; --i) {
+                L_shift += current_slice[i] * cur_jump;
+                cur_jump *= slicing_dims[i];
+            }
+            L_shift *= sub_numel;
+            std::vector<double>& Lt_slice_data = Ltp_slice.data();
+            std::vector<double>& Lt_data = Ltp.data();
+            Lt_slice_data.clear();
+            Lt_slice_data.insert(Lt_slice_data.end(), Lt_data.begin()+L_shift, Lt_data.begin()+L_shift+sub_numel);
 
-        for (size_t i = 0; i < nterms; ++i) {
-            if (need_slicing[i][slice_size]) {
-                size_t cur_shift = 0, cur_jump = 1;
-                size_t sub_numel_A = batch_tensors[i].numel();
-                for (int l = slice_size - 1; l >= 0; --l) {
-                    if (need_slicing[i][l]) {
-                        cur_shift += current_slice[l] * cur_jump;
-                        cur_jump *= slicing_dims[l];
+            for (size_t i = 0; i < nterms; ++i) {
+                if (need_slicing[i][slice_size]) {
+                    size_t cur_shift = 0, cur_jump = 1;
+                    size_t sub_numel_A = batch_tensors[i].numel();
+                    for (int l = slice_size - 1; l >= 0; --l) {
+                        if (need_slicing[i][l]) {
+                            cur_shift += current_slice[l] * cur_jump;
+                            cur_jump *= slicing_dims[l];
+                        }
                     }
+                    cur_shift *= sub_numel_A;
+                    std::vector<double>& A_slice_data = batch_tensors[i].data();
+                    const std::vector<double>& A_data = rhsp[i].T().data();
+                    A_slice_data.clear();
+                    A_slice_data.insert(A_slice_data.end(), A_data.begin()+cur_shift, A_data.begin()+cur_shift+sub_numel_A);
                 }
-                cur_shift *= sub_numel_A;
-                std::vector<double>& A_slice_data = batch_tensors[i].data();
-                const std::vector<double>& A_data = rhsp[i].T().data();
-                A_slice_data.clear();
-                A_slice_data.insert(A_slice_data.end(), A_data.begin()+cur_shift, A_data.begin()+cur_shift+sub_numel_A);
+            }
+
+            // The following code is identical to Lt_slice.contract(rhs_slice, zero_result, add);
+            const LabeledTensor &A = rhs_slice[0];
+            const LabeledTensor &B = rhs_slice[1];
+
+            Ltp_slice.contract(batch_tensors[0], batch_tensors[1], sub_indices, A.indices(), B.indices(),
+                        add ? A.factor() * B.factor() : -A.factor() * B.factor(),
+                        zero_result ? 0.0 : 1.0);
+
+            // Copy current batch tensor result to the full result tensor
+            const std::vector<double>& Ltc_slice_data = Ltp_slice.data();
+            for (size_t i = 0; i < sub_numel; ++i) {
+                Lt_data[L_shift + i] = Ltc_slice_data[i];
+            }
+
+            // Determine the indices of next batch
+            for (int i = slice_size - 1; i >= 0; --i) {
+                current_slice[i]++;
+                if (current_slice[i] < slicing_dims[i]) {
+                    break;
+                } else if (i != 0) {
+                    current_slice[i] = 0;
+                }
             }
         }
+    } else {
+        // Prepare batch contraction intermediate tensors.
+        std::vector<Tensor> inter_tensors;
+        std::vector<Indices> inter_indices;
+        LabeledTensor A = rhs_slice[0];
+        int maxn = int(nterms) - 2;
+        for (int n = 0; n < maxn; ++n)
+        {
+            LabeledTensor B = rhs_slice[n + 1];
 
-        // The following code is identical to Lt_slice.contract(rhs_slice, zero_result, add);
-        if (first_batch) {
-            LabeledTensor A = rhs_slice[0];
-            int maxn = int(nterms) - 2;
-            for (int n = 0; n < maxn; ++n)
+            std::vector<Indices> AB_indices =
+                indices::determine_contraction_result(A, B);
+            const Indices &AB_common_idx = AB_indices[0];
+            const Indices &A_fix_idx = AB_indices[1];
+            const Indices &B_fix_idx = AB_indices[2];
+            Dimension dims;
+            Indices indices;
+
+            for (size_t i = 0; i < AB_common_idx.size(); ++i)
             {
-                LabeledTensor B = rhs_slice[n + 1];
-
-                std::vector<Indices> AB_indices =
-                    indices::determine_contraction_result(A, B);
-                const Indices &AB_common_idx = AB_indices[0];
-                const Indices &A_fix_idx = AB_indices[1];
-                const Indices &B_fix_idx = AB_indices[2];
-                Dimension dims;
-                Indices indices;
-
-                for (size_t i = 0; i < AB_common_idx.size(); ++i)
+                // If a common index is also found in the rhs it's a Hadamard index
+                if (std::find(this->indices().begin(), this->indices().end(),
+                              AB_common_idx[i]) != this->indices().end())
                 {
-                    // If a common index is also found in the rhs it's a Hadamard index
-                    if (std::find(this->indices().begin(), this->indices().end(),
-                                  AB_common_idx[i]) != this->indices().end())
-                    {
-                        dims.push_back(A.dim_by_index(AB_common_idx[i]));
-                        indices.push_back(AB_common_idx[i]);
+                    dims.push_back(A.dim_by_index(AB_common_idx[i]));
+                    indices.push_back(AB_common_idx[i]);
+                }
+            }
+
+            for (size_t i = 0; i < A_fix_idx.size(); ++i)
+            {
+                dims.push_back(A.dim_by_index(A_fix_idx[i]));
+                indices.push_back(A_fix_idx[i]);
+            }
+            for (size_t i = 0; i < B_fix_idx.size(); ++i)
+            {
+                dims.push_back(B.dim_by_index(B_fix_idx[i]));
+                indices.push_back(B_fix_idx[i]);
+            }
+
+            Tensor tAB = Tensor::build(A.T().type(),
+                                       A.T().name() + " * " + B.T().name(), dims);
+            inter_tensors.push_back(tAB);
+            inter_indices.push_back(indices);
+
+            A.set(LabeledTensor(tAB, indices, 1.0));
+        }
+
+        // Loop over batches to perform contraction
+        std::vector<size_t> current_slice(slice_size, 0);
+        while (current_slice[0] < slicing_dims[0]) {
+            size_t L_shift = 0, cur_jump = 1;
+            size_t sub_numel = Lt_slice.T().numel();
+            for (int i = slice_size - 1; i >= 0; --i) {
+                L_shift += current_slice[i] * cur_jump;
+                cur_jump *= slicing_dims[i];
+            }
+            L_shift *= sub_numel;
+            std::vector<double>& Lt_slice_data = Ltp_slice.data();
+            std::vector<double>& Lt_data = Ltp.data();
+            Lt_slice_data.clear();
+            Lt_slice_data.insert(Lt_slice_data.end(), Lt_data.begin()+L_shift, Lt_data.begin()+L_shift+sub_numel);
+
+            for (size_t i = 0; i < nterms; ++i) {
+                if (need_slicing[i][slice_size]) {
+                    size_t cur_shift = 0, cur_jump = 1;
+                    size_t sub_numel_A = batch_tensors[i].numel();
+                    for (int l = slice_size - 1; l >= 0; --l) {
+                        if (need_slicing[i][l]) {
+                            cur_shift += current_slice[l] * cur_jump;
+                            cur_jump *= slicing_dims[l];
+                        }
                     }
+                    cur_shift *= sub_numel_A;
+                    std::vector<double>& A_slice_data = batch_tensors[i].data();
+                    const std::vector<double>& A_data = rhsp[i].T().data();
+                    A_slice_data.clear();
+                    A_slice_data.insert(A_slice_data.end(), A_data.begin()+cur_shift, A_data.begin()+cur_shift+sub_numel_A);
                 }
+            }
 
-                for (size_t i = 0; i < A_fix_idx.size(); ++i)
-                {
-                    dims.push_back(A.dim_by_index(A_fix_idx[i]));
-                    indices.push_back(A_fix_idx[i]);
-                }
-                for (size_t i = 0; i < B_fix_idx.size(); ++i)
-                {
-                    dims.push_back(B.dim_by_index(B_fix_idx[i]));
-                    indices.push_back(B_fix_idx[i]);
-                }
+            // The following code is identical to Lt_slice.contract(rhs_slice, zero_result, add);
+            const LabeledTensor &A = rhs_slice[0];
+            int maxn = int(nterms) - 2;
+            const LabeledTensor &B0 = rhs_slice[1];
+            Tensor tAB = inter_tensors[0];
+            tAB.contract(batch_tensors[0], B0.T(), inter_indices[0], A.indices(), B0.indices(),
+                         A.factor() * B0.factor(), 0.0);
 
-                Tensor tAB = Tensor::build(A.T().type(),
-                                           A.T().name() + " * " + B.T().name(), dims);
-                inter_tensors.push_back(tAB);
-                inter_indices.push_back(indices);
-
-                tAB.contract(A.T(), B.T(), indices, A.indices(), B.indices(),
-                             A.factor() * B.factor(), 0.0);
-
-                A.set(LabeledTensor(tAB, indices, 1.0));
+            for (int n = 1; n < maxn; ++n)
+            {
+                const LabeledTensor &B = rhs_slice[n + 1];
+                inter_tensors[n].contract(inter_tensors[n-1], batch_tensors[n+1], inter_indices[n], inter_indices[n-1], B.indices(),
+                             B.factor(), 0.0);
             }
             const LabeledTensor &B = rhs_slice[nterms - 1];
 
-            Ltp_slice.contract(A.T(), B.T(), sub_indices, A.indices(), B.indices(),
-                        add ? A.factor() * B.factor() : -A.factor() * B.factor(),
+            Ltp_slice.contract(inter_tensors[nterms-3], B.T(), sub_indices, inter_indices[nterms-3], B.indices(),
+                        add ? B.factor() : -B.factor(),
                         zero_result ? 0.0 : 1.0);
-            first_batch = false;
-        } else {
-            LabeledTensor A = rhs_slice[0];
-            int maxn = int(nterms) - 2;
-            for (int n = 0; n < maxn; ++n)
-            {
-                LabeledTensor B = rhs_slice[n + 1];
 
-                Tensor tAB = inter_tensors[n];
-
-                tAB.contract(A.T(), B.T(), inter_indices[n], A.indices(), B.indices(),
-                             A.factor() * B.factor(), 0.0);
-
-                A.set(LabeledTensor(tAB, inter_indices[n], 1.0));
+            // Copy current batch tensor result to the full result tensor
+            const std::vector<double>& Ltc_slice_data = Ltp_slice.data();
+            for (size_t i = 0; i < sub_numel; ++i) {
+                Lt_data[L_shift + i] = Ltc_slice_data[i];
             }
-            const LabeledTensor &B = rhs_slice[nterms - 1];
 
-            Ltp_slice.contract(A.T(), B.T(), sub_indices, A.indices(), B.indices(),
-                        add ? A.factor() * B.factor() : -A.factor() * B.factor(),
-                        zero_result ? 0.0 : 1.0);
-        }
-
-        // Copy current batch tensor result to the full result tensor
-        const std::vector<double>& Ltc_slice_data = Ltp_slice.data();
-        for (size_t i = 0; i < sub_numel; ++i) {
-            Lt_data[L_shift + i] = Ltc_slice_data[i];
-        }
-
-        // Determine the indices of next batch
-        for (int i = slice_size - 1; i >= 0; --i) {
-            current_slice[i]++;
-            if (current_slice[i] < slicing_dims[i]) {
-                break;
-            } else if (i != 0) {
-                current_slice[i] = 0;
+            // Determine the indices of next batch
+            for (int i = slice_size - 1; i >= 0; --i) {
+                current_slice[i]++;
+                if (current_slice[i] < slicing_dims[i]) {
+                    break;
+                } else if (i != 0) {
+                    current_slice[i] = 0;
+                }
             }
         }
     }
