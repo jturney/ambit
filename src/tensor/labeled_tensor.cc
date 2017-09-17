@@ -33,6 +33,7 @@
 #include <ambit/tensor.h>
 #include "tensorimpl.h"
 #include "indices.h"
+#include <cstring>
 
 namespace ambit
 {
@@ -644,8 +645,7 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
             L_shift *= sub_numel;
             std::vector<double>& Lt_batch_data = Ltp_batch.data();
             std::vector<double>& Lt_data = Ltp.data();
-            Lt_batch_data.clear();
-            Lt_batch_data.insert(Lt_batch_data.end(), Lt_data.begin()+L_shift, Lt_data.begin()+L_shift+sub_numel);
+            std::memcpy(Lt_batch_data.data(), Lt_data.data()+L_shift, sub_numel * sizeof(double));
 
             for (size_t i = 0; i < nterms; ++i) {
                 if (need_slicing[i][batched_size]) {
@@ -660,8 +660,7 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
                     cur_shift *= sub_numel_A;
                     std::vector<double>& A_batch_data = batch_tensors[i].data();
                     const std::vector<double>& A_data = rhsp[i].T().data();
-                    A_batch_data.clear();
-                    A_batch_data.insert(A_batch_data.end(), A_data.begin()+cur_shift, A_data.begin()+cur_shift+sub_numel_A);
+                    std::memcpy(A_batch_data.data(), A_data.data()+cur_shift, sub_numel_A * sizeof(double));
                 }
             }
 
@@ -675,9 +674,7 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
 
             // Copy current batch tensor result to the full result tensor
             const std::vector<double>& Ltc_batch_data = Ltp_batch.data();
-            for (size_t i = 0; i < sub_numel; ++i) {
-                Lt_data[L_shift + i] = Ltc_batch_data[i];
-            }
+            std::memcpy(Lt_data.data() + L_shift, Ltc_batch_data.data(), sub_numel * sizeof(double));
 
             // Determine the indices of next batch
             for (int i = batched_size - 1; i >= 0; --i) {
@@ -749,8 +746,7 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
             L_shift *= sub_numel;
             std::vector<double>& Lt_batch_data = Ltp_batch.data();
             std::vector<double>& Lt_data = Ltp.data();
-            Lt_batch_data.clear();
-            Lt_batch_data.insert(Lt_batch_data.end(), Lt_data.begin()+L_shift, Lt_data.begin()+L_shift+sub_numel);
+            std::memcpy(Lt_batch_data.data(), Lt_data.data()+L_shift, sub_numel * sizeof(double));
 
             for (size_t i = 0; i < nterms; ++i) {
                 if (need_slicing[i][batched_size]) {
@@ -765,8 +761,7 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
                     cur_shift *= sub_numel_A;
                     std::vector<double>& A_batch_data = batch_tensors[i].data();
                     const std::vector<double>& A_data = rhsp[i].T().data();
-                    A_batch_data.clear();
-                    A_batch_data.insert(A_batch_data.end(), A_data.begin()+cur_shift, A_data.begin()+cur_shift+sub_numel_A);
+                    std::memcpy(A_batch_data.data(), A_data.data()+cur_shift, sub_numel_A * sizeof(double));
                 }
             }
 
@@ -792,9 +787,7 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
 
             // Copy current batch tensor result to the full result tensor
             const std::vector<double>& Ltc_batch_data = Ltp_batch.data();
-            for (size_t i = 0; i < sub_numel; ++i) {
-                Lt_data[L_shift + i] = Ltc_batch_data[i];
-            }
+            std::memcpy(Lt_data.data() + L_shift, Ltc_batch_data.data(), sub_numel * sizeof(double));
 
             // Determine the indices of next batch
             for (int i = batched_size - 1; i >= 0; --i) {
