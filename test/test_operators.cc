@@ -1493,7 +1493,7 @@ double test_slice2()
     return difference(C, c2).second;
 }
 
-double test_Cijkl_equal_Aijab_Bklab_slice()
+double test_Cijkl_equal_Aijab_Bklab_batched()
 {
     size_t ni = 2;
     size_t nj = 6;
@@ -1532,7 +1532,7 @@ double test_Cijkl_equal_Aijab_Bklab_slice()
     return difference(C, c4).second;
 }
 
-double test_chain_multiply2_slice()
+double test_chain_multiply2_batched()
 {
     size_t ni = 5;
     size_t nj = 6;
@@ -1578,7 +1578,7 @@ double test_chain_multiply2_slice()
     return difference(D4, d4).second;
 }
 
-double test_chain_multiply3_slice()
+double test_chain_multiply3_batched()
 {
     size_t ni = 5;
     size_t nj = 6;
@@ -1623,7 +1623,7 @@ double test_chain_multiply3_slice()
     return difference(D4, d4).second;
 }
 
-double test_chain_multiply4_slice()
+double test_chain_multiply4_batched()
 {
     size_t ni = 5;
     size_t nj = 6;
@@ -1872,16 +1872,16 @@ int main(int argc, char *argv[])
             kPass, test_chain_multiply4,
             "D4(\"ijkl\") -= A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
         std::make_tuple(kPass, test_slice2, "Slice C2(1:5,0:4) = A2(0:4,2:6)"),
-        std::make_tuple(kPass, test_Cijkl_equal_Aijab_Bklab_slice,
+        std::make_tuple(kPass, test_Cijkl_equal_Aijab_Bklab_batched,
                         "C(\"ijkl\") += batched(\"j\",A(\"ijab\") * B(\"klab\"))"),
         std::make_tuple(
-            kPass, test_chain_multiply2_slice,
+            kPass, test_chain_multiply2_batched,
             "D4(\"ijkl\") = batched(\"i\",A4(\"ijmn\") * B2(\"km\") * C2(\"ln\"))"),
         std::make_tuple(
-            kPass, test_chain_multiply3_slice,
+            kPass, test_chain_multiply3_batched,
             "D4(\"ijkl\") += batched(\"j\",A4(\"ijmn\") * B2(\"km\") * C2(\"ln\"))"),
         std::make_tuple(
-            kPass, test_chain_multiply4_slice,
+            kPass, test_chain_multiply4_batched,
             "D4(\"ijkl\") -= batched(\"kl\",A4(\"ijmn\") * B2(\"km\") * C2(\"ln\"))"),
         std::make_tuple(
             kPass, test_batched,
