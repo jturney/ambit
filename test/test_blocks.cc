@@ -1843,6 +1843,479 @@ double test_contraction_exception1()
     return 0.0;
 }
 
+double test_Cij_equal_Aik_B_jk_batched()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "i,j,k", {0, 1, 2}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
+
+    BlockedTensor A =
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
+    BlockedTensor B =
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
+    BlockedTensor C =
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
+
+    size_t no = 3;
+
+    Tensor Aoo_t = build_and_fill("Aoo", {no, no}, a2);
+    Tensor Boo_t = build_and_fill("Boo", {no, no}, b2);
+    Tensor Coo_t = build_and_fill("Coo", {no, no}, c2);
+
+    A.block("oo")("pq") = Aoo_t("pq");
+    B.block("oo")("pq") = Boo_t("pq");
+    C.block("oo")("pq") = Coo_t("pq");
+
+    for (size_t i = 0; i < no; ++i)
+    {
+        for (size_t j = 0; j < no; ++j)
+        {
+            c2[i][j] = 0.0;
+            for (size_t k = 0; k < no; ++k)
+            {
+                c2[i][j] += a2[i][k] * b2[j][k];
+            }
+        }
+    }
+
+    C("ij") = batched("i", A("ik") * B("jk"));
+
+    Tensor Coo = C.block("oo");
+    double diff_oo = difference(Coo, c2).second;
+
+    return diff_oo;
+}
+
+double test_Cij_equal_Aip_B_jp_batched()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "i,j,k", {0, 1, 2, 10, 12}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9, 3, 4},
+                                AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
+
+    BlockedTensor A =
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
+    BlockedTensor B =
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
+    BlockedTensor C =
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
+
+    size_t no = 5;
+    size_t nv = 7;
+
+    Tensor Aoo_t = build_and_fill("Aoo", {no, no}, a2);
+    Tensor Boo_t = build_and_fill("Boo", {no, no}, b2);
+    Tensor Coo_t = build_and_fill("Coo", {no, no}, c2);
+    Tensor Aov_t = build_and_fill("Aov", {no, nv}, d2);
+    Tensor Bov_t = build_and_fill("Bov", {no, nv}, e2);
+    Tensor Cov_t = build_and_fill("Cov", {no, nv}, f2);
+
+    A.block("oo")("pq") = Aoo_t("pq");
+    B.block("oo")("pq") = Boo_t("pq");
+    C.block("oo")("pq") = Coo_t("pq");
+    A.block("ov")("pq") = Aov_t("pq");
+    B.block("ov")("pq") = Bov_t("pq");
+    C.block("ov")("pq") = Cov_t("pq");
+
+    for (size_t i = 0; i < no; ++i)
+    {
+        for (size_t j = 0; j < no; ++j)
+        {
+            c2[i][j] = 0.0;
+            for (size_t k = 0; k < no; ++k)
+            {
+                c2[i][j] += a2[i][k] * b2[j][k];
+            }
+            for (size_t a = 0; a < nv; ++a)
+            {
+                c2[i][j] += d2[i][a] * e2[j][a];
+            }
+        }
+    }
+
+    C("ij") = batched("j", A("ip") * B("jp"));
+    C("ab") = batched("b", A("ap") * B("bp"));
+
+    Tensor Coo = C.block("oo");
+    double diff_oo = difference(Coo, c2).second;
+
+    return diff_oo;
+}
+
+double test_Cij_equal_Aip_B_jp_fail_batched()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "i,j,k", {0, 1, 2, 10, 12}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9, 3, 4},
+                                AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
+
+    BlockedTensor A = BlockedTensor::build(CoreTensor, "A", {"oo", "vo", "vv"});
+    BlockedTensor B = BlockedTensor::build(CoreTensor, "B", {"oo", "vo", "vv"});
+    BlockedTensor C =
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
+
+    size_t no = 5;
+    size_t nv = 7;
+
+    Tensor Aoo_t = build_and_fill("Aoo", {no, no}, a2);
+    Tensor Boo_t = build_and_fill("Boo", {no, no}, b2);
+    Tensor Coo_t = build_and_fill("Coo", {no, no}, c2);
+    Tensor Cov_t = build_and_fill("Cov", {no, nv}, f2);
+
+    A.block("oo")("pq") = Aoo_t("pq");
+    B.block("oo")("pq") = Boo_t("pq");
+    C.block("oo")("pq") = Coo_t("pq");
+    C.block("ov")("pq") = Cov_t("pq");
+
+    for (size_t i = 0; i < no; ++i)
+    {
+        for (size_t j = 0; j < no; ++j)
+        {
+            c2[i][j] = 0.0;
+            for (size_t k = 0; k < no; ++k)
+            {
+                c2[i][j] += a2[i][k] * b2[j][k];
+            }
+        }
+    }
+
+    C("ij") = batched("i", A("ip") * B("jp"));
+
+    Tensor Coo = C.block("oo");
+    double diff_oo = difference(Coo, c2).second;
+
+    return diff_oo;
+}
+
+double test_Cij_equal_Aip_B_jp_expert_batched()
+{
+    BlockedTensor::set_expert_mode(true);
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "i,j,k", {0, 1, 2, 10, 12}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9, 3, 4},
+                                AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
+
+    BlockedTensor A = BlockedTensor::build(CoreTensor, "A", {"oo", "vo", "vv"});
+    BlockedTensor B = BlockedTensor::build(CoreTensor, "B", {"oo", "vo", "vv"});
+    BlockedTensor C =
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
+
+    size_t no = 5;
+    size_t nv = 7;
+
+    Tensor Aoo_t = build_and_fill("Aoo", {no, no}, a2);
+    Tensor Boo_t = build_and_fill("Boo", {no, no}, b2);
+    Tensor Coo_t = build_and_fill("Coo", {no, no}, c2);
+    Tensor Cov_t = build_and_fill("Cov", {no, nv}, f2);
+
+    A.block("oo")("pq") = Aoo_t("pq");
+    B.block("oo")("pq") = Boo_t("pq");
+    C.block("oo")("pq") = Coo_t("pq");
+    C.block("ov")("pq") = Cov_t("pq");
+
+    for (size_t i = 0; i < no; ++i)
+    {
+        for (size_t j = 0; j < no; ++j)
+        {
+            c2[i][j] = 0.0;
+            for (size_t k = 0; k < no; ++k)
+            {
+                c2[i][j] += a2[i][k] * b2[j][k];
+            }
+        }
+    }
+
+    C("ij") = batched("i", A("ip") * B("jp"));
+
+    Tensor Coo = C.block("oo");
+    double diff_oo = difference(Coo, c2).second;
+
+    BlockedTensor::set_expert_mode(false);
+
+    return diff_oo;
+}
+
+double test_Cpq_equal_Apq_B_pq_expert_batched()
+{
+    BlockedTensor::set_expert_mode(true);
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "i,j,k", {0, 1, 2, 10, 12}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9, 3, 4},
+                                AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
+
+    BlockedTensor A = BlockedTensor::build(CoreTensor, "A", {"oo", "vo", "ov"});
+    BlockedTensor B = BlockedTensor::build(CoreTensor, "B", {"oo", "vo", "ov"});
+    BlockedTensor C = BlockedTensor::build(CoreTensor, "C", {"oo"});
+
+    size_t no = 5;
+    size_t nv = 7;
+
+    Tensor Aoo_t = build_and_fill("Aoo", {no, no}, a2);
+    Tensor Boo_t = build_and_fill("Boo", {no, no}, b2);
+    Tensor Coo_t = build_and_fill("Coo", {no, no}, c2);
+    Tensor Cov_t = build_and_fill("Cov", {no, nv}, f2);
+
+    A.block("oo")("pq") = Aoo_t("pq");
+    B.block("oo")("pq") = Boo_t("pq");
+    C.block("oo")("pq") = Coo_t("pq");
+
+    for (size_t i = 0; i < no; ++i)
+    {
+        for (size_t j = 0; j < no; ++j)
+        {
+            c2[i][j] = a2[i][j] * b2[i][j];
+        }
+    }
+
+    C("pq") = batched("p", A("pq") * B("pq"));
+
+    Tensor Coo = C.block("oo");
+    double diff_oo = difference(Coo, c2).second;
+
+    BlockedTensor::set_expert_mode(false);
+
+    return diff_oo;
+}
+
+double test_Cij_equal_half_Aia_B_aj_batched()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "i,j,k", {0, 1, 2}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
+
+    BlockedTensor A =
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
+    BlockedTensor B =
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
+    BlockedTensor C =
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
+
+    size_t no = 3;
+    size_t nv = 5;
+
+    Tensor Aov_t = build_and_fill("Aov", {no, nv}, a2);
+    Tensor Bvo_t = build_and_fill("Bvo", {nv, no}, b2);
+    Tensor Coo_t = build_and_fill("Coo", {no, no}, c2);
+
+    A.block("ov")("pq") = Aov_t("pq");
+    B.block("vo")("pq") = Bvo_t("pq");
+    C.block("oo")("pq") = Coo_t("pq");
+
+    for (size_t i = 0; i < no; ++i)
+    {
+        for (size_t j = 0; j < no; ++j)
+        {
+            c2[i][j] = 0.0;
+            for (size_t a = 0; a < nv; ++a)
+            {
+                c2[i][j] += 0.5 * a2[i][a] * b2[a][j];
+            }
+        }
+    }
+
+    C("ij") = batched("j", 0.5 * A("ia") * B("aj"));
+
+    Tensor Coo = C.block("oo");
+    double diff_oo = difference(Coo, c2).second;
+
+    return diff_oo;
+}
+
+double test_Cij_plus_equal_half_Aai_B_ja_batched()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "i,j,k", {0, 1, 2}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
+
+    BlockedTensor A =
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
+    BlockedTensor B =
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
+    BlockedTensor C =
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
+
+    size_t no = 3;
+    size_t nv = 5;
+
+    Tensor Avo_t = build_and_fill("Avo", {nv, no}, a2);
+    Tensor Bov_t = build_and_fill("Bov", {no, nv}, b2);
+    Tensor Coo_t = build_and_fill("Coo", {no, no}, c2);
+
+    A.block("vo")("pq") = Avo_t("pq");
+    B.block("ov")("pq") = Bov_t("pq");
+    C.block("oo")("pq") = Coo_t("pq");
+
+    for (size_t i = 0; i < no; ++i)
+    {
+        for (size_t j = 0; j < no; ++j)
+        {
+            for (size_t a = 0; a < nv; ++a)
+            {
+                c2[i][j] += 0.5 * a2[a][i] * b2[j][a];
+            }
+        }
+    }
+
+    C("ij") += batched("i", A("ai") * (0.5 * B("ja")));
+
+    Tensor Coo = C.block("oo");
+    double diff_oo = difference(Coo, c2).second;
+
+    return diff_oo;
+}
+
+double test_Cij_minus_equal_Aik_B_jk_batched()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "i,j,k", {0, 1, 2}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
+
+    BlockedTensor A =
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
+    BlockedTensor B =
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
+    BlockedTensor C =
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
+
+    size_t no = 3;
+
+    Tensor Aoo_t = build_and_fill("Aoo", {no, no}, a2);
+    Tensor Boo_t = build_and_fill("Boo", {no, no}, b2);
+    Tensor Coo_t = build_and_fill("Coo", {no, no}, c2);
+
+    A.block("oo")("pq") = Aoo_t("pq");
+    B.block("oo")("pq") = Boo_t("pq");
+    C.block("oo")("pq") = Coo_t("pq");
+
+    for (size_t i = 0; i < no; ++i)
+    {
+        for (size_t j = 0; j < no; ++j)
+        {
+            for (size_t k = 0; k < no; ++k)
+            {
+                c2[i][j] -= a2[i][k] * b2[j][k];
+            }
+        }
+    }
+
+    C("ij") -= batched("i", A("ik") * B("jk"));
+
+    Tensor Coo = C.block("oo");
+    double diff_oo = difference(Coo, c2).second;
+
+    return diff_oo;
+}
+
+double test_greek_Cij_equal_Aik_B_jk_batched()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "ι,κ,λ,μ,i,j,k,l", {0, 1, 2}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "α,β,γ,δ", {5, 6, 7, 8, 9}, AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g", "ρ,σ", {"o", "v"});
+
+    BlockedTensor A =
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
+    BlockedTensor B =
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
+    BlockedTensor C =
+        BlockedTensor::build(CoreTensor, "C", {"oo", "ov", "vo", "vv"});
+
+    size_t no = 3;
+
+    Tensor Aoo_t = build_and_fill("Aoo", {no, no}, a2);
+    Tensor Boo_t = build_and_fill("Boo", {no, no}, b2);
+    Tensor Coo_t = build_and_fill("Coo", {no, no}, c2);
+
+    A.block("oo")("pq") = Aoo_t("pq");
+    B.block("oo")("pq") = Boo_t("pq");
+    C.block("oo")("pq") = Coo_t("pq");
+
+    for (size_t i = 0; i < no; ++i)
+    {
+        for (size_t j = 0; j < no; ++j)
+        {
+            c2[i][j] = 0.0;
+            for (size_t k = 0; k < no; ++k)
+            {
+                c2[i][j] += a2[i][k] * b2[j][k];
+            }
+        }
+    }
+
+    C("ι,κ") = batched("κ,", A("ι,λ") * B("κ,λ"));
+
+    Tensor Coo = C.block("oo");
+    double diff_oo = difference(Coo, c2).second;
+
+    return diff_oo;
+}
+
+double test_Aij_equal_Aik_B_jk_batched()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "i,j,k", {0, 1, 2}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9}, AlphaSpin);
+
+    BlockedTensor A =
+        BlockedTensor::build(CoreTensor, "A", {"oo", "ov", "vo", "vv"});
+    BlockedTensor B =
+        BlockedTensor::build(CoreTensor, "B", {"oo", "ov", "vo", "vv"});
+
+    A("ij") = batched("j", A("ik") * B("jk"));
+
+    return 0.0;
+}
+
+double test_batched_with_factor()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "i,j,k", {0, 1, 2, 10, 12}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9, 3, 4},
+                                AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
+
+    BlockedTensor A =
+        BlockedTensor::build(CoreTensor, "A", {"gggg"});
+    BlockedTensor B =
+        BlockedTensor::build(CoreTensor, "B", {"gggg"});
+    BlockedTensor C =
+        BlockedTensor::build(CoreTensor, "C", {"gggg"});
+    BlockedTensor C2 =
+        BlockedTensor::build(CoreTensor, "C2", {"gggg"});
+
+    size_t no = 5;
+    size_t nv = 7;
+
+    for (const std::string & bl : A.block_labels()) {
+        A.block(bl)("pqrs") = build_and_fill("A"+bl, A.block(bl).dims(), a4)("pqrs");
+    }
+
+    for (const std::string & bl : B.block_labels()) {
+        B.block(bl)("pqrs") = build_and_fill("B"+bl, B.block(bl).dims(), b4)("pqrs");
+    }
+
+    for (const std::string & bl : C.block_labels()) {
+        C.block(bl)("pqrs") = build_and_fill("C"+bl, C.block(bl).dims(), c4)("pqrs");
+    }
+
+    C2["pqrs"] = C["pqrs"];
+
+    C["ijrs"] = 0.5 * A["abrs"] * B["ijab"];
+    C2["ijrs"] = batched("r", 0.5 * A["abrs"] * B["ijab"]);
+
+    C2["pqrs"] -= C["pqrs"];
+
+    return C2.norm(0);
+}
+
 int main(int argc, char *argv[])
 {
     printf(ANSI_COLOR_RESET);
@@ -1988,6 +2461,39 @@ int main(int argc, char *argv[])
             "Testing blocked tensor dot product index mismatch (2)"),
         std::make_tuple(kException, test_contraction_exception1,
                         "Testing blocked tensor contraction exception (1)"),
+        std::make_tuple(
+            kPass, test_Cij_equal_Aik_B_jk_batched,
+            "C(\"ij\") = batched(\"i\", A(\"ik\") * B(\"jk\"))"),
+        std::make_tuple(
+            kPass, test_Cij_equal_Aip_B_jp_batched,
+            "C(\"ij\") = batched(\"j\", A(\"ip\") * B(\"jp\")) (1)"),
+        std::make_tuple(
+            kException, test_Cij_equal_Aip_B_jp_fail_batched,
+            "C(\"ij\") = batched(\"i\", A(\"ip\") * B(\"jp\")) (2)"),
+        std::make_tuple(
+            kPass, test_Cij_equal_Aip_B_jp_expert_batched,
+            "C(\"ij\") = batched(\"i\", A(\"ip\") * B(\"jp\")) (3)"),
+        std::make_tuple(
+            kPass, test_Cpq_equal_Apq_B_pq_expert_batched,
+            "C(\"pq\") = batched(\"p\", A(\"pq\") * B(\"pq\"))"),
+        std::make_tuple(
+            kPass, test_Cij_equal_half_Aia_B_aj_batched,
+            "C(\"ij\") = batched(\"j\", 0.5 * A(\"ia\") * B(\"aj\"))"),
+        std::make_tuple(kPass, test_Cij_plus_equal_half_Aai_B_ja_batched,
+                        "C(\"ij\") += batched(\"i\", A(\"ai\") * (0.5 "
+                        "* B(\"ja\")))"),
+        std::make_tuple(
+            kPass, test_Cij_minus_equal_Aik_B_jk_batched,
+            "C(\"ij\") -= batched(\"i\", A(\"ik\") * B(\"jk\"))"),
+        std::make_tuple(
+            kPass, test_greek_Cij_equal_Aik_B_jk_batched,
+            "C(\"ij\") = batched(\"j\", A(\"ik\") * B(\"jk\")) [Greek]"),
+        std::make_tuple(
+            kException, test_Aij_equal_Aik_B_jk_batched,
+            "A(\"ij\") = batched(\"j\", A(\"ik\") * B(\"jk\"))"),
+        std::make_tuple(
+            kPass, test_batched_with_factor,
+            "C2[\"ijrs\"] = batched(\"r\", 0.5 * A[\"abrs\"] * B[\"ijab\"])"),
     };
 
     std::vector<std::tuple<std::string, TestResult, double>> results;

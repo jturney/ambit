@@ -829,6 +829,48 @@ void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorProduct &rhs)
     }
 }
 
+void LabeledBlockedTensor::operator=(const LabeledBlockedTensorBatchedProduct &rhs)
+{
+    try
+    {
+        contract_batched(rhs, true, true);
+    }
+    catch (std::exception &e)
+    {
+        std::string msg = "\n" + this->str() + " = " + rhs.get_contraction().str() + " <- " +
+                          std::string(e.what());
+        throw std::runtime_error(msg);
+    }
+}
+
+void LabeledBlockedTensor::operator+=(const LabeledBlockedTensorBatchedProduct &rhs)
+{
+    try
+    {
+        contract_batched(rhs, false, true);
+    }
+    catch (std::exception &e)
+    {
+        std::string msg = "\n" + this->str() + " += " + rhs.get_contraction().str() + " <- " +
+                          std::string(e.what());
+        throw std::runtime_error(msg);
+    }
+}
+
+void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorBatchedProduct &rhs)
+{
+    try
+    {
+        contract_batched(rhs, false, false);
+    }
+    catch (std::exception &e)
+    {
+        std::string msg = "\n" + this->str() + " -= " + rhs.get_contraction().str() + " <- " +
+                          std::string(e.what());
+        throw std::runtime_error(msg);
+    }
+}
+
 void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
                                     bool zero_result, bool add)
 {
@@ -947,6 +989,133 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
             else
             {
                 result -= prod;
+            }
+        }
+    }
+}
+
+void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedProduct &rhs_batched,
+                                    bool zero_result, bool add)
+{
+    const LabeledBlockedTensorProduct &rhs = rhs_batched.get_contraction();
+    const Indices &batched_indices = rhs_batched.get_batched_indices();
+
+    size_t nterms = rhs.size();
+
+    // Check for self assignment
+    for (size_t n = 0; n < nterms; ++n)
+    {
+        const BlockedTensor &bt = rhs[n].BT();
+        if (BT_ == bt)
+        {
+            throw std::runtime_error(
+                "Tensor contractions does not support self assignment.");
+        }
+    }
+
+    // Find the unique indices in the contraction
+    std::vector<std::string> unique_indices;
+    for (size_t n = 0; n < nterms; ++n)
+    {
+        for (const std::string &index : rhs[n].indices())
+        {
+            unique_indices.push_back(index);
+        }
+    }
+    sort(unique_indices.begin(), unique_indices.end());
+    unique_indices.erase(
+        std::unique(unique_indices.begin(), unique_indices.end()),
+        unique_indices.end());
+
+    std::vector<std::vector<size_t>> unique_indices_keys =
+        BlockedTensor::label_to_block_keys(unique_indices);
+    std::map<std::string, size_t> index_map;
+    {
+        size_t k = 0;
+        for (const std::string &index : unique_indices)
+        {
+            index_map[index] = k;
+            k++;
+        }
+    }
+
+    if (zero_result)
+    {
+        // Zero the results blocks
+        for (const std::vector<size_t> &uik : unique_indices_keys)
+        {
+            std::vector<size_t> result_key;
+            for (const std::string &index : indices())
+            {
+                result_key.push_back(uik[index_map[index]]);
+            }
+            if (BlockedTensor::expert_mode_)
+            {
+                if (BT_.is_block(result_key))
+                {
+                    BT_.block(result_key).zero();
+                }
+            }
+            else
+            {
+                BT_.block(result_key).zero();
+            }
+        }
+    }
+
+    // Setup and perform contractions
+    for (const std::vector<size_t> &uik : unique_indices_keys)
+    {
+        std::vector<size_t> result_key;
+        for (const std::string &index : indices())
+        {
+            result_key.push_back(uik[index_map[index]]);
+        }
+
+        bool do_contract = true;
+        // In expert mode if a contraction cannot be performed
+        if (BlockedTensor::expert_mode_)
+        {
+            if (not BT().is_block(result_key))
+                do_contract = false;
+            for (size_t n = 0; n < nterms; ++n)
+            {
+                const LabeledBlockedTensor &lbt = rhs[n];
+                std::vector<size_t> term_key;
+                for (const std::string &index : lbt.indices())
+                {
+                    term_key.push_back(uik[index_map[index]]);
+                }
+                if (not lbt.BT().is_block(term_key))
+                    do_contract = false;
+            }
+        }
+
+        if (do_contract)
+        {
+            LabeledTensor result(BT().block(result_key), indices(), factor());
+
+            LabeledTensorContraction prod;
+            for (size_t n = 0; n < nterms; ++n)
+            {
+                const LabeledBlockedTensor &lbt = rhs[n];
+                std::vector<size_t> term_key;
+                for (const std::string &index : lbt.indices())
+                {
+                    term_key.push_back(uik[index_map[index]]);
+                }
+                const LabeledTensor term(lbt.BT().block(term_key),
+                                         lbt.indices(), lbt.factor());
+                prod *= term;
+            }
+            LabeledTensorBatchedContraction prod_batched(prod, batched_indices);
+            if (add)
+            {
+                result += prod_batched;
+            }
+            else
+            {
+                result -= prod_batched;
             }
         }
     }
@@ -1185,4 +1354,10 @@ std::vector<std::string> spin_cases(const std::vector<std::string> &in_str_vec)
     }
     return out_str_vec;
 }
+
+LabeledBlockedTensorBatchedProduct batched(const string &batched_indices, const LabeledBlockedTensorProduct &product)
+{
+    return LabeledBlockedTensorBatchedProduct(product, indices::split(batched_indices));
+}
+
 }

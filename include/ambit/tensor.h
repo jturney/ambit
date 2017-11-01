@@ -40,6 +40,7 @@ namespace ambit
 class TensorImpl;
 class LabeledTensor;
 class LabeledTensorContraction;
+class LabeledTensorBatchedContraction;
 class LabeledTensorAddition;
 class LabeledTensorSubtraction;
 class LabeledTensorDistribution;
@@ -543,6 +544,10 @@ class LabeledTensor
     void operator+=(const LabeledTensorContraction &rhs);
     void operator-=(const LabeledTensorContraction &rhs);
 
+    void operator=(const LabeledTensorBatchedContraction &rhs);
+    void operator+=(const LabeledTensorBatchedContraction &rhs);
+    void operator-=(const LabeledTensorBatchedContraction &rhs);
+
     void operator=(const LabeledTensorAddition &rhs);
     void operator+=(const LabeledTensorAddition &rhs);
     void operator-=(const LabeledTensorAddition &rhs);
@@ -563,6 +568,8 @@ class LabeledTensor
     }
 
     void contract(const LabeledTensorContraction &rhs, bool zero_result,
+                  bool add);
+    void contract_batched(const LabeledTensorBatchedContraction &rhs, bool zero_result,
                   bool add);
 
   private:
@@ -611,6 +618,24 @@ class LabeledTensorContraction
   private:
     vector<LabeledTensor> tensors_;
 };
+
+class LabeledTensorBatchedContraction
+{
+
+  public:
+    LabeledTensorBatchedContraction(const LabeledTensorContraction &contraction, const Indices &batched_indices)
+        : contraction_(contraction), batched_indices_(batched_indices)
+    {}
+
+    const LabeledTensorContraction& get_contraction() const { return contraction_; }
+    const Indices& get_batched_indices() const { return batched_indices_; }
+
+  private:
+    const LabeledTensorContraction &contraction_;
+    Indices batched_indices_;
+};
+
+LabeledTensorBatchedContraction batched(const string &batched_indices, const LabeledTensorContraction &contraction);
 
 class LabeledTensorAddition
 {

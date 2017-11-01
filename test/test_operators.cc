@@ -1493,6 +1493,267 @@ double test_slice2()
     return difference(C, c2).second;
 }
 
+double test_Cijkl_equal_Aijab_Bklab_batched()
+{
+    size_t ni = 2;
+    size_t nj = 6;
+    size_t nk = 8;
+    size_t nl = 7;
+    size_t na = 5;
+    size_t nb = 3;
+
+    Tensor A = build_and_fill("A", {ni, nj, na, nb}, a4);
+    Tensor B = build_and_fill("B", {nk, nl, na, nb}, b4);
+    Tensor C = build_and_fill("C", {ni, nj, nk, nl}, c4);
+
+    C("ijkl") += batched("j", A("ijab") * B("klab"));
+
+    for (size_t i = 0; i < ni; ++i)
+    {
+        for (size_t j = 0; j < nj; ++j)
+        {
+            for (size_t k = 0; k < nk; ++k)
+            {
+                for (size_t l = 0; l < nl; ++l)
+                {
+//                    c4[i][j][k][l] = 0;
+                    for (size_t a = 0; a < na; ++a)
+                    {
+                        for (size_t b = 0; b < nb; ++b)
+                        {
+                            c4[i][j][k][l] += a4[i][j][a][b] * b4[k][l][a][b];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(C, c4).second;
+}
+
+double test_chain_multiply2_batched()
+{
+    size_t ni = 5;
+    size_t nj = 6;
+    size_t nk = 7;
+    size_t nl = 6;
+    size_t nm = 7;
+    size_t nn = 5;
+
+    std::vector<size_t> dimsA = {ni, nj, nm, nn};
+    std::vector<size_t> dimsB = {nk, nm};
+    std::vector<size_t> dimsC = {nl, nn};
+    std::vector<size_t> dimsD = {ni, nj, nk, nl};
+
+    Tensor A4 = build_and_fill("A4", dimsA, a4);
+    Tensor B2 = build_and_fill("B2", dimsB, b2);
+    Tensor C2 = build_and_fill("C2", dimsC, c2);
+    Tensor D4 = build_and_fill("D4", dimsD, d4);
+
+    D4("ijkl") = batched("i", A4("ijmn") * B2("km") * C2("ln"));
+
+    for (size_t i = 0; i < ni; ++i)
+    {
+        for (size_t j = 0; j < nj; ++j)
+        {
+            for (size_t k = 0; k < nk; ++k)
+            {
+                for (size_t l = 0; l < nl; ++l)
+                {
+                    d4[i][j][k][l] = 0.0;
+                    for (size_t m = 0; m < nm; ++m)
+                    {
+                        for (size_t n = 0; n < nn; ++n)
+                        {
+                            d4[i][j][k][l] +=
+                                a4[i][j][m][n] * b2[k][m] * c2[l][n];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(D4, d4).second;
+}
+
+double test_chain_multiply3_batched()
+{
+    size_t ni = 5;
+    size_t nj = 6;
+    size_t nk = 7;
+    size_t nl = 6;
+    size_t nm = 7;
+    size_t nn = 5;
+
+    std::vector<size_t> dimsA = {ni, nj, nm, nn};
+    std::vector<size_t> dimsB = {nk, nm};
+    std::vector<size_t> dimsC = {nl, nn};
+    std::vector<size_t> dimsD = {ni, nj, nk, nl};
+
+    Tensor A4 = build_and_fill("A4", dimsA, a4);
+    Tensor B2 = build_and_fill("B2", dimsB, b2);
+    Tensor C2 = build_and_fill("C2", dimsC, c2);
+    Tensor D4 = build_and_fill("D4", dimsD, d4);
+
+    D4("ijkl") += batched("j", A4("ijmn") * B2("km") * C2("ln"));
+
+    for (size_t i = 0; i < ni; ++i)
+    {
+        for (size_t j = 0; j < nj; ++j)
+        {
+            for (size_t k = 0; k < nk; ++k)
+            {
+                for (size_t l = 0; l < nl; ++l)
+                {
+                    for (size_t m = 0; m < nm; ++m)
+                    {
+                        for (size_t n = 0; n < nn; ++n)
+                        {
+                            d4[i][j][k][l] +=
+                                a4[i][j][m][n] * b2[k][m] * c2[l][n];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(D4, d4).second;
+}
+
+double test_chain_multiply4_batched()
+{
+    size_t ni = 5;
+    size_t nj = 6;
+    size_t nk = 7;
+    size_t nl = 6;
+    size_t nm = 7;
+    size_t nn = 5;
+
+    std::vector<size_t> dimsA = {ni, nj, nm, nn};
+    std::vector<size_t> dimsB = {nk, nm};
+    std::vector<size_t> dimsC = {nl, nn};
+    std::vector<size_t> dimsD = {ni, nj, nk, nl};
+
+    Tensor A4 = build_and_fill("A4", dimsA, a4);
+    Tensor B2 = build_and_fill("B2", dimsB, b2);
+    Tensor C2 = build_and_fill("C2", dimsC, c2);
+    Tensor D4 = build_and_fill("D4", dimsD, d4);
+
+    D4("ijkl") -= batched("kl", A4("ijmn") * B2("km") * C2("ln"));
+
+    for (size_t i = 0; i < ni; ++i)
+    {
+        for (size_t j = 0; j < nj; ++j)
+        {
+            for (size_t k = 0; k < nk; ++k)
+            {
+                for (size_t l = 0; l < nl; ++l)
+                {
+                    for (size_t m = 0; m < nm; ++m)
+                    {
+                        for (size_t n = 0; n < nn; ++n)
+                        {
+                            d4[i][j][k][l] -=
+                                a4[i][j][m][n] * b2[k][m] * c2[l][n];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(D4, d4).second;
+}
+
+double test_batched()
+{
+    size_t ni = 5;
+    size_t nj = 6;
+    size_t nk = 7;
+    size_t nl = 7;
+    size_t nm = 5;
+    size_t nn = 5;
+    size_t no = 2;
+    size_t np = 2;
+
+    std::vector<size_t> dimsA = {ni, nj, nm, nn};
+    std::vector<size_t> dimsB = {nk, nm};
+    std::vector<size_t> dimsC = {nl, nn};
+    std::vector<size_t> dimsD = {ni, nj, nk, nl};
+
+    Tensor A4 = build_and_fill("A4", dimsA, a4);
+    Tensor B2 = build_and_fill("B2", dimsB, b2);
+    Tensor C2 = build_and_fill("C2", dimsC, c2);
+    Tensor D4 = build_and_fill("D4", dimsD, d4);
+
+    D4("ijkl") += batched("ijkl", A4("ijmn") * B2("km") * B2("ln"));
+
+    for (size_t i = 0; i < ni; ++i)
+    {
+        for (size_t j = 0; j < nj; ++j)
+        {
+            for (size_t k = 0; k < nk; ++k)
+            {
+                for (size_t l = 0; l < nl; ++l)
+                {
+                    for (size_t m = 0; m < nm; ++m)
+                    {
+                        for (size_t n = 0; n < nn; ++n)
+                        {
+                            d4[i][j][k][l] +=
+                                a4[i][j][m][n] * b2[k][m] * b2[l][n];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(D4, d4).second;
+}
+
+double test_batched_with_factor()
+{
+    size_t no = 2;
+
+    std::vector<size_t> dimsA = {no, no, no, no};
+    std::vector<size_t> dimsB = {no, no, no, no};
+    std::vector<size_t> dimsC = {no, no, no, no};
+
+    Tensor A = build_and_fill("A", dimsA, a4);
+    Tensor B = build_and_fill("B", dimsB, b4);
+    Tensor C = build_and_fill("C", dimsC, c4);
+
+    C("ijrs") = batched("r", 0.5 * A("abrs") * B("ijab"));
+
+    for (size_t i = 0; i < no; ++i)
+    {
+        for (size_t j = 0; j < no; ++j)
+        {
+            for (size_t r = 0; r < no; ++r)
+            {
+                for (size_t s = 0; s < no; ++s)
+                {
+                    c4[i][j][r][s] = 0.0;
+                    for (size_t a = 0; a < no; ++a)
+                    {
+                        for (size_t b = 0; b < no; ++b)
+                        {
+                            c4[i][j][r][s] +=
+                                0.5 * a4[a][b][r][s] * b4[i][j][a][b];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(C, c4).second;
+}
+
 int main(int argc, char *argv[])
 {
     srand(time(nullptr));
@@ -1605,6 +1866,23 @@ int main(int argc, char *argv[])
             kPass, test_chain_multiply4,
             "D4(\"ijkl\") -= A4(\"ijmn\") * B2(\"km\") * C2(\"ln\")"),
         std::make_tuple(kPass, test_slice2, "Slice C2(1:5,0:4) = A2(0:4,2:6)"),
+        std::make_tuple(kPass, test_Cijkl_equal_Aijab_Bklab_batched,
+                        "C(\"ijkl\") += batched(\"j\",A(\"ijab\") * B(\"klab\"))"),
+        std::make_tuple(
+            kPass, test_chain_multiply2_batched,
+            "D4(\"ijkl\") = batched(\"i\",A4(\"ijmn\") * B2(\"km\") * C2(\"ln\"))"),
+        std::make_tuple(
+            kPass, test_chain_multiply3_batched,
+            "D4(\"ijkl\") += batched(\"j\",A4(\"ijmn\") * B2(\"km\") * C2(\"ln\"))"),
+        std::make_tuple(
+            kPass, test_chain_multiply4_batched,
+            "D4(\"ijkl\") -= batched(\"kl\",A4(\"ijmn\") * B2(\"km\") * C2(\"ln\"))"),
+        std::make_tuple(
+            kPass, test_batched,
+            "D4(\"ijkl\") += batched(\"ijkl\", A4(\"ijmn\") * B2(\"km\") * B2(\"ln\"))"),
+        std::make_tuple(
+            kPass, test_batched_with_factor,
+            "C2(\"ijrs\") = batched(\"r\", 0.5 * A(\"abrs\") * B(\"ijab\"))"),
     };
 
     std::vector<std::tuple<std::string, TestResult, double>> results;

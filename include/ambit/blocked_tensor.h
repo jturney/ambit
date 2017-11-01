@@ -43,6 +43,7 @@ namespace ambit
 
 class LabeledBlockedTensor;
 class LabeledBlockedTensorProduct;
+class LabeledBlockedTensorBatchedProduct;
 class LabeledBlockedTensorAddition;
 class LabeledBlockedTensorDistributive;
 
@@ -405,6 +406,10 @@ class LabeledBlockedTensor
     void operator+=(const LabeledBlockedTensorProduct &rhs);
     void operator-=(const LabeledBlockedTensorProduct &rhs);
 
+    void operator=(const LabeledBlockedTensorBatchedProduct &rhs);
+    void operator+=(const LabeledBlockedTensorBatchedProduct &rhs);
+    void operator-=(const LabeledBlockedTensorBatchedProduct &rhs);
+
     void operator=(const LabeledBlockedTensorAddition &rhs);
     void operator+=(const LabeledBlockedTensorAddition &rhs);
     void operator-=(const LabeledBlockedTensorAddition &rhs);
@@ -429,6 +434,8 @@ class LabeledBlockedTensor
     }
 
     void contract(const LabeledBlockedTensorProduct &rhs, bool zero_result,
+                  bool add);
+    void contract_batched(const LabeledBlockedTensorBatchedProduct &rhs, bool zero_result,
                   bool add);
     void add(const LabeledBlockedTensor &rhs, double alpha, double beta);
 
@@ -475,6 +482,25 @@ class LabeledBlockedTensorProduct
   private:
     std::vector<LabeledBlockedTensor> tensors_;
 };
+
+class LabeledBlockedTensorBatchedProduct
+{
+
+  public:
+    LabeledBlockedTensorBatchedProduct(const LabeledBlockedTensorProduct &product,
+                                const Indices &batched_indices)
+        : product_(product), batched_indices_(batched_indices)
+    {}
+
+    const LabeledBlockedTensorProduct& get_contraction() const { return product_; }
+    const Indices& get_batched_indices() const { return batched_indices_; }
+
+  private:
+    const LabeledBlockedTensorProduct &product_;
+    Indices batched_indices_;
+};
+
+LabeledBlockedTensorBatchedProduct batched(const string &batched_indices, const LabeledBlockedTensorProduct &product);
 
 class LabeledBlockedTensorAddition
 {

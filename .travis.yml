@@ -71,6 +71,10 @@ before_script:
 - cd ${TRAVIS_BUILD_DIR}
 - export CXX=${CXX_COMPILER}
 - export CC=${C_COMPILER}
+- |
+  if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+    pyenv global 3.5
+  fi
 - cmake -H. -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -Bobjdir
 - cd objdir
 script:
