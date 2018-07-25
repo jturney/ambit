@@ -784,6 +784,8 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
             Ltp_batch.contract(inter_tensors[nterms-3], B.T(), sub_indices, inter_indices[nterms-3], B.indices(),
                         add ? B.factor() : -B.factor(),
                         zero_result ? 0.0 : 1.0);
+            // The intermediate tensors in this contraction should be reused for all the batches
+            // to avoid recreating the intermediate of the same size multiple times.
 
             // Copy current batch tensor result to the full result tensor
             const std::vector<double>& Ltc_batch_data = Ltp_batch.data();
