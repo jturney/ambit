@@ -1754,6 +1754,45 @@ double test_batched_with_factor()
     return difference(C, c4).second;
 }
 
+double test_batched_with_factor_permute()
+{
+    size_t no = 4;
+
+    std::vector<size_t> dimsA = {no, no, no, no};
+    std::vector<size_t> dimsB = {no, no, no, no};
+    std::vector<size_t> dimsC = {no, no, no, no};
+
+    Tensor A = build_and_fill("A", dimsA, a4);
+    Tensor B = build_and_fill("B", dimsB, b4);
+    Tensor C = build_and_fill("C", dimsC, c4);
+
+    C("ijrs") = batched("r", 0.5 * A("abrs") * B("ijba"));
+
+    for (size_t i = 0; i < no; ++i)
+    {
+        for (size_t j = 0; j < no; ++j)
+        {
+            for (size_t r = 0; r < no; ++r)
+            {
+                for (size_t s = 0; s < no; ++s)
+                {
+                    c4[i][j][r][s] = 0.0;
+                    for (size_t a = 0; a < no; ++a)
+                    {
+                        for (size_t b = 0; b < no; ++b)
+                        {
+                            c4[i][j][r][s] +=
+                                0.5 * a4[a][b][r][s] * b4[i][j][b][a];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(C, c4).second;
+}
+
 int main(int argc, char *argv[])
 {
     srand(time(nullptr));
@@ -1883,6 +1922,9 @@ int main(int argc, char *argv[])
         std::make_tuple(
             kPass, test_batched_with_factor,
             "C2(\"ijrs\") = batched(\"r\", 0.5 * A(\"abrs\") * B(\"ijab\"))"),
+        std::make_tuple(
+            kPass, test_batched_with_factor_permute,
+            "C2(\"ijrs\") = batched(\"r\", 0.5 * A(\"abrs\") * B(\"ijba\"))"),
     };
 
     std::vector<std::tuple<std::string, TestResult, double>> results;

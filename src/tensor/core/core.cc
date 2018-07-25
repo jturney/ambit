@@ -37,6 +37,7 @@
 #include <string.h>
 #include <cmath>
 #include <limits>
+#include <iostream>
 
 //#include <boost/timer/timer.hpp>
 
@@ -167,9 +168,9 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
                               const Indices &Cinds, const Indices &Ainds,
                               const Indices &Binds, double alpha, double beta)
 {
-    shared_ptr<TensorImpl> C2;
-    shared_ptr<TensorImpl> B2;
     shared_ptr<TensorImpl> A2;
+    shared_ptr<TensorImpl> B2;
+    shared_ptr<TensorImpl> C2;
     contract(A, B, Cinds, Ainds, Binds, A2, B2, C2, alpha, beta);
 }
 
@@ -519,24 +520,27 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     if (permC)
     {
         ambit::timer::timer_push("pre-BLAS: internal C allocation");
-        if (!C2)
+        if (!C2) {
             C2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("C2", Cdims2));
+        }
         C2p = C2->data().data();
         ambit::timer::timer_pop();
     }
     if (permA)
     {
         ambit::timer::timer_push("pre-BLAS: internal A allocation");
-        if (!A2)
+        if (!A2) {
             A2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("A2", Adims2));
+        }
         A2p = A2->data().data();
         ambit::timer::timer_pop();
     }
     if (permB)
     {
         ambit::timer::timer_push("pre-BLAS: internal B allocation");
-        if (!B2)
+        if (!B2) {
             B2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("B2", Bdims2));
+        }
         B2p = B2->data().data();
         ambit::timer::timer_pop();
     }

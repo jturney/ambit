@@ -635,6 +635,9 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
     if (nterms == 2) {
         // Loop over batches to perform contraction
         std::vector<size_t> current_batch(batched_size, 0);
+        shared_ptr<TensorImpl> A2;
+        shared_ptr<TensorImpl> B2;
+        shared_ptr<TensorImpl> C2;
         while (current_batch[0] < slicing_dims[0]) {
             size_t L_shift = 0, cur_jump = 1;
             size_t sub_numel = Lt_batch.T().numel();
@@ -669,6 +672,7 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
             const LabeledTensor &B = rhs_batch[1];
 
             Ltp_batch.contract(batch_tensors[0], batch_tensors[1], sub_indices, A.indices(), B.indices(),
+                        A2, B2, C2,
                         add ? A.factor() * B.factor() : -A.factor() * B.factor(),
                         zero_result ? 0.0 : 1.0);
 
@@ -736,6 +740,9 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
 
         // Loop over batches to perform contraction
         std::vector<size_t> current_batch(batched_size, 0);
+        std::vector<shared_ptr<TensorImpl>> A2s(maxn+1);
+        std::vector<shared_ptr<TensorImpl>> B2s(maxn+1);
+        std::vector<shared_ptr<TensorImpl>> C2s(maxn+1);
         while (current_batch[0] < slicing_dims[0]) {
             size_t L_shift = 0, cur_jump = 1;
             size_t sub_numel = Lt_batch.T().numel();
@@ -767,22 +774,21 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
 
             // The following code is identical to Lt_batch.contract(rhs_batch, zero_result, add);
             const LabeledTensor &A = rhs_batch[0];
-            int maxn = int(nterms) - 2;
             const LabeledTensor &B0 = rhs_batch[1];
             Tensor tAB = inter_tensors[0];
             tAB.contract(batch_tensors[0], B0.T(), inter_indices[0], A.indices(), B0.indices(),
-                         A.factor() * B0.factor(), 0.0);
+                         A2s[0], B2s[0], C2s[0], A.factor() * B0.factor(), 0.0);
 
             for (int n = 1; n < maxn; ++n)
             {
                 const LabeledTensor &B = rhs_batch[n + 1];
                 inter_tensors[n].contract(inter_tensors[n-1], batch_tensors[n+1], inter_indices[n], inter_indices[n-1], B.indices(),
-                             B.factor(), 0.0);
+                             A2s[n], B2s[n], C2s[n], B.factor(), 0.0);
             }
             const LabeledTensor &B = rhs_batch[nterms - 1];
 
             Ltp_batch.contract(inter_tensors[nterms-3], B.T(), sub_indices, inter_indices[nterms-3], B.indices(),
-                        add ? B.factor() : -B.factor(),
+                        A2s[maxn], B2s[maxn], C2s[maxn], add ? B.factor() : -B.factor(),
                         zero_result ? 0.0 : 1.0);
             // The intermediate tensors in this contraction should be reused for all the batches
             // to avoid recreating the intermediate of the same size multiple times.

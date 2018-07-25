@@ -350,6 +350,12 @@ class Tensor
     void contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
                   const Indices &Ainds, const Indices &Binds,
                   double alpha = 1.0, double beta = 0.0);
+    void contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
+                  const Indices &Ainds, const Indices &Binds,
+                  std::shared_ptr<TensorImpl> &A2,
+                  std::shared_ptr<TensorImpl> &B2,
+                  std::shared_ptr<TensorImpl> &C2,
+                  double alpha = 1.0, double beta = 0.0);
 
     /**
      * Perform the GEMM call equivalent to:
