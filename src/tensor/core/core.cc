@@ -37,7 +37,6 @@
 #include <string.h>
 #include <cmath>
 #include <limits>
-#include <iostream>
 
 //#include <boost/timer/timer.hpp>
 
@@ -514,9 +513,6 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     double *A2p = Ap;
     double *B2p = Bp;
 
-//    shared_ptr<CoreTensorImpl> C2;
-//    shared_ptr<CoreTensorImpl> B2;
-//    shared_ptr<CoreTensorImpl> A2;
     if (permC)
     {
         ambit::timer::timer_push("pre-BLAS: internal C allocation");
