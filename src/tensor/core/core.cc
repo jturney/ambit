@@ -167,6 +167,20 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
                               const Indices &Cinds, const Indices &Ainds,
                               const Indices &Binds, double alpha, double beta)
 {
+    shared_ptr<TensorImpl> A2;
+    shared_ptr<TensorImpl> B2;
+    shared_ptr<TensorImpl> C2;
+    contract(A, B, Cinds, Ainds, Binds, A2, B2, C2, alpha, beta);
+}
+
+void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
+                              const Indices &Cinds, const Indices &Ainds,
+                              const Indices &Binds,
+                              std::shared_ptr<TensorImpl> &A2,
+                              std::shared_ptr<TensorImpl> &B2,
+                              std::shared_ptr<TensorImpl> &C2,
+                              double alpha, double beta)
+{
     ambit::timer::timer_push("pre-BLAS: internal overhead");
 
     TensorImplPtr C = this;
@@ -499,27 +513,30 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     double *A2p = Ap;
     double *B2p = Bp;
 
-    shared_ptr<CoreTensorImpl> C2;
-    shared_ptr<CoreTensorImpl> B2;
-    shared_ptr<CoreTensorImpl> A2;
     if (permC)
     {
         ambit::timer::timer_push("pre-BLAS: internal C allocation");
-        C2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("C2", Cdims2));
+        if (!C2) {
+            C2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("C2", Cdims2));
+        }
         C2p = C2->data().data();
         ambit::timer::timer_pop();
     }
     if (permA)
     {
         ambit::timer::timer_push("pre-BLAS: internal A allocation");
-        A2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("A2", Adims2));
+        if (!A2) {
+            A2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("A2", Adims2));
+        }
         A2p = A2->data().data();
         ambit::timer::timer_pop();
     }
     if (permB)
     {
         ambit::timer::timer_push("pre-BLAS: internal B allocation");
-        B2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("B2", Bdims2));
+        if (!B2) {
+            B2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("B2", Bdims2));
+        }
         B2p = B2->data().data();
         ambit::timer::timer_pop();
     }

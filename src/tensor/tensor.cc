@@ -384,6 +384,32 @@ Tensor Tensor::power(double alpha, double condition) const
 }
 
 void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
+                      const Indices &Ainds, const Indices &Binds,
+                      std::shared_ptr<TensorImpl> &A2,
+                      std::shared_ptr<TensorImpl> &B2,
+                      std::shared_ptr<TensorImpl> &C2,
+                      double alpha, double beta)
+{
+    if (ambit::settings::debug) {
+        ambit::print("    #: " + std::to_string(beta) + " " + name() + "[" +
+                     indices::to_string(Cinds) + "] = " +
+                     std::to_string(alpha) + " " + A.name() + "[" +
+                     indices::to_string(Ainds) + "] * " + B.name() + "[" +
+                     indices::to_string(Binds) + "]\n");
+    }
+
+    timer::timer_push("#: " + std::to_string(beta) + " " + name() + "[" +
+                      indices::to_string(Cinds) + "] = " +
+                      std::to_string(alpha) + " " + A.name() + "[" +
+                      indices::to_string(Ainds) + "] * " + B.name() + "[" +
+                      indices::to_string(Binds) + "]");
+
+    tensor_->contract(A.tensor_.get(), B.tensor_.get(), Cinds, Ainds, Binds,
+                      A2, B2, C2, alpha, beta);
+
+    timer::timer_pop();
+}
+void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
                       const Indices &Ainds, const Indices &Binds, double alpha,
                       double beta)
 {

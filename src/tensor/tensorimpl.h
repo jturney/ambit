@@ -164,6 +164,18 @@ class TensorImpl
             "Operation not supported in this tensor implementation.");
     }
 
+    virtual void contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
+                          const Indices &Cinds, const Indices &Ainds,
+                          const Indices &Binds,
+                          std::shared_ptr<TensorImpl> &A2,
+                          std::shared_ptr<TensorImpl> &B2,
+                          std::shared_ptr<TensorImpl> &C2,
+                          double alpha = 1.0, double beta = 0.0)
+    {
+        throw std::runtime_error(
+            "Operation not supported in this tensor implementation.");
+    }
+
     virtual void gemm(ConstTensorImplPtr A, ConstTensorImplPtr B, bool transA,
                       bool transB, size_t nrow, size_t ncol, size_t nzip,
                       size_t ldaA, size_t ldaB, size_t ldaC, size_t offA = 0L,
