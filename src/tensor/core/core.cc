@@ -20,7 +20,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along
+ * You should have received a copy of the GNU Lesser General Public License
+ * along
  * with ambit; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
@@ -30,13 +31,13 @@
 #include "core.h"
 #include "math/math.h"
 #include "tensor/indices.h"
-#include <ambit/timer.h>
-#include <ambit/print.h>
 #include <algorithm>
-#include <stdexcept>
-#include <string.h>
+#include <ambit/print.h>
+#include <ambit/timer.h>
 #include <cmath>
 #include <limits>
+#include <stdexcept>
+#include <string.h>
 
 //#include <boost/timer/timer.hpp>
 
@@ -96,14 +97,13 @@ tuple<double, vector<size_t>> CoreTensorImpl::max() const
 
     std::get<0>(element) = std::numeric_limits<double>::lowest();
 
-    citerate([&](const vector<size_t> &indices, const double &value)
-             {
-                 if (std::get<0>(element) < value)
-                 {
-                     std::get<0>(element) = value;
-                     std::get<1>(element) = indices;
-                 }
-             });
+    citerate([&](const vector<size_t> &indices, const double &value) {
+        if (std::get<0>(element) < value)
+        {
+            std::get<0>(element) = value;
+            std::get<1>(element) = indices;
+        }
+    });
 
     return element;
 }
@@ -114,14 +114,13 @@ tuple<double, vector<size_t>> CoreTensorImpl::min() const
 
     std::get<0>(element) = std::numeric_limits<double>::max();
 
-    citerate([&](const vector<size_t> &indices, const double &value)
-             {
-                 if (std::get<0>(element) > value)
-                 {
-                     std::get<0>(element) = value;
-                     std::get<1>(element) = indices;
-                 }
-             });
+    citerate([&](const vector<size_t> &indices, const double &value) {
+        if (std::get<0>(element) > value)
+        {
+            std::get<0>(element) = value;
+            std::get<1>(element) = indices;
+        }
+    });
 
     return element;
 }
@@ -178,8 +177,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
                               const Indices &Binds,
                               std::shared_ptr<TensorImpl> &A2,
                               std::shared_ptr<TensorImpl> &B2,
-                              std::shared_ptr<TensorImpl> &C2,
-                              double alpha, double beta)
+                              std::shared_ptr<TensorImpl> &C2, double alpha,
+                              double beta)
 {
     ambit::timer::timer_push("pre-BLAS: internal overhead");
 
@@ -516,7 +515,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     if (permC)
     {
         ambit::timer::timer_push("pre-BLAS: internal C allocation");
-        if (!C2) {
+        if (!C2)
+        {
             C2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("C2", Cdims2));
         }
         C2p = C2->data().data();
@@ -525,7 +525,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     if (permA)
     {
         ambit::timer::timer_push("pre-BLAS: internal A allocation");
-        if (!A2) {
+        if (!A2)
+        {
             A2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("A2", Adims2));
         }
         A2p = A2->data().data();
@@ -534,7 +535,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     if (permB)
     {
         ambit::timer::timer_push("pre-BLAS: internal B allocation");
-        if (!B2) {
+        if (!B2)
+        {
             B2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("B2", Bdims2));
         }
         B2p = B2->data().data();
@@ -773,16 +775,18 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
 
     // => Permute Operation <= //
 
-    if (fast_size == 1L) {
+    if (fast_size == 1L)
+    {
         if (slow_dims == 2)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
                 for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++)
                 {
-                    double *Atp = Ap + Cind0 * AstridesC[0] + Cind1 * AstridesC[1];
+                    double *Atp =
+                        Ap + Cind0 * AstridesC[0] + Cind1 * AstridesC[1];
                     //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
                     (*Ctp) += alpha * (*Atp);
                     Ctp += fast_size;
@@ -791,7 +795,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 3)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -800,7 +804,8 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                     for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++)
                     {
                         double *Atp = Ap + Cind0 * AstridesC[0] +
-                                      Cind1 * AstridesC[1] + Cind2 * AstridesC[2];
+                                      Cind1 * AstridesC[1] +
+                                      Cind2 * AstridesC[2];
                         //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
                         (*Ctp) += alpha * (*Atp);
                         Ctp += fast_size;
@@ -810,7 +815,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 4)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -820,9 +825,10 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                     {
                         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++)
                         {
-                            double *Atp =
-                                Ap + Cind0 * AstridesC[0] + Cind1 * AstridesC[1] +
-                                Cind2 * AstridesC[2] + Cind3 * AstridesC[3];
+                            double *Atp = Ap + Cind0 * AstridesC[0] +
+                                          Cind1 * AstridesC[1] +
+                                          Cind2 * AstridesC[2] +
+                                          Cind3 * AstridesC[3];
                             //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
                             (*Ctp) += alpha * (*Atp);
                             Ctp += fast_size;
@@ -833,7 +839,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 5)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -845,10 +851,11 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                         {
                             for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++)
                             {
-                                double *Atp =
-                                    Ap + Cind0 * AstridesC[0] +
-                                    Cind1 * AstridesC[1] + Cind2 * AstridesC[2] +
-                                    Cind3 * AstridesC[3] + Cind4 * AstridesC[4];
+                                double *Atp = Ap + Cind0 * AstridesC[0] +
+                                              Cind1 * AstridesC[1] +
+                                              Cind2 * AstridesC[2] +
+                                              Cind3 * AstridesC[3] +
+                                              Cind4 * AstridesC[4];
                                 //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
                                 (*Ctp) += alpha * (*Atp);
                                 Ctp += fast_size;
@@ -860,7 +867,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 6)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -872,7 +879,8 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                         {
                             for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++)
                             {
-                                for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++)
+                                for (size_t Cind5 = 0L; Cind5 < Csizes[5];
+                                     Cind5++)
                                 {
                                     double *Atp = Ap + Cind0 * AstridesC[0] +
                                                   Cind1 * AstridesC[1] +
@@ -892,7 +900,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 7)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -904,12 +912,14 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                         {
                             for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++)
                             {
-                                for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++)
+                                for (size_t Cind5 = 0L; Cind5 < Csizes[5];
+                                     Cind5++)
                                 {
                                     for (size_t Cind6 = 0L; Cind6 < Csizes[6];
                                          Cind6++)
                                     {
-                                        double *Atp = Ap + Cind0 * AstridesC[0] +
+                                        double *Atp = Ap +
+                                                      Cind0 * AstridesC[0] +
                                                       Cind1 * AstridesC[1] +
                                                       Cind2 * AstridesC[2] +
                                                       Cind3 * AstridesC[3] +
@@ -929,7 +939,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 8)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -941,13 +951,14 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                         {
                             for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++)
                             {
-                                for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++)
+                                for (size_t Cind5 = 0L; Cind5 < Csizes[5];
+                                     Cind5++)
                                 {
                                     for (size_t Cind6 = 0L; Cind6 < Csizes[6];
                                          Cind6++)
                                     {
-                                        for (size_t Cind7 = 0L; Cind7 < Csizes[7];
-                                             Cind7++)
+                                        for (size_t Cind7 = 0L;
+                                             Cind7 < Csizes[7]; Cind7++)
                                         {
                                             double *Atp = Ap +
                                                           Cind0 * AstridesC[0] +
@@ -972,7 +983,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t ind = 0L; ind < slow_size; ind++)
             {
                 double *Ctp = Cp + ind * fast_size;
@@ -988,17 +999,19 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                 (*Ctp) += alpha * (*Atp);
             }
         }
-
-    } else {
+    }
+    else
+    {
         if (slow_dims == 2)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
                 for (size_t Cind1 = 0L; Cind1 < Csizes[1]; Cind1++)
                 {
-                    double *Atp = Ap + Cind0 * AstridesC[0] + Cind1 * AstridesC[1];
+                    double *Atp =
+                        Ap + Cind0 * AstridesC[0] + Cind1 * AstridesC[1];
                     //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
                     C_DAXPY(fast_size, alpha, Atp, 1, Ctp, 1);
                     Ctp += fast_size;
@@ -1007,7 +1020,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 3)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -1016,7 +1029,8 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                     for (size_t Cind2 = 0L; Cind2 < Csizes[2]; Cind2++)
                     {
                         double *Atp = Ap + Cind0 * AstridesC[0] +
-                                      Cind1 * AstridesC[1] + Cind2 * AstridesC[2];
+                                      Cind1 * AstridesC[1] +
+                                      Cind2 * AstridesC[2];
                         //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
                         C_DAXPY(fast_size, alpha, Atp, 1, Ctp, 1);
                         Ctp += fast_size;
@@ -1026,7 +1040,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 4)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -1036,9 +1050,10 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                     {
                         for (size_t Cind3 = 0L; Cind3 < Csizes[3]; Cind3++)
                         {
-                            double *Atp =
-                                Ap + Cind0 * AstridesC[0] + Cind1 * AstridesC[1] +
-                                Cind2 * AstridesC[2] + Cind3 * AstridesC[3];
+                            double *Atp = Ap + Cind0 * AstridesC[0] +
+                                          Cind1 * AstridesC[1] +
+                                          Cind2 * AstridesC[2] +
+                                          Cind3 * AstridesC[3];
                             //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
                             C_DAXPY(fast_size, alpha, Atp, 1, Ctp, 1);
                             Ctp += fast_size;
@@ -1049,7 +1064,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 5)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -1061,10 +1076,11 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                         {
                             for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++)
                             {
-                                double *Atp =
-                                    Ap + Cind0 * AstridesC[0] +
-                                    Cind1 * AstridesC[1] + Cind2 * AstridesC[2] +
-                                    Cind3 * AstridesC[3] + Cind4 * AstridesC[4];
+                                double *Atp = Ap + Cind0 * AstridesC[0] +
+                                              Cind1 * AstridesC[1] +
+                                              Cind2 * AstridesC[2] +
+                                              Cind3 * AstridesC[3] +
+                                              Cind4 * AstridesC[4];
                                 //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
                                 C_DAXPY(fast_size, alpha, Atp, 1, Ctp, 1);
                                 Ctp += fast_size;
@@ -1076,7 +1092,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 6)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -1088,7 +1104,8 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                         {
                             for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++)
                             {
-                                for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++)
+                                for (size_t Cind5 = 0L; Cind5 < Csizes[5];
+                                     Cind5++)
                                 {
                                     double *Atp = Ap + Cind0 * AstridesC[0] +
                                                   Cind1 * AstridesC[1] +
@@ -1108,7 +1125,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 7)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -1120,12 +1137,14 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                         {
                             for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++)
                             {
-                                for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++)
+                                for (size_t Cind5 = 0L; Cind5 < Csizes[5];
+                                     Cind5++)
                                 {
                                     for (size_t Cind6 = 0L; Cind6 < Csizes[6];
                                          Cind6++)
                                     {
-                                        double *Atp = Ap + Cind0 * AstridesC[0] +
+                                        double *Atp = Ap +
+                                                      Cind0 * AstridesC[0] +
                                                       Cind1 * AstridesC[1] +
                                                       Cind2 * AstridesC[2] +
                                                       Cind3 * AstridesC[3] +
@@ -1133,7 +1152,8 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                                                       Cind5 * AstridesC[5] +
                                                       Cind6 * AstridesC[6];
                                         //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
-                                        C_DAXPY(fast_size, alpha, Atp, 1, Ctp, 1);
+                                        C_DAXPY(fast_size, alpha, Atp, 1, Ctp,
+                                                1);
                                         Ctp += fast_size;
                                     }
                                 }
@@ -1145,7 +1165,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else if (slow_dims == 8)
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t Cind0 = 0L; Cind0 < Csizes[0]; Cind0++)
             {
                 double *Ctp = Cp + Cind0 * Cstrides[0];
@@ -1157,13 +1177,14 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                         {
                             for (size_t Cind4 = 0L; Cind4 < Csizes[4]; Cind4++)
                             {
-                                for (size_t Cind5 = 0L; Cind5 < Csizes[5]; Cind5++)
+                                for (size_t Cind5 = 0L; Cind5 < Csizes[5];
+                                     Cind5++)
                                 {
                                     for (size_t Cind6 = 0L; Cind6 < Csizes[6];
                                          Cind6++)
                                     {
-                                        for (size_t Cind7 = 0L; Cind7 < Csizes[7];
-                                             Cind7++)
+                                        for (size_t Cind7 = 0L;
+                                             Cind7 < Csizes[7]; Cind7++)
                                         {
                                             double *Atp = Ap +
                                                           Cind0 * AstridesC[0] +
@@ -1175,8 +1196,8 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                                                           Cind6 * AstridesC[6] +
                                                           Cind7 * AstridesC[7];
                                             //::memcpy(Ctp,Atp,sizeof(double)*fast_size);
-                                            C_DAXPY(fast_size, alpha, Atp, 1, Ctp,
-                                                    1);
+                                            C_DAXPY(fast_size, alpha, Atp, 1,
+                                                    Ctp, 1);
                                             Ctp += fast_size;
                                         }
                                     }
@@ -1189,7 +1210,7 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
         }
         else
         {
-    #pragma omp parallel for
+#pragma omp parallel for
             for (size_t ind = 0L; ind < slow_size; ind++)
             {
                 double *Ctp = Cp + ind * fast_size;
@@ -1332,17 +1353,24 @@ map<string, TensorImplPtr> CoreTensorImpl::gesvd() const
     char jobvt = 'A';
     char jobu = 'A';
 
-    CoreTensorImpl *U = new CoreTensorImpl("U", { static_cast<size_t>(m), static_cast<size_t>(m) });
-    CoreTensorImpl *V = new CoreTensorImpl("V", { static_cast<size_t>(n), static_cast<size_t>(n) });
-    CoreTensorImpl *Sigma = new CoreTensorImpl("Sigma", { static_cast<size_t>(nsigma) });
+    CoreTensorImpl *U = new CoreTensorImpl(
+        "U", {static_cast<size_t>(m), static_cast<size_t>(m)});
+    CoreTensorImpl *V = new CoreTensorImpl(
+        "V", {static_cast<size_t>(n), static_cast<size_t>(n)});
+    CoreTensorImpl *Sigma =
+        new CoreTensorImpl("Sigma", {static_cast<size_t>(nsigma)});
     vector<double> work(lwork, 0);
 
-    // Make a copy of this's data into A since it will be destroyed in the LAPACK call.
+    // Make a copy of this's data into A since it will be destroyed in the
+    // LAPACK call.
     vector<double> A(data().begin(), data().end());
 
-    int info = C_DGESVD(jobu, jobvt, n, m, A.data(), n, Sigma->data().data(), V->data().data(), n, U->data().data(), m, work.data(), lwork);
+    int info =
+        C_DGESVD(jobu, jobvt, n, m, A.data(), n, Sigma->data().data(),
+                 V->data().data(), n, U->data().data(), m, work.data(), lwork);
 
-    if (info != 0) {
+    if (info != 0)
+    {
         throw std::runtime_error("CoreTensorImpl::gesvd: LAPACK call failed");
     }
 
@@ -1415,18 +1443,18 @@ TensorImplPtr CoreTensorImpl::inverse() const
         if (err < 0)
         {
             ambit::print("CoreTensorImpl::inverse: C_DGETRI: argument %d has "
-                                 "invalid parameter.\n",
+                         "invalid parameter.\n",
                          -err);
         }
         if (err > 0)
         {
             ambit::print("CoreTensorImpl::inverse: C_DGETRI: the (%d, %d) "
-                                 "element of the factor U or L is zero, inverse could "
-                                 "not be computed.\n",
+                         "element of the factor U or L is zero, inverse could "
+                         "not be computed.\n",
                          err, err);
         }
         throw std::runtime_error(
-                "CoreTensorImpl::inverse: C_DGETRI failed. See output.");
+            "CoreTensorImpl::inverse: C_DGETRI failed. See output.");
     }
     return inverted;
 }
