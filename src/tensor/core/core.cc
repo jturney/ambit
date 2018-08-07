@@ -57,37 +57,31 @@ void CoreTensorImpl::reshape(const Dimension &dims)
 
 double CoreTensorImpl::norm(int type) const
 {
-    if (type == 0)
+    double val = 0.0;
+    switch (type)
     {
-        double val = 0.0;
+    case 0:
         for (size_t ind = 0L; ind < numel(); ind++)
         {
             val = std::max(val, fabs(data_[ind]));
         }
         return val;
-    }
-    else if (type == 1)
-    {
-        double val = 0.0;
+    case 1:
         for (size_t ind = 0L; ind < numel(); ind++)
         {
             val += fabs(data_[ind]);
         }
         return val;
-    }
-    else if (type == 2)
-    {
-        double val = 0.0;
+    case 2:
         for (size_t ind = 0L; ind < numel(); ind++)
         {
             val += data_[ind] * data_[ind];
         }
         return sqrt(val);
-    }
-    else
-    {
+    default:
         throw std::runtime_error(
             "Norm must be 0 (infty-norm), 1 (1-norm), or 2 (2-norm)");
+        break;
     }
 }
 
@@ -213,58 +207,79 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         int Cpos = indices::find_index_in_vector(Cinds, index);
         int Apos = indices::find_index_in_vector(Ainds, index);
         int Bpos = indices::find_index_in_vector(Binds, index);
-        if (Cpos != -1 && Apos != -1 && Bpos != -1)
+
+        if (Cpos != -1)
         {
-            if (C->dims()[Cpos] != A->dims()[Apos] ||
-                C->dims()[Cpos] != B->dims()[Bpos])
-                throw std::runtime_error("Invalid ABC (Hadamard) index size\n" +
-                                         describe_contraction(C, Cinds, A,
-                                                              Ainds, B, Binds,
-                                                              alpha, beta));
-            compound_inds["PC"].push_back(std::make_pair(Cpos, index));
-            compound_inds["PA"].push_back(std::make_pair(Apos, index));
-            compound_inds["PB"].push_back(std::make_pair(Bpos, index));
-            ABC_size *= C->dims()[Cpos];
-        }
-        else if (Cpos != -1 && Apos != -1 && Bpos == -1)
-        {
-            if (C->dims()[Cpos] != A->dims()[Apos])
-                throw std::runtime_error("Invalid AC (Left) index size\n" +
-                                         describe_contraction(C, Cinds, A,
-                                                              Ainds, B, Binds,
-                                                              alpha, beta));
-            compound_inds["iC"].push_back(std::make_pair(Cpos, index));
-            compound_inds["iA"].push_back(std::make_pair(Apos, index));
-            AC_size *= C->dims()[Cpos];
-        }
-        else if (Cpos != -1 && Apos == -1 && Bpos != -1)
-        {
-            if (C->dims()[Cpos] != B->dims()[Bpos])
-                throw std::runtime_error("Invalid BC (Right) index size\n" +
-                                         describe_contraction(C, Cinds, A,
-                                                              Ainds, B, Binds,
-                                                              alpha, beta));
-            compound_inds["jC"].push_back(std::make_pair(Cpos, index));
-            compound_inds["jB"].push_back(std::make_pair(Bpos, index));
-            BC_size *= C->dims()[Cpos];
-        }
-        else if (Cpos == -1 && Apos != -1 && Bpos != -1)
-        {
-            if (A->dims()[Apos] != B->dims()[Bpos])
-                throw std::runtime_error(
-                    "Invalid AB (Contraction) index size\n" +
-                    describe_contraction(C, Cinds, A, Ainds, B, Binds, alpha,
-                                         beta));
-            compound_inds["kA"].push_back(std::make_pair(Apos, index));
-            compound_inds["kB"].push_back(std::make_pair(Bpos, index));
-            AB_size *= B->dims()[Bpos];
+            if (Apos != -1)
+            {
+                if (Bpos != -1)
+                {
+                    if (C->dims()[Cpos] != A->dims()[Apos] ||
+                        C->dims()[Cpos] != B->dims()[Bpos])
+                        throw std::runtime_error(
+                            "Invalid ABC (Hadamard) index size\n" +
+                            describe_contraction(C, Cinds, A, Ainds, B, Binds,
+                                                 alpha, beta));
+                    compound_inds["PC"].push_back(std::make_pair(Cpos, index));
+                    compound_inds["PA"].push_back(std::make_pair(Apos, index));
+                    compound_inds["PB"].push_back(std::make_pair(Bpos, index));
+                    ABC_size *= C->dims()[Cpos];
+                }
+                else
+                {
+                    if (C->dims()[Cpos] != A->dims()[Apos])
+                        throw std::runtime_error(
+                            "Invalid AC (Left) index size\n" +
+                            describe_contraction(C, Cinds, A, Ainds, B, Binds,
+                                                 alpha, beta));
+                    compound_inds["iC"].push_back(std::make_pair(Cpos, index));
+                    compound_inds["iA"].push_back(std::make_pair(Apos, index));
+                    AC_size *= C->dims()[Cpos];
+                }
+            }
+            else
+            {
+                if (Bpos != -1)
+                {
+                    if (C->dims()[Cpos] != B->dims()[Bpos])
+                        throw std::runtime_error(
+                            "Invalid BC (Right) index size\n" +
+                            describe_contraction(C, Cinds, A, Ainds, B, Binds,
+                                                 alpha, beta));
+                    compound_inds["jC"].push_back(std::make_pair(Cpos, index));
+                    compound_inds["jB"].push_back(std::make_pair(Bpos, index));
+                    BC_size *= C->dims()[Cpos];
+                }
+                else
+                {
+                    throw std::runtime_error(
+                        "Invalid contraction topology - index only occurs "
+                        "once.\n" +
+                        describe_contraction(C, Cinds, A, Ainds, B, Binds,
+                                             alpha, beta));
+                }
+            }
         }
         else
         {
-            throw std::runtime_error(
-                "Invalid contraction topology - index only occurs once.\n" +
-                describe_contraction(C, Cinds, A, Ainds, B, Binds, alpha,
-                                     beta));
+            if (Apos != -1 && Bpos != -1)
+            {
+                if (A->dims()[Apos] != B->dims()[Bpos])
+                    throw std::runtime_error(
+                        "Invalid AB (Contraction) index size\n" +
+                        describe_contraction(C, Cinds, A, Ainds, B, Binds,
+                                             alpha, beta));
+                compound_inds["kA"].push_back(std::make_pair(Apos, index));
+                compound_inds["kB"].push_back(std::make_pair(Bpos, index));
+                AB_size *= B->dims()[Bpos];
+            }
+            else
+            {
+                throw std::runtime_error(
+                    "Invalid contraction topology - index only occurs once.\n" +
+                    describe_contraction(C, Cinds, A, Ainds, B, Binds, alpha,
+                                         beta));
+            }
         }
     }
 
@@ -277,18 +292,14 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     }
 
     // Flags to mark if tensors must be permuted
-    bool permC = false;
-    bool permA = false;
-    bool permB = false;
-
     // Contiguous Index Test (always requires permutation)
-    permC = permC || !indices::contiguous(compound_inds["PC"]);
+    bool permC = !indices::contiguous(compound_inds["PC"]);
     permC = permC || !indices::contiguous(compound_inds["iC"]);
     permC = permC || !indices::contiguous(compound_inds["jC"]);
-    permA = permA || !indices::contiguous(compound_inds["PA"]);
+    bool permA = !indices::contiguous(compound_inds["PA"]);
     permA = permA || !indices::contiguous(compound_inds["iA"]);
     permA = permA || !indices::contiguous(compound_inds["kA"]);
-    permB = permB || !indices::contiguous(compound_inds["PB"]);
+    bool permB = !indices::contiguous(compound_inds["PB"]);
     permB = permB || !indices::contiguous(compound_inds["jB"]);
     permB = permB || !indices::contiguous(compound_inds["kB"]);
 
@@ -302,15 +313,12 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     }
 
     /// Figure out the initial transposes (will be fixed if perm is set)
-    bool A_transpose = false;
-    bool B_transpose = false;
-    bool C_transpose = false;
-    if (compound_inds["iC"].size() && compound_inds["iC"][0].first != Psize)
-        C_transpose = true;
-    if (compound_inds["iA"].size() && compound_inds["iA"][0].first != Psize)
-        A_transpose = true;
-    if (compound_inds["jB"].size() && compound_inds["jB"][0].first == Psize)
-        B_transpose = true;
+    bool A_transpose =
+        compound_inds["iA"].size() && compound_inds["iA"][0].first != Psize;
+    bool B_transpose =
+        compound_inds["jB"].size() && compound_inds["jB"][0].first == Psize;
+    bool C_transpose =
+        compound_inds["iC"].size() && compound_inds["iC"][0].first != Psize;
 
     // Fix contiguous considerations (already in correct order for contiguous
     // cases)
@@ -500,6 +508,7 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     ambit::timer::timer_pop();
 
     // => Alias or Allocate A, B, C <= //
+    // => Permute A, B, and C if Necessary <= //
 
     Dimension Cdims2 = indices::permuted_dimension(C->dims(), Cinds2, Cinds);
     Dimension Adims2 = indices::permuted_dimension(A->dims(), Ainds2, Ainds);
@@ -521,6 +530,12 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         }
         C2p = C2->data().data();
         ambit::timer::timer_pop();
+        if (beta != 0.0)
+        {
+            ambit::timer::timer_push("pre-BLAS: internal C permutation");
+            C2->permute(C, Cinds2, Cinds);
+            ambit::timer::timer_pop();
+        }
     }
     if (permA)
     {
@@ -530,6 +545,9 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
             A2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("A2", Adims2));
         }
         A2p = A2->data().data();
+        ambit::timer::timer_pop();
+        ambit::timer::timer_push("pre-BLAS: internal A permutation");
+        A2->permute(A, Ainds2, Ainds);
         ambit::timer::timer_pop();
     }
     if (permB)
@@ -541,24 +559,6 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         }
         B2p = B2->data().data();
         ambit::timer::timer_pop();
-    }
-
-    // => Permute A, B, and C if Necessary <= //
-
-    if (permC && beta != 0.0)
-    {
-        ambit::timer::timer_push("pre-BLAS: internal C permutation");
-        C2->permute(C, Cinds2, Cinds);
-        ambit::timer::timer_pop();
-    }
-    if (permA)
-    {
-        ambit::timer::timer_push("pre-BLAS: internal A permutation");
-        A2->permute(A, Ainds2, Ainds);
-        ambit::timer::timer_pop();
-    }
-    if (permB)
-    {
         ambit::timer::timer_push("pre-BLAS: internal B permutation");
         B2->permute(B, Binds2, Binds);
         ambit::timer::timer_pop();
@@ -607,59 +607,81 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         size_t nzip = AB_size;
         size_t ldaC = (C_transpose ? AC_size : BC_size);
 
-        if (nrow == 1L && ncol == 1L && nzip == 1L)
+        if (nrow > 1L)
         {
-            (*C2p) = alpha * (*Lp) * (*Rp) + beta * (*C2p);
-        }
-        else if (nrow == 1L && ncol == 1L && nzip > 1L)
-        {
-            (*C2p) *= beta;
-            (*C2p) += alpha * C_DDOT(nzip, Lp, 1, Rp, 1);
-        }
-        else if (nrow == 1L && ncol > 1L && nzip == 1L)
-        {
-            C_DSCAL(ncol, beta, C2p, 1);
-            C_DAXPY(ncol, alpha * (*Lp), Rp, 1, C2p, 1);
-        }
-        else if (nrow > 1L && ncol == 1L && nzip == 1L)
-        {
-            C_DSCAL(nrow, beta, C2p, 1);
-            C_DAXPY(nrow, alpha * (*Rp), Lp, 1, C2p, 1);
-        }
-        else if (nrow > 1L && ncol > 1L && nzip == 1L)
-        {
-            for (size_t row = 0L; row < nrow; row++)
+            if (ncol > 1L)
             {
-                C_DSCAL(ncol, beta, C2p + row * ldaC, 1);
-            }
-            C_DGER(nrow, ncol, alpha, Lp, 1, Rp, 1, C2p, ldaC);
-        }
-        else if (nrow == 1 && ncol > 1 && nzip > 1)
-        {
-            if (transR == 'N')
-            {
-                C_DGEMV('T', nzip, ncol, alpha, Rp, ldaR, Lp, 1, beta, C2p, 1);
+                if (nzip > 1L)
+                {
+                    C_DGEMM(transL, transR, nrow, ncol, nzip, alpha, Lp, ldaL,
+                            Rp, ldaR, beta, C2p, ldaC);
+                }
+                else
+                {
+                    for (size_t row = 0L; row < nrow; row++)
+                    {
+                        C_DSCAL(ncol, beta, C2p + row * ldaC, 1);
+                    }
+                    C_DGER(nrow, ncol, alpha, Lp, 1, Rp, 1, C2p, ldaC);
+                }
             }
             else
             {
-                C_DGEMV('N', ncol, nzip, alpha, Rp, ldaR, Lp, 1, beta, C2p, 1);
-            }
-        }
-        else if (nrow > 1 && ncol == 1 && nzip > 1)
-        {
-            if (transL == 'N')
-            {
-                C_DGEMV('N', nrow, nzip, alpha, Lp, ldaL, Rp, 1, beta, C2p, 1);
-            }
-            else
-            {
-                C_DGEMV('T', nzip, nrow, alpha, Lp, ldaL, Rp, 1, beta, C2p, 1);
+                if (nzip > 1L)
+                {
+                    if (transL == 'N')
+                    {
+                        C_DGEMV('N', nrow, nzip, alpha, Lp, ldaL, Rp, 1, beta,
+                                C2p, 1);
+                    }
+                    else
+                    {
+                        C_DGEMV('T', nzip, nrow, alpha, Lp, ldaL, Rp, 1, beta,
+                                C2p, 1);
+                    }
+                }
+                else
+                {
+                    C_DSCAL(nrow, beta, C2p, 1);
+                    C_DAXPY(nrow, alpha * (*Rp), Lp, 1, C2p, 1);
+                }
             }
         }
         else
         {
-            C_DGEMM(transL, transR, nrow, ncol, nzip, alpha, Lp, ldaL, Rp, ldaR,
-                    beta, C2p, ldaC);
+            if (ncol > 1L)
+            {
+                if (nzip > 1L)
+                {
+                    if (transR == 'N')
+                    {
+                        C_DGEMV('T', nzip, ncol, alpha, Rp, ldaR, Lp, 1, beta,
+                                C2p, 1);
+                    }
+                    else
+                    {
+                        C_DGEMV('N', ncol, nzip, alpha, Rp, ldaR, Lp, 1, beta,
+                                C2p, 1);
+                    }
+                }
+                else
+                {
+                    C_DSCAL(ncol, beta, C2p, 1);
+                    C_DAXPY(ncol, alpha * (*Lp), Rp, 1, C2p, 1);
+                }
+            }
+            else
+            {
+                if (nzip > 1L)
+                {
+                    (*C2p) *= beta;
+                    (*C2p) += alpha * C_DDOT(nzip, Lp, 1, Rp, 1);
+                }
+                else
+                {
+                    (*C2p) = alpha * (*Lp) * (*Rp) + beta * (*C2p);
+                }
+            }
         }
 
         C2p += AC_size * BC_size;
@@ -1255,7 +1277,7 @@ map<string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
 
     vecs->copy(this);
 
-    size_t n = dims()[0];
+    const size_t n = dims()[0];
     double dwork;
     C_DSYEV('V', 'U', n, vecs->data().data(), n, vals->data().data(), &dwork,
             -1);
@@ -1272,7 +1294,8 @@ map<string, TensorImplPtr> CoreTensorImpl::syev(EigenvalueOrder order) const
         double *Temp_sqrsp_col = new double[n];
         double w_Temp_sqrsp;
 
-        for (size_t c = 0; c < n / 2; c++)
+        const size_t half_n = n >> 1;
+        for (size_t c = 0; c < half_n; c++)
         {
 
             // Swap eigenvectors
@@ -1526,8 +1549,8 @@ void CoreTensorImpl::iterate(
         addressing[n] = addressing[n + 1] * dim(n + 1);
     }
 
-    size_t nelem = numel();
-    size_t nrank = rank();
+    const size_t nelem = numel();
+    const size_t nrank = rank();
     for (size_t n = 0; n < nelem; ++n)
     {
         size_t d = n;
@@ -1553,8 +1576,8 @@ void CoreTensorImpl::citerate(
         addressing[n] = addressing[n + 1] * dim(n + 1);
     }
 
-    size_t nelem = numel();
-    size_t nrank = rank();
+    const size_t nelem = numel();
+    const size_t nrank = rank();
     for (size_t n = 0; n < nelem; ++n)
     {
         size_t d = n;
