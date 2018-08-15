@@ -607,11 +607,11 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         size_t nzip = AB_size;
         size_t ldaC = (C_transpose ? AC_size : BC_size);
 
-        if (nrow > 1L)
+        if (nrow != 1L)
         {
-            if (ncol > 1L)
+            if (ncol != 1L)
             {
-                if (nzip > 1L)
+                if (nzip != 1L)
                 {
                     C_DGEMM(transL, transR, nrow, ncol, nzip, alpha, Lp, ldaL,
                             Rp, ldaR, beta, C2p, ldaC);
@@ -627,7 +627,7 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
             }
             else
             {
-                if (nzip > 1L)
+                if (nzip != 1L)
                 {
                     if (transL == 'N')
                     {
@@ -649,9 +649,9 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         }
         else
         {
-            if (ncol > 1L)
+            if (ncol != 1L)
             {
-                if (nzip > 1L)
+                if (nzip != 1L)
                 {
                     if (transR == 'N')
                     {
@@ -672,7 +672,7 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
             }
             else
             {
-                if (nzip > 1L)
+                if (nzip != 1L)
                 {
                     (*C2p) *= beta;
                     (*C2p) += alpha * C_DDOT(nzip, Lp, 1, Rp, 1);
