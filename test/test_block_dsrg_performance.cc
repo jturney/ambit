@@ -167,18 +167,18 @@ void test_performance()
         BlockedTensor B = BlockedTensor::build(CoreTensor, "B 3-idx", {"Lgg", "LGG"});
         BlockedTensor C2 = BlockedTensor::build(CoreTensor, "C2", spin_cases({"gggg"}));
         BlockedTensor T2 = BlockedTensor::build(CoreTensor, "T2 Amplitudes", spin_cases({"hhpp"}));
-        timing("4. C2[ijrs] += B[gar] * B[gbs] * T2[ijab];", repeats, [&]
+        timing("4. C2[ijrs].contract(B[gar] * B[gbs] * T2[ijab], false, true, false);", repeats, [&]
                {
-                   C2["ijrs"] += B["gar"] * B["gbs"] * T2["ijab"];
+                   C2["ijrs"].contract(B["gar"] * B["gbs"] * T2["ijab"], false, true, false);
                });
     }
     {
         BlockedTensor B = BlockedTensor::build(CoreTensor, "B 3-idx", {"Lgg", "LGG"});
         BlockedTensor C2 = BlockedTensor::build(CoreTensor, "C2", spin_cases({"gggg"}));
         BlockedTensor T2 = BlockedTensor::build(CoreTensor, "T2 Amplitudes", spin_cases({"hhpp"}));
-        timing("5. C2[ijrs] += batched(r, B[gar] * B[gbs] * T2[ijab]);", repeats, [&]
+        timing("5. C2[ijrs].contract_batched(batched(r, B[gar] * B[gbs] * T2[ijab]), false, true, false);", repeats, [&]
                {
-                   C2["ijrs"] += batched("r", B["gar"] * B["gbs"] * T2["ijab"]);
+                   C2["ijrs"].contract_batched(batched("r", B["gar"] * B["gbs"] * T2["ijab"]), false, true, false);
                });
     }
 }

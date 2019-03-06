@@ -425,6 +425,11 @@ class LabeledBlockedTensor
         return LabeledBlockedTensor(BT_, indices_, -factor_);
     }
 
+    void contract(const LabeledBlockedTensorProduct &rhs, bool zero_result,
+                  bool add, bool optimize_order = true);
+    void contract_batched(const LabeledBlockedTensorBatchedProduct &rhs, bool zero_result,
+                  bool add, bool optimize_order = true);
+
   private:
     void set(const LabeledBlockedTensor &to);
 
@@ -432,11 +437,6 @@ class LabeledBlockedTensor
     {
         return BT_.label_to_block_keys(indices_);
     }
-
-    void contract(const LabeledBlockedTensorProduct &rhs, bool zero_result,
-                  bool add, bool optimize_order = true);
-    void contract_batched(const LabeledBlockedTensorBatchedProduct &rhs, bool zero_result,
-                  bool add, bool optimize_order = true);
     void add(const LabeledBlockedTensor &rhs, double alpha, double beta);
 
     BlockedTensor BT_;
