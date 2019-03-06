@@ -137,6 +137,7 @@ void test_performance()
     for (size_t i = 0; i < m; ++i) {
         aux_mos_[i] = i;
     }
+    BlockedTensor::add_mo_space(aux_label_, "g", aux_mos_, NoSpin);
     {
         BlockedTensor B = BlockedTensor::build(CoreTensor, "B 3-idx", {"Lgg", "LGG"});
         BlockedTensor w = BlockedTensor::build(CoreTensor, "w", spin_cases({"gggg"}));
@@ -153,7 +154,6 @@ void test_performance()
                    H2["abrs"] = B["gar"] * B["gbs"];
                });
     }
-    BlockedTensor::add_mo_space(aux_label_, "g", aux_mos_, NoSpin);
     {
         BlockedTensor H2 = BlockedTensor::build(CoreTensor, "H2", spin_cases({"gggg"}));
         BlockedTensor C2 = BlockedTensor::build(CoreTensor, "C2", spin_cases({"gggg"}));
