@@ -431,6 +431,8 @@ class LabeledBlockedTensor
                   bool add, bool optimize_order = true);
     void contract_batched(const LabeledBlockedTensorBatchedProduct &rhs, bool zero_result,
                   bool add, bool optimize_order = true);
+    void contract_batched_by_tensor(const LabeledBlockedTensorBatchedProduct &rhs, bool zero_result,
+                  bool add, bool optimize_order = true);
 
   private:
     void set(const LabeledBlockedTensor &to);
