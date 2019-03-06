@@ -163,11 +163,12 @@ void LabeledTensor::contract(const LabeledTensorContraction &rhs,
         best_perm = perm;
     }
 
-    LabeledTensor A = rhs[best_perm[0]];
+    const LabeledTensor &Aref = rhs[best_perm[0]];
+    LabeledTensor A(Aref.T_, Aref.indices_, Aref.factor_);
     int maxn = int(nterms) - 2;
     for (int n = 0; n < maxn; ++n)
     {
-        LabeledTensor B = rhs[best_perm[n + 1]];
+        const LabeledTensor &B = rhs[best_perm[n + 1]];
 
         std::vector<Indices> AB_indices =
             indices::determine_contraction_result(A, B);

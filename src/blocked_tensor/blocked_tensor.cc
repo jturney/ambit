@@ -31,6 +31,7 @@
 #include <stdexcept>
 #include <string>
 #include <algorithm>
+#include <numeric>
 #include <ambit/blocked_tensor.h>
 #include <tensor/indices.h>
 
@@ -994,6 +995,181 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
             }
         }
     }
+}
+
+void LabeledBlockedTensor::set(const LabeledBlockedTensor &to)
+{
+    BT_ = to.BT_;
+    indices_ = to.indices_;
+    factor_ = to.factor_;
+}
+
+void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct &rhs,
+                                    bool zero_result, bool add, bool optimize_order)
+{
+    size_t nterms = rhs.size();
+    // Check for self assignment
+    for (size_t n = 0; n < nterms; ++n)
+    {
+        const BlockedTensor &bt = rhs[n].BT();
+        if (BT_ == bt)
+        {
+            throw std::runtime_error(
+                "Tensor contractions does not support self assignment.");
+        }
+    }
+
+    std::vector<std::vector<size_t>> unique_indices_keys;
+    std::map<std::string, size_t> index_map;
+    // In expert mode if a contraction cannot be performed
+    if (BlockedTensor::expert_mode_)
+    {
+        // Find the unique indices in the contraction
+        std::vector<std::string> unique_indices;
+        for (size_t n = 0; n < nterms; ++n)
+        {
+            for (const std::string &index : rhs[n].indices())
+            {
+                unique_indices.push_back(index);
+            }
+        }
+        sort(unique_indices.begin(), unique_indices.end());
+        unique_indices.erase(
+            std::unique(unique_indices.begin(), unique_indices.end()),
+            unique_indices.end());
+
+        unique_indices_keys = BlockedTensor::label_to_block_keys(unique_indices);
+        {
+            size_t k = 0;
+            for (const std::string &index : unique_indices)
+            {
+                index_map[index] = k;
+                k++;
+            }
+        }
+
+        std::vector<std::vector<size_t>> unique_indices_keys_expert =
+            unique_indices_keys;
+        unique_indices_keys.clear();
+        for (const std::vector<size_t> &uik : unique_indices_keys_expert)
+        {
+            std::vector<size_t> result_key;
+            for (const std::string &index : indices())
+            {
+                result_key.push_back(uik[index_map[index]]);
+            }
+            if (not BT().is_block(result_key))
+                continue;
+            for (size_t n = 0; n < nterms; ++n)
+            {
+                const LabeledBlockedTensor &lbt = rhs[n];
+                std::vector<size_t> term_key;
+                for (const std::string &index : lbt.indices())
+                {
+                    term_key.push_back(uik[index_map[index]]);
+                }
+                if (not lbt.BT().is_block(term_key))
+                    continue;
+            }
+            unique_indices_keys.push_back(uik);
+        }
+    }
+
+    std::vector<size_t> perm(nterms);
+    std::vector<size_t> best_perm(nterms);
+    std::iota(perm.begin(), perm.end(), 0);
+    std::pair<double, double> best_cpu_memory_cost(1.0e200, 1.0e200);
+
+    if (optimize_order) {
+        throw std::runtime_error(
+            "Order optimization in LabeledBlockedTensor::contract_by_tensor not implemented.");
+//        do
+//        {
+//            std::pair<double, double> cpu_memory_cost =
+//                rhs.compute_contraction_cost(perm);
+//            if (cpu_memory_cost.first < best_cpu_memory_cost.first)
+//            {
+//                best_perm = perm;
+//                best_cpu_memory_cost = cpu_memory_cost;
+//            }
+//        } while (std::next_permutation(perm.begin(), perm.end()));
+        // at this point 'best_perm' should be used to perform contraction in
+        // optimal order.
+    } else {
+        best_perm = perm;
+    }
+
+    const LabeledBlockedTensor &Aref = rhs[best_perm[0]];
+    LabeledBlockedTensor A(Aref.BT_, Aref.indices_, Aref.factor_);
+    int maxn = int(nterms) - 2;
+    for (int n = 0; n < maxn; ++n)
+    {
+        const LabeledBlockedTensor &B = rhs[best_perm[n + 1]];
+
+        std::vector<Indices> AB_indices =
+            indices::determine_contraction_result_from_indices(A.indices(), B.indices());
+        const Indices &AB_common_idx = AB_indices[0];
+        const Indices &A_fix_idx = AB_indices[1];
+        const Indices &B_fix_idx = AB_indices[2];
+        Indices indices;
+
+        for (size_t i = 0; i < AB_common_idx.size(); ++i)
+        {
+            // If a common index is also found in the rhs it's a Hadamard index
+            if (std::find(this->indices().begin(), this->indices().end(),
+                          AB_common_idx[i]) != this->indices().end())
+            {
+                indices.push_back(AB_common_idx[i]);
+            }
+        }
+
+        for (size_t i = 0; i < A_fix_idx.size(); ++i)
+        {
+            indices.push_back(A_fix_idx[i]);
+        }
+        for (size_t i = 0; i < B_fix_idx.size(); ++i)
+        {
+            indices.push_back(B_fix_idx[i]);
+        }
+
+        std::vector<std::vector<size_t>> AB_block_keys;
+        if (BlockedTensor::expert_mode_)
+        {
+            for (const std::vector<size_t> &uik : unique_indices_keys)
+            {
+                std::vector<size_t> term_key;
+                for (const std::string &index : indices)
+                {
+                    term_key.push_back(uik[index_map[index]]);
+                }
+                AB_block_keys.push_back(term_key);
+            }
+        } else {
+            AB_block_keys = BlockedTensor::label_to_block_keys(indices);
+        }
+
+        std::vector<std::string> AB_blocks;
+        for (const std::vector<size_t>& block_key : AB_block_keys)
+        {
+            std::string block = "";
+            for (size_t i = 0, maxI = block_key.size() - 1; i < maxI; ++i) {
+                block += BlockedTensor::mo_space(block_key[i]).name() + ",";
+            }
+            block += BlockedTensor::mo_space(block_key[block_key.size() - 1]).name();
+            AB_blocks.push_back(block);
+        }
+
+        BlockedTensor btAB = BlockedTensor::build(CoreTensor, A.BT().name() + " * " + B.BT().name(), AB_blocks);
+
+        LabeledBlockedTensor AB(btAB, indices);
+
+        AB.contract(A * B, true, true, false);
+
+        A.set(AB);
+    }
+    const LabeledBlockedTensor &B = rhs[best_perm[nterms - 1]];
+
+    this->contract(A * B, zero_result, add, false);
 }
 
 void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedProduct &rhs_batched,
