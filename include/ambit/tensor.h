@@ -574,9 +574,9 @@ class LabeledTensor
     }
 
     void contract(const LabeledTensorContraction &rhs, bool zero_result,
-                  bool add);
+                  bool add, bool optimize_order = true);
     void contract_batched(const LabeledTensorBatchedContraction &rhs, bool zero_result,
-                  bool add);
+                  bool add, bool optimize_order = true);
 
   private:
     void set(const LabeledTensor &to);

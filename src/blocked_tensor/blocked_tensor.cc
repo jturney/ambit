@@ -872,7 +872,7 @@ void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorBatchedProduct &
 }
 
 void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
-                                    bool zero_result, bool add)
+                                    bool zero_result, bool add, bool optimize_order)
 {
     size_t nterms = rhs.size();
 
@@ -984,18 +984,20 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
             }
             if (add)
             {
-                result += prod;
+//                result += prod;
+                result.contract(prod, false, true, optimize_order);
             }
             else
             {
-                result -= prod;
+//                result -= prod;
+                result.contract(prod, false, false, optimize_order);
             }
         }
     }
 }
 
 void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedProduct &rhs_batched,
-                                    bool zero_result, bool add)
+                                    bool zero_result, bool add, bool optimize_order)
 {
     const LabeledBlockedTensorProduct &rhs = rhs_batched.get_contraction();
     const Indices &batched_indices = rhs_batched.get_batched_indices();
@@ -1111,11 +1113,13 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
             LabeledTensorBatchedContraction prod_batched(prod, batched_indices);
             if (add)
             {
-                result += prod_batched;
+//                result += prod_batched;
+                result.contract_batched(prod_batched, false, true, optimize_order);
             }
             else
             {
-                result -= prod_batched;
+//                result -= prod_batched;
+                result.contract_batched(prod_batched, false, false, optimize_order);
             }
         }
     }

@@ -434,9 +434,9 @@ class LabeledBlockedTensor
     }
 
     void contract(const LabeledBlockedTensorProduct &rhs, bool zero_result,
-                  bool add);
+                  bool add, bool optimize_order = true);
     void contract_batched(const LabeledBlockedTensorBatchedProduct &rhs, bool zero_result,
-                  bool add);
+                  bool add, bool optimize_order = true);
     void add(const LabeledBlockedTensor &rhs, double alpha, double beta);
 
     BlockedTensor BT_;
