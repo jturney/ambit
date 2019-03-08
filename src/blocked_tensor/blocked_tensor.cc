@@ -1702,19 +1702,15 @@ pair<double, double> LabeledBlockedTensorProduct::compute_contraction_cost(
                             first.end(), back_inserter(second_unique));
 
         std::set<std::vector<size_t>> sub_uiks;
-        std::map<std::string, size_t> sub_map;
         std::vector<size_t> sub_indices;
         size_t count = 0;
         for (const std::string &s : common) {
-            sub_map[s] = count++;
             sub_indices.push_back(index_map.at(s));
         }
         for (const std::string &s : first_unique) {
-            sub_map[s] = count++;
             sub_indices.push_back(index_map.at(s));
         }
         for (const std::string &s : second_unique) {
-            sub_map[s] = count++;
             sub_indices.push_back(index_map.at(s));
         }
 
@@ -1726,35 +1722,30 @@ pair<double, double> LabeledBlockedTensorProduct::compute_contraction_cost(
             sub_uiks.insert(new_uik);
         }
 
+        size_t common_max = common.size();
+        size_t first_unique_max = common_max + first_unique.size();
+        size_t second_unique_max = first_unique_max + second_unique.size();
+
         double cpu_cost = 0.0, memory_cost = 0.0;
         for (const std::vector<size_t> &uik : sub_uiks) {
-            map<string, size_t> indices_to_size;
-
-            for (const auto &index : sub_map)
-            {
-                indices_to_size[index.first]
-                        = BlockedTensor::mo_space(uik[index.second]).dim();
+            size_t j = 0;
+            double common_size = 1.0;
+            while (j < common_max) {
+                common_size *= BlockedTensor::mo_space(uik[j++]).dim();
+            }
+            double first_unique_size = 1.0;
+            while (j < first_unique_max) {
+                first_unique_size *= BlockedTensor::mo_space(uik[j++]).dim();
+            }
+            double second_unique_size = 1.0;
+            while (j < second_unique_max) {
+                second_unique_size *= BlockedTensor::mo_space(uik[j++]).dim();
             }
 
-            double common_size = 1.0;
-            for (const string &s : common)
-                common_size *= indices_to_size[s];
-            double first_size = 1.0;
-            for (const string &s : first)
-                first_size *= indices_to_size[s];
-            double second_size = 1.0;
-            for (const string &s : second)
-                second_size *= indices_to_size[s];
-            double first_unique_size = 1.0;
-            for (const string &s : first_unique)
-                first_unique_size *= indices_to_size[s];
-            double second_unique_size = 1.0;
-            for (const string &s : second_unique)
-                second_unique_size *= indices_to_size[s];
-            double result_size = first_unique_size * second_unique_size;
-
-            cpu_cost += common_size * result_size;
-            memory_cost += first_size + second_size + result_size;
+            cpu_cost += common_size * first_unique_size * second_unique_size;
+            memory_cost += common_size * first_unique_size
+                         + common_size * second_unique_size
+                         + first_unique_size * second_unique_size;
         }
 
         Indices stored_indices(first_unique);
