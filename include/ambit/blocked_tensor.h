@@ -220,7 +220,7 @@ class BlockedTensor
 
     /// @return a list of labels of the blocks contained in this object (e.g.
     /// {"ccaa","cCaA",...})
-    std::vector<std::string> &block_labels() { return block_labels_; }
+    std::vector<std::string> block_labels() const;
     const
 
         /**
@@ -322,7 +322,6 @@ class BlockedTensor
   private:
     std::string name_;
     std::size_t rank_;
-    std::vector<std::string> block_labels_;
     std::map<std::vector<size_t>, Tensor> blocks_;
 
     /// A vector of MOSpace objects

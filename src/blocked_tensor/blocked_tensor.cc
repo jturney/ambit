@@ -240,6 +240,21 @@ void BlockedTensor::reset_mo_spaces()
 
 BlockedTensor::BlockedTensor() : rank_(0) {}
 
+std::vector<std::string> BlockedTensor::block_labels() const {
+    std::vector<std::string> labels;
+    for (const auto &this_block_tensor : blocks_)
+    {
+        // Grab the orbital spaces names
+        std::string block_label;
+        for (size_t ms : this_block_tensor.first)
+        {
+            block_label += mo_spaces_[ms].name();
+        }
+        labels.push_back(block_label);
+    }
+    return labels;
+}
+
 BlockedTensor BlockedTensor::build(TensorType type, const std::string &name,
                                    const std::vector<std::string> &blocks)
 {
@@ -315,7 +330,6 @@ BlockedTensor BlockedTensor::build(TensorType type, const std::string &name,
         }
         newObject.blocks_[this_block] =
             Tensor::build(type, name + "[" + block_label + "]", dims);
-        newObject.block_labels_.push_back(block_label);
 
         // Set or check the rank
         if (newObject.rank_ > 0)
@@ -1144,6 +1158,7 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
                 }
                 AB_block_keys.push_back(term_key);
             }
+            AB_block_keys.erase(std::unique(AB_block_keys.begin(), AB_block_keys.end()), AB_block_keys.end());
         } else {
             AB_block_keys = BlockedTensor::label_to_block_keys(indices);
         }
@@ -1436,7 +1451,7 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
         std::vector<size_t> perm =
             indices::permutation_order(permuted_indices, indices());
         std::vector<std::string> L_blocks;
-        for (const std::string & block : BT().block_labels_) {
+        for (const std::string & block : BT().block_labels()) {
             std::vector<std::string> block_vec = indices::split(block);
             std::vector<std::string> L_block_vec(block_vec.size());
             for (size_t i = 0; i < block_vec.size(); ++i) {
