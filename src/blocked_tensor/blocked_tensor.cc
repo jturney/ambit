@@ -1150,10 +1150,20 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
             indices.push_back(B_fix_idx[i]);
         }
 
-        std::vector<std::vector<size_t>> AB_block_keys;
+        std::vector<std::string> AB_blocks;
         if (full_contraction)
         {
-            AB_block_keys = BlockedTensor::label_to_block_keys(indices);
+            std::vector<std::vector<size_t>> AB_block_keys =
+                    BlockedTensor::label_to_block_keys(indices);
+            for (const std::vector<size_t>& block_key : AB_block_keys)
+            {
+                std::string block = "";
+                for (size_t i = 0, maxI = block_key.size() - 1; i < maxI; ++i) {
+                    block += BlockedTensor::mo_space(block_key[i]).name() + ",";
+                }
+                block += BlockedTensor::mo_space(block_key[block_key.size() - 1]).name();
+                AB_blocks.push_back(block);
+            }
         } else {
             size_t max_path = 1;
             for (const auto &index : indices) {
@@ -1171,25 +1181,18 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
                 if (AB_block_set.size() == max_path)
                     break;
             }
-            AB_block_keys.reserve(AB_block_set.size());
-            for (const auto &key : AB_block_set) {
-                AB_block_keys.push_back(key);
+            for (const std::vector<size_t>& block_key : AB_block_set)
+            {
+                std::string block = "";
+                for (size_t i = 0, maxI = block_key.size() - 1; i < maxI; ++i) {
+                    block += BlockedTensor::mo_space(block_key[i]).name() + ",";
+                }
+                block += BlockedTensor::mo_space(block_key[block_key.size() - 1]).name();
+                AB_blocks.push_back(block);
             }
-        }
-
-        std::vector<std::string> AB_blocks;
-        for (const std::vector<size_t>& block_key : AB_block_keys)
-        {
-            std::string block = "";
-            for (size_t i = 0, maxI = block_key.size() - 1; i < maxI; ++i) {
-                block += BlockedTensor::mo_space(block_key[i]).name() + ",";
-            }
-            block += BlockedTensor::mo_space(block_key[block_key.size() - 1]).name();
-            AB_blocks.push_back(block);
         }
 
         BlockedTensor btAB = BlockedTensor::build(CoreTensor, A.BT().name() + " * " + B.BT().name(), AB_blocks);
-
         LabeledBlockedTensor AB(btAB, indices);
 
         AB.contract(A * B, true, true, false);
