@@ -487,7 +487,8 @@ class LabeledBlockedTensorProduct
     compute_contraction_cost(
             const vector<size_t> &perm,
             const std::vector<std::vector<size_t>> &unique_indices_keys,
-            const std::map<std::string, size_t> &index_map) const;
+            const std::map<std::string, size_t> &index_map,
+            bool full_contraction) const;
 
   private:
     std::vector<LabeledBlockedTensor> tensors_;

@@ -1037,7 +1037,8 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
     std::vector<std::vector<size_t>> unique_indices_keys;
     std::map<std::string, size_t> index_map;
     // In expert mode if a contraction cannot be performed
-    if (BlockedTensor::expert_mode_ or optimize_order)
+    bool full_contraction = true;
+    if (BlockedTensor::expert_mode_)
     {
         // Find the unique indices in the contraction
         std::vector<std::string> unique_indices;
@@ -1054,6 +1055,7 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
             unique_indices.end());
 
         unique_indices_keys = BlockedTensor::label_to_block_keys(unique_indices);
+        size_t full_contraction_size = unique_indices_keys.size();
         {
             size_t k = 0;
             for (const std::string &index : unique_indices)
@@ -1088,6 +1090,9 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
             }
             unique_indices_keys.push_back(uik);
         }
+        if (full_contraction_size > unique_indices_keys.size()) {
+            full_contraction = false;
+        }
     }
 
     std::vector<size_t> perm(nterms);
@@ -1099,7 +1104,7 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
         do
         {
             std::pair<double, double> cpu_memory_cost =
-                rhs.compute_contraction_cost(perm, unique_indices_keys, index_map);
+                rhs.compute_contraction_cost(perm, unique_indices_keys, index_map, full_contraction);
             if (cpu_memory_cost.first < best_cpu_memory_cost.first)
             {
                 best_perm = perm;
@@ -1146,8 +1151,15 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
         }
 
         std::vector<std::vector<size_t>> AB_block_keys;
-        if (BlockedTensor::expert_mode_)
+        if (full_contraction)
         {
+            AB_block_keys = BlockedTensor::label_to_block_keys(indices);
+        } else {
+            size_t max_path = 1;
+            for (const auto &index : indices) {
+                max_path *= BlockedTensor::index_to_mo_spaces_[index].size();
+            }
+            std::set<std::vector<size_t>> AB_block_set;
             for (const std::vector<size_t> &uik : unique_indices_keys)
             {
                 std::vector<size_t> term_key;
@@ -1155,11 +1167,14 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
                 {
                     term_key.push_back(uik[index_map[index]]);
                 }
-                AB_block_keys.push_back(term_key);
+                AB_block_set.insert(term_key);
+                if (AB_block_set.size() == max_path)
+                    break;
             }
-            AB_block_keys.erase(std::unique(AB_block_keys.begin(), AB_block_keys.end()), AB_block_keys.end());
-        } else {
-            AB_block_keys = BlockedTensor::label_to_block_keys(indices);
+            AB_block_keys.reserve(AB_block_set.size());
+            for (const auto &key : AB_block_set) {
+                AB_block_keys.push_back(key);
+            }
         }
 
         std::vector<std::string> AB_blocks;
@@ -1679,7 +1694,8 @@ LabeledBlockedTensorProduct::operator double() const
 pair<double, double> LabeledBlockedTensorProduct::compute_contraction_cost(
     const vector<size_t> &perm,
     const std::vector<std::vector<size_t>> &unique_indices_keys,
-    const std::map<std::string, size_t> &index_map) const
+    const std::map<std::string, size_t> &index_map,
+    bool full_contraction) const
 {
     double cpu_cost_total = 0.0;
     double memory_cost_max = 0.0;
@@ -1701,25 +1717,42 @@ pair<double, double> LabeledBlockedTensorProduct::compute_contraction_cost(
         std::set_difference(second.begin(), second.end(), first.begin(),
                             first.end(), back_inserter(second_unique));
 
-        std::set<std::vector<size_t>> sub_uiks;
-        std::vector<size_t> sub_indices;
-        size_t count = 0;
-        for (const std::string &s : common) {
-            sub_indices.push_back(index_map.at(s));
-        }
-        for (const std::string &s : first_unique) {
-            sub_indices.push_back(index_map.at(s));
-        }
-        for (const std::string &s : second_unique) {
-            sub_indices.push_back(index_map.at(s));
-        }
+        Indices all = common;
+        all.insert(all.end(), first_unique.begin(), first_unique.end());
+        all.insert(all.end(), second_unique.begin(), second_unique.end());
 
-        for (const std::vector<size_t> &uik : unique_indices_keys) {
-            std::vector<size_t> new_uik;
-            for (size_t i : sub_indices) {
-                new_uik.push_back(uik[i]);
+        std::vector<std::vector<size_t>> sub_uiks;
+        if (full_contraction) {
+            sub_uiks = BlockedTensor::label_to_block_keys(all);
+        } else {
+            size_t max_path = 1;
+            for (const auto &index : all) {
+                max_path *= BlockedTensor::index_to_mo_spaces_[index].size();
             }
-            sub_uiks.insert(new_uik);
+            std::set<std::vector<size_t>> set_uiks;
+            std::vector<size_t> sub_indices;
+            for (const std::string &s : common) {
+                sub_indices.push_back(index_map.at(s));
+            }
+            for (const std::string &s : first_unique) {
+                sub_indices.push_back(index_map.at(s));
+            }
+            for (const std::string &s : second_unique) {
+                sub_indices.push_back(index_map.at(s));
+            }
+            for (const std::vector<size_t> &uik : unique_indices_keys) {
+                std::vector<size_t> new_uik;
+                for (size_t i : sub_indices) {
+                    new_uik.push_back(uik[i]);
+                }
+                set_uiks.insert(new_uik);
+                if (set_uiks.size() == max_path)
+                    break;
+            }
+            sub_uiks.reserve(set_uiks.size());
+            for (const auto &uik : set_uiks) {
+                sub_uiks.push_back(uik);
+            }
         }
 
         size_t common_max = common.size();
