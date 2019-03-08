@@ -167,9 +167,9 @@ void test_performance()
         BlockedTensor B = BlockedTensor::build(CoreTensor, "B 3-idx", {"Lgg", "LGG"});
         BlockedTensor C2 = BlockedTensor::build(CoreTensor, "C2", spin_cases({"gggg"}));
         BlockedTensor T2 = BlockedTensor::build(CoreTensor, "T2 Amplitudes", spin_cases({"hhpp"}));
-        timing("4. C2[ijrs].contract_by_tensor(B[gar] * B[gbs] * T2[ijab], false, true, false);", repeats, [&]
+        timing("4. C2[ijrs].contract_by_tensor(B[gar] * B[gbs] * T2[ijab], false, true, true);", repeats, [&]
                {
-                   C2["ijrs"].contract_by_tensor(B["gar"] * B["gbs"] * T2["ijab"], false, true, false);
+                   C2["ijrs"].contract_by_tensor(B["gar"] * B["gbs"] * T2["ijab"], false, true, true);
                });
     }
     {
@@ -179,6 +179,15 @@ void test_performance()
         timing("5. C2[ijrs].contract_batched(batched(r, B[gar] * B[gbs] * T2[ijab]), false, true, false);", repeats, [&]
                {
                    C2["ijrs"].contract_batched(batched("r", B["gar"] * B["gbs"] * T2["ijab"]), false, true, false);
+               });
+    }
+    {
+        BlockedTensor V = BlockedTensor::build(CoreTensor, "V", spin_cases({"gggg"}));
+        BlockedTensor Vtrans = BlockedTensor::build(CoreTensor, "Vtrans", spin_cases({"gggg"}));
+        BlockedTensor U1 = BlockedTensor::build(CoreTensor, "U", spin_cases({"gg"}));
+        timing("6. Vtrans[pqrs] = U1[pt] * U1[qo] * V_[to45] * U1[r4] * U1[s5];", repeats, [&]
+               {
+                   Vtrans["pqrs"] = U1["pt"] * U1["qo"] * V["to45"] * U1["r4"] * U1["s5"];
                });
     }
 }

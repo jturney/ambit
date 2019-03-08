@@ -32,6 +32,7 @@
 #include <string>
 #include <algorithm>
 #include <numeric>
+#include <set>
 #include <ambit/blocked_tensor.h>
 #include <tensor/indices.h>
 
@@ -806,7 +807,7 @@ void LabeledBlockedTensor::operator=(const LabeledBlockedTensorProduct &rhs)
 {
     try
     {
-        contract(rhs, true, true);
+        contract_by_tensor(rhs, true, true);
     }
     catch (std::exception &e)
     {
@@ -820,7 +821,7 @@ void LabeledBlockedTensor::operator+=(const LabeledBlockedTensorProduct &rhs)
 {
     try
     {
-        contract(rhs, false, true);
+        contract_by_tensor(rhs, false, true);
     }
     catch (std::exception &e)
     {
@@ -834,7 +835,7 @@ void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorProduct &rhs)
 {
     try
     {
-        contract(rhs, false, false);
+        contract_by_tensor(rhs, false, false);
     }
     catch (std::exception &e)
     {
@@ -1036,7 +1037,7 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
     std::vector<std::vector<size_t>> unique_indices_keys;
     std::map<std::string, size_t> index_map;
     // In expert mode if a contraction cannot be performed
-    if (BlockedTensor::expert_mode_)
+    if (BlockedTensor::expert_mode_ or optimize_order)
     {
         // Find the unique indices in the contraction
         std::vector<std::string> unique_indices;
@@ -1095,18 +1096,16 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
     std::pair<double, double> best_cpu_memory_cost(1.0e200, 1.0e200);
 
     if (optimize_order) {
-        throw std::runtime_error(
-            "Order optimization in LabeledBlockedTensor::contract_by_tensor not implemented.");
-//        do
-//        {
-//            std::pair<double, double> cpu_memory_cost =
-//                rhs.compute_contraction_cost(perm);
-//            if (cpu_memory_cost.first < best_cpu_memory_cost.first)
-//            {
-//                best_perm = perm;
-//                best_cpu_memory_cost = cpu_memory_cost;
-//            }
-//        } while (std::next_permutation(perm.begin(), perm.end()));
+        do
+        {
+            std::pair<double, double> cpu_memory_cost =
+                rhs.compute_contraction_cost(perm, unique_indices_keys, index_map);
+            if (cpu_memory_cost.first < best_cpu_memory_cost.first)
+            {
+                best_perm = perm;
+                best_cpu_memory_cost = cpu_memory_cost;
+            }
+        } while (std::next_permutation(perm.begin(), perm.end()));
         // at this point 'best_perm' should be used to perform contraction in
         // optimal order.
     } else {
@@ -1675,6 +1674,107 @@ LabeledBlockedTensorProduct::operator double() const
     }
 
     return result;
+}
+
+pair<double, double> LabeledBlockedTensorProduct::compute_contraction_cost(
+    const vector<size_t> &perm,
+    const std::vector<std::vector<size_t>> &unique_indices_keys,
+    const std::map<std::string, size_t> &index_map) const
+{
+    double cpu_cost_total = 0.0;
+    double memory_cost_max = 0.0;
+    Indices first = tensors_[perm[0]].indices();
+    for (size_t i = 1; i < perm.size(); ++i)
+    {
+        Indices second = tensors_[perm[i]].indices();
+        std::sort(first.begin(), first.end());
+        std::sort(second.begin(), second.end());
+        Indices common, first_unique, second_unique;
+
+        // cannot use common.begin() here, need to use back_inserter() because
+        // common.begin() of an
+        // empty vector is not a valid output iterator
+        std::set_intersection(first.begin(), first.end(), second.begin(),
+                              second.end(), back_inserter(common));
+        std::set_difference(first.begin(), first.end(), second.begin(),
+                            second.end(), back_inserter(first_unique));
+        std::set_difference(second.begin(), second.end(), first.begin(),
+                            first.end(), back_inserter(second_unique));
+
+        std::set<std::vector<size_t>> sub_uiks;
+        std::map<std::string, size_t> sub_map;
+        std::vector<size_t> sub_indices;
+        size_t count = 0;
+        for (const std::string &s : common) {
+            sub_map[s] = count++;
+            sub_indices.push_back(index_map.at(s));
+        }
+        for (const std::string &s : first_unique) {
+            sub_map[s] = count++;
+            sub_indices.push_back(index_map.at(s));
+        }
+        for (const std::string &s : second_unique) {
+            sub_map[s] = count++;
+            sub_indices.push_back(index_map.at(s));
+        }
+
+        for (const std::vector<size_t> &uik : unique_indices_keys) {
+            std::vector<size_t> new_uik;
+            for (size_t i : sub_indices) {
+                new_uik.push_back(uik[i]);
+            }
+            sub_uiks.insert(new_uik);
+        }
+
+        double cpu_cost = 0.0, memory_cost = 0.0;
+        for (const std::vector<size_t> &uik : sub_uiks) {
+            map<string, size_t> indices_to_size;
+
+            for (const auto &index : sub_map)
+            {
+                indices_to_size[index.first]
+                        = BlockedTensor::mo_space(uik[index.second]).dim();
+            }
+
+            double common_size = 1.0;
+            for (const string &s : common)
+                common_size *= indices_to_size[s];
+            double first_size = 1.0;
+            for (const string &s : first)
+                first_size *= indices_to_size[s];
+            double second_size = 1.0;
+            for (const string &s : second)
+                second_size *= indices_to_size[s];
+            double first_unique_size = 1.0;
+            for (const string &s : first_unique)
+                first_unique_size *= indices_to_size[s];
+            double second_unique_size = 1.0;
+            for (const string &s : second_unique)
+                second_unique_size *= indices_to_size[s];
+            double result_size = first_unique_size * second_unique_size;
+
+            cpu_cost += common_size * result_size;
+            memory_cost += first_size + second_size + result_size;
+        }
+
+        Indices stored_indices(first_unique);
+        stored_indices.insert(stored_indices.end(), second_unique.begin(),
+                              second_unique.end());
+
+        cpu_cost_total += cpu_cost;
+        memory_cost_max = std::max({memory_cost_max, memory_cost});
+
+        first = stored_indices;
+    }
+
+    std::vector<std::string> vec_str;
+    for (size_t i : perm)
+    {
+        vec_str.push_back(tensors_[i].str());
+    }
+
+    return std::make_pair(cpu_cost_total, memory_cost_max);
+
 }
 
 std::vector<std::string> spin_cases(const std::vector<std::string> &in_str_vec)

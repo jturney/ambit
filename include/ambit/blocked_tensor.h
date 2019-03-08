@@ -144,6 +144,7 @@ class MOSpace
 class BlockedTensor
 {
     friend class LabeledBlockedTensor;
+    friend class LabeledBlockedTensorProduct;
 
   public:
     // => Constructors <= //
@@ -481,6 +482,12 @@ class LabeledBlockedTensorProduct
 
     // conversion operator
     operator double() const;
+
+    pair<double, double>
+    compute_contraction_cost(
+            const vector<size_t> &perm,
+            const std::vector<std::vector<size_t>> &unique_indices_keys,
+            const std::map<std::string, size_t> &index_map) const;
 
   private:
     std::vector<LabeledBlockedTensor> tensors_;
