@@ -28,6 +28,7 @@
  */
 
 #include <cmath>
+#include <cstring>
 #include <stdexcept>
 #include <string>
 #include <algorithm>
@@ -925,7 +926,7 @@ void LabeledBlockedTensor::operator=(const LabeledBlockedTensorBatchedProduct &r
 {
     try
     {
-        contract_batched(rhs, true, true);
+        contract_batched_by_tensor(rhs, true, true);
     }
     catch (std::exception &e)
     {
@@ -939,7 +940,7 @@ void LabeledBlockedTensor::operator+=(const LabeledBlockedTensorBatchedProduct &
 {
     try
     {
-        contract_batched(rhs, false, true);
+        contract_batched_by_tensor(rhs, false, true);
     }
     catch (std::exception &e)
     {
@@ -953,7 +954,7 @@ void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorBatchedProduct &
 {
     try
     {
-        contract_batched(rhs, false, false);
+        contract_batched_by_tensor(rhs, false, false);
     }
     catch (std::exception &e)
     {
@@ -1597,6 +1598,7 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
 
     // Create intermediate batch tensors for tensors to be contracted.
     LabeledBlockedTensorProduct rhs_batch;
+    std::map<size_t, BlockedTensor> batch_tensors;
     for (size_t i = 0; i < nterms; ++i) {
         const LabeledBlockedTensor& A = rhsp[i];
         if (need_slicing[i][batched_size]) {
@@ -1615,8 +1617,8 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
                         A.BT().blocks_,
                         full_contraction);
 
-            BlockedTensor Atp = BlockedTensor::build(CoreTensor, A.BT().name() + " batch", A_batch_blocks);
-            LabeledBlockedTensor At(Atp, A_batch_indices, A.factor());
+            batch_tensors[i] = BlockedTensor::build(CoreTensor, A.BT().name() + " batch", A_batch_blocks);
+            LabeledBlockedTensor At(batch_tensors[i], A_batch_indices, A.factor());
             rhs_batch.operator*(At);
         } else {
             rhs_batch.operator*(A);
@@ -1655,7 +1657,96 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
         Dimension current_batch(batched_size, 0);
         while (current_batch[0] < slicing_dims[0]) {
 
+            // Extract result batch
+            for (auto &batch_block_key_tensor : Ltp_batch.blocks_) {
+                const std::vector<size_t> &batch_block_key = batch_block_key_tensor.first;
+                std::vector<size_t> corr_perm_block_key(batch_keys);
+                corr_perm_block_key.insert(
+                            corr_perm_block_key.end(),
+                            batch_block_key.begin(),
+                            batch_block_key.end());
+                if (full_contraction or Lt.BT().is_block(corr_perm_block_key)) {
+                    Tensor Lt_batch_block = batch_block_key_tensor.second;
+                    Tensor Lt_block = Lt.BT().block(corr_perm_block_key);
+                    size_t L_shift = 0, cur_jump = 1;
+                    size_t sub_numel = Lt_batch_block.numel();
+                    for (int i = batched_size - 1; i >= 0; --i) {
+                        L_shift += current_batch[i] * cur_jump;
+                        cur_jump *= slicing_dims[i];
+                    }
+                    L_shift *= sub_numel;
+                    std::vector<double>& Lt_batch_data = Lt_batch_block.data();
+                    std::vector<double>& Lt_data = Lt_block.data();
+                    std::memcpy(Lt_batch_data.data(), Lt_data.data()+L_shift, sub_numel * sizeof(double));
+                } else {
+                    batch_block_key_tensor.second.zero();
+                }
+            }
 
+            for (size_t i = 0; i < nterms; ++i) {
+                if (need_slicing[i][batched_size]) {
+
+                    // Extract tensor batch
+                    for (auto &batch_block_key_tensor : batch_tensors[i].blocks_) {
+                        const std::vector<size_t> &batch_block_key = batch_block_key_tensor.first;
+                        std::vector<size_t> corr_perm_block_key;
+                        for (size_t l = 0; l < batched_size; ++l) {
+                            if (need_slicing[i][l]) {
+                                corr_perm_block_key.push_back(batch_keys[l]);
+                            }
+                        }
+                        corr_perm_block_key.insert(
+                                    corr_perm_block_key.end(),
+                                    batch_block_key.begin(),
+                                    batch_block_key.end());
+                        if (full_contraction or Lt.BT().is_block(corr_perm_block_key)) {
+                            Tensor A_batch_block = batch_block_key_tensor.second;
+                            Tensor A_block = rhsp[i].BT().block(corr_perm_block_key);
+                            size_t cur_shift = 0, cur_jump = 1;
+                            size_t sub_numel_A = A_batch_block.numel();
+                            for (int l = batched_size - 1; l >= 0; --l) {
+                                if (need_slicing[i][l]) {
+                                    cur_shift += current_batch[l] * cur_jump;
+                                    cur_jump *= slicing_dims[l];
+                                }
+                            }
+                            cur_shift *= sub_numel_A;
+                            std::vector<double>& A_batch_data = A_batch_block.data();
+                            const std::vector<double>& A_data = A_block.data();
+                            std::memcpy(A_batch_data.data(), A_data.data()+cur_shift, sub_numel_A * sizeof(double));
+                        } else {
+                            batch_block_key_tensor.second.zero();
+                        }
+                    }
+                }
+            }
+
+            // The following code is identical to Lt_batch.contract(rhs_batch, zero_result, add);
+            Lt_batch.contract_by_tensor(rhs_batch, zero_result, add, false);
+
+            // Copy current batch tensor result to the full result tensor
+            for (auto &batch_block_key_tensor : Lt_batch.BT().blocks_) {
+                const std::vector<size_t> &batch_block_key = batch_block_key_tensor.first;
+                std::vector<size_t> corr_perm_block_key(batch_keys);
+                corr_perm_block_key.insert(
+                            corr_perm_block_key.end(),
+                            batch_block_key.begin(),
+                            batch_block_key.end());
+                if (full_contraction or Lt.BT().is_block(corr_perm_block_key)) {
+                    Tensor Lt_batch_block = batch_block_key_tensor.second;
+                    Tensor Lt_block = Lt.BT().block(corr_perm_block_key);
+                    size_t L_shift = 0, cur_jump = 1;
+                    size_t sub_numel = Lt_batch_block.numel();
+                    for (int i = batched_size - 1; i >= 0; --i) {
+                        L_shift += current_batch[i] * cur_jump;
+                        cur_jump *= slicing_dims[i];
+                    }
+                    L_shift *= sub_numel;
+                    std::vector<double>& Lt_batch_data = Lt_batch_block.data();
+                    std::vector<double>& Lt_data = Lt_block.data();
+                    std::memcpy(Lt_data.data()+L_shift, Lt_batch_data.data(), sub_numel * sizeof(double));
+                }
+            }
 
             // Determine the indices of next batch
             for (int i = batched_size - 1; i >= 0; --i) {
@@ -1669,8 +1760,10 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
         }
     }
 
-    throw std::runtime_error(
-        "LabeledBlockedTensor::contract_batched_by_tensor implementation unfinished.");
+    // Permute result tensor back
+    if (permute_flag) {
+        (*this) = Lt;
+    }
 }
 
 void LabeledBlockedTensor::operator=(const LabeledBlockedTensorAddition &rhs)
