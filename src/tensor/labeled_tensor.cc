@@ -520,7 +520,7 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
     // Permute result labeled tensor.
     Tensor Ltp;
     if (permute_flag) {
-        permuted_indices.insert(permuted_indices.end(), batched_indices.begin(), batched_indices.end());
+        permuted_indices = batched_indices;
         for (size_t l = 0, l_max = numdim(); l < l_max; ++l) {
             if (std::find(slicing_axis.begin(), slicing_axis.end(),l) == slicing_axis.end()) {
                 permuted_indices.push_back(indices_[l]);
@@ -589,14 +589,18 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
             rhsp.operator*(A);
         } else {
             permuted_indices.insert(permuted_indices.end(),gemm_indices.begin(),gemm_indices.end());
-            Dimension dims;
-            for (const string& s : permuted_indices) {
-                dims.push_back(A.dim_by_index(s));
+            if (permuted_indices == A_indices) {
+                rhsp.operator*(A);
+            } else {
+                Dimension dims;
+                for (const string& s : permuted_indices) {
+                    dims.push_back(A.dim_by_index(s));
+                }
+                Tensor Atp = Tensor::build(A.T().type(), A.T().name() + " permute", dims);
+                Atp.permute(A.T(), permuted_indices, A.indices());
+                LabeledTensor At(Atp, permuted_indices, A.factor());
+                rhsp.operator*(At);
             }
-            Tensor Atp = Tensor::build(A.T().type(), A.T().name() + " permute", dims);
-            Atp.permute(A.T(), permuted_indices, A.indices());
-            LabeledTensor At(Atp, permuted_indices, A.factor());
-            rhsp.operator*(At);
         }
     }
 

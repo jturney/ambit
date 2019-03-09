@@ -379,6 +379,82 @@ std::vector<size_t> BlockedTensor::indices_to_key(const std::string &indices)
     return key;
 }
 
+std::vector<std::string> BlockedTensor::indices_to_block_labels(
+        const Indices &indices,
+        const std::vector<std::vector<size_t>> &unique_indices_keys,
+        const std::map<std::string, size_t> &index_map,
+        bool full_contraction)
+{
+    std::vector<std::string> blocks;
+    if (full_contraction)
+    {
+        std::vector<std::vector<size_t>> block_keys =
+                BlockedTensor::label_to_block_keys(indices);
+        for (const std::vector<size_t>& block_key : block_keys)
+        {
+            std::string block_label;
+            for (size_t ms : block_key)
+            {
+                block_label += BlockedTensor::mo_space(ms).name();
+            }
+            blocks.push_back(block_label);
+        }
+    } else {
+        size_t max_path = 1;
+        for (const std::string &index : indices) {
+            max_path *= BlockedTensor::index_to_mo_spaces_[index].size();
+        }
+        std::set<std::vector<size_t>> block_set;
+        for (const std::vector<size_t> &uik : unique_indices_keys)
+        {
+            std::vector<size_t> term_key;
+            for (const std::string &index : indices)
+            {
+                term_key.push_back(uik[index_map.at(index)]);
+            }
+            block_set.insert(term_key);
+            if (block_set.size() == max_path)
+                break;
+        }
+        for (const std::vector<size_t>& block_key : block_set)
+        {
+            std::string block_label;
+            for (size_t ms : block_key)
+            {
+                block_label += BlockedTensor::mo_space(ms).name();
+            }
+            blocks.push_back(block_label);
+        }
+    }
+    return blocks;
+}
+
+std::vector<std::string> BlockedTensor::reduce_rank_block_labels(
+        const Indices &indices,
+        const Indices &full_rank_indices,
+        const std::map<std::vector<size_t>, Tensor> &blocks,
+        bool full_contraction)
+{
+    std::map<std::string, size_t> sub_index_map;
+    std::vector<std::vector<size_t>> sub_uiks;
+    sub_uiks.reserve(blocks.size());
+    if (not full_contraction) {
+        for (const auto &block : blocks)
+        {
+            sub_uiks.push_back(block.first);
+        }
+        size_t count = 0;
+        for (const std::string &index : full_rank_indices) {
+            sub_index_map[index] = count++;
+        }
+    }
+    return BlockedTensor::indices_to_block_labels(
+                indices,
+                sub_uiks,
+                sub_index_map,
+                full_contraction);
+}
+
 bool BlockedTensor::is_block(const std::string &indices) const
 {
     return is_block(indices_to_key(indices));
@@ -1150,47 +1226,11 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
             indices.push_back(B_fix_idx[i]);
         }
 
-        std::vector<std::string> AB_blocks;
-        if (full_contraction)
-        {
-            std::vector<std::vector<size_t>> AB_block_keys =
-                    BlockedTensor::label_to_block_keys(indices);
-            for (const std::vector<size_t>& block_key : AB_block_keys)
-            {
-                std::string block = "";
-                for (size_t i = 0, maxI = block_key.size() - 1; i < maxI; ++i) {
-                    block += BlockedTensor::mo_space(block_key[i]).name() + ",";
-                }
-                block += BlockedTensor::mo_space(block_key[block_key.size() - 1]).name();
-                AB_blocks.push_back(block);
-            }
-        } else {
-            size_t max_path = 1;
-            for (const auto &index : indices) {
-                max_path *= BlockedTensor::index_to_mo_spaces_[index].size();
-            }
-            std::set<std::vector<size_t>> AB_block_set;
-            for (const std::vector<size_t> &uik : unique_indices_keys)
-            {
-                std::vector<size_t> term_key;
-                for (const std::string &index : indices)
-                {
-                    term_key.push_back(uik[index_map[index]]);
-                }
-                AB_block_set.insert(term_key);
-                if (AB_block_set.size() == max_path)
-                    break;
-            }
-            for (const std::vector<size_t>& block_key : AB_block_set)
-            {
-                std::string block = "";
-                for (size_t i = 0, maxI = block_key.size() - 1; i < maxI; ++i) {
-                    block += BlockedTensor::mo_space(block_key[i]).name() + ",";
-                }
-                block += BlockedTensor::mo_space(block_key[block_key.size() - 1]).name();
-                AB_blocks.push_back(block);
-            }
-        }
+        std::vector<std::string> AB_blocks = BlockedTensor::indices_to_block_labels(
+                    indices,
+                    unique_indices_keys,
+                    index_map,
+                    full_contraction);
 
         BlockedTensor btAB = BlockedTensor::build(CoreTensor, A.BT().name() + " * " + B.BT().name(), AB_blocks);
         LabeledBlockedTensor AB(btAB, indices);
@@ -1337,6 +1377,8 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
                                     bool zero_result, bool add, bool optimize_order)
 {
     const LabeledBlockedTensorProduct &rhs = rhs_batched.get_contraction();
+    const Indices &batched_indices = rhs_batched.get_batched_indices();
+    size_t batched_size = batched_indices.size();
 
     size_t nterms = rhs.size();
     // Check for self assignment
@@ -1353,6 +1395,7 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
     std::vector<std::vector<size_t>> unique_indices_keys;
     std::map<std::string, size_t> index_map;
     // In expert mode if a contraction cannot be performed
+    bool full_contraction = true;
     if (BlockedTensor::expert_mode_)
     {
         // Find the unique indices in the contraction
@@ -1368,8 +1411,17 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
         unique_indices.erase(
             std::unique(unique_indices.begin(), unique_indices.end()),
             unique_indices.end());
+        Indices sorted_batched_indices(batched_indices);
+        sort(sorted_batched_indices.begin(), sorted_batched_indices.end());
+        Indices unbatched_indices;
+        std::set_difference(unique_indices.begin(), unique_indices.end(),
+                            sorted_batched_indices.begin(), sorted_batched_indices.end(),
+                            std::back_inserter(unbatched_indices));
+        unique_indices = batched_indices;
+        unique_indices.insert(unique_indices.end(), unbatched_indices.begin(), unbatched_indices.end());
 
         unique_indices_keys = BlockedTensor::label_to_block_keys(unique_indices);
+        size_t full_contraction_size = unique_indices_keys.size();
         {
             size_t k = 0;
             for (const std::string &index : unique_indices)
@@ -1404,6 +1456,9 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
             }
             unique_indices_keys.push_back(uik);
         }
+        if (full_contraction_size > unique_indices_keys.size()) {
+            full_contraction = false;
+        }
     }
 
     std::vector<size_t> perm(nterms);
@@ -1412,18 +1467,16 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
     std::pair<double, double> best_cpu_memory_cost(1.0e200, 1.0e200);
 
     if (optimize_order) {
-        throw std::runtime_error(
-            "Order optimization in LabeledBlockedTensor::contract_by_tensor not implemented.");
-//        do
-//        {
-//            std::pair<double, double> cpu_memory_cost =
-//                rhs.compute_contraction_cost(perm);
-//            if (cpu_memory_cost.first < best_cpu_memory_cost.first)
-//            {
-//                best_perm = perm;
-//                best_cpu_memory_cost = cpu_memory_cost;
-//            }
-//        } while (std::next_permutation(perm.begin(), perm.end()));
+        do
+        {
+            std::pair<double, double> cpu_memory_cost =
+                rhs.compute_contraction_cost(perm, unique_indices_keys, index_map, full_contraction);
+            if (cpu_memory_cost.first < best_cpu_memory_cost.first)
+            {
+                best_perm = perm;
+                best_cpu_memory_cost = cpu_memory_cost;
+            }
+        } while (std::next_permutation(perm.begin(), perm.end()));
         // at this point 'best_perm' should be used to perform contraction in
         // optimal order.
     } else {
@@ -1431,8 +1484,6 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
     }
 
     // Find the indices to be batched in result labeled tensor.
-    const Indices &batched_indices = rhs_batched.get_batched_indices();
-    size_t batched_size = batched_indices.size();
     std::vector<size_t> slicing_axis(batched_size);
     for (size_t l = 0; l < batched_size; ++l) {
         auto it = std::find(indices_.begin(), indices_.end(), batched_indices[l]);
@@ -1456,9 +1507,9 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
     Indices permuted_indices;
 
     // Permute result labeled tensor.
-    LabeledBlockedTensor Llbtp(BT(), indices());
+    LabeledBlockedTensor Lt(BT(), indices());
     if (permute_flag) {
-        permuted_indices.insert(permuted_indices.end(), batched_indices.begin(), batched_indices.end());
+        permuted_indices = batched_indices;
         for (size_t l = 0, l_max = numdim(); l < l_max; ++l) {
             if (std::find(slicing_axis.begin(), slicing_axis.end(),l) == slicing_axis.end()) {
                 permuted_indices.push_back(indices_[l]);
@@ -1479,8 +1530,143 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
 
         BlockedTensor Lbtp = BlockedTensor::build(CoreTensor, BT().name() + " permute", L_blocks);
         LabeledBlockedTensor Ltemp(Lbtp, permuted_indices);
-        Ltemp = Llbtp;
-        Llbtp.set(Ltemp);
+        Ltemp = Lt;
+        Lt.set(Ltemp);
+    }
+
+    std::vector<std::vector<bool>> need_slicing(nterms, std::vector<bool>(batched_size + 1));
+
+    // Permute tensor indices if the corresponding tensor needs to be batched.
+    LabeledBlockedTensorProduct rhsp;
+    for (size_t i = 0; i < nterms; ++i) {
+        const LabeledBlockedTensor& A = rhs[best_perm[i]];
+        const Indices& A_indices = A.indices();
+        Indices gemm_indices;
+        for (const string& s : A_indices) {
+            auto it = std::find(batched_indices.begin(), batched_indices.end(), s);
+            if (it != batched_indices.end()) {
+                need_slicing[i][std::distance(batched_indices.begin(), it)] = true;
+            } else {
+                gemm_indices.push_back(s);
+            }
+        }
+        Indices permuted_indices;
+        for (size_t l = 0; l < batched_size; ++l) {
+            if (need_slicing[i][l]) {
+                permuted_indices.push_back(batched_indices[l]);
+                need_slicing[i][batched_size] = true;
+            }
+        }
+        if (permuted_indices.size() == 0) {
+            rhsp.operator*(A);
+        } else {
+            permuted_indices.insert(permuted_indices.end(),gemm_indices.begin(),gemm_indices.end());
+            if (permuted_indices == A_indices) {
+                rhsp.operator*(A);
+            } else {
+                // Determine blocks
+                std::vector<size_t> perm =
+                    indices::permutation_order(permuted_indices, A_indices);
+                std::vector<std::string> A_blocks;
+                for (const std::string & block : A.BT().block_labels()) {
+                    std::vector<std::string> block_vec = indices::split(block);
+                    std::vector<std::string> A_block_vec(block_vec.size());
+                    for (size_t i = 0; i < block_vec.size(); ++i) {
+                        A_block_vec[i] = block_vec[perm[i]];
+                    }
+                    A_blocks.push_back(indices::to_string(A_block_vec, ","));
+                }
+                BlockedTensor Abtp = BlockedTensor::build(CoreTensor, A.BT().name() + " permute", A_blocks);
+                LabeledBlockedTensor At(Abtp, permuted_indices);
+                rhsp.operator*(At);
+            }
+        }
+    }
+
+    // Create intermediate batch tensor for result tensor.
+    const Indices& Lt_indices = Lt.indices();
+    Indices L_batch_indices;
+    L_batch_indices.insert(L_batch_indices.end(), Lt_indices.begin()+batched_size, Lt_indices.end());
+    std::vector<std::string> L_batch_blocks = BlockedTensor::reduce_rank_block_labels(
+                L_batch_indices,
+                Lt_indices,
+                Lt.BT().blocks_,
+                full_contraction);
+    BlockedTensor Ltp_batch = BlockedTensor::build(CoreTensor, Lt.BT().name() + " batch", L_batch_blocks);
+    LabeledBlockedTensor Lt_batch(Ltp_batch, L_batch_indices);
+
+    // Create intermediate batch tensors for tensors to be contracted.
+    LabeledBlockedTensorProduct rhs_batch;
+    for (size_t i = 0; i < nterms; ++i) {
+        const LabeledBlockedTensor& A = rhsp[i];
+        if (need_slicing[i][batched_size]) {
+            const Indices& A_indices = A.indices();
+            Indices A_batch_indices;
+            size_t count = 0;
+            for (size_t l = 0; l < batched_size; ++l) {
+                if (need_slicing[i][l]) {
+                    count++;
+                }
+            }
+            A_batch_indices.insert(A_batch_indices.end(), A_indices.begin()+count, A_indices.end());
+            std::vector<std::string> A_batch_blocks = BlockedTensor::reduce_rank_block_labels(
+                        A_batch_indices,
+                        A_indices,
+                        A.BT().blocks_,
+                        full_contraction);
+
+            BlockedTensor Atp = BlockedTensor::build(CoreTensor, A.BT().name() + " batch", A_batch_blocks);
+            LabeledBlockedTensor At(Atp, A_batch_indices, A.factor());
+            rhs_batch.operator*(At);
+        } else {
+            rhs_batch.operator*(A);
+        }
+    }
+
+    // Figure out all batched indices mo_spaces
+    std::vector<std::vector<size_t>> batch_mo_space_keys;
+    if (full_contraction)
+    {
+        batch_mo_space_keys =
+                BlockedTensor::label_to_block_keys(batched_indices);
+    } else {
+//        size_t max_path = 1;
+//        for (const std::string &index : batched_indices) {
+//            max_path *= BlockedTensor::index_to_mo_spaces_[index].size();
+//        }
+        std::vector<size_t> pre_key;
+        for (const std::vector<size_t> &uik : unique_indices_keys)
+        {
+            std::vector<size_t> term_key(uik.begin(), uik.begin() + batched_size);
+            if (pre_key != term_key) {
+                batch_mo_space_keys.push_back(term_key);
+                pre_key = term_key;
+            }
+//            if (block_set.size() == max_path)
+//                break;
+        }
+    }
+
+    for (const std::vector<size_t> &batch_keys : batch_mo_space_keys) {
+        Dimension slicing_dims;
+        for (size_t s : batch_keys) {
+            slicing_dims.push_back(BlockedTensor::mo_space(s).dim());
+        }
+        Dimension current_batch(batched_size, 0);
+        while (current_batch[0] < slicing_dims[0]) {
+
+
+
+            // Determine the indices of next batch
+            for (int i = batched_size - 1; i >= 0; --i) {
+                current_batch[i]++;
+                if (current_batch[i] < slicing_dims[i]) {
+                    break;
+                } else if (i != 0) {
+                    current_batch[i] = 0;
+                }
+            }
+        }
     }
 
     throw std::runtime_error(

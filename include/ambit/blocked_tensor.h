@@ -145,6 +145,7 @@ class BlockedTensor
 {
     friend class LabeledBlockedTensor;
     friend class LabeledBlockedTensorProduct;
+    friend class LabeledBlockedTensorBatchedProduct;
 
   public:
     // => Constructors <= //
@@ -334,6 +335,16 @@ class BlockedTensor
     bool map_index_to_mo_spaces(const std::string &index,
                                 const std::vector<size_t> &mo_spaces_idx);
     static std::vector<size_t> indices_to_key(const std::string &indices);
+    static std::vector<std::string> indices_to_block_labels(
+            const Indices &indices,
+            const std::vector<std::vector<size_t>> &unique_indices_keys,
+            const std::map<std::string, size_t> &index_map,
+            bool full_contraction);
+    static std::vector<std::string> reduce_rank_block_labels(
+            const Indices &indices,
+            const Indices &full_rank_indices,
+            const std::map<std::vector<size_t>, Tensor> &blocks,
+            bool full_contraction);
 
     /// @return The n-th MOSpace
     static MOSpace mo_space(size_t n) { return mo_spaces_[n]; }
@@ -464,6 +475,8 @@ class LabeledBlockedTensorProduct
         tensors_.push_back(A);
         tensors_.push_back(B);
     }
+
+    LabeledBlockedTensorProduct() {}
 
     size_t size() const { return tensors_.size(); }
 
