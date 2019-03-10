@@ -1099,6 +1099,14 @@ void LabeledBlockedTensor::set(const LabeledBlockedTensor &to)
 void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct &rhs,
                                     bool zero_result, bool add, bool optimize_order)
 {
+    std::vector<std::shared_ptr<BlockedTensor>> inter_AB_tensors(rhs.size() - 2);
+    contract_by_tensor(rhs, zero_result, add, optimize_order, inter_AB_tensors);
+}
+
+void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct &rhs,
+                                    bool zero_result, bool add, bool optimize_order,
+                                    std::vector<std::shared_ptr<BlockedTensor>> &inter_AB_tensors)
+{
     size_t nterms = rhs.size();
     // Check for self assignment
     for (size_t n = 0; n < nterms; ++n)
@@ -1233,8 +1241,11 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
                     index_map,
                     full_contraction);
 
-        BlockedTensor btAB = BlockedTensor::build(CoreTensor, A.BT().name() + " * " + B.BT().name(), AB_blocks);
-        LabeledBlockedTensor AB(btAB, indices);
+        if (! inter_AB_tensors[n]) {
+            inter_AB_tensors[n] = std::make_shared<BlockedTensor>(
+                        BlockedTensor::build(CoreTensor, A.BT().name() + " * " + B.BT().name(), AB_blocks));
+        }
+        LabeledBlockedTensor AB(*(inter_AB_tensors[n]), indices);
 
         AB.contract(A * B, true, true, false);
 
@@ -1661,6 +1672,7 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
             slicing_dims.push_back(BlockedTensor::mo_space(s).dim());
         }
         Dimension current_batch(batched_size, 0);
+        std::vector<std::shared_ptr<BlockedTensor>> inter_AB_tensors(rhs.size() - 2);
         while (current_batch[0] < slicing_dims[0]) {
 
             // Extract result batch
@@ -1728,7 +1740,7 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
             }
 
             // The following code is identical to Lt_batch.contract(rhs_batch, zero_result, add);
-            Lt_batch.contract_by_tensor(rhs_batch, zero_result, add, false);
+            Lt_batch.contract_by_tensor(rhs_batch, zero_result, add, false, inter_AB_tensors);
 
             // Copy current batch tensor result to the full result tensor
             for (auto &batch_block_key_tensor : Lt_batch.BT().blocks_) {

@@ -510,9 +510,6 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     // => Alias or Allocate A, B, C <= //
     // => Permute A, B, and C if Necessary <= //
 
-    Dimension Cdims2 = indices::permuted_dimension(C->dims(), Cinds2, Cinds);
-    Dimension Adims2 = indices::permuted_dimension(A->dims(), Ainds2, Ainds);
-    Dimension Bdims2 = indices::permuted_dimension(B->dims(), Binds2, Binds);
 
     double *Cp = ((CoreTensorImplPtr)C)->data().data();
     double *Ap = ((CoreTensorImplPtr)A)->data().data();
@@ -526,7 +523,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         ambit::timer::timer_push("pre-BLAS: internal C allocation");
         if (!C2)
         {
-            C2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("C2", Cdims2));
+            Dimension Cdims2 = indices::permuted_dimension(C->dims(), Cinds2, Cinds);
+            C2 = std::make_shared<CoreTensorImpl>("C2", Cdims2);
         }
         C2p = C2->data().data();
         ambit::timer::timer_pop();
@@ -542,7 +540,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         ambit::timer::timer_push("pre-BLAS: internal A allocation");
         if (!A2)
         {
-            A2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("A2", Adims2));
+            Dimension Adims2 = indices::permuted_dimension(A->dims(), Ainds2, Ainds);
+            A2 = std::make_shared<CoreTensorImpl>("A2", Adims2);
         }
         A2p = A2->data().data();
         ambit::timer::timer_pop();
@@ -555,7 +554,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         ambit::timer::timer_push("pre-BLAS: internal B allocation");
         if (!B2)
         {
-            B2 = shared_ptr<CoreTensorImpl>(new CoreTensorImpl("B2", Bdims2));
+            Dimension Bdims2 = indices::permuted_dimension(B->dims(), Binds2, Binds);
+            B2 = std::make_shared<CoreTensorImpl>("B2", Bdims2);
         }
         B2p = B2->data().data();
         ambit::timer::timer_pop();

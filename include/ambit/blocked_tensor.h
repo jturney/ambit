@@ -440,6 +440,9 @@ class LabeledBlockedTensor
                   bool add, bool optimize_order = true);
     void contract_by_tensor(const LabeledBlockedTensorProduct &rhs, bool zero_result,
                   bool add, bool optimize_order = true);
+    void contract_by_tensor(const LabeledBlockedTensorProduct &rhs, bool zero_result,
+                  bool add, bool optimize_order,
+                  std::vector<std::shared_ptr<BlockedTensor>> &inter_AB_tensors);
     void contract_batched(const LabeledBlockedTensorBatchedProduct &rhs, bool zero_result,
                   bool add, bool optimize_order = true);
     void contract_batched_by_tensor(const LabeledBlockedTensorBatchedProduct &rhs, bool zero_result,
