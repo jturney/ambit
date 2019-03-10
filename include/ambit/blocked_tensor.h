@@ -436,18 +436,16 @@ class LabeledBlockedTensor
         return LabeledBlockedTensor(BT_, indices_, -factor_);
     }
 
+    void contract_pair(const LabeledBlockedTensorProduct &rhs, bool zero_result,
+                  bool add, bool optimize_order);
     void contract(const LabeledBlockedTensorProduct &rhs, bool zero_result,
                   bool add, bool optimize_order = true);
-    void contract_by_tensor(const LabeledBlockedTensorProduct &rhs, bool zero_result,
-                  bool add, bool optimize_order = true);
-    void contract_by_tensor(const LabeledBlockedTensorProduct &rhs, bool zero_result,
+    void contract(const LabeledBlockedTensorProduct &rhs, bool zero_result,
                   bool add, bool optimize_order,
                   std::vector<std::shared_ptr<BlockedTensor>> &inter_AB_tensors,
                   std::shared_ptr<std::tuple<bool, std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>
                                               &expert_info_ptr);
     void contract_batched(const LabeledBlockedTensorBatchedProduct &rhs, bool zero_result,
-                  bool add, bool optimize_order = true);
-    void contract_batched_by_tensor(const LabeledBlockedTensorBatchedProduct &rhs, bool zero_result,
                   bool add, bool optimize_order = true);
 
   private:
