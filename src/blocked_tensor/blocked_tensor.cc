@@ -1444,6 +1444,7 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
             }
             if (not BT().is_block(result_key))
                 continue;
+            bool do_contraction = true;
             for (size_t n = 0; n < nterms; ++n)
             {
                 const LabeledBlockedTensor &lbt = rhs[n];
@@ -1452,10 +1453,14 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
                 {
                     term_key.push_back(uik[index_map[index]]);
                 }
-                if (not lbt.BT().is_block(term_key))
-                    continue;
+                if (not lbt.BT().is_block(term_key)) {
+                    do_contraction = false;
+                    break;
+                }
             }
-            unique_indices_keys.push_back(uik);
+            if (do_contraction) {
+                unique_indices_keys.push_back(uik);
+            }
         }
         if (full_contraction_size > unique_indices_keys.size()) {
             full_contraction = false;
