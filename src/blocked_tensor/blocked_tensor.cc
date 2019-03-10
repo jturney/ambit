@@ -1579,6 +1579,7 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
                 }
                 BlockedTensor Abtp = BlockedTensor::build(CoreTensor, A.BT().name() + " permute", A_blocks);
                 LabeledBlockedTensor At(Abtp, permuted_indices);
+                At = A;
                 rhsp.operator*(At);
             }
         }
