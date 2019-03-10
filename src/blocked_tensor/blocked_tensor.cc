@@ -1705,7 +1705,7 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
                                     corr_perm_block_key.end(),
                                     batch_block_key.begin(),
                                     batch_block_key.end());
-                        if (full_contraction or Lt.BT().is_block(corr_perm_block_key)) {
+                        if (full_contraction or rhsp[i].BT().is_block(corr_perm_block_key)) {
                             Tensor A_batch_block = batch_block_key_tensor.second;
                             Tensor A_block = rhsp[i].BT().block(corr_perm_block_key);
                             size_t cur_shift = 0, cur_jump = 1;
