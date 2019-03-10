@@ -1099,13 +1099,17 @@ void LabeledBlockedTensor::set(const LabeledBlockedTensor &to)
 void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct &rhs,
                                     bool zero_result, bool add, bool optimize_order)
 {
+    std::shared_ptr<std::tuple<bool, std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>
+            expert_info_ptr;
     std::vector<std::shared_ptr<BlockedTensor>> inter_AB_tensors(rhs.size() - 2);
-    contract_by_tensor(rhs, zero_result, add, optimize_order, inter_AB_tensors);
+    contract_by_tensor(rhs, zero_result, add, optimize_order, inter_AB_tensors, expert_info_ptr);
 }
 
 void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct &rhs,
                                     bool zero_result, bool add, bool optimize_order,
-                                    std::vector<std::shared_ptr<BlockedTensor>> &inter_AB_tensors)
+                                    std::vector<std::shared_ptr<BlockedTensor>> &inter_AB_tensors,
+                                    std::shared_ptr<std::tuple<bool, std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>
+                                                      &expert_info_ptr)
 {
     size_t nterms = rhs.size();
     // Check for self assignment
@@ -1119,66 +1123,73 @@ void LabeledBlockedTensor::contract_by_tensor(const LabeledBlockedTensorProduct 
         }
     }
 
-    std::vector<std::vector<size_t>> unique_indices_keys;
-    std::map<std::string, size_t> index_map;
     // In expert mode if a contraction cannot be performed
-    bool full_contraction = true;
-    if (BlockedTensor::expert_mode_)
-    {
-        // Find the unique indices in the contraction
-        std::vector<std::string> unique_indices;
-        for (size_t n = 0; n < nterms; ++n)
+    if (! expert_info_ptr) {
+        std::vector<std::vector<size_t>> unique_indices_keys;
+        std::map<std::string, size_t> index_map;
+        bool full_contraction = true;
+        if (BlockedTensor::expert_mode_)
         {
-            for (const std::string &index : rhs[n].indices())
-            {
-                unique_indices.push_back(index);
-            }
-        }
-        sort(unique_indices.begin(), unique_indices.end());
-        unique_indices.erase(
-            std::unique(unique_indices.begin(), unique_indices.end()),
-            unique_indices.end());
-
-        unique_indices_keys = BlockedTensor::label_to_block_keys(unique_indices);
-        size_t full_contraction_size = unique_indices_keys.size();
-        {
-            size_t k = 0;
-            for (const std::string &index : unique_indices)
-            {
-                index_map[index] = k;
-                k++;
-            }
-        }
-
-        std::vector<std::vector<size_t>> unique_indices_keys_expert =
-            unique_indices_keys;
-        unique_indices_keys.clear();
-        for (const std::vector<size_t> &uik : unique_indices_keys_expert)
-        {
-            std::vector<size_t> result_key;
-            for (const std::string &index : indices())
-            {
-                result_key.push_back(uik[index_map[index]]);
-            }
-            if (not BT().is_block(result_key))
-                continue;
+            // Find the unique indices in the contraction
+            std::vector<std::string> unique_indices;
             for (size_t n = 0; n < nterms; ++n)
             {
-                const LabeledBlockedTensor &lbt = rhs[n];
-                std::vector<size_t> term_key;
-                for (const std::string &index : lbt.indices())
+                for (const std::string &index : rhs[n].indices())
                 {
-                    term_key.push_back(uik[index_map[index]]);
+                    unique_indices.push_back(index);
                 }
-                if (not lbt.BT().is_block(term_key))
-                    continue;
             }
-            unique_indices_keys.push_back(uik);
+            sort(unique_indices.begin(), unique_indices.end());
+            unique_indices.erase(
+                std::unique(unique_indices.begin(), unique_indices.end()),
+                unique_indices.end());
+
+            unique_indices_keys = BlockedTensor::label_to_block_keys(unique_indices);
+            size_t full_contraction_size = unique_indices_keys.size();
+            {
+                size_t k = 0;
+                for (const std::string &index : unique_indices)
+                {
+                    index_map[index] = k;
+                    k++;
+                }
+            }
+
+            std::vector<std::vector<size_t>> unique_indices_keys_expert =
+                unique_indices_keys;
+            unique_indices_keys.clear();
+            for (const std::vector<size_t> &uik : unique_indices_keys_expert)
+            {
+                std::vector<size_t> result_key;
+                for (const std::string &index : indices())
+                {
+                    result_key.push_back(uik[index_map[index]]);
+                }
+                if (not BT().is_block(result_key))
+                    continue;
+                for (size_t n = 0; n < nterms; ++n)
+                {
+                    const LabeledBlockedTensor &lbt = rhs[n];
+                    std::vector<size_t> term_key;
+                    for (const std::string &index : lbt.indices())
+                    {
+                        term_key.push_back(uik[index_map[index]]);
+                    }
+                    if (not lbt.BT().is_block(term_key))
+                        continue;
+                }
+                unique_indices_keys.push_back(uik);
+            }
+            if (full_contraction_size > unique_indices_keys.size()) {
+                full_contraction = false;
+            }
         }
-        if (full_contraction_size > unique_indices_keys.size()) {
-            full_contraction = false;
-        }
+        expert_info_ptr = std::make_shared<std::tuple<bool, std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>(
+                    std::make_tuple(full_contraction, unique_indices_keys, index_map));
     }
+    bool full_contraction = std::get<0>(*expert_info_ptr);
+    std::vector<std::vector<size_t>> &unique_indices_keys = std::get<1>(*expert_info_ptr);
+    std::map<std::string, size_t> &index_map = std::get<2>(*expert_info_ptr);;
 
     std::vector<size_t> perm(nterms);
     std::vector<size_t> best_perm(nterms);
@@ -1673,6 +1684,8 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
         }
         Dimension current_batch(batched_size, 0);
         std::vector<std::shared_ptr<BlockedTensor>> inter_AB_tensors(rhs.size() - 2);
+        std::shared_ptr<std::tuple<bool, std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>
+                expert_info_ptr;
         while (current_batch[0] < slicing_dims[0]) {
 
             // Extract result batch
@@ -1740,7 +1753,7 @@ void LabeledBlockedTensor::contract_batched_by_tensor(const LabeledBlockedTensor
             }
 
             // The following code is identical to Lt_batch.contract(rhs_batch, zero_result, add);
-            Lt_batch.contract_by_tensor(rhs_batch, zero_result, add, false, inter_AB_tensors);
+            Lt_batch.contract_by_tensor(rhs_batch, zero_result, add, false, inter_AB_tensors, expert_info_ptr);
 
             // Copy current batch tensor result to the full result tensor
             for (auto &batch_block_key_tensor : Lt_batch.BT().blocks_) {
