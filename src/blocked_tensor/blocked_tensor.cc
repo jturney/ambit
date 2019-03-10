@@ -965,46 +965,43 @@ void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorBatchedProduct &
 }
 
 void LabeledBlockedTensor::contract_pair(const LabeledBlockedTensorProduct &rhs,
-                                    bool zero_result, bool add, bool optimize_order)
+                                    bool zero_result, bool add,
+                                    std::shared_ptr<std::tuple<std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>
+                                                           &block_info_ptr)
 {
     size_t nterms = rhs.size();
 
-    // Check for self assignment
-    for (size_t n = 0; n < nterms; ++n)
-    {
-        const BlockedTensor &bt = rhs[n].BT();
-        if (BT_ == bt)
-        {
-            throw std::runtime_error(
-                "Tensor contractions does not support self assignment.");
-        }
-    }
-
     // Find the unique indices in the contraction
-    std::vector<std::string> unique_indices;
-    for (size_t n = 0; n < nterms; ++n)
-    {
-        for (const std::string &index : rhs[n].indices())
+    if (! block_info_ptr) {
+        std::vector<std::string> unique_indices;
+        for (size_t n = 0; n < nterms; ++n)
         {
-            unique_indices.push_back(index);
+            for (const std::string &index : rhs[n].indices())
+            {
+                unique_indices.push_back(index);
+            }
         }
-    }
-    sort(unique_indices.begin(), unique_indices.end());
-    unique_indices.erase(
-        std::unique(unique_indices.begin(), unique_indices.end()),
-        unique_indices.end());
+        sort(unique_indices.begin(), unique_indices.end());
+        unique_indices.erase(
+            std::unique(unique_indices.begin(), unique_indices.end()),
+            unique_indices.end());
 
-    std::vector<std::vector<size_t>> unique_indices_keys =
-        BlockedTensor::label_to_block_keys(unique_indices);
-    std::map<std::string, size_t> index_map;
-    {
-        size_t k = 0;
-        for (const std::string &index : unique_indices)
+        std::vector<std::vector<size_t>> unique_indices_keys =
+            BlockedTensor::label_to_block_keys(unique_indices);
+        std::map<std::string, size_t> index_map;
         {
-            index_map[index] = k;
-            k++;
+            size_t k = 0;
+            for (const std::string &index : unique_indices)
+            {
+                index_map[index] = k;
+                k++;
+            }
         }
+        block_info_ptr = std::make_shared<std::tuple<std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>(
+                    std::make_tuple(unique_indices_keys, index_map));
     }
+    std::vector<std::vector<size_t>> &unique_indices_keys = std::get<0>(*block_info_ptr);
+    std::map<std::string, size_t> &index_map = std::get<1>(*block_info_ptr);
 
     if (zero_result)
     {
@@ -1075,16 +1072,8 @@ void LabeledBlockedTensor::contract_pair(const LabeledBlockedTensorProduct &rhs,
                                          lbt.indices(), lbt.factor());
                 prod *= term;
             }
-            if (add)
-            {
-//                result += prod;
-                result.contract(prod, false, true, optimize_order);
-            }
-            else
-            {
-//                result -= prod;
-                result.contract(prod, false, false, optimize_order);
-            }
+
+            result.contract(prod, false, add, false);
         }
     }
 }
@@ -1099,17 +1088,21 @@ void LabeledBlockedTensor::set(const LabeledBlockedTensor &to)
 void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
                                     bool zero_result, bool add, bool optimize_order)
 {
+    std::vector<std::shared_ptr<BlockedTensor>> inter_AB_tensors(rhs.size() - 2);
     std::shared_ptr<std::tuple<bool, std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>
             expert_info_ptr;
-    std::vector<std::shared_ptr<BlockedTensor>> inter_AB_tensors(rhs.size() - 2);
-    contract(rhs, zero_result, add, optimize_order, inter_AB_tensors, expert_info_ptr);
+    std::vector<std::shared_ptr<std::tuple<std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>>
+            inter_block_info_ptrs(rhs.size() - 1);
+    contract(rhs, zero_result, add, optimize_order, inter_AB_tensors, expert_info_ptr, inter_block_info_ptrs);
 }
 
 void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
                                     bool zero_result, bool add, bool optimize_order,
                                     std::vector<std::shared_ptr<BlockedTensor>> &inter_AB_tensors,
                                     std::shared_ptr<std::tuple<bool, std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>
-                                                      &expert_info_ptr)
+                                            &expert_info_ptr,
+                                    std::vector<std::shared_ptr<std::tuple<std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>>
+                                            &inter_block_info_ptrs)
 {
     size_t nterms = rhs.size();
     // Check for self assignment
@@ -1189,7 +1182,7 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
     }
     bool full_contraction = std::get<0>(*expert_info_ptr);
     std::vector<std::vector<size_t>> &unique_indices_keys = std::get<1>(*expert_info_ptr);
-    std::map<std::string, size_t> &index_map = std::get<2>(*expert_info_ptr);;
+    std::map<std::string, size_t> &index_map = std::get<2>(*expert_info_ptr);
 
     std::vector<size_t> perm(nterms);
     std::vector<size_t> best_perm(nterms);
@@ -1258,13 +1251,13 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
         }
         LabeledBlockedTensor AB(*(inter_AB_tensors[n]), indices);
 
-        AB.contract_pair(A * B, true, true, false);
+        AB.contract_pair(A * B, true, true, inter_block_info_ptrs[n]);
 
         A.set(AB);
     }
     const LabeledBlockedTensor &B = rhs[best_perm[nterms - 1]];
 
-    contract_pair(A * B, zero_result, add, false);
+    contract_pair(A * B, zero_result, add, inter_block_info_ptrs[maxn]);
 }
 
 void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedProduct &rhs_batched,
@@ -1554,9 +1547,11 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
             slicing_dims.push_back(BlockedTensor::mo_space(s).dim());
         }
         Dimension current_batch(batched_size, 0);
-        std::vector<std::shared_ptr<BlockedTensor>> inter_AB_tensors(rhs.size() - 2);
+        std::vector<std::shared_ptr<BlockedTensor>> inter_AB_tensors(nterms - 2);
         std::shared_ptr<std::tuple<bool, std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>
                 expert_info_ptr;
+        std::vector<std::shared_ptr<std::tuple<std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>>
+                inter_block_info_ptrs(nterms - 1);
         while (current_batch[0] < slicing_dims[0]) {
 
             // Extract result batch
@@ -1624,7 +1619,7 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
             }
 
             // The following code is identical to Lt_batch.contract(rhs_batch, zero_result, add);
-            Lt_batch.contract(rhs_batch, zero_result, add, false, inter_AB_tensors, expert_info_ptr);
+            Lt_batch.contract(rhs_batch, zero_result, add, false, inter_AB_tensors, expert_info_ptr, inter_block_info_ptrs);
 
             // Copy current batch tensor result to the full result tensor
             for (auto &batch_block_key_tensor : Lt_batch.BT().blocks_) {
