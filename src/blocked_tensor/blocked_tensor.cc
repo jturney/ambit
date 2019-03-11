@@ -440,9 +440,13 @@ std::vector<std::string> BlockedTensor::reduce_rank_block_labels(
     std::vector<std::vector<size_t>> sub_uiks;
     sub_uiks.reserve(blocks.size());
     if (not full_contraction) {
-        for (const auto &block : blocks)
+        std::vector<std::vector<size_t>> block_keys =
+                BlockedTensor::label_to_block_keys(full_rank_indices);
+        for (const auto &block : block_keys)
         {
-            sub_uiks.push_back(block.first);
+            if (blocks.count(block) != 0) {
+                sub_uiks.push_back(block);
+            }
         }
         size_t count = 0;
         for (const std::string &index : full_rank_indices) {
@@ -1408,17 +1412,11 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
             }
         }
         // Determine blocks
-        std::vector<size_t> perm =
-            indices::permutation_order(permuted_indices, indices());
-        std::vector<std::string> L_blocks;
-        for (const std::string & block : BT().block_labels()) {
-            std::vector<std::string> block_vec = indices::split(block);
-            std::vector<std::string> L_block_vec(block_vec.size());
-            for (size_t i = 0; i < block_vec.size(); ++i) {
-                L_block_vec[i] = block_vec[perm[i]];
-            }
-            L_blocks.push_back(indices::to_string(L_block_vec, ","));
-        }
+        std::vector<std::string> L_blocks = BlockedTensor::reduce_rank_block_labels(
+                    permuted_indices,
+                    indices(),
+                    BT().blocks_,
+                    full_contraction);
 
         BlockedTensor Lbtp = BlockedTensor::build(CoreTensor, BT().name() + " permute", L_blocks);
         LabeledBlockedTensor Ltemp(Lbtp, permuted_indices);
@@ -1457,17 +1455,11 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
                 rhsp.operator*(A);
             } else {
                 // Determine blocks
-                std::vector<size_t> perm =
-                    indices::permutation_order(permuted_indices, A_indices);
-                std::vector<std::string> A_blocks;
-                for (const std::string & block : A.BT().block_labels()) {
-                    std::vector<std::string> block_vec = indices::split(block);
-                    std::vector<std::string> A_block_vec(block_vec.size());
-                    for (size_t i = 0; i < block_vec.size(); ++i) {
-                        A_block_vec[i] = block_vec[perm[i]];
-                    }
-                    A_blocks.push_back(indices::to_string(A_block_vec, ","));
-                }
+                std::vector<std::string> A_blocks = BlockedTensor::reduce_rank_block_labels(
+                            permuted_indices,
+                            A_indices,
+                            A.BT().blocks_,
+                            full_contraction);
                 BlockedTensor Abtp = BlockedTensor::build(CoreTensor, A.BT().name() + " permute", A_blocks);
                 LabeledBlockedTensor At(Abtp, permuted_indices);
                 At = A;
@@ -1524,10 +1516,6 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
         batch_mo_space_keys =
                 BlockedTensor::label_to_block_keys(batched_indices);
     } else {
-//        size_t max_path = 1;
-//        for (const std::string &index : batched_indices) {
-//            max_path *= BlockedTensor::index_to_mo_spaces_[index].size();
-//        }
         std::vector<size_t> pre_key;
         for (const std::vector<size_t> &uik : unique_indices_keys)
         {
@@ -1536,8 +1524,6 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
                 batch_mo_space_keys.push_back(term_key);
                 pre_key = term_key;
             }
-//            if (block_set.size() == max_path)
-//                break;
         }
     }
 
