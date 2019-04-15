@@ -65,13 +65,9 @@ add_executable(test_performance test_performance.cc)
 target_link_libraries(test_performance ambit-lib)
 add_test(NAME performance COMMAND test_performance)
 
-add_executable(test_dsrg_performance test_dsrg_performance.cc)
-target_link_libraries(test_dsrg_performance ambit-lib)
-add_test(NAME dsrg_performance COMMAND test_dsrg_performance)
-
-add_executable(test_block_dsrg_performance test_block_dsrg_performance.cc)
-target_link_libraries(test_block_dsrg_performance ambit-lib)
-add_test(NAME block_dsrg_performance COMMAND test_block_dsrg_performance)
+add_executable(test_block_performance test_block_performance.cc)
+target_link_libraries(test_block_performance ambit-lib)
+add_test(NAME block_performance COMMAND test_block_performance)
 
 #configure_file(test.32 test.32 COPYONLY)
 #configure_file(test.33 test.33 COPYONLY)
