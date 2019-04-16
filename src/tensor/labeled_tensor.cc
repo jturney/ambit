@@ -138,7 +138,7 @@ LabeledTensor tensor_product_get_temp_AB(const LabeledTensor &A,
 }
 
 void LabeledTensor::contract(const LabeledTensorContraction &rhs,
-                             bool zero_result, bool add)
+                             bool zero_result, bool add, bool optimize_order)
 {
     size_t nterms = rhs.size();
     std::vector<size_t> perm(nterms);
@@ -146,25 +146,29 @@ void LabeledTensor::contract(const LabeledTensorContraction &rhs,
     std::iota(perm.begin(), perm.end(), 0);
     std::pair<double, double> best_cpu_memory_cost(1.0e200, 1.0e200);
 
-    do
-    {
-        std::pair<double, double> cpu_memory_cost =
-            rhs.compute_contraction_cost(perm);
-        if (cpu_memory_cost.first < best_cpu_memory_cost.first)
+    if (optimize_order) {
+        do
         {
-            best_perm = perm;
-            best_cpu_memory_cost = cpu_memory_cost;
-        }
-    } while (std::next_permutation(perm.begin(), perm.end()));
+            std::pair<double, double> cpu_memory_cost =
+                rhs.compute_contraction_cost(perm);
+            if (cpu_memory_cost.first < best_cpu_memory_cost.first)
+            {
+                best_perm = perm;
+                best_cpu_memory_cost = cpu_memory_cost;
+            }
+        } while (std::next_permutation(perm.begin(), perm.end()));
+        // at this point 'best_perm' should be used to perform contraction in
+        // optimal order.
+    } else {
+        best_perm = perm;
+    }
 
-    // at this point 'best_perm' should be used to perform contraction in
-    // optimal order.
-
-    LabeledTensor A = rhs[best_perm[0]];
+    const LabeledTensor &Aref = rhs[best_perm[0]];
+    LabeledTensor A(Aref.T_, Aref.indices_, Aref.factor_);
     int maxn = int(nterms) - 2;
     for (int n = 0; n < maxn; ++n)
     {
-        LabeledTensor B = rhs[best_perm[n + 1]];
+        const LabeledTensor &B = rhs[best_perm[n + 1]];
 
         std::vector<Indices> AB_indices =
             indices::determine_contraction_result(A, B);
@@ -480,7 +484,7 @@ LabeledTensorBatchedContraction batched(const string &batched_indices, const Lab
 }
 
 void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_batched,
-                             bool zero_result, bool add)
+                             bool zero_result, bool add, bool optimize_order)
 {
     const LabeledTensorContraction &rhs = rhs_batched.get_contraction();
     const Indices &batched_indices = rhs_batched.get_batched_indices();
@@ -516,7 +520,7 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
     // Permute result labeled tensor.
     Tensor Ltp;
     if (permute_flag) {
-        permuted_indices.insert(permuted_indices.end(), batched_indices.begin(), batched_indices.end());
+        permuted_indices = batched_indices;
         for (size_t l = 0, l_max = numdim(); l < l_max; ++l) {
             if (std::find(slicing_axis.begin(), slicing_axis.end(),l) == slicing_axis.end()) {
                 permuted_indices.push_back(indices_[l]);
@@ -541,19 +545,22 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
     std::iota(perm.begin(), perm.end(), 0);
     std::pair<double, double> best_cpu_memory_cost(1.0e200, 1.0e200);
 
-    do
-    {
-        std::pair<double, double> cpu_memory_cost =
-            rhs.compute_contraction_cost(perm);
-        if (cpu_memory_cost.first < best_cpu_memory_cost.first)
+    if (optimize_order) {
+        do
         {
-            best_perm = perm;
-            best_cpu_memory_cost = cpu_memory_cost;
-        }
-    } while (std::next_permutation(perm.begin(), perm.end()));
-
-    // at this point 'best_perm' should be used to perform contraction in
-    // optimal order.
+            std::pair<double, double> cpu_memory_cost =
+                rhs.compute_contraction_cost(perm);
+            if (cpu_memory_cost.first < best_cpu_memory_cost.first)
+            {
+                best_perm = perm;
+                best_cpu_memory_cost = cpu_memory_cost;
+            }
+        } while (std::next_permutation(perm.begin(), perm.end()));
+        // at this point 'best_perm' should be used to perform contraction in
+        // optimal order.
+    } else {
+        best_perm = perm;
+    }
 
     std::vector<std::vector<bool>> need_slicing(nterms, std::vector<bool>(batched_size + 1));
 
@@ -582,14 +589,18 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
             rhsp.operator*(A);
         } else {
             permuted_indices.insert(permuted_indices.end(),gemm_indices.begin(),gemm_indices.end());
-            Dimension dims;
-            for (const string& s : permuted_indices) {
-                dims.push_back(A.dim_by_index(s));
+            if (permuted_indices == A_indices) {
+                rhsp.operator*(A);
+            } else {
+                Dimension dims;
+                for (const string& s : permuted_indices) {
+                    dims.push_back(A.dim_by_index(s));
+                }
+                Tensor Atp = Tensor::build(A.T().type(), A.T().name() + " permute", dims);
+                Atp.permute(A.T(), permuted_indices, A.indices());
+                LabeledTensor At(Atp, permuted_indices, A.factor());
+                rhsp.operator*(At);
             }
-            Tensor Atp = Tensor::build(A.T().type(), A.T().name() + " permute", dims);
-            Atp.permute(A.T(), permuted_indices, A.indices());
-            LabeledTensor At(Atp, permuted_indices, A.factor());
-            rhsp.operator*(At);
         }
     }
 
