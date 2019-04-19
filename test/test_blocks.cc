@@ -2316,6 +2316,62 @@ double test_batched_with_factor()
     return C2.norm(0);
 }
 
+double test_Oia_equal_Cbu_Guv_Tivab_expert()
+{
+    BlockedTensor::set_expert_mode(true);
+    BlockedTensor::reset_mo_spaces();
+
+    const size_t nc = 3, na = 2, nv = 5;
+
+    // define space labels
+    std::string acore_label_ = "c";
+    std::string aactv_label_ = "a";
+    std::string avirt_label_ = "v";
+
+    std::vector<size_t> core_mos_(nc);
+    for (size_t i = 0; i < nc; ++i) {
+        core_mos_[i] = i;
+    }
+    std::vector<size_t> actv_mos_(na);
+    for (size_t i = 0; i < na; ++i) {
+        actv_mos_[i] = i;
+    }
+    std::vector<size_t> virt_mos_(nv);
+    for (size_t i = 0; i < nv; ++i) {
+        virt_mos_[i] = i;
+    }
+    // add Ambit index labels
+    BlockedTensor::add_mo_space(acore_label_, "mn", core_mos_, AlphaSpin);
+    BlockedTensor::add_mo_space(aactv_label_, "uv", actv_mos_, AlphaSpin);
+    BlockedTensor::add_mo_space(avirt_label_, "ef", virt_mos_, AlphaSpin);
+
+    // define composite spaces
+    BlockedTensor::add_composite_mo_space("h", "ijkl", {acore_label_, aactv_label_});
+    BlockedTensor::add_composite_mo_space("p", "abcd", {aactv_label_, avirt_label_});
+
+    BlockedTensor G = BlockedTensor::build(CoreTensor, "Gamma1", {"aa"});
+    BlockedTensor O = BlockedTensor::build(CoreTensor, "O1 PT3 1/3", {"pc", "va"});
+    BlockedTensor C = BlockedTensor::build(CoreTensor, "C1", {"cp", "av", "pc", "va"});
+    BlockedTensor T = BlockedTensor::build(CoreTensor, "T2 Amplitudes", {"hhpp"});
+
+    Tensor Oac_t = build_and_fill("Oac", {na, nc}, a2);
+    Tensor Ovc_t = build_and_fill("Ovc", {nv, nc}, b2);
+    Tensor Ova_t = build_and_fill("Ova", {nv, na}, c2);
+
+    O.block("ac")("ia") = Oac_t("ia");
+    O.block("vc")("ia") = Ovc_t("ia");
+    O.block("va")("ia") = Ova_t("ia");
+
+    O["ia"] = C["bu"] * G["uv"] * T["ivab"];
+
+    Tensor Oac = O.block("ac");
+    double diff_oo = difference(Oac, a2).second;
+
+    BlockedTensor::set_expert_mode(false);
+
+    return diff_oo;
+}
+
 int main(int argc, char *argv[])
 {
     printf(ANSI_COLOR_RESET);
@@ -2494,6 +2550,9 @@ int main(int argc, char *argv[])
         std::make_tuple(
             kPass, test_batched_with_factor,
             "C2[\"ijrs\"] = batched(\"r\", 0.5 * A[\"abrs\"] * B[\"ijab\"])"),
+        std::make_tuple(
+            kPass, test_Oia_equal_Cbu_Guv_Tivab_expert,
+            "O[\"ia\"] = C[\"bu\"] * G[\"uv\"] * T[\"ivab\"]"),
     };
 
     std::vector<std::tuple<std::string, TestResult, double>> results;

@@ -1164,6 +1164,9 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
                 }
                 if (not BT().is_block(result_key))
                     continue;
+                else if (zero_result) {
+                    BT_.block(result_key).zero();
+                }
                 for (size_t n = 0; n < nterms; ++n)
                 {
                     const LabeledBlockedTensor &lbt = rhs[n];
@@ -1176,6 +1179,9 @@ void LabeledBlockedTensor::contract(const LabeledBlockedTensorProduct &rhs,
                         continue;
                 }
                 unique_indices_keys.push_back(uik);
+            }
+            if (unique_indices_keys.size() == 0) {
+                return;
             }
             if (full_contraction_size > unique_indices_keys.size()) {
                 full_contraction = false;
@@ -1334,6 +1340,9 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
             }
             if (not BT().is_block(result_key))
                 continue;
+            else if (zero_result) {
+                BT_.block(result_key).zero();
+            }
             bool do_contraction = true;
             for (size_t n = 0; n < nterms; ++n)
             {
@@ -1351,6 +1360,9 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
             if (do_contraction) {
                 unique_indices_keys.push_back(uik);
             }
+        }
+        if (unique_indices_keys.size() == 0) {
+            return;
         }
         if (full_contraction_size > unique_indices_keys.size()) {
             full_contraction = false;
