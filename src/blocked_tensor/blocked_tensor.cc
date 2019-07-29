@@ -1490,6 +1490,9 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
                 Lt.BT().blocks_,
                 full_contraction);
     BlockedTensor Ltp_batch = BlockedTensor::build(CoreTensor, Lt.BT().name() + " batch", L_batch_blocks);
+    if (L_batch_blocks.empty()) {
+        Ltp_batch.blocks_[{}] = Tensor::build(CoreTensor, Lt.BT().name() + " batch[]", {});
+    }
     LabeledBlockedTensor Lt_batch(Ltp_batch, L_batch_indices);
 
     // Create intermediate batch tensors for tensors to be contracted.
@@ -1550,6 +1553,7 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
                 expert_info_ptr;
         std::vector<std::shared_ptr<std::tuple<std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>>
                 inter_block_info_ptrs(nterms - 1);
+
         while (current_batch[0] < slicing_dims[0]) {
 
             // Extract result batch

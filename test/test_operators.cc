@@ -1668,7 +1668,7 @@ double test_chain_multiply4_batched()
     return difference(D4, d4).second;
 }
 
-double test_batched()
+double test_all_indices_batched()
 {
     size_t ni = 5;
     size_t nj = 6;
@@ -1690,6 +1690,53 @@ double test_batched()
     Tensor D4 = build_and_fill("D4", dimsD, d4);
 
     D4("ijkl") += batched("ijkl", A4("ijmn") * B2("km") * B2("ln"));
+
+    for (size_t i = 0; i < ni; ++i)
+    {
+        for (size_t j = 0; j < nj; ++j)
+        {
+            for (size_t k = 0; k < nk; ++k)
+            {
+                for (size_t l = 0; l < nl; ++l)
+                {
+                    for (size_t m = 0; m < nm; ++m)
+                    {
+                        for (size_t n = 0; n < nn; ++n)
+                        {
+                            d4[i][j][k][l] +=
+                                a4[i][j][m][n] * b2[k][m] * b2[l][n];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return difference(D4, d4).second;
+}
+
+double test_all_indices_batched2()
+{
+    size_t ni = 5;
+    size_t nj = 6;
+    size_t nk = 7;
+    size_t nl = 7;
+    size_t nm = 5;
+    size_t nn = 5;
+    size_t no = 2;
+    size_t np = 2;
+
+    std::vector<size_t> dimsA = {ni, nj, nm, nn};
+    std::vector<size_t> dimsB = {nk, nm};
+    std::vector<size_t> dimsC = {nl, nn};
+    std::vector<size_t> dimsD = {ni, nj, nk, nl};
+
+    Tensor A4 = build_and_fill("A4", dimsA, a4);
+    Tensor B2 = build_and_fill("B2", dimsB, b2);
+    Tensor C2 = build_and_fill("C2", dimsC, c2);
+    Tensor D4 = build_and_fill("D4", dimsD, d4);
+
+    D4("ijkl") += batched("kjil", A4("ijmn") * B2("km") * B2("ln"));
 
     for (size_t i = 0; i < ni; ++i)
     {
@@ -1917,8 +1964,11 @@ int main(int argc, char *argv[])
             kPass, test_chain_multiply4_batched,
             "D4(\"ijkl\") -= batched(\"kl\",A4(\"ijmn\") * B2(\"km\") * C2(\"ln\"))"),
         std::make_tuple(
-            kPass, test_batched,
+            kPass, test_all_indices_batched,
             "D4(\"ijkl\") += batched(\"ijkl\", A4(\"ijmn\") * B2(\"km\") * B2(\"ln\"))"),
+        std::make_tuple(
+            kPass, test_all_indices_batched2,
+            "D4(\"ijkl\") += batched(\"kjil\", A4(\"ijmn\") * B2(\"km\") * B2(\"ln\"))"),
         std::make_tuple(
             kPass, test_batched_with_factor,
             "C2(\"ijrs\") = batched(\"r\", 0.5 * A(\"abrs\") * B(\"ijab\"))"),
