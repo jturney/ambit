@@ -1517,6 +1517,9 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
                         full_contraction);
 
             batch_tensors[i] = BlockedTensor::build(CoreTensor, A.BT().name() + " batch", A_batch_blocks);
+            if (A_batch_blocks.empty()) {
+                batch_tensors[i].blocks_[{}] = Tensor::build(CoreTensor, A.BT().name() + " batch[]", {});
+            }
             LabeledBlockedTensor At(batch_tensors[i], A_batch_indices, A.factor());
             rhs_batch.operator*(At);
         } else {
