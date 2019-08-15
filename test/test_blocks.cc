@@ -2316,6 +2316,48 @@ double test_batched_with_factor()
     return C2.norm(0);
 }
 
+double test_batch_all_indices()
+{
+    BlockedTensor::reset_mo_spaces();
+    BlockedTensor::add_mo_space("o", "i,j,k", {0, 1, 2, 10, 12}, AlphaSpin);
+    BlockedTensor::add_mo_space("v", "a,b,c,d", {5, 6, 7, 8, 9, 3, 4},
+                                AlphaSpin);
+    BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"o", "v"});
+
+    BlockedTensor A =
+        BlockedTensor::build(CoreTensor, "A", {"gggg"});
+    BlockedTensor B =
+        BlockedTensor::build(CoreTensor, "B", {"gggg"});
+    BlockedTensor C =
+        BlockedTensor::build(CoreTensor, "C", {"gggg"});
+    BlockedTensor C2 =
+        BlockedTensor::build(CoreTensor, "C2", {"gggg"});
+
+    size_t no = 5;
+    size_t nv = 7;
+
+    for (const std::string & bl : A.block_labels()) {
+        A.block(bl)("pqrs") = build_and_fill("A"+bl, A.block(bl).dims(), a4)("pqrs");
+    }
+
+    for (const std::string & bl : B.block_labels()) {
+        B.block(bl)("pqrs") = build_and_fill("B"+bl, B.block(bl).dims(), b4)("pqrs");
+    }
+
+    for (const std::string & bl : C.block_labels()) {
+        C.block(bl)("pqrs") = build_and_fill("C"+bl, C.block(bl).dims(), c4)("pqrs");
+    }
+
+    C2["pqrs"] = C["pqrs"];
+
+    C["ijrs"] = 0.5 * A["abrs"] * B["ijab"];
+    C2["ijrs"] = batched("srji", 0.5 * A["abrs"] * B["ijab"]);
+
+    C2["pqrs"] -= C["pqrs"];
+
+    return C2.norm(0);
+}
+
 double test_Oia_equal_Cbu_Guv_Tivab_expert()
 {
     BlockedTensor::set_expert_mode(true);
@@ -2550,6 +2592,9 @@ int main(int argc, char *argv[])
         std::make_tuple(
             kPass, test_batched_with_factor,
             "C2[\"ijrs\"] = batched(\"r\", 0.5 * A[\"abrs\"] * B[\"ijab\"])"),
+        std::make_tuple(
+            kPass, test_batch_all_indices,
+            "C2[\"ijrs\"] = batched(\"srji\", 0.5 * A[\"abrs\"] * B[\"ijab\"])"),
         std::make_tuple(
             kPass, test_Oia_equal_Cbu_Guv_Tivab_expert,
             "O[\"ia\"] = C[\"bu\"] * G[\"uv\"] * T[\"ivab\"]"),
