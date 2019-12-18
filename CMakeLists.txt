@@ -17,6 +17,12 @@
 #
 
 cmake_policy(SET CMP0048 NEW)  # project_VERSION* variables populated from project(... VERSION x.x.x) string
+
+# Fix behavior of CMAKE_CXX_STANDARD when targeting macOS. See https://gitlab.kitware.com/cmake/cmake/issues/15943
+if (POLICY CMP0025)
+  cmake_policy(SET CMP0025 NEW)
+endif ()
+
 project(ambit
         VERSION 0.3.0
         LANGUAGES C CXX)
