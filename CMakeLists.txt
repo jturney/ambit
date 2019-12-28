@@ -24,7 +24,7 @@ if (POLICY CMP0025)
 endif ()
 
 project(ambit
-        VERSION 0.3.0
+        VERSION 0.4.0
         LANGUAGES C CXX)
 set(ambit_AUTHORS      "Justin M. Turney")
 set(ambit_DESCRIPTION  "C++ library for the implementation of tensor product calculations")
