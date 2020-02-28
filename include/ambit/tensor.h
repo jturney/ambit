@@ -212,26 +212,12 @@ class Tensor
      * underlying tensor object supports a raw data vector. This is only the
      * case if the underlying tensor is of type CoreTensor.
      *
-     * This routine is intended to facilitate rapid filling of data into a
-     * CoreTensor buffer tensor, following which the user may stripe the buffer
-     * tensor into a DiskTensor or DistributedTensor tensor via slice
-     * operations.
-     *
-     * If a vector is successfully returned, it points to the unrolled data of
-     * the tensor, with the right-most dimensions running fastest and left-most
-     * dimensions running slowest.
-     *
      * Example successful use case:
      *  Tensor A = Tensor::build(CoreTensor, "A3", {4,5,6});
-     *  vector<double>& Av = A[];
-     *  double* Ap = Av.data(); // In case the raw pointer is needed
-     *  In this case, Av[0] = A(0,0,0), Av[1] = A(0,0,1), etc.
-     *
-     *  Tensor B = Tensor::build(DiskTensor, "B3", {4,5,6});
-     *  vector<double>& Bv = B.data(); // throws
+     *  A.at({0,0,0}) = 1.0; // Fill element 
      *
      * Results:
-     *  @return reference to the value, if tensor object supports it
+     *  @return reference to the element, if tensor object supports it
      **/
     double &at(const std::vector<size_t> &indices);
     const double &at(const std::vector<size_t> &indices) const;
