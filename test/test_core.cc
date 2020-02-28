@@ -20,9 +20,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along
- * with ambit; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ambit; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
@@ -2219,10 +2219,7 @@ double try_C_equal_A_B(std::string c_ind, std::string a_ind, std::string b_ind,
                        std::vector<int> c_dim, std::vector<int> a_dim,
                        std::vector<int> b_dim)
 {
-    std::vector<size_t> dims;
-    dims.push_back(3);
-    dims.push_back(4);
-    dims.push_back(5);
+    std::vector<size_t> dims = {3, 4, 5};
 
     size_t ni = 3;
     size_t nj = 4;
@@ -2440,6 +2437,39 @@ double try_contract_size_fail4()
 
     return 0.0;
 }
+double try_get()
+{
+    double error = 0.0;
+    Dimension Cdims = {1, 3, 4};
+    Tensor C = Tensor::build(CoreTensor, "C", Cdims);
+    double index = 0.0;
+    for (size_t i = 0; i < Cdims[0]; i++)
+    {
+        for (size_t j = 0; j < Cdims[1]; j++)
+        {
+            for (size_t k = 0; k < Cdims[2]; k++)
+            {
+                C.at({i, j, k}) = index;
+                index += 1.0;
+            }
+        }
+    }
+    index = 0.0;
+    for (size_t i = 0; i < Cdims[0]; i++)
+    {
+        for (size_t j = 0; j < Cdims[1]; j++)
+        {
+            for (size_t k = 0; k < Cdims[2]; k++)
+            {
+                const double val = C.at({i, j, k});
+                error += std::fabs(val - index);
+                index += 1.0;
+            }
+        }
+    }
+
+    return error;
+}
 
 int main(int argc, char *argv[])
 {
@@ -2463,6 +2493,7 @@ int main(int argc, char *argv[])
     success &= test_function(try_zero, "Zero", kExact);
     success &= test_function(try_copy, "Copy", kExact);
     success &= test_function(try_scale, "Scale", kExact);
+    success &= test_function(try_get, "Get/Set", kExact);
     printf("%s\n", std::string(82, '-').c_str());
     printf("Tests: %s\n\n", success ? "All passed" : "Some failed");
 

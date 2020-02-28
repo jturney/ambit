@@ -20,9 +20,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along
- * with ambit; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ambit; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
@@ -32,7 +32,6 @@
 
 #include "common_types.h"
 #include "settings.h"
-
 namespace ambit
 {
 
@@ -187,7 +186,7 @@ class Tensor
      * This routine is intended to facilitate rapid filling of data into a
      * CoreTensor buffer tensor, following which the user may stripe the buffer
      * tensor into a DiskTensor or DistributedTensor tensor via slice
-     *operations.
+     * operations.
      *
      * If a vector is successfully returned, it points to the unrolled data of
      * the tensor, with the right-most dimensions running fastest and left-most
@@ -207,6 +206,35 @@ class Tensor
      **/
     vector<double> &data();
     const vector<double> &data() const;
+
+    /**
+     * Returns a reference to an element of the tensor if the
+     * underlying tensor object supports a raw data vector. This is only the
+     * case if the underlying tensor is of type CoreTensor.
+     *
+     * This routine is intended to facilitate rapid filling of data into a
+     * CoreTensor buffer tensor, following which the user may stripe the buffer
+     * tensor into a DiskTensor or DistributedTensor tensor via slice
+     * operations.
+     *
+     * If a vector is successfully returned, it points to the unrolled data of
+     * the tensor, with the right-most dimensions running fastest and left-most
+     * dimensions running slowest.
+     *
+     * Example successful use case:
+     *  Tensor A = Tensor::build(CoreTensor, "A3", {4,5,6});
+     *  vector<double>& Av = A[];
+     *  double* Ap = Av.data(); // In case the raw pointer is needed
+     *  In this case, Av[0] = A(0,0,0), Av[1] = A(0,0,1), etc.
+     *
+     *  Tensor B = Tensor::build(DiskTensor, "B3", {4,5,6});
+     *  vector<double>& Bv = B.data(); // throws
+     *
+     * Results:
+     *  @return reference to the value, if tensor object supports it
+     **/
+    double &at(const std::vector<size_t> &indices);
+    const double &at(const std::vector<size_t> &indices) const;
 
     // => BLAS-Type Tensor Operations <= //
 
@@ -354,8 +382,8 @@ class Tensor
                   const Indices &Ainds, const Indices &Binds,
                   std::shared_ptr<TensorImpl> &A2,
                   std::shared_ptr<TensorImpl> &B2,
-                  std::shared_ptr<TensorImpl> &C2,
-                  double alpha = 1.0, double beta = 0.0);
+                  std::shared_ptr<TensorImpl> &C2, double alpha = 1.0,
+                  double beta = 0.0);
 
     /**
      * Perform the GEMM call equivalent to:
@@ -501,7 +529,6 @@ class Tensor
     map_to_tensor(const map<string, TensorImpl *> &x);
 
   public:
-
     void reshape(const Dimension &dims);
 
     // => Operator Overloading API <= //
@@ -575,8 +602,9 @@ class LabeledTensor
 
     void contract(const LabeledTensorContraction &rhs, bool zero_result,
                   bool add, bool optimize_order = true);
-    void contract_batched(const LabeledTensorBatchedContraction &rhs, bool zero_result,
-                  bool add, bool optimize_order = true);
+    void contract_batched(const LabeledTensorBatchedContraction &rhs,
+                          bool zero_result, bool add,
+                          bool optimize_order = true);
 
   private:
     void set(const LabeledTensor &to);
@@ -629,19 +657,26 @@ class LabeledTensorBatchedContraction
 {
 
   public:
-    LabeledTensorBatchedContraction(const LabeledTensorContraction &contraction, const Indices &batched_indices)
+    LabeledTensorBatchedContraction(const LabeledTensorContraction &contraction,
+                                    const Indices &batched_indices)
         : contraction_(contraction), batched_indices_(batched_indices)
-    {}
+    {
+    }
 
-    const LabeledTensorContraction& get_contraction() const { return contraction_; }
-    const Indices& get_batched_indices() const { return batched_indices_; }
+    const LabeledTensorContraction &get_contraction() const
+    {
+        return contraction_;
+    }
+    const Indices &get_batched_indices() const { return batched_indices_; }
 
   private:
     const LabeledTensorContraction &contraction_;
     Indices batched_indices_;
 };
 
-LabeledTensorBatchedContraction batched(const string &batched_indices, const LabeledTensorContraction &contraction);
+LabeledTensorBatchedContraction
+batched(const string &batched_indices,
+        const LabeledTensorContraction &contraction);
 
 class LabeledTensorAddition
 {
@@ -746,6 +781,6 @@ inline SlicedTensor operator*(double factor, const SlicedTensor &ti)
 {
     return SlicedTensor(ti.T(), ti.range(), factor * ti.factor());
 };
-}
+} // namespace ambit
 
 #endif

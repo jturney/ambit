@@ -20,9 +20,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along
- * with ambit; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ambit; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
@@ -30,12 +30,12 @@
 #if !defined(TENSOR_TENSORIMPL_H)
 #define TENSOR_TENSORIMPL_H
 
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <stdexcept>
 
-#include <ambit/tensor.h>
 #include "macros.h"
+#include <ambit/tensor.h>
 
 #if defined(__clang__)
 #pragma clang diagnostic push
@@ -62,7 +62,7 @@ class OutOfMemoryException : public std::runtime_error
   public:
     OutOfMemoryException() : std::runtime_error("Out of memory") {}
 };
-}
+} // namespace detail
 
 #define ThrowNotImplementedException                                           \
     throw detail::NotImplementedException(                                     \
@@ -83,6 +83,7 @@ class TensorImpl
     TensorType type() const { return type_; }
     std::string name() const { return name_; }
     const Dimension &dims() const { return dims_; }
+    const Dimension &addressing() const { return addressing_; }
     size_t dim(size_t ind) const { return dims_[ind]; }
     size_t rank() const { return dims_.size(); }
     size_t numel() const { return numel_; }
@@ -104,6 +105,20 @@ class TensorImpl
     {
         throw std::runtime_error(
             "TensorImpl::data() not supported for tensor type " +
+            std::to_string(type()));
+    }
+
+    virtual double &at(const std::vector<size_t> &indices)
+    {
+        throw std::runtime_error(
+            "TensorImpl::at() not supported for tensor type " +
+            std::to_string(type()));
+    }
+
+    virtual const double &at(const std::vector<size_t> &indices) const
+    {
+        throw std::runtime_error(
+            "TensorImpl::at() not supported for tensor type " +
             std::to_string(type()));
     }
 
@@ -166,11 +181,10 @@ class TensorImpl
 
     virtual void contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
                           const Indices &Cinds, const Indices &Ainds,
-                          const Indices &Binds,
-                          std::shared_ptr<TensorImpl> &A2,
+                          const Indices &Binds, std::shared_ptr<TensorImpl> &A2,
                           std::shared_ptr<TensorImpl> &B2,
-                          std::shared_ptr<TensorImpl> &C2,
-                          double alpha = 1.0, double beta = 0.0)
+                          std::shared_ptr<TensorImpl> &C2, double alpha = 1.0,
+                          double beta = 0.0)
     {
         throw std::runtime_error(
             "Operation not supported in this tensor implementation.");
@@ -237,7 +251,15 @@ class TensorImpl
             "Operation not supported in this tensor implementation.");
     }
 
-    void reshape(const Dimension &dims) { dims_ = dims; }
+    void reshape(const Dimension &dims)
+    {
+        dims_ = dims;
+        addressing_ = Dimension(dims_.size(), 1);
+        for (int n = static_cast<int>(dims_.size()) - 2; n >= 0; --n)
+        {
+            addressing_[n] = addressing_[n + 1] * dims_[n];
+        }
+    }
 
   protected:
     static bool typeCheck(TensorType type, ConstTensorImplPtr A,
@@ -252,9 +274,11 @@ class TensorImpl
     TensorType type_;
     std::string name_;
     Dimension dims_;
+    /// The tensor strides
+    Dimension addressing_;
     size_t numel_;
 };
-}
+} // namespace ambit
 
 #if defined(__clang__)
 #pragma clang diagnostic pop

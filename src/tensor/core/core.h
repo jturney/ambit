@@ -20,9 +20,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along
- * with ambit; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ambit; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
@@ -48,6 +48,26 @@ class CoreTensorImpl : public TensorImpl
     vector<double> &data() { return data_; }
     const vector<double> &data() const { return data_; }
 
+    double &at(const std::vector<size_t> &indices)
+    {
+        size_t pos = 0;
+        for (int i = 0, maxi = rank(); i < maxi; i++)
+        {
+            pos += indices[i] * addressing()[i];
+        }
+        return data_[pos];
+    }
+
+    const double &at(const std::vector<size_t> &indices) const
+    {
+        size_t pos = 0;
+        for (int i = 0, maxi = rank(); i < maxi; i++)
+        {
+            pos += indices[i] * addressing()[i];
+        }
+        return data_[pos];
+    }
+
     // => Simple Single Tensor Operations <= //
 
     double norm(int type = 2) const;
@@ -69,11 +89,10 @@ class CoreTensorImpl : public TensorImpl
 
     void contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
                   const Indices &Cinds, const Indices &Ainds,
-                  const Indices &Binds,
-                  std::shared_ptr<TensorImpl> &A2,
+                  const Indices &Binds, std::shared_ptr<TensorImpl> &A2,
                   std::shared_ptr<TensorImpl> &B2,
-                  std::shared_ptr<TensorImpl> &C2,
-                  double alpha = 1.0, double beta = 0.0);
+                  std::shared_ptr<TensorImpl> &C2, double alpha = 1.0,
+                  double beta = 0.0);
 
     void gemm(ConstTensorImplPtr A, ConstTensorImplPtr B, bool transA,
               bool transB, size_t nrow, size_t ncol, size_t nzip, size_t ldaA,
@@ -104,6 +123,6 @@ class CoreTensorImpl : public TensorImpl
 
 typedef CoreTensorImpl *CoreTensorImplPtr;
 typedef const CoreTensorImpl *ConstCoreTensorImplPtr;
-}
+} // namespace ambit
 
 #endif
