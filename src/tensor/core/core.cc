@@ -335,19 +335,20 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     }
 
     /**
-    * Fix permutation order considerations
-    *
-    * Rules if a permutation mismatch is detected:
-    * -If both tensors are already on the permute list, it doesn't matter which
-    *is fixed
-    * -Else if one tensor is already on the permute list but not the other, fix
-    *the one that is already on the permute list
-    * -Else fix the smaller tensor
-    *
-    * Note: this scheme is not optimal is permutation mismatches exist in P -
-    *for reasons of simplicity, A and B are
-    * permuted to C's P order, with no present considerations of better pathways
-    **/
+     * Fix permutation order considerations
+     *
+     * Rules if a permutation mismatch is detected:
+     * -If both tensors are already on the permute list, it doesn't matter which
+     *is fixed
+     * -Else if one tensor is already on the permute list but not the other, fix
+     *the one that is already on the permute list
+     * -Else fix the smaller tensor
+     *
+     * Note: this scheme is not optimal is permutation mismatches exist in P -
+     *for reasons of simplicity, A and B are
+     * permuted to C's P order, with no present considerations of better
+     *pathways
+     **/
     if (!indices::equivalent(compound_inds2["iC"], compound_inds2["iA"]))
     {
         if (permC)
@@ -510,7 +511,6 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     // => Alias or Allocate A, B, C <= //
     // => Permute A, B, and C if Necessary <= //
 
-
     double *Cp = ((CoreTensorImplPtr)C)->data().data();
     double *Ap = ((CoreTensorImplPtr)A)->data().data();
     double *Bp = ((CoreTensorImplPtr)B)->data().data();
@@ -523,7 +523,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         ambit::timer::timer_push("pre-BLAS: internal C allocation");
         if (!C2)
         {
-            Dimension Cdims2 = indices::permuted_dimension(C->dims(), Cinds2, Cinds);
+            Dimension Cdims2 =
+                indices::permuted_dimension(C->dims(), Cinds2, Cinds);
             C2 = std::make_shared<CoreTensorImpl>("C2", Cdims2);
         }
         C2p = C2->data().data();
@@ -540,7 +541,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         ambit::timer::timer_push("pre-BLAS: internal A allocation");
         if (!A2)
         {
-            Dimension Adims2 = indices::permuted_dimension(A->dims(), Ainds2, Ainds);
+            Dimension Adims2 =
+                indices::permuted_dimension(A->dims(), Ainds2, Ainds);
             A2 = std::make_shared<CoreTensorImpl>("A2", Adims2);
         }
         A2p = A2->data().data();
@@ -554,7 +556,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         ambit::timer::timer_push("pre-BLAS: internal B allocation");
         if (!B2)
         {
-            Dimension Bdims2 = indices::permuted_dimension(B->dims(), Binds2, Binds);
+            Dimension Bdims2 =
+                indices::permuted_dimension(B->dims(), Binds2, Binds);
             B2 = std::make_shared<CoreTensorImpl>("B2", Bdims2);
         }
         B2p = B2->data().data();
@@ -704,9 +707,9 @@ void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
                              const Indices &AindsS, double alpha, double beta)
 {
     ambit::timer::timer_push("P: " + std::to_string(beta) + " " + A->name() +
-                             "[" + indices::to_string(CindsS) + "] = " +
-                             std::to_string(alpha) + " " + A->name() + "[" +
-                             indices::to_string(AindsS) + "]");
+                             "[" + indices::to_string(CindsS) +
+                             "] = " + std::to_string(alpha) + " " + A->name() +
+                             "[" + indices::to_string(AindsS) + "]");
 
     // => Convert to indices of A <= //
 
@@ -1568,13 +1571,6 @@ void CoreTensorImpl::citerate(
     const function<void(const vector<size_t> &, const double &)> &func) const
 {
     vector<size_t> indices(rank(), 0);
-    vector<size_t> addressing(rank(), 1);
-
-    // form addressing array
-    for (int n = static_cast<int>(rank() - 2); n >= 0; --n)
-    {
-        addressing[n] = addressing[n + 1] * dim(n + 1);
-    }
 
     const size_t nelem = numel();
     const size_t nrank = rank();
@@ -1583,11 +1579,11 @@ void CoreTensorImpl::citerate(
         size_t d = n;
         for (size_t k = 0; k < nrank; ++k)
         {
-            indices[k] = d / addressing[k];
-            d = d % addressing[k];
+            indices[k] = d / addressing()[k];
+            d = d % addressing()[k];
         }
 
         func(indices, data_[n]);
     }
 }
-}
+} // namespace ambit

@@ -20,23 +20,23 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along
- * with ambit; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ambit; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <list>
-#include <algorithm>
 
-#include <ambit/tensor.h>
-#include <ambit/print.h>
-#include "tensorimpl.h"
 #include "core/core.h"
 #include "disk/disk.h"
 #include "indices.h"
+#include "tensorimpl.h"
+#include <ambit/print.h>
+#include <ambit/tensor.h>
 
 #include "globals.h"
 
@@ -74,16 +74,17 @@ const bool distributed_capable = false;
 #endif
 
 bool timers = false;
-}
+} // namespace settings
 
 namespace
 {
 
 void common_initialize(int /*argc*/, char *const * /*argv*/)
 {
-    if (settings::ninitialized != 0) {
+    if (settings::ninitialized != 0)
+    {
         throw std::runtime_error(
-                "ambit::initialize: Ambit has already been initialized.");
+            "ambit::initialize: Ambit has already been initialized.");
     }
 
     settings::ninitialized++;
@@ -102,7 +103,7 @@ void common_initialize(int /*argc*/, char *const * /*argv*/)
         Tensor::set_scratch_path(".");
     }
 }
-}
+} // namespace
 
 int initialize(int argc, char **argv)
 {
@@ -117,9 +118,10 @@ int initialize(int argc, char **argv)
 
 void finalize()
 {
-    if (settings::ninitialized == 0) {
+    if (settings::ninitialized == 0)
+    {
         throw std::runtime_error(
-                "ambit::finalize: Ambit has already been finalized.");
+            "ambit::finalize: Ambit has already been finalized.");
     }
 
     settings::ninitialized--;
@@ -145,9 +147,10 @@ Tensor::Tensor(shared_ptr<TensorImpl> tensor) : tensor_(std::move(tensor)) {}
 
 Tensor Tensor::build(TensorType type, const string &name, const Dimension &dims)
 {
-    if (settings::ninitialized == 0) {
+    if (settings::ninitialized == 0)
+    {
         throw std::runtime_error(
-                "ambit::Tensor::build: Ambit has not been initialized.");
+            "ambit::Tensor::build: Ambit has not been initialized.");
     }
 
     ambit::timer::timer_push("Tensor::build");
@@ -253,6 +256,16 @@ std::vector<double> &Tensor::data() { return tensor_->data(); }
 
 const std::vector<double> &Tensor::data() const { return tensor_->data(); }
 
+double &Tensor::at(const std::vector<size_t> &indices)
+{
+    return tensor_->at(indices);
+}
+
+const double &Tensor::at(const std::vector<size_t> &indices) const
+{
+    return tensor_->at(indices);
+}
+
 Tensor Tensor::cat(std::vector<Tensor> const, int dim)
 {
     ThrowNotImplementedException;
@@ -326,8 +339,8 @@ map<string, Tensor> Tensor::map_to_tensor(const map<string, TensorImplPtr> &x)
 
     for (auto iter : x)
     {
-        result.insert(make_pair(iter.first,
-                                Tensor(shared_ptr<TensorImpl>(iter.second))));
+        result.insert(
+            make_pair(iter.first, Tensor(shared_ptr<TensorImpl>(iter.second))));
     }
     return result;
 }
@@ -387,25 +400,26 @@ void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
                       const Indices &Ainds, const Indices &Binds,
                       std::shared_ptr<TensorImpl> &A2,
                       std::shared_ptr<TensorImpl> &B2,
-                      std::shared_ptr<TensorImpl> &C2,
-                      double alpha, double beta)
+                      std::shared_ptr<TensorImpl> &C2, double alpha,
+                      double beta)
 {
-    if (ambit::settings::debug) {
+    if (ambit::settings::debug)
+    {
         ambit::print("    #: " + std::to_string(beta) + " " + name() + "[" +
-                     indices::to_string(Cinds) + "] = " +
-                     std::to_string(alpha) + " " + A.name() + "[" +
+                     indices::to_string(Cinds) +
+                     "] = " + std::to_string(alpha) + " " + A.name() + "[" +
                      indices::to_string(Ainds) + "] * " + B.name() + "[" +
                      indices::to_string(Binds) + "]\n");
     }
 
     timer::timer_push("#: " + std::to_string(beta) + " " + name() + "[" +
-                      indices::to_string(Cinds) + "] = " +
-                      std::to_string(alpha) + " " + A.name() + "[" +
+                      indices::to_string(Cinds) +
+                      "] = " + std::to_string(alpha) + " " + A.name() + "[" +
                       indices::to_string(Ainds) + "] * " + B.name() + "[" +
                       indices::to_string(Binds) + "]");
 
-    tensor_->contract(A.tensor_.get(), B.tensor_.get(), Cinds, Ainds, Binds,
-                      A2, B2, C2, alpha, beta);
+    tensor_->contract(A.tensor_.get(), B.tensor_.get(), Cinds, Ainds, Binds, A2,
+                      B2, C2, alpha, beta);
 
     timer::timer_pop();
 }
@@ -413,17 +427,18 @@ void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
                       const Indices &Ainds, const Indices &Binds, double alpha,
                       double beta)
 {
-    if (ambit::settings::debug) {
+    if (ambit::settings::debug)
+    {
         ambit::print("    #: " + std::to_string(beta) + " " + name() + "[" +
-                     indices::to_string(Cinds) + "] = " +
-                     std::to_string(alpha) + " " + A.name() + "[" +
+                     indices::to_string(Cinds) +
+                     "] = " + std::to_string(alpha) + " " + A.name() + "[" +
                      indices::to_string(Ainds) + "] * " + B.name() + "[" +
                      indices::to_string(Binds) + "]\n");
     }
 
     timer::timer_push("#: " + std::to_string(beta) + " " + name() + "[" +
-                      indices::to_string(Cinds) + "] = " +
-                      std::to_string(alpha) + " " + A.name() + "[" +
+                      indices::to_string(Cinds) +
+                      "] = " + std::to_string(alpha) + " " + A.name() + "[" +
                       indices::to_string(Ainds) + "] * " + B.name() + "[" +
                       indices::to_string(Binds) + "]");
 
@@ -435,7 +450,8 @@ void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
 void Tensor::permute(const Tensor &A, const Indices &Cinds,
                      const Indices &Ainds, double alpha, double beta)
 {
-    if (ambit::settings::debug) {
+    if (ambit::settings::debug)
+    {
         ambit::print("    P: " + name() + "[" + indices::to_string(Cinds) +
                      "] = " + A.name() + "[" + indices::to_string(Ainds) +
                      "]\n");
@@ -479,4 +495,4 @@ bool Tensor::operator!=(const Tensor &other) const
 {
     return tensor_ != other.tensor_;
 }
-}
+} // namespace ambit

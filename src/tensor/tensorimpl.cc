@@ -20,18 +20,18 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along
- * with ambit; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ambit; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
 
-#include <numeric>
 #include "tensorimpl.h"
 #include "core/core.h"
 #include "disk/disk.h"
 #include "slice.h"
+#include <numeric>
 
 #if defined(HAVE_CYCLOPS)
 #include "cyclops/cyclops.h"
@@ -46,6 +46,12 @@ TensorImpl::TensorImpl(TensorType type, const string &name,
 {
     numel_ = std::accumulate(dims_.begin(), dims_.end(), static_cast<size_t>(1),
                              std::multiplies<size_t>());
+
+    addressing_ = Dimension(dims_.size(), 1);
+    for (int n = static_cast<int>(dims_.size()) - 2; n >= 0; --n)
+    {
+        addressing_[n] = addressing_[n + 1] * dims_[n + 1];
+    }
 }
 
 void TensorImpl::slice(ConstTensorImplPtr A, const IndexRange &Cinds,
@@ -54,8 +60,7 @@ void TensorImpl::slice(ConstTensorImplPtr A, const IndexRange &Cinds,
     ambit::slice(this, A, Cinds, Ainds, alpha, beta);
 }
 
-void TensorImpl::zero()
-{ scale(0.0); }
+void TensorImpl::zero() { scale(0.0); }
 
 void TensorImpl::copy(ConstTensorImplPtr other)
 {
@@ -85,10 +90,10 @@ TensorImplPtr TensorImpl::clone(TensorType t) const
         tensor = new DiskTensorImpl(name(), dims());
     }
 #if defined(HAVE_ELEMENTAL)
-        else if (t == DistributedTensor)
-        {
-            tensor = new cyclops::CyclopsTensorImpl(name(), dims());
-        }
+    else if (t == DistributedTensor)
+    {
+        tensor = new cyclops::CyclopsTensorImpl(name(), dims());
+    }
 #endif
     else
     {
@@ -185,8 +190,8 @@ void TensorImpl::print(FILE *fh, bool level, const string & /*format*/,
                          j += static_cast<size_t>(maxcols))
                     {
                         size_t ncols = (j + static_cast<size_t>(maxcols) >= cols
-                                        ? cols - j
-                                        : static_cast<size_t>(maxcols));
+                                            ? cols - j
+                                            : static_cast<size_t>(maxcols));
 
                         // Column Header
                         fprintf(fh, "    %5s", "");
@@ -295,4 +300,4 @@ bool TensorImpl::dimensionCheck(ConstTensorImplPtr A, ConstTensorImplPtr B,
         return diff;
     }
 }
-}
+} // namespace ambit
