@@ -1534,13 +1534,12 @@ void LabeledBlockedTensor::contract_batched(const LabeledBlockedTensorBatchedPro
         batch_mo_space_keys =
                 BlockedTensor::label_to_block_keys(batched_indices);
     } else {
-        std::vector<size_t> pre_key;
         for (const std::vector<size_t> &uik : unique_indices_keys)
         {
             std::vector<size_t> term_key(uik.begin(), uik.begin() + batched_size);
-            if (pre_key != term_key) {
+            if (std::find(batch_mo_space_keys.begin(), batch_mo_space_keys.end(), term_key) ==
+                batch_mo_space_keys.end()) {
                 batch_mo_space_keys.push_back(term_key);
-                pre_key = term_key;
             }
         }
     }
