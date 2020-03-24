@@ -2652,7 +2652,7 @@ int main(int argc, char *argv[])
             kPass, test_Oia_equal_Cbu_Guv_Tivab_expert,
             "O[\"ia\"] = C[\"bu\"] * G[\"uv\"] * T[\"ivab\"]"),
         std::make_tuple(kPass, test_batched_incomplete_result_blocks_expert,
-                        "C[\"ijrs\"] = batched(\"r,\", B[\"gar\"] * B[\"gbs\"] * T[\"ijab\"])")
+                        "C[\"ijrs\"] += batched(\"r,\", B[\"gar\"] * B[\"gbs\"] * T[\"ijab\"])")
     };
 
     std::vector<std::tuple<std::string, TestResult, double>> results;
