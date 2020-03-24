@@ -2414,6 +2414,59 @@ double test_Oia_equal_Cbu_Guv_Tivab_expert()
     return diff_oo;
 }
 
+double test_batched_incomplete_result_blocks_expert() {
+    BlockedTensor::set_expert_mode(true);
+    BlockedTensor::reset_mo_spaces();
+
+    std::vector<size_t> core_mos{0, 1, 2};
+    std::vector<size_t> actv_mos{3, 4};
+    std::vector<size_t> virt_mos{5, 6, 7, 8, 9};
+
+    std::vector<size_t> aux_mos{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    BlockedTensor::add_mo_space("c", "m,n", core_mos, NoSpin);
+    BlockedTensor::add_mo_space("a", "u,v", actv_mos, NoSpin);
+    BlockedTensor::add_mo_space("v", "e,f", virt_mos, NoSpin);
+
+    BlockedTensor::add_composite_mo_space("h", "i,j,k,l", {"c", "a"});
+    BlockedTensor::add_composite_mo_space("p", "a,b,c,d", {"a", "v"});
+    BlockedTensor::add_composite_mo_space("g", "p,q,r,s", {"c", "a", "v"});
+
+    BlockedTensor::add_mo_space("L", "g", aux_mos, NoSpin);
+
+    std::vector<std::string> od_hhpp_blocks{"hhpv", "hhva", "hcaa", "caaa"};
+
+    auto B = BlockedTensor::build(tensor_type, "B", {"Lgg"});
+    auto T2 = BlockedTensor::build(tensor_type, "T2", {"hhpp"});
+    auto C2 = BlockedTensor::build(tensor_type, "C2", od_hhpp_blocks);
+    auto X2 = BlockedTensor::build(tensor_type, "X2", od_hhpp_blocks);
+
+    auto init_random = [](BlockedTensor A) {
+        for (const std::string& block : A.block_labels()) {
+            std::vector<double>& data = A.block(block).data();
+            for (size_t i = 0, size = data.size(); i < size; ++i) {
+                data[i] = double(std::rand()) / double(RAND_MAX);
+            }
+        }
+    };
+
+    init_random(B);
+    init_random(T2);
+    init_random(C2);
+    X2["pqrs"] = C2["pqrs"];
+
+    C2["ijes"] += batched("e", B["gae"] * B["gbs"] * T2["ijab"]);
+    C2["ijus"] += batched("u", B["gau"] * B["gbs"] * T2["ijab"]);
+    C2["ijms"] += batched("m", B["gam"] * B["gbs"] * T2["ijab"]);
+
+    X2["ijrs"] += batched("r,", B["gar"] * B["gbs"] * T2["ijab"]);
+    X2["pqrs"] -= C2["pqrs"];
+
+    BlockedTensor::set_expert_mode(false);
+
+    return X2.norm(0);
+}
+
 int main(int argc, char *argv[])
 {
     printf(ANSI_COLOR_RESET);
@@ -2598,6 +2651,8 @@ int main(int argc, char *argv[])
         std::make_tuple(
             kPass, test_Oia_equal_Cbu_Guv_Tivab_expert,
             "O[\"ia\"] = C[\"bu\"] * G[\"uv\"] * T[\"ivab\"]"),
+        std::make_tuple(kPass, test_batched_incomplete_result_blocks_expert,
+                        "C[\"ijrs\"] += batched(\"r,\", B[\"gar\"] * B[\"gbs\"] * T[\"ijab\"])")
     };
 
     std::vector<std::tuple<std::string, TestResult, double>> results;
