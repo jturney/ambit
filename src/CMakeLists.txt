@@ -58,6 +58,7 @@ set(TENSOR_SOURCES
         tensor/slice.cc
         tensor/sliced_tensor.cc
         tensor/tensor.cc
+        tensor/tensor_pool.cc
         tensor/tensorimpl.cc
         tensor/timer.cc
 

@@ -206,6 +206,8 @@ Tensor Tensor::clone(TensorType type) const
 
 void Tensor::reshape(const Dimension &dims) { tensor_->reshape(dims); }
 
+void Tensor::resize(const Dimension &dims) { tensor_->resize(dims); }
+
 void Tensor::copy(const Tensor &other) { tensor_->copy(other.tensor_.get()); }
 
 Tensor::Tensor() {}

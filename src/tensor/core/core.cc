@@ -55,6 +55,21 @@ void CoreTensorImpl::reshape(const Dimension &dims)
     TensorImpl::reshape(dims);
 }
 
+void CoreTensorImpl::resize(const Dimension &dims, bool trim)
+{
+    TensorImpl::reshape(dims);
+    // Requests that the vector capacity be at least enough to contain numel
+    // elements. If numel is greater than the current vector capacity, the
+    // function causes the container to reallocate its storage increasing its
+    // capacity to numel (or greater).
+
+    if (numel() > data_.size())
+    {
+        // TODO: implement trimming
+        data_.reserve(numel());
+    }
+}
+
 double CoreTensorImpl::norm(int type) const
 {
     double val = 0.0;
