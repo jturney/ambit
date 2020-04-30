@@ -109,11 +109,11 @@ void print_timer_info(TimerDetail *timer)
     char buffer[512];
     if (timer != root)
     {
-        snprintf(buffer, 512, "%lld ms : %lld calls : %lld ms per call : ",
-                 std::chrono::duration_cast<std::chrono::milliseconds>(
+        snprintf(buffer, 512, "%lld mus : %lld calls : %lld mus per call : ",
+                 std::chrono::duration_cast<std::chrono::microseconds>(
                      timer->total_time),
                  timer->total_calls,
-                 std::chrono::duration_cast<std::chrono::milliseconds>(
+                 std::chrono::duration_cast<std::chrono::microseconds>(
                      timer->total_time) /
                      timer->total_calls);
         print("%s%*s%s\n", buffer,

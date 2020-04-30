@@ -214,7 +214,7 @@ class Tensor
      *
      * Example successful use case:
      *  Tensor A = Tensor::build(CoreTensor, "A3", {4,5,6});
-     *  A.at({0,0,0}) = 1.0; // Fill element 
+     *  A.at({0,0,0}) = 1.0; // Fill element
      *
      * Results:
      *  @return reference to the element, if tensor object supports it
@@ -516,6 +516,8 @@ class Tensor
 
   public:
     void reshape(const Dimension &dims);
+
+    void resize(const Dimension &dims);
 
     // => Operator Overloading API <= //
 

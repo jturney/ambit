@@ -37,6 +37,7 @@
 #include "tensorimpl.h"
 #include <ambit/print.h>
 #include <ambit/tensor.h>
+#include <ambit/tensor_pool.h>
 
 #include "globals.h"
 
@@ -90,6 +91,7 @@ void common_initialize(int /*argc*/, char *const * /*argv*/)
     settings::ninitialized++;
 
     timer::initialize();
+    tensor_pool::initialize();
 
     // Set the scratch path for disk files
     const char *scratch_env = std::getenv("TENSOR_SCRATCH");
@@ -132,6 +134,7 @@ void finalize()
 
     timer::report();
     timer::finalize();
+    tensor_pool::finalize();
 }
 
 void barrier()
@@ -205,6 +208,8 @@ Tensor Tensor::clone(TensorType type) const
 }
 
 void Tensor::reshape(const Dimension &dims) { tensor_->reshape(dims); }
+
+void Tensor::resize(const Dimension &dims) { tensor_->resize(dims); }
 
 void Tensor::copy(const Tensor &other) { tensor_->copy(other.tensor_.get()); }
 
