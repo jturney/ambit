@@ -265,7 +265,7 @@ class TensorImpl
         }
     }
 
-    void resize(const Dimension &dims, bool trim = true)
+    virtual void resize(const Dimension &dims, bool trim = true)
     {
         throw std::runtime_error(
             "Operation not supported in this tensor implementation.");

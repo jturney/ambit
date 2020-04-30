@@ -27,40 +27,25 @@
  * @END LICENSE
  */
 
-//#include <stdexcept>
-//#include <string>
-//#include <vector>
-
-//#include "macros.h"
-
 #include <mutex> // std::mutex
 #include <numeric>
 
 #include <ambit/tensor_pool.h>
-
-//#if defined(__clang__)
-//#pragma clang diagnostic push
-//#pragma clang diagnostic ignored "-Wunused-parameter"
-//#endif
 
 namespace ambit
 {
 
 std::mutex pool_mutex; // mutex for critical section
 
-TempTensor TensorPool::get_tensor(TensorType type, const string &name,
-                                  const Dimension &dims)
+TempTensor TensorPool::get_tensor()
 {
     // critical section
     pool_mutex.lock();
 
-    size_t target_numel =
-        std::accumulate(dims.begin(), dims.end(), static_cast<size_t>(1),
-                        std::multiplies<size_t>());
     Tensor t;
     size_t id;
 
-    // Find a free tensor of the appropriate size
+    // Find a free tensor
     bool found = false;
     for (size_t n = 0; n < tensor_pool_.size(); n++)
     {
@@ -70,8 +55,6 @@ TempTensor TensorPool::get_tensor(TensorType type, const string &name,
         {
             // lock the tensor
             p.first = true;
-            // resize the tensor
-            p.second.resize(dims);
             // grab the Tensor object and set the id
             t = p.second;
             id = n;
@@ -79,11 +62,13 @@ TempTensor TensorPool::get_tensor(TensorType type, const string &name,
             break;
         }
     }
-    // If there is no tensor, create one
+    // If there is no tensor, create a core tensor with appropriate label and
+    // dimensions [1].
     if (not found)
     {
-        t = Tensor::build(type, name, dims);
         id = tensor_pool_.size();
+        t = Tensor::build(TensorType::CoreTensor,
+                          "temporary_tensor_" + std::to_string(id), {1});
         tensor_pool_.push_back(std::make_pair(true, t));
     }
     pool_mutex.unlock();
@@ -99,4 +84,33 @@ void TensorPool::release_tensor(size_t id)
 }
 
 void TensorPool::reset() { tensor_pool_.clear(); }
+
+namespace tensor_pool
+{
+
+TensorPool *tensor_pool = nullptr;
+
+void initialize()
+{
+    if (tensor_pool == nullptr)
+    {
+        tensor_pool = new TensorPool();
+    }
+    else
+    {
+        throw std::runtime_error("tensor_pool::initialize: the TensorPool has "
+                                 "already been initialized.");
+    }
+}
+
+void finalize()
+{
+    delete tensor_pool;
+    tensor_pool = nullptr;
+}
+
+TempTensor get_tensor() { return tensor_pool->get_tensor(); }
+
+} // namespace tensor_pool
+
 } // namespace ambit
