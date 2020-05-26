@@ -296,6 +296,9 @@ class Tensor
      **/
     void copy(const Tensor &other);
 
+
+//    void save(const std::string& filename);
+
     /**
      * Perform the slice:
      *  C(Cinds) = alpha * A(Ainds) + beta * C(Cinds)
