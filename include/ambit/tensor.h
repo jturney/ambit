@@ -533,6 +533,7 @@ class Tensor
      *
      * Parameters:
      *  @param dims the new dimensions of the tensor
+     *  @param trim shrink memory if resized tensor has less elements than previous one?
      **/
     void resize(const Dimension &dims, bool trim = true);
 
