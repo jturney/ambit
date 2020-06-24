@@ -28,6 +28,8 @@
  * @END LICENSE
  */
 
+#include <numeric>
+
 #include "core.h"
 #include "math/math.h"
 #include "tensor/indices.h"
@@ -53,6 +55,23 @@ CoreTensorImpl::CoreTensorImpl(const string &name, const Dimension &dims)
 void CoreTensorImpl::reshape(const Dimension &dims)
 {
     TensorImpl::reshape(dims);
+}
+
+void CoreTensorImpl::resize(const Dimension &dims, bool trim)
+{
+    TensorImpl::reshape(dims);
+    // Requests that the vector capacity be at least enough to contain numel
+    // elements. If numel is greater than the current vector capacity, the
+    // function causes the container to reallocate its storage increasing its
+    // capacity to numel (or greater).
+    if (numel() > data_.size())
+    {
+        data_.reserve(numel());
+    }
+    else if ((numel() < data_.size()) and trim)
+    {
+        data_.resize(numel());
+    }
 }
 
 double CoreTensorImpl::norm(int type) const

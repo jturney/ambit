@@ -142,6 +142,11 @@ class Tensor
      */
     void reset();
 
+    /**
+     * Tells if this tensor is allocated.
+     */
+    bool is_set();
+
     // => Accessors <= //
 
     /// @return The tensor type enum, one of CoreTensor, DiskTensor,
@@ -214,7 +219,7 @@ class Tensor
      *
      * Example successful use case:
      *  Tensor A = Tensor::build(CoreTensor, "A3", {4,5,6});
-     *  A.at({0,0,0}) = 1.0; // Fill element 
+     *  A.at({0,0,0}) = 1.0; // Fill element
      *
      * Results:
      *  @return reference to the element, if tensor object supports it
@@ -295,9 +300,6 @@ class Tensor
      *  C is the current tensor, whose data is overwritten
      **/
     void copy(const Tensor &other);
-
-
-//    void save(const std::string& filename);
 
     /**
      * Perform the slice:
@@ -518,7 +520,21 @@ class Tensor
     map_to_tensor(const map<string, TensorImpl *> &x);
 
   public:
+    /**
+     * Reshape a tensor (assumes no change in memory)
+     *
+     * Parameters:
+     *  @param dims the new dimensions of the tensor
+     **/
     void reshape(const Dimension &dims);
+
+    /**
+     * Resize a tensor reallocating memory if necessary
+     *
+     * Parameters:
+     *  @param dims the new dimensions of the tensor
+     **/
+    void resize(const Dimension &dims, bool trim = true);
 
     // => Operator Overloading API <= //
 
@@ -536,6 +552,52 @@ class Tensor
     static void set_scratch_path(const string &path) { scratch_path__ = path; }
     static string scratch_path() { return scratch_path__; }
 };
+
+/**
+ * This function saves a tensor to a binary file on disk
+ *
+ * @param t a tensor
+ * @param filename the name of the binary file
+ * @param overwrite overwrite an existing file?
+ *
+ */
+void save(Tensor t, const std::string &filename, bool overwrite = true);
+
+/**
+ * This function loads a tensor from a binary file on disk and copies the data
+ * to an existing tensor. If the tensor passed in is empty, it will be resized
+ *
+ * @param t a tensor
+ * @param filename the name of the binary file
+ *
+ */
+void load(Tensor &t, const std::string &filename);
+
+/**
+ * This function loads a tensor from a binary file and returns a tensor.
+ *
+ * @param filename the name of the binary file
+ * @return a tensor
+ */
+Tensor load_tensor(const std::string &filename);
+
+/**
+ * This function saves a tensor to an output file stream
+ *
+ * @param t a tensor
+ * @param out the output file stream
+ *
+ */
+void write_tensor_to_file(Tensor t, std::ofstream &out);
+
+/**
+ * This function loads a tensor from an input file stream
+ *
+ * @param t a tensor
+ * @param in the input file stream
+ *
+ */
+void read_tensor_from_file(Tensor &t, std::ifstream &in);
 
 class LabeledTensor
 {

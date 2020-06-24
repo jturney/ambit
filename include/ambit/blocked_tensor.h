@@ -20,9 +20,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along
- * with ambit; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ambit; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
@@ -31,10 +31,10 @@
 #define TENSOR_INCLUDE_BLOCKED_TENSOR_H
 
 #include <cstdio>
-#include <utility>
-#include <vector>
 #include <map>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <ambit/tensor.h>
 
@@ -128,6 +128,7 @@ class MOSpace
  * This class holds several tensors, blocked according to spin and MO spaces.
  *
  * Sample usage:
+ *  // register the orbital spaces with the class
  *  BlockedTensor::add_mo_space("O" ,"i,j,k,l"    ,{0,1,2,3,4},AlphaSpin);
  *  BlockedTensor::add_mo_space("V" ,"a,b,c,d"    ,{7,8,9},AlphaSpin);
  *  BlockedTensor::add_mo_space("I" ,"p,q,r,s,t"  ,{"O","A","V"}); // create a
@@ -137,6 +138,7 @@ class MOSpace
  *can deal with redundant spaces
  *  BlockedTensor::add_composite_mo_space("P","e,f",{"A","V"});
  *
+ *  // instantiate BlockTensor objects
  *  BlockedTensor T("T","O,O,V,V");
  *  BlockedTensor V("V","O,O,V,V");
  *  E = 0.25 * T("ijab") * V("ijab")
@@ -210,10 +212,10 @@ class BlockedTensor
     bool operator!=(const BlockedTensor &other) const;
 
     /**
-    * Print some tensor information to fh
-    * \param level If level = false, just print name and dimensions.  If level =
-    *true, print the entire tensor.
-    **/
+     * Print some tensor information to fh
+     * \param level If level = false, just print name and dimensions.  If level
+     *= true, print the entire tensor.
+     **/
     void print(FILE *fh = stdout, bool level = true,
                const std::string &format = std::string("%11.6f"),
                int maxcols = 5) const;
@@ -249,6 +251,9 @@ class BlockedTensor
     const Tensor block(const std::vector<size_t> &key) const;
     /// Return a Tensor object that corresponds to a given block key
     Tensor block(const std::string &indices);
+
+    void set_block(const std::vector<size_t> &key, Tensor t);
+    void set_block(const std::string &indices, Tensor t);
 
     // => BLAS-Type Tensor Operations <= //
 
@@ -336,15 +341,13 @@ class BlockedTensor
                                 const std::vector<size_t> &mo_spaces_idx);
     static std::vector<size_t> indices_to_key(const std::string &indices);
     static std::vector<std::string> indices_to_block_labels(
-            const Indices &indices,
-            const std::vector<std::vector<size_t>> &unique_indices_keys,
-            const std::map<std::string, size_t> &index_map,
-            bool full_contraction);
+        const Indices &indices,
+        const std::vector<std::vector<size_t>> &unique_indices_keys,
+        const std::map<std::string, size_t> &index_map, bool full_contraction);
     static std::vector<std::string> reduce_rank_block_labels(
-            const Indices &indices,
-            const Indices &full_rank_indices,
-            const std::map<std::vector<size_t>, Tensor> &blocks,
-            bool full_contraction);
+        const Indices &indices, const Indices &full_rank_indices,
+        const std::map<std::vector<size_t>, Tensor> &blocks,
+        bool full_contraction);
 
     /// @return The n-th MOSpace
     static MOSpace mo_space(size_t n) { return mo_spaces_[n]; }
@@ -383,6 +386,36 @@ class BlockedTensor
     LabeledBlockedTensor operator()(const std::string &indices);
     LabeledBlockedTensor operator[](const std::string &indices);
 };
+
+/**
+ * This function saves a blocked tensor to a binary file on disk
+ *
+ * @param t a tensor
+ * @param filename the name of the binary file
+ * @param overwrite overwrite an existing file?
+ *
+ */
+void save(BlockedTensor bt, const std::string &filename, bool overwrite = true);
+
+/**
+ * This function loads a blocked tensor from a binary file on disk and copies
+ * the data to an existing tensor. If the tensor passed in is empty, it will be
+ * resized
+ *
+ * @param t a tensor
+ * @param filename the name of the binary file
+ *
+ */
+void load(BlockedTensor &bt, const std::string &filename);
+
+/**
+ * This function loads a blocked tensor from a binary file and returns it
+ *
+ * @param t a tensor
+ * @return a blocked tensor
+ *
+ */
+BlockedTensor load_blocked_tensor(const std::string &filename);
 
 class LabeledBlockedTensor
 {
@@ -436,20 +469,27 @@ class LabeledBlockedTensor
         return LabeledBlockedTensor(BT_, indices_, -factor_);
     }
 
-    void contract_pair(const LabeledBlockedTensorProduct &rhs, bool zero_result, bool add,
-                  std::shared_ptr<std::tuple<std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>
-                          &block_info_ptr);
+    void
+    contract_pair(const LabeledBlockedTensorProduct &rhs, bool zero_result,
+                  bool add,
+                  std::shared_ptr<std::tuple<std::vector<std::vector<size_t>>,
+                                             std::map<std::string, size_t>>>
+                      &block_info_ptr);
     void contract(const LabeledBlockedTensorProduct &rhs, bool zero_result,
                   bool add, bool optimize_order = true);
-    void contract(const LabeledBlockedTensorProduct &rhs, bool zero_result,
-                  bool add, bool optimize_order,
-                  std::vector<std::shared_ptr<BlockedTensor>> &inter_AB_tensors,
-                  std::shared_ptr<std::tuple<bool, std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>
-                          &expert_info_ptr,
-                  std::vector<std::shared_ptr<std::tuple<std::vector<std::vector<size_t>>, std::map<std::string, size_t>>>>
-                          &inter_block_info_ptrs);
-    void contract_batched(const LabeledBlockedTensorBatchedProduct &rhs, bool zero_result,
-                  bool add, bool optimize_order = true);
+    void contract(
+        const LabeledBlockedTensorProduct &rhs, bool zero_result, bool add,
+        bool optimize_order,
+        std::vector<std::shared_ptr<BlockedTensor>> &inter_AB_tensors,
+        std::shared_ptr<std::tuple<bool, std::vector<std::vector<size_t>>,
+                                   std::map<std::string, size_t>>>
+            &expert_info_ptr,
+        std::vector<std::shared_ptr<std::tuple<std::vector<std::vector<size_t>>,
+                                               std::map<std::string, size_t>>>>
+            &inter_block_info_ptrs);
+    void contract_batched(const LabeledBlockedTensorBatchedProduct &rhs,
+                          bool zero_result, bool add,
+                          bool optimize_order = true);
 
   private:
     void set(const LabeledBlockedTensor &to);
@@ -502,12 +542,11 @@ class LabeledBlockedTensorProduct
     // conversion operator
     operator double() const;
 
-    pair<double, double>
-    compute_contraction_cost(
-            const vector<size_t> &perm,
-            const std::vector<std::vector<size_t>> &unique_indices_keys,
-            const std::map<std::string, size_t> &index_map,
-            bool full_contraction) const;
+    pair<double, double> compute_contraction_cost(
+        const vector<size_t> &perm,
+        const std::vector<std::vector<size_t>> &unique_indices_keys,
+        const std::map<std::string, size_t> &index_map,
+        bool full_contraction) const;
 
   private:
     std::vector<LabeledBlockedTensor> tensors_;
@@ -517,20 +556,27 @@ class LabeledBlockedTensorBatchedProduct
 {
 
   public:
-    LabeledBlockedTensorBatchedProduct(const LabeledBlockedTensorProduct &product,
-                                const Indices &batched_indices)
+    LabeledBlockedTensorBatchedProduct(
+        const LabeledBlockedTensorProduct &product,
+        const Indices &batched_indices)
         : product_(product), batched_indices_(batched_indices)
-    {}
+    {
+    }
 
-    const LabeledBlockedTensorProduct& get_contraction() const { return product_; }
-    const Indices& get_batched_indices() const { return batched_indices_; }
+    const LabeledBlockedTensorProduct &get_contraction() const
+    {
+        return product_;
+    }
+    const Indices &get_batched_indices() const { return batched_indices_; }
 
   private:
     const LabeledBlockedTensorProduct &product_;
     Indices batched_indices_;
 };
 
-LabeledBlockedTensorBatchedProduct batched(const string &batched_indices, const LabeledBlockedTensorProduct &product);
+LabeledBlockedTensorBatchedProduct
+batched(const string &batched_indices,
+        const LabeledBlockedTensorProduct &product);
 
 class LabeledBlockedTensorAddition
 {
@@ -619,6 +665,6 @@ class LabeledBlockedTensorDistributive
 
 /// Take a string like "oovv" and generates the strings "oovv","oOvV","OOVV"
 std::vector<std::string> spin_cases(const std::vector<std::string> &str);
-}
+} // namespace ambit
 
 #endif
