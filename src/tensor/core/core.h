@@ -45,6 +45,9 @@ class CoreTensorImpl : public TensorImpl
     // the strides in the slice codes.
     void reshape(const Dimension &dims);
 
+    // Changes the internal dims_ object and the memory allocation.
+    void resize(const Dimension &dims, bool trim = true);
+
     vector<double> &data() { return data_; }
     const vector<double> &data() const { return data_; }
 

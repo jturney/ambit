@@ -47,7 +47,6 @@ static inline string &ltrim(string &s)
 {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(),
                                     [](int c) { return !std::isspace(c); }));
-
     return s;
 }
 

@@ -29,12 +29,16 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
 #include <list>
+#include <sys/stat.h>
 
 #include "core/core.h"
 #include "disk/disk.h"
 #include "indices.h"
 #include "tensorimpl.h"
+
 #include <ambit/print.h>
 #include <ambit/tensor.h>
 
@@ -206,9 +210,16 @@ Tensor Tensor::clone(TensorType type) const
 
 void Tensor::reshape(const Dimension &dims) { tensor_->reshape(dims); }
 
+void Tensor::resize(const Dimension &dims, bool trim)
+{
+    tensor_->resize(dims, trim);
+}
+
 void Tensor::copy(const Tensor &other) { tensor_->copy(other.tensor_.get()); }
 
 Tensor::Tensor() {}
+
+bool Tensor::is_set() { return static_cast<bool>(tensor_); }
 
 void Tensor::reset() { tensor_.reset(); }
 
@@ -495,4 +506,119 @@ bool Tensor::operator!=(const Tensor &other) const
 {
     return tensor_ != other.tensor_;
 }
+
+void save(Tensor t, const std::string &filename, bool overwrite)
+{
+    // check if file exists or not
+    struct stat buf;
+    if (stat(filename.c_str(), &buf) == 0)
+    {
+        if (overwrite)
+        {
+            // delete the file
+            if (remove(filename.c_str()) != 0)
+            {
+                std::string msg = "Error when deleting " + filename;
+                perror(msg.c_str());
+            }
+        }
+        else
+        {
+            std::string error = "File " + filename + " already exists.";
+            throw std::runtime_error(error);
+        }
+    }
+    // create the file
+    std::ofstream out(filename.c_str(), std::ios_base::binary);
+    // write tensor to file
+    write_tensor_to_file(t, out);
+    // close the file
+    out.close();
+}
+
+void load(Tensor &t, const std::string &filename)
+{
+    // check if file exists or not
+    std::ifstream in(filename.c_str(), std::ios_base::binary);
+    if (!in.good())
+    {
+        std::string error = "File " + filename + " does not exist.";
+        throw std::runtime_error(error);
+    }
+    // read tensor from file
+    read_tensor_from_file(t, in);
+    // close the file
+    in.close();
+}
+
+Tensor load_tensor(const std::string &filename)
+{
+    Tensor t;
+    load(t, filename);
+    return t;
+}
+
+void write_tensor_to_file(Tensor t, std::ofstream &out)
+{
+    // write the tensor name
+    auto name = t.name();
+    size_t size = name.size();
+    out.write(reinterpret_cast<char *>(&size), sizeof(size_t));
+    out.write(&name[0], size);
+
+    // write the rank and the size of each dimension
+    size_t rank = t.rank();
+    out.write(reinterpret_cast<char *>(&rank), sizeof(size_t));
+    for (size_t m = 0; m < rank; m++)
+    {
+        size_t dim = t.dim(m);
+        out.write(reinterpret_cast<char *>(&dim), sizeof(size_t));
+    }
+
+    // write the size of the date and the data.
+    size_t data_size = t.numel();
+    out.write(reinterpret_cast<char *>(&data_size), sizeof(size_t));
+    const std::vector<double> &data = t.data();
+    out.write(reinterpret_cast<const char *>(&data[0]),
+              data_size * sizeof(double));
+}
+
+void read_tensor_from_file(Tensor &t, std::ifstream &in)
+{
+    // read the tensor name
+    std::string name;
+    size_t name_size;
+    in.read(reinterpret_cast<char *>(&name_size), sizeof(size_t));
+    name.resize(name_size);
+    in.read(&name[0], name_size);
+
+    // read the rank and the size of each dimension
+    size_t rank = 0;
+    in.read(reinterpret_cast<char *>(&rank), sizeof(size_t));
+    std::vector<size_t> dims(rank, 0);
+    for (size_t m = 0; m < rank; m++)
+    {
+        size_t dim;
+        in.read(reinterpret_cast<char *>(&dim), sizeof(size_t));
+        dims[m] = dim;
+    }
+
+    // allocate tensor or resize existing one
+    if (t.is_set() == false)
+    {
+        t = Tensor::build(CoreTensor, name, dims);
+    }
+    else
+    {
+        t.set_name(name);
+        t.resize(dims);
+    }
+
+    // read the data
+    size_t data_size;
+    in.read(reinterpret_cast<char *>(&data_size), sizeof(size_t));
+    std::vector<double> &data = t.data();
+    in.read(reinterpret_cast<char *>(&data[0]), data_size * sizeof(double));
+}
+
 } // namespace ambit
