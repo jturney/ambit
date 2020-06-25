@@ -138,13 +138,13 @@ void CoreTensorImpl::set(double alpha)
 
 namespace
 {
-
 std::string describe_tensor(ConstTensorImplPtr A, const Indices &Ainds)
 {
     std::ostringstream buffer;
     buffer << A->name() << "[" << indices::to_string(Ainds) << "]";
     return buffer.str();
 }
+
 std::string describe_contraction(ConstTensorImplPtr C, const Indices &Cinds,
                                  ConstTensorImplPtr A, const Indices &Ainds,
                                  ConstTensorImplPtr B, const Indices &Binds,
@@ -156,10 +156,11 @@ std::string describe_contraction(ConstTensorImplPtr C, const Indices &Cinds,
            << describe_tensor(B, Binds);
     return buffer.str();
 }
+} // anonymous namespace
 
 #ifdef HAVE_TBLIS
-vector<tblis::label_type> labels_to_num_indices(const Indices &inds,
-                                                vector<string> &labels)
+vector<tblis::label_type> indices_to_tblis_labels(const Indices &inds,
+                                                  vector<string> &labels)
 {
     size_t n = inds.size();
     vector<tblis::label_type> num_inds(n);
@@ -179,9 +180,10 @@ vector<tblis::label_type> labels_to_num_indices(const Indices &inds,
     return num_inds;
 }
 
-vector<size_t> make_dims_vec(const vector<tblis::label_type> &labels,
-                             const Dimension &dims,
-                             const vector<tblis::label_type> &unique_labels)
+vector<size_t>
+make_vector_of_indices_dims(const vector<tblis::label_type> &labels,
+                            const Dimension &dims,
+                            const vector<tblis::label_type> &unique_labels)
 {
     vector<size_t> dims_vec(unique_labels.size(), 0);
     size_t n = labels.size();
@@ -196,28 +198,26 @@ vector<size_t> make_dims_vec(const vector<tblis::label_type> &labels,
     }
     return dims_vec;
 }
-#endif
 
-} // anonymous namespace
-
-void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
-                              const Indices &Cinds, const Indices &Ainds,
-                              const Indices &Binds, double alpha, double beta)
+void CoreTensorImpl::contract_tblis(ConstTensorImplPtr A, ConstTensorImplPtr B,
+                                    const Indices &Cinds, const Indices &Ainds,
+                                    const Indices &Binds, double alpha,
+                                    double beta)
 {
-#define TBLIS_DEBUG 0
-#ifdef HAVE_TBLIS
     ambit::timer::timer_push("pre-TBLIS: internal overhead");
 
     size_t Asize = Ainds.size();
     size_t Bsize = Binds.size();
     size_t Csize = Cinds.size();
 
+    // convert a vector of strings into a vector of chars. This allows us to use
+    // more complex indices in ambit and still interface with TBLIS
     vector<string> labels;
-    vector<tblis::label_type> A_labels = labels_to_num_indices(Ainds, labels);
-    vector<tblis::label_type> B_labels = labels_to_num_indices(Binds, labels);
-    vector<tblis::label_type> C_labels = labels_to_num_indices(Cinds, labels);
+    vector<tblis::label_type> A_labels = indices_to_tblis_labels(Ainds, labels);
+    vector<tblis::label_type> B_labels = indices_to_tblis_labels(Binds, labels);
+    vector<tblis::label_type> C_labels = indices_to_tblis_labels(Cinds, labels);
 
-    // Determine unique indices
+    // determine unique contraction indices
     vector<tblis::label_type> unique_labels;
     unique_labels.insert(unique_labels.end(), A_labels.begin(), A_labels.end());
     unique_labels.insert(unique_labels.end(), B_labels.begin(), B_labels.end());
@@ -227,19 +227,16 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     unique_labels.resize(std::distance(unique_labels.begin(), it));
 
     vector<size_t> A_dims_vec =
-        make_dims_vec(A_labels, A->dims(), unique_labels);
+        make_vector_of_indices_dims(A_labels, A->dims(), unique_labels);
     vector<size_t> B_dims_vec =
-        make_dims_vec(B_labels, B->dims(), unique_labels);
+        make_vector_of_indices_dims(B_labels, B->dims(), unique_labels);
     vector<size_t> C_dims_vec =
-        make_dims_vec(C_labels, this->dims(), unique_labels);
+        make_vector_of_indices_dims(C_labels, this->dims(), unique_labels);
 
+    // test for common issues (note that some of these contractions may be valid
+    // for TBLIS but are not supported by ambit
     for (size_t ind = 0; ind < unique_labels.size(); ind++)
     {
-//        std::cout << "\n " << (char)(unique_labels[ind] + 65);
-//        std::cout << "  " << A_dims_vec[ind];
-//        std::cout << "  " << B_dims_vec[ind];
-//        std::cout << "  " << C_dims_vec[ind];
-//    std::cout << std::endl;
         auto A_dim = A_dims_vec[ind];
         auto B_dim = B_dims_vec[ind];
         auto C_dim = C_dims_vec[ind];
@@ -277,38 +274,14 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
             ((A_dim != B_dim) or (B_dim != C_dim)))
         {
             throw std::runtime_error("Invalid ABC (Hadamard) index size\n" +
-                                     describe_contraction(this, Cinds, A, Ainds, B,
-                                                          Binds, alpha, beta));
+                                     describe_contraction(this, Cinds, A, Ainds,
+                                                          B, Binds, alpha,
+                                                          beta));
         }
     }
-
-    std::string indices_A = indices::to_string(Ainds, "");
-    std::string indices_B = indices::to_string(Binds, "");
-    std::string indices_C = indices::to_string(Cinds, "");
-
-#if TBLIS_DEBUG
-    std::cout << "Calling TBLIS" << std::endl;
-    std::cout << "\n indices_A " << indices_A;
-    auto Adims = A->dims();
-    for (auto d : Adims)
-        std::cout << " " << d;
-    std::cout << std::endl;
-    std::cout << "\n indices_B " << indices_B;
-    auto Bdims = B->dims();
-    for (auto d : Bdims)
-        std::cout << " " << d;
-    std::cout << std::endl;
-    std::cout << "\n indices_C " << indices_C;
-    auto Cdims = this->dims();
-    for (auto d : Cdims)
-        std::cout << " " << d;
-    std::cout << std::endl;
-#endif
-
-ambit::timer::timer_pop();
+    ambit::timer::timer_pop();
 
     ambit::timer::timer_push("BLAS");
-
     // Scalar multiplication
     if ((Asize == 0) and (Bsize == 0) and (Csize == 0))
     {
@@ -320,8 +293,8 @@ ambit::timer::timer_pop();
         TensorImplPtr Ap = const_cast<TensorImplPtr>(A);
         MArray::varray_view<double> A_v(Ap->dims(), &(Ap->data()[0]));
         MArray::varray_view<double> C_v(this->dims(), &(this->data()[0]));
-        tblis::add<double>(alpha * B->data()[0], A_v, indices_A.c_str(), beta,
-                           C_v, indices_C.c_str());
+        tblis::add<double>(alpha * B->data()[0], A_v, A_labels.data(), beta,
+                           C_v, C_labels.data());
     }
     // Index Type B -> add operation
     else if ((Asize == 0) and (Bsize == Csize))
@@ -329,8 +302,8 @@ ambit::timer::timer_pop();
         TensorImplPtr Bp = const_cast<TensorImplPtr>(B);
         MArray::varray_view<double> B_v(Bp->dims(), &(Bp->data()[0]));
         MArray::varray_view<double> C_v(this->dims(), &(this->data()[0]));
-        tblis::add<double>(alpha * A->data()[0], B_v, indices_B.c_str(), beta,
-                           C_v, indices_C.c_str());
+        tblis::add<double>(alpha * A->data()[0], B_v, B_labels.data(), beta,
+                           C_v, C_labels.data());
     }
     // Index Type AB -> dot operation
     else if ((Asize > 0) and (Bsize > 0) and (Csize == 0))
@@ -339,39 +312,76 @@ ambit::timer::timer_pop();
         TensorImplPtr Bp = const_cast<TensorImplPtr>(B);
         MArray::varray_view<double> A_v(Ap->dims(), &(Ap->data()[0]));
         MArray::varray_view<double> B_v(Bp->dims(), &(Bp->data()[0]));
-        data_[0] = alpha * tblis::dot<double>(A_v, indices_A.c_str(), B_v,
-                                              indices_B.c_str()) +
+        data_[0] = alpha * tblis::dot<double>(A_v, A_labels.data(), B_v,
+                                              B_labels.data()) +
                    beta * data_[0];
     }
     // Index Type ABC -> multp operation
     else if ((Asize > 0) and (Bsize > 0) and (Csize > 0))
     {
-#if TBLIS_DEBUG
-        std::cout << "\n Calling mult " << std::endl;
-        std::cout << "\n Get Ap " << std::endl;
-        std::cout << "\n Get Bp " << std::endl;
-        std::cout << "\n Get A_v " << std::endl;
-        std::cout << "\n Get B_v " << std::endl;
-        std::cout << "\n Get C_v " << std::endl;
-        std::cout << "\n Call mult " << std::endl;
-#endif
-        TensorImplPtr Ap = const_cast<TensorImplPtr>(A);
-        TensorImplPtr Bp = const_cast<TensorImplPtr>(B);
-        MArray::varray_view<double> A_v(Ap->dims(), &(Ap->data()[0]));
-        MArray::varray_view<double> B_v(Bp->dims(), &(Bp->data()[0]));
-        MArray::varray_view<double> C_v(this->dims(), &(this->data()[0]));
-        tblis::mult<double>(alpha, A_v, &(A_labels.data()[0]), B_v,
-                            &(B_labels.data()[0]), beta, C_v,
-                            &(C_labels.data()[0]));
+        // check if this is a straight dgemm
+        bool straight_dgemm = true;
+        for (size_t a = 0; a < Asize; a++)
+        {
+            if (a < Csize)
+            {
+                if (A_labels[a] != C_labels[a])
+                    straight_dgemm = false;
+            }
+            else
+            {
+                straight_dgemm = false;
+            }
+        }
+        for (size_t b = 0; b < Bsize; b++)
+        {
+            if (b + Asize < Csize)
+            {
+                if (B_labels[b] != C_labels[b + Asize])
+                    straight_dgemm = false;
+            }
+            else
+            {
+                straight_dgemm = false;
+            }
+        }
+
+        if (straight_dgemm)
+        {
+            shared_ptr<TensorImpl> A2;
+            shared_ptr<TensorImpl> B2;
+            shared_ptr<TensorImpl> C2;
+            contract(A, B, Cinds, Ainds, Binds, A2, B2, C2, alpha, beta);
+        }
+        else
+        {
+            // check if all indices are aligned for a straight DGEMM
+            TensorImplPtr Ap = const_cast<TensorImplPtr>(A);
+            TensorImplPtr Bp = const_cast<TensorImplPtr>(B);
+            MArray::varray_view<double> A_v(Ap->dims(), &(Ap->data()[0]));
+            MArray::varray_view<double> B_v(Bp->dims(), &(Bp->data()[0]));
+            MArray::varray_view<double> C_v(this->dims(), &(this->data()[0]));
+            tblis::mult<double>(alpha, A_v, A_labels.data(), B_v,
+                                B_labels.data(), beta, C_v, C_labels.data());
+        }
     }
     ambit::timer::timer_pop();
+}
+#endif
+
+void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
+                              const Indices &Cinds, const Indices &Ainds,
+                              const Indices &Binds, double alpha, double beta)
+{
+#ifdef HAVE_TBLIS
+    contract_tblis(A, B, Cinds, Ainds, Binds, alpha, beta);
 #else
     shared_ptr<TensorImpl> A2;
     shared_ptr<TensorImpl> B2;
     shared_ptr<TensorImpl> C2;
     contract(A, B, Cinds, Ainds, Binds, A2, B2, C2, alpha, beta);
 #endif
-} // namespace ambit
+}
 
 void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
                               const Indices &Cinds, const Indices &Ainds,
@@ -1614,25 +1624,6 @@ map<string, TensorImplPtr> CoreTensorImpl::gesvd() const
 
     return results;
 }
-
-// TensorImplPtr CoreTensorImpl::cholesky() const
-//{
-//    ThrowNotImplementedException;
-//}
-//
-// map<string, TensorImplPtr> CoreTensorImpl::lu() const
-//{
-//    ThrowNotImplementedException;
-//}
-// map<string, TensorImplPtr> CoreTensorImpl::qr() const
-//{
-//    ThrowNotImplementedException;
-//}
-//
-// TensorImplPtr CoreTensorImpl::cholesky_inverse() const
-//{
-//    ThrowNotImplementedException;
-//}
 
 TensorImplPtr CoreTensorImpl::inverse() const
 {

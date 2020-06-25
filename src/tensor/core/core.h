@@ -83,6 +83,22 @@ class CoreTensorImpl : public TensorImpl
     void permute(ConstTensorImplPtr A, const Indices &Cinds,
                  const Indices &Ainds, double alpha = 1.0, double beta = 0.0);
 
+    /**
+     * Perform the following contraction using the TBLIS library
+     *  C(Cinds) = alpha * A(Ainds) * B(Binds) + beta * C(Cinds)
+     *
+     * Parameters:
+     *  @param A The left-side factor tensor, e.g., A2
+     *  @param B The right-side factor tensor, e.g., B2
+     *  @param Cinds The indices of tensor C, e.g., "ij"
+     *  @param Ainds The indices of tensor A, e.g., "ik"
+     *  @param Binds The indices of tensor B, e.g., "jk"
+     *  @param alpha The scale applied to the product A*B, e.g., 0.5
+     *  @param beta The scale applied to the tensor C, e.g., 1.0
+     *
+     * Results:
+     *  C is the current tensor, whose data is overwritten. e.g., C2
+     **/
     void contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
                   const Indices &Cinds, const Indices &Ainds,
                   const Indices &Binds, double alpha = 1.0, double beta = 0.0);
@@ -93,6 +109,28 @@ class CoreTensorImpl : public TensorImpl
                   std::shared_ptr<TensorImpl> &B2,
                   std::shared_ptr<TensorImpl> &C2, double alpha = 1.0,
                   double beta = 0.0);
+
+#if HAVE_TBLIS
+    /**
+     * Perform the following contraction using the TBLIS library
+     *  C(Cinds) = alpha * A(Ainds) * B(Binds) + beta * C(Cinds)
+     *
+     * Parameters:
+     *  @param A The left-side factor tensor, e.g., A2
+     *  @param B The right-side factor tensor, e.g., B2
+     *  @param Cinds The indices of tensor C, e.g., "ij"
+     *  @param Ainds The indices of tensor A, e.g., "ik"
+     *  @param Binds The indices of tensor B, e.g., "jk"
+     *  @param alpha The scale applied to the product A*B, e.g., 0.5
+     *  @param beta The scale applied to the tensor C, e.g., 1.0
+     *
+     * Results:
+     *  C is the current tensor, whose data is overwritten. e.g., C2
+     **/
+    void contract_tblis(ConstTensorImplPtr A, ConstTensorImplPtr B,
+                        const Indices &Cinds, const Indices &Ainds,
+                        const Indices &Binds, double alpha, double beta);
+#endif
 
     void gemm(ConstTensorImplPtr A, ConstTensorImplPtr B, bool transA,
               bool transB, size_t nrow, size_t ncol, size_t nzip, size_t ldaA,
@@ -105,11 +143,6 @@ class CoreTensorImpl : public TensorImpl
     map<string, TensorImplPtr> geev(EigenvalueOrder order) const;
     map<string, TensorImplPtr> gesvd() const;
 
-    // TensorImplPtr cholesky() const;
-    // std::map<string, TensorImplPtr> lu() const;
-    // std::map<string, TensorImplPtr> qr() const;
-
-    // TensorImplPtr cholesky_inverse() const;
     TensorImplPtr inverse() const;
     TensorImplPtr power(double power, double condition = 1.0E-12) const;
 
