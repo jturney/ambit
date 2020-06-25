@@ -560,13 +560,13 @@ Tensor load_tensor(const std::string &filename)
 
 void write_tensor_to_file(Tensor t, std::ofstream &out)
 {
-    // 1. write the tensor name
+    // write the tensor name
     auto name = t.name();
     size_t size = name.size();
     out.write(reinterpret_cast<char *>(&size), sizeof(size_t));
     out.write(&name[0], size);
 
-    // 2. write the rank and the size of each dimension
+    // write the rank and the size of each dimension
     size_t rank = t.rank();
     out.write(reinterpret_cast<char *>(&rank), sizeof(size_t));
     for (size_t m = 0; m < rank; m++)
@@ -575,7 +575,7 @@ void write_tensor_to_file(Tensor t, std::ofstream &out)
         out.write(reinterpret_cast<char *>(&dim), sizeof(size_t));
     }
 
-    // 3. write the size of the date and the data.
+    // write the size of the date and the data.
     size_t data_size = t.numel();
     out.write(reinterpret_cast<char *>(&data_size), sizeof(size_t));
     const std::vector<double> &data = t.data();
@@ -585,14 +585,14 @@ void write_tensor_to_file(Tensor t, std::ofstream &out)
 
 void read_tensor_from_file(Tensor &t, std::ifstream &in)
 {
-    // 1. read the tensor name
+    // read the tensor name
     std::string name;
     size_t name_size;
     in.read(reinterpret_cast<char *>(&name_size), sizeof(size_t));
     name.resize(name_size);
     in.read(&name[0], name_size);
 
-    // 2. read the rank and the size of each dimension
+    // read the rank and the size of each dimension
     size_t rank = 0;
     in.read(reinterpret_cast<char *>(&rank), sizeof(size_t));
     std::vector<size_t> dims(rank, 0);
@@ -603,7 +603,7 @@ void read_tensor_from_file(Tensor &t, std::ifstream &in)
         dims[m] = dim;
     }
 
-    // 3. allocate tensor or resize existing one
+    // allocate tensor or resize existing one
     if (t.is_set() == false)
     {
         t = Tensor::build(CoreTensor, name, dims);
@@ -614,7 +614,7 @@ void read_tensor_from_file(Tensor &t, std::ifstream &in)
         t.resize(dims);
     }
 
-    // 4. read the data
+    // read the data
     size_t data_size;
     in.read(reinterpret_cast<char *>(&data_size), sizeof(size_t));
     std::vector<double> &data = t.data();
