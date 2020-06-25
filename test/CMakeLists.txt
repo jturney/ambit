@@ -1,3 +1,8 @@
+if(ENABLE_TBLIS)
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+
 set(TEST_OPERATORS_SOURCES
     test_operators.cc
 )
@@ -34,6 +39,11 @@ if(ENABLE_CYCLOPS)
     add_test(NAME distributed COMMAND test_distributed)
 endif()
 
+if(ENABLE_TBLIS)
+    add_executable(test_tblis test_tblis.cc)
+    target_link_libraries(test_tblis ambit-lib)
+    add_test(NAME tblis COMMAND test_tblis)
+endif()
 #set(TEST_HF_SOURCES
 #    test_hf.cc
 #)

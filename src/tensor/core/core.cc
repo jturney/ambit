@@ -28,6 +28,10 @@
  * @END LICENSE
  */
 
+#ifdef HAVE_TBLIS
+#include <tblis/tblis.h>
+#endif
+
 #include "core.h"
 #include "math/math.h"
 #include "tensor/indices.h"
@@ -35,11 +39,10 @@
 #include <ambit/print.h>
 #include <ambit/timer.h>
 #include <cmath>
+#include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <string.h>
-
-//#include <boost/timer/timer.hpp>
 
 namespace ambit
 {
@@ -163,7 +166,58 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     shared_ptr<TensorImpl> A2;
     shared_ptr<TensorImpl> B2;
     shared_ptr<TensorImpl> C2;
+#ifdef HAVE_TBLIS
+    std::cout << "Calling TBLIS" << std::endl;
+    size_t Asize = Ainds.size();
+    size_t Bsize = Binds.size();
+    size_t Csize = Cinds.size();
+
+    std::string indices_A = indices::to_string(Ainds, ",");
+    std::string indices_B = indices::to_string(Binds, ",");
+    std::string indices_C = indices::to_string(Cinds, ",");
+
+    std::cout << "\n indices_A " << indices_A << std::endl;
+    std::cout << "\n indices_B " << indices_B << std::endl;
+    std::cout << "\n indices_C " << indices_C << std::endl;
+
+    // Scalar multiplication
+    if ((Asize == 0) and (Bsize == 0) and (Csize == 0))
+    {
+        data_[0] = alpha * A->data()[0] * B->data()[0] + beta * data_[0];
+    }
+    // Index Type AB -> dot operation
+    else if ((Cinds.size() == 0) and (Ainds.size() > 0) and (Binds.size() > 0))
+    {
+        TensorImplPtr Ap = const_cast<TensorImplPtr>(A);
+        TensorImplPtr Bp = const_cast<TensorImplPtr>(B);
+        MArray::varray_view<double> A_v(Ap->dims(), &(Ap->data()[0]));
+        MArray::varray_view<double> B_v(Bp->dims(), &(Bp->data()[0]));
+        data_[0] = alpha * tblis::dot<double>(A_v, indices_A.c_str(), B_v,
+                                              indices_B.c_str()) +
+                   beta * data_[0];
+    }
+    // Index Type ABB -> multp operation
+    else if ((Ainds.size() > 0) and (Binds.size() > 0) and (Cinds.size() > 0))
+    {
+        std::cout << "\n Calling mult " << std::endl;
+        std::cout << "\n Get Ap " << std::endl;
+        TensorImplPtr Ap = const_cast<TensorImplPtr>(A);
+        std::cout << "\n Get Bp " << std::endl;
+        TensorImplPtr Bp = const_cast<TensorImplPtr>(B);
+        std::cout << "\n Get A_v " << std::endl;
+        MArray::varray_view<double> A_v(Ap->dims(), &(Ap->data()[0]));
+        std::cout << "\n Get B_v " << std::endl;
+        MArray::varray_view<double> B_v(Bp->dims(), &(Bp->data()[0]));
+        std::cout << "\n Get C_v " << std::endl;
+        MArray::varray_view<double> C_v(this->dims(), &(this->data()[0]));
+        std::cout << "\n CAll mult " << std::endl;
+        tblis::mult<double>(alpha, A_v, indices_A.c_str(), B_v,
+                            indices_B.c_str(), beta, C_v, indices_C.c_str());
+    }
+#else
     contract(A, B, Cinds, Ainds, Binds, A2, B2, C2, alpha, beta);
+
+#endif
 }
 
 void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
