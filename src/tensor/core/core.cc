@@ -157,6 +157,29 @@ std::string describe_contraction(ConstTensorImplPtr C, const Indices &Cinds,
     return buffer.str();
 }
 
+#ifdef HAVE_TBLIS
+vector<tblis::label_type> labels_to_num_indices(const Indices &inds,
+                                                vector<string> &labels)
+{
+    size_t n = inds.size();
+    vector<tblis::label_type> num_inds(n);
+    for (size_t k = 0; k < n; k++)
+    {
+        auto it = std::find(labels.begin(), labels.end(), inds[k]);
+        if (it != labels.end())
+        {
+            num_inds[k] = std::distance(labels.begin(), it);
+        }
+        else
+        {
+            labels.push_back(inds[k]);
+            num_inds[k] = labels.size() - 1;
+        }
+    }
+    return num_inds;
+}
+#endif
+
 } // anonymous namespace
 
 void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
@@ -171,6 +194,11 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     size_t Asize = Ainds.size();
     size_t Bsize = Binds.size();
     size_t Csize = Cinds.size();
+
+    vector<string> labels;
+    vector<tblis::label_type> Aninds = labels_to_num_indices(Ainds, labels);
+    vector<tblis::label_type> Bninds = labels_to_num_indices(Binds, labels);
+    vector<tblis::label_type> Cninds = labels_to_num_indices(Cinds, labels);
 
     std::string indices_A = indices::to_string(Ainds, "");
     std::string indices_B = indices::to_string(Binds, "");
@@ -246,8 +274,12 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         MArray::varray_view<double> A_v(Ap->dims(), &(Ap->data()[0]));
         MArray::varray_view<double> B_v(Bp->dims(), &(Bp->data()[0]));
         MArray::varray_view<double> C_v(this->dims(), &(this->data()[0]));
-        tblis::mult<double>(alpha, A_v, indices_A.c_str(), B_v,
-                            indices_B.c_str(), beta, C_v, indices_C.c_str());
+        //        tblis::mult<double>(alpha, A_v, indices_A.c_str(), B_v,
+        //                            indices_B.c_str(), beta, C_v,
+        //                            indices_C.c_str());
+        tblis::mult<double>(alpha, A_v, &(Aninds.data()[0]), B_v,
+                            &(Bninds.data()[0]), beta, C_v,
+                            &(Cninds.data()[0]));
     }
 #else
     contract(A, B, Cinds, Ainds, Binds, A2, B2, C2, alpha, beta);

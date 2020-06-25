@@ -139,7 +139,7 @@ vector<size_t> permutation_order(const Indices &left, const Indices &right)
 
 int find_index_in_vector(const vector<std::string> &vec, const std::string &key)
 {
-    for (size_t ind = 0L; ind < vec.size(); ind++)
+    for (size_t ind = 0L, max_ind = vec.size(); ind < max_ind; ind++)
     {
         if (key == vec[ind])
         {
