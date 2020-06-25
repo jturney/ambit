@@ -28,21 +28,25 @@
  * @END LICENSE
  */
 
-#ifdef HAVE_TBLIS
-#include <tblis/tblis.h>
-#endif
 
-#include "core.h"
-#include "math/math.h"
-#include "tensor/indices.h"
+#include <numeric>
 #include <algorithm>
-#include <ambit/print.h>
-#include <ambit/timer.h>
 #include <cmath>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <string.h>
+
+#include <ambit/print.h>
+#include <ambit/timer.h>
+
+#include "core.h"
+#include "math/math.h"
+#include "tensor/indices.h"
+
+#ifdef HAVE_TBLIS
+#include <tblis/tblis.h>
+#endif
 
 namespace ambit
 {
@@ -56,6 +60,23 @@ CoreTensorImpl::CoreTensorImpl(const string &name, const Dimension &dims)
 void CoreTensorImpl::reshape(const Dimension &dims)
 {
     TensorImpl::reshape(dims);
+}
+
+void CoreTensorImpl::resize(const Dimension &dims, bool trim)
+{
+    TensorImpl::reshape(dims);
+    // Requests that the vector capacity be at least enough to contain numel
+    // elements. If numel is greater than the current vector capacity, the
+    // function causes the container to reallocate its storage increasing its
+    // capacity to numel (or greater).
+    if (numel() > data_.size())
+    {
+        data_.reserve(numel());
+    }
+    else if ((numel() < data_.size()) and trim)
+    {
+        data_.resize(numel());
+    }
 }
 
 double CoreTensorImpl::norm(int type) const

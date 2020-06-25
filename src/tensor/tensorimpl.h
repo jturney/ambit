@@ -30,6 +30,7 @@
 #if !defined(TENSOR_TENSORIMPL_H)
 #define TENSOR_TENSORIMPL_H
 
+#include <numeric>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -254,11 +255,21 @@ class TensorImpl
     void reshape(const Dimension &dims)
     {
         dims_ = dims;
+        numel_ =
+            std::accumulate(dims_.begin(), dims_.end(), static_cast<size_t>(1),
+                            std::multiplies<size_t>());
+
         addressing_ = Dimension(dims_.size(), 1);
         for (int n = static_cast<int>(dims_.size()) - 2; n >= 0; --n)
         {
             addressing_[n] = addressing_[n + 1] * dims_[n];
         }
+    }
+
+    virtual void resize(const Dimension &dims, bool trim = true)
+    {
+        throw std::runtime_error(
+            "Operation not supported in this tensor implementation.");
     }
 
   protected:
