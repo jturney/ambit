@@ -28,12 +28,11 @@
  * @END LICENSE
  */
 
-
-#include <numeric>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <numeric>
 #include <stdexcept>
 #include <string.h>
 
