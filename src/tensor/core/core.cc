@@ -172,13 +172,25 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     size_t Bsize = Binds.size();
     size_t Csize = Cinds.size();
 
-    std::string indices_A = indices::to_string(Ainds, ",");
-    std::string indices_B = indices::to_string(Binds, ",");
-    std::string indices_C = indices::to_string(Cinds, ",");
+    std::string indices_A = indices::to_string(Ainds, "");
+    std::string indices_B = indices::to_string(Binds, "");
+    std::string indices_C = indices::to_string(Cinds, "");
 
-    std::cout << "\n indices_A " << indices_A << std::endl;
-    std::cout << "\n indices_B " << indices_B << std::endl;
-    std::cout << "\n indices_C " << indices_C << std::endl;
+    std::cout << "\n indices_A " << indices_A;
+    auto Adims = A->dims();
+    for (auto d : Adims)
+        std::cout << " " << d;
+    std::cout << std::endl;
+    std::cout << "\n indices_B " << indices_B;
+    auto Bdims = B->dims();
+    for (auto d : Bdims)
+        std::cout << " " << d;
+    std::cout << std::endl;
+    std::cout << "\n indices_C " << indices_C;
+    auto Cdims = this->dims();
+    for (auto d : Cdims)
+        std::cout << " " << d;
+    std::cout << std::endl;
 
     // Scalar multiplication
     if ((Asize == 0) and (Bsize == 0) and (Csize == 0))
@@ -196,7 +208,7 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
                                               indices_B.c_str()) +
                    beta * data_[0];
     }
-    // Index Type ABB -> multp operation
+    // Index Type ABC -> multp operation
     else if ((Ainds.size() > 0) and (Binds.size() > 0) and (Cinds.size() > 0))
     {
         std::cout << "\n Calling mult " << std::endl;
@@ -210,7 +222,7 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         MArray::varray_view<double> B_v(Bp->dims(), &(Bp->data()[0]));
         std::cout << "\n Get C_v " << std::endl;
         MArray::varray_view<double> C_v(this->dims(), &(this->data()[0]));
-        std::cout << "\n CAll mult " << std::endl;
+        std::cout << "\n Call mult " << std::endl;
         tblis::mult<double>(alpha, A_v, indices_A.c_str(), B_v,
                             indices_B.c_str(), beta, C_v, indices_C.c_str());
     }
