@@ -28,7 +28,7 @@ set(ambit_DESCRIPTION  "C++ library for the implementation of tensor product cal
 set(ambit_URL          "https://github.com/jturney/ambit")
 set(ambit_LICENSE      "GNU Lesser General Public License v3 (LGPL-3.0)")
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(TargetOpenMP_FIND_COMPONENTS "CXX")
 
