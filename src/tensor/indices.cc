@@ -20,18 +20,18 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along
- * with ambit; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ambit; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
 
 #include <ambit/common_types.h>
 
+#include "indices.h"
 #include <algorithm>
 #include <stdexcept>
-#include "indices.h"
 
 namespace ambit
 {
@@ -45,9 +45,8 @@ namespace
 // trim from start
 static inline string &ltrim(string &s)
 {
-    s.erase(s.begin(),
-            std::find_if(s.begin(), s.end(),
-                         std::not1(std::ptr_fun<int, int>(std::isspace))));
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+                                    [](int c) { return !std::isspace(c); }));
     return s;
 }
 
@@ -55,7 +54,7 @@ static inline string &ltrim(string &s)
 static inline string &rtrim(string &s)
 {
     s.erase(std::find_if(s.rbegin(), s.rend(),
-                         std::not1(std::ptr_fun<int, int>(std::isspace)))
+                         [](int c) { return !std::isspace(c); })
                 .base(),
             s.end());
     return s;
@@ -63,7 +62,7 @@ static inline string &rtrim(string &s)
 
 // trim from both ends
 static inline string &trim(string &s) { return ltrim(rtrim(s)); }
-}
+} // namespace
 
 Indices split(const string &indices)
 {
@@ -247,4 +246,4 @@ vector<Indices> determine_contraction_result(const LabeledTensor &A,
 
 } // namespace  indices
 
-} // namespace tensor
+} // namespace ambit

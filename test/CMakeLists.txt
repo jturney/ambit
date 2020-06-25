@@ -77,3 +77,12 @@ add_test(NAME block_performance COMMAND test_block_performance)
 add_executable(test_hdf5 test_hdf5.cc)
 target_link_libraries(test_hdf5 ambit-lib)
 add_test(NAME hdf5 COMMAND test_hdf5)
+
+set(TEST_IO_SOURCES
+    test_io.cc
+)
+
+# build static library
+add_executable(test_io ${TEST_IO_SOURCES})
+target_link_libraries(test_io ambit-lib)
+add_test(NAME io COMMAND test_io)
