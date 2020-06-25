@@ -761,17 +761,17 @@ void save(BlockedTensor bt, const std::string &filename, bool overwrite)
 
     auto block_labels = bt.block_labels();
 
-    // 1. write the name
+    // write the name
     auto name = bt.name();
     size_t size = name.size();
     out.write(reinterpret_cast<char *>(&size), sizeof(size_t));
     out.write(&name[0], size);
 
-    // 2. write the number of blocks
+    // write the number of blocks
     size_t num_blocks = block_labels.size();
     out.write(reinterpret_cast<char *>(&num_blocks), sizeof(size_t));
 
-    // 2. write the block labels
+    // write the block labels
     for (const std::string &block : block_labels)
     {
         size_t block_label_size = block.size();
@@ -779,7 +779,7 @@ void save(BlockedTensor bt, const std::string &filename, bool overwrite)
         out.write(&block[0], block_label_size);
     }
 
-    // 3. write the blocks
+    // write the blocks
     for (const std::string &block : block_labels)
     {
         auto t = bt.block(block);
@@ -797,18 +797,18 @@ void load(BlockedTensor &bt, const std::string &filename)
         throw std::runtime_error(error);
     }
 
-    // 1. read the name
+    // read the name
     std::string name;
     size_t size = 0;
     in.read(reinterpret_cast<char *>(&size), sizeof(size_t));
     name.resize(size);
     in.read(&name[0], size);
 
-    // 2. read the number of blocks
+    // read the number of blocks
     size_t num_blocks = 0;
     in.read(reinterpret_cast<char *>(&num_blocks), sizeof(size_t));
 
-    // 2. read the block labels
+    // read the block labels
     std::vector<std::string> block_labels;
     for (size_t b = 0; b < num_blocks; b++)
     {
@@ -820,7 +820,7 @@ void load(BlockedTensor &bt, const std::string &filename)
         block_labels.push_back(block);
     }
 
-    // 3. read tensor from file
+    // read tensor from file
     for (const std::string &block : block_labels)
     {
         Tensor t;
