@@ -2954,14 +2954,14 @@ int main(int argc, char *argv[])
     success &=
         test_function(try_contract_hadamard, "Contract hadamard", kEpsilon);
     success &= test_function(try_contract_dot, "Contract dot", kEpsilon);
-//    success &= test_function(try_contract_axpy1, "Contract axpy 1", kEpsilon);
-//    success &= test_function(try_contract_axpy2, "Contract axpy 2", kEpsilon);
-//    success &= test_function(try_contract_ger1, "Contract ger 1", kEpsilon);
-//    success &= test_function(try_contract_ger2, "Contract ger 2", kEpsilon);
-//    success &= test_function(try_contract_gemv1, "Contract gemv 1", kEpsilon);
-//    success &= test_function(try_contract_gemv2, "Contract gemv 2", kEpsilon);
-//    success &= test_function(try_contract_gemv3, "Contract gemv 3", kEpsilon);
-//    success &= test_function(try_contract_gemv4, "Contract gemv 4", kEpsilon);
+    success &= test_function(try_contract_axpy1, "Contract axpy 1", kEpsilon);
+    success &= test_function(try_contract_axpy2, "Contract axpy 2", kEpsilon);
+    success &= test_function(try_contract_ger1, "Contract ger 1", kEpsilon);
+    success &= test_function(try_contract_ger2, "Contract ger 2", kEpsilon);
+    success &= test_function(try_contract_gemv1, "Contract gemv 1", kEpsilon);
+    success &= test_function(try_contract_gemv2, "Contract gemv 2", kEpsilon);
+    success &= test_function(try_contract_gemv3, "Contract gemv 3", kEpsilon);
+    success &= test_function(try_contract_gemv4, "Contract gemv 4", kEpsilon);
     success &= test_function(try_contract_gemm1, "Contract gemm 1", kEpsilon);
     success &= test_function(try_contract_gemm2, "Contract gemm 2", kEpsilon);
     success &= test_function(try_contract_gemm3, "Contract gemm 3", kEpsilon);
@@ -2980,14 +2980,14 @@ int main(int argc, char *argv[])
     success &=
         test_function(try_contract_hadamard, "Contract hadamard", kEpsilon);
     success &= test_function(try_contract_dot, "Contract dot", kEpsilon);
-//    success &= test_function(try_contract_axpy1, "Contract axpy 1", kEpsilon);
-//    success &= test_function(try_contract_axpy2, "Contract axpy 2", kEpsilon);
-//    success &= test_function(try_contract_ger1, "Contract ger 1", kEpsilon);
-//    success &= test_function(try_contract_ger2, "Contract ger 2", kEpsilon);
-//    success &= test_function(try_contract_gemv1, "Contract gemv 1", kEpsilon);
-//    success &= test_function(try_contract_gemv2, "Contract gemv 2", kEpsilon);
-//    success &= test_function(try_contract_gemv3, "Contract gemv 3", kEpsilon);
-//    success &= test_function(try_contract_gemv4, "Contract gemv 4", kEpsilon);
+    success &= test_function(try_contract_axpy1, "Contract axpy 1", kEpsilon);
+    success &= test_function(try_contract_axpy2, "Contract axpy 2", kEpsilon);
+    success &= test_function(try_contract_ger1, "Contract ger 1", kEpsilon);
+    success &= test_function(try_contract_ger2, "Contract ger 2", kEpsilon);
+    success &= test_function(try_contract_gemv1, "Contract gemv 1", kEpsilon);
+    success &= test_function(try_contract_gemv2, "Contract gemv 2", kEpsilon);
+    success &= test_function(try_contract_gemv3, "Contract gemv 3", kEpsilon);
+    success &= test_function(try_contract_gemv4, "Contract gemv 4", kEpsilon);
     success &= test_function(try_contract_gemm1, "Contract gemm 1", kEpsilon);
     success &= test_function(try_contract_gemm2, "Contract gemm 2", kEpsilon);
     success &= test_function(try_contract_gemm3, "Contract gemm 3", kEpsilon);
@@ -3006,14 +3006,14 @@ int main(int argc, char *argv[])
     success &=
         test_function(try_contract_hadamard, "Contract hadamard", kEpsilon);
     success &= test_function(try_contract_dot, "Contract dot", kEpsilon);
-//    success &= test_function(try_contract_axpy1, "Contract axpy 1", kEpsilon);
-//    success &= test_function(try_contract_axpy2, "Contract axpy 2", kEpsilon);
-//    success &= test_function(try_contract_ger1, "Contract ger 1", kEpsilon);
-//    success &= test_function(try_contract_ger2, "Contract ger 2", kEpsilon);
-//    success &= test_function(try_contract_gemv1, "Contract gemv 1", kEpsilon);
-//    success &= test_function(try_contract_gemv2, "Contract gemv 2", kEpsilon);
-//    success &= test_function(try_contract_gemv3, "Contract gemv 3", kEpsilon);
-//    success &= test_function(try_contract_gemv4, "Contract gemv 4", kEpsilon);
+    success &= test_function(try_contract_axpy1, "Contract axpy 1", kEpsilon);
+    success &= test_function(try_contract_axpy2, "Contract axpy 2", kEpsilon);
+    success &= test_function(try_contract_ger1, "Contract ger 1", kEpsilon);
+    success &= test_function(try_contract_ger2, "Contract ger 2", kEpsilon);
+    success &= test_function(try_contract_gemv1, "Contract gemv 1", kEpsilon);
+    success &= test_function(try_contract_gemv2, "Contract gemv 2", kEpsilon);
+    success &= test_function(try_contract_gemv3, "Contract gemv 3", kEpsilon);
+    success &= test_function(try_contract_gemv4, "Contract gemv 4", kEpsilon);
     success &= test_function(try_contract_gemm1, "Contract gemm 1", kEpsilon);
     success &= test_function(try_contract_gemm2, "Contract gemm 2", kEpsilon);
     success &= test_function(try_contract_gemm3, "Contract gemm 3", kEpsilon);
@@ -3032,14 +3032,14 @@ int main(int argc, char *argv[])
     success &=
         test_function(try_contract_hadamard, "Contract hadamard", kEpsilon);
     success &= test_function(try_contract_dot, "Contract dot", kEpsilon);
-//    success &= test_function(try_contract_axpy1, "Contract axpy 1", kEpsilon);
-//    success &= test_function(try_contract_axpy2, "Contract axpy 2", kEpsilon);
-//    success &= test_function(try_contract_ger1, "Contract ger 1", kEpsilon);
-//    success &= test_function(try_contract_ger2, "Contract ger 2", kEpsilon);
-//    success &= test_function(try_contract_gemv1, "Contract gemv 1", kEpsilon);
-//    success &= test_function(try_contract_gemv2, "Contract gemv 2", kEpsilon);
-//    success &= test_function(try_contract_gemv3, "Contract gemv 3", kEpsilon);
-//    success &= test_function(try_contract_gemv4, "Contract gemv 4", kEpsilon);
+    success &= test_function(try_contract_axpy1, "Contract axpy 1", kEpsilon);
+    success &= test_function(try_contract_axpy2, "Contract axpy 2", kEpsilon);
+    success &= test_function(try_contract_ger1, "Contract ger 1", kEpsilon);
+    success &= test_function(try_contract_ger2, "Contract ger 2", kEpsilon);
+    success &= test_function(try_contract_gemv1, "Contract gemv 1", kEpsilon);
+    success &= test_function(try_contract_gemv2, "Contract gemv 2", kEpsilon);
+    success &= test_function(try_contract_gemv3, "Contract gemv 3", kEpsilon);
+    success &= test_function(try_contract_gemv4, "Contract gemv 4", kEpsilon);
     success &= test_function(try_contract_gemm1, "Contract gemm 1", kEpsilon);
     success &= test_function(try_contract_gemm2, "Contract gemm 2", kEpsilon);
     success &= test_function(try_contract_gemm3, "Contract gemm 3", kEpsilon);
@@ -3058,14 +3058,14 @@ int main(int argc, char *argv[])
     success &=
         test_function(try_contract_hadamard, "Contract hadamard", kEpsilon);
     success &= test_function(try_contract_dot, "Contract dot", kEpsilon);
-//    success &= test_function(try_contract_axpy1, "Contract axpy 1", kEpsilon);
-//    success &= test_function(try_contract_axpy2, "Contract axpy 2", kEpsilon);
-//    success &= test_function(try_contract_ger1, "Contract ger 1", kEpsilon);
-//    success &= test_function(try_contract_ger2, "Contract ger 2", kEpsilon);
-//    success &= test_function(try_contract_gemv1, "Contract gemv 1", kEpsilon);
-//    success &= test_function(try_contract_gemv2, "Contract gemv 2", kEpsilon);
-//    success &= test_function(try_contract_gemv3, "Contract gemv 3", kEpsilon);
-//    success &= test_function(try_contract_gemv4, "Contract gemv 4", kEpsilon);
+    success &= test_function(try_contract_axpy1, "Contract axpy 1", kEpsilon);
+    success &= test_function(try_contract_axpy2, "Contract axpy 2", kEpsilon);
+    success &= test_function(try_contract_ger1, "Contract ger 1", kEpsilon);
+    success &= test_function(try_contract_ger2, "Contract ger 2", kEpsilon);
+    success &= test_function(try_contract_gemv1, "Contract gemv 1", kEpsilon);
+    success &= test_function(try_contract_gemv2, "Contract gemv 2", kEpsilon);
+    success &= test_function(try_contract_gemv3, "Contract gemv 3", kEpsilon);
+    success &= test_function(try_contract_gemv4, "Contract gemv 4", kEpsilon);
     success &= test_function(try_contract_gemm1, "Contract gemm 1", kEpsilon);
     success &= test_function(try_contract_gemm2, "Contract gemm 2", kEpsilon);
     success &= test_function(try_contract_gemm3, "Contract gemm 3", kEpsilon);
@@ -3074,22 +3074,22 @@ int main(int argc, char *argv[])
     success &= test_function(try_contract_gemm6, "Contract gemm 6", kEpsilon);
     success &= test_function(try_contract_gemm7, "Contract gemm 7", kEpsilon);
     success &= test_function(try_contract_gemm8, "Contract gemm 8", kEpsilon);
-//    printf("%s\n", std::string(82, '-').c_str());
-//    printf("Tests: %s\n\n", success ? "All Passed" : "Some Failed");
+    printf("%s\n", std::string(82, '-').c_str());
+    printf("Tests: %s\n\n", success ? "All Passed" : "Some Failed");
 
-//    printf("==> Contract Exceptions <==\n\n");
-//    success = true;
-//    printf("%s\n", std::string(82, '-').c_str());
-//    printf("%-50s %-9s %-9s %11s\n", "Description", "Expected", "Observed",
-//           "Delta");
-//    mode = 0;
-//    alpha = 1.0;
-//    beta = 0.0;
-//    printf("%s\n", std::string(82, '-').c_str());
-//    printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
-//    printf("%s\n", std::string(82, '-').c_str());
-//    success &= test_function(try_contract_label_fail, "Contract Label Fail",
-//                             kException);
+    printf("==> Contract Exceptions <==\n\n");
+    success = true;
+    printf("%s\n", std::string(82, '-').c_str());
+    printf("%-50s %-9s %-9s %11s\n", "Description", "Expected", "Observed",
+           "Delta");
+    mode = 0;
+    alpha = 1.0;
+    beta = 0.0;
+    printf("%s\n", std::string(82, '-').c_str());
+    printf("Explicit: alpha = %11.3E, beta = %11.3E\n", alpha, beta);
+    printf("%s\n", std::string(82, '-').c_str());
+    success &= test_function(try_contract_label_fail, "Contract Label Fail",
+                             kException);
 //    success &= test_function(try_contract_einsum_fail1,
 //                             "Contract Einsum Fail 1", kException);
 //    success &= test_function(try_contract_einsum_fail2,

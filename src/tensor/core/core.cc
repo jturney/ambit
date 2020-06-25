@@ -166,8 +166,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     shared_ptr<TensorImpl> A2;
     shared_ptr<TensorImpl> B2;
     shared_ptr<TensorImpl> C2;
+#define TBLIS_DEBUG 0
 #ifdef HAVE_TBLIS
-    std::cout << "Calling TBLIS" << std::endl;
     size_t Asize = Ainds.size();
     size_t Bsize = Binds.size();
     size_t Csize = Cinds.size();
@@ -176,6 +176,8 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     std::string indices_B = indices::to_string(Binds, "");
     std::string indices_C = indices::to_string(Cinds, "");
 
+#if TBLIS_DEBUG
+    std::cout << "Calling TBLIS" << std::endl;
     std::cout << "\n indices_A " << indices_A;
     auto Adims = A->dims();
     for (auto d : Adims)
@@ -191,14 +193,33 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     for (auto d : Cdims)
         std::cout << " " << d;
     std::cout << std::endl;
+#endif
 
     // Scalar multiplication
     if ((Asize == 0) and (Bsize == 0) and (Csize == 0))
     {
         data_[0] = alpha * A->data()[0] * B->data()[0] + beta * data_[0];
     }
+    // Index Type A -> add operation
+    else if ((Asize == Csize) and (Bsize == 0))
+    {
+        TensorImplPtr Ap = const_cast<TensorImplPtr>(A);
+        MArray::varray_view<double> A_v(Ap->dims(), &(Ap->data()[0]));
+        MArray::varray_view<double> C_v(this->dims(), &(this->data()[0]));
+        tblis::add<double>(alpha * B->data()[0], A_v, indices_A.c_str(), beta,
+                           C_v, indices_C.c_str());
+    }
+    // Index Type B -> add operation
+    else if ((Asize == 0) and (Bsize == Csize))
+    {
+        TensorImplPtr Bp = const_cast<TensorImplPtr>(B);
+        MArray::varray_view<double> B_v(Bp->dims(), &(Bp->data()[0]));
+        MArray::varray_view<double> C_v(this->dims(), &(this->data()[0]));
+        tblis::add<double>(alpha * A->data()[0], B_v, indices_B.c_str(), beta,
+                           C_v, indices_C.c_str());
+    }
     // Index Type AB -> dot operation
-    else if ((Cinds.size() == 0) and (Ainds.size() > 0) and (Binds.size() > 0))
+    else if ((Asize > 0) and (Bsize > 0) and (Csize == 0))
     {
         TensorImplPtr Ap = const_cast<TensorImplPtr>(A);
         TensorImplPtr Bp = const_cast<TensorImplPtr>(B);
@@ -209,20 +230,22 @@ void CoreTensorImpl::contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
                    beta * data_[0];
     }
     // Index Type ABC -> multp operation
-    else if ((Ainds.size() > 0) and (Binds.size() > 0) and (Cinds.size() > 0))
+    else if ((Asize > 0) and (Bsize > 0) and (Csize > 0))
     {
+#if TBLIS_DEBUG
         std::cout << "\n Calling mult " << std::endl;
         std::cout << "\n Get Ap " << std::endl;
-        TensorImplPtr Ap = const_cast<TensorImplPtr>(A);
         std::cout << "\n Get Bp " << std::endl;
-        TensorImplPtr Bp = const_cast<TensorImplPtr>(B);
         std::cout << "\n Get A_v " << std::endl;
-        MArray::varray_view<double> A_v(Ap->dims(), &(Ap->data()[0]));
         std::cout << "\n Get B_v " << std::endl;
-        MArray::varray_view<double> B_v(Bp->dims(), &(Bp->data()[0]));
         std::cout << "\n Get C_v " << std::endl;
-        MArray::varray_view<double> C_v(this->dims(), &(this->data()[0]));
         std::cout << "\n Call mult " << std::endl;
+#endif
+        TensorImplPtr Ap = const_cast<TensorImplPtr>(A);
+        TensorImplPtr Bp = const_cast<TensorImplPtr>(B);
+        MArray::varray_view<double> A_v(Ap->dims(), &(Ap->data()[0]));
+        MArray::varray_view<double> B_v(Bp->dims(), &(Bp->data()[0]));
+        MArray::varray_view<double> C_v(this->dims(), &(this->data()[0]));
         tblis::mult<double>(alpha, A_v, indices_A.c_str(), B_v,
                             indices_B.c_str(), beta, C_v, indices_C.c_str());
     }
