@@ -301,7 +301,7 @@ void CoreTensorImpl::contract_tblis(ConstTensorImplPtr A, ConstTensorImplPtr B,
     }
     ambit::timer::timer_pop();
 
-    ambit::timer::timer_push("BLAS");
+    ambit::timer::timer_push("TBLIS");
     // Scalar multiplication
     if ((Asize == 0) and (Bsize == 0) and (Csize == 0))
     {
