@@ -3090,18 +3090,18 @@ int main(int argc, char *argv[])
     printf("%s\n", std::string(82, '-').c_str());
     success &= test_function(try_contract_label_fail, "Contract Label Fail",
                              kException);
-//    success &= test_function(try_contract_einsum_fail1,
-//                             "Contract Einsum Fail 1", kException);
-//    success &= test_function(try_contract_einsum_fail2,
-//                             "Contract Einsum Fail 2", kException);
-//    success &= test_function(try_contract_size_fail1, "Contract Size Fail 1",
-//                             kException);
-//    success &= test_function(try_contract_size_fail2, "Contract Size Fail 2",
-//                             kException);
-//    success &= test_function(try_contract_size_fail3, "Contract Size Fail 3",
-//                             kException);
-//    success &= test_function(try_contract_size_fail4, "Contract Size Fail 4",
-//                             kException);
+    success &= test_function(try_contract_einsum_fail1,
+                             "Contract Einsum Fail 1", kException);
+    success &= test_function(try_contract_einsum_fail2,
+                             "Contract Einsum Fail 2", kException);
+    success &= test_function(try_contract_size_fail1, "Contract Size Fail 1",
+                             kException);
+    success &= test_function(try_contract_size_fail2, "Contract Size Fail 2",
+                             kException);
+    success &= test_function(try_contract_size_fail3, "Contract Size Fail 3",
+                             kException);
+    success &= test_function(try_contract_size_fail4, "Contract Size Fail 4",
+                             kException);
     printf("%s\n", std::string(82, '-').c_str());
     printf("Tests: %s\n\n", success ? "All Passed" : "Some Failed");
 
