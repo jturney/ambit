@@ -669,7 +669,7 @@ class LabeledTensor
 inline LabeledTensor operator*(double factor, const LabeledTensor &ti)
 {
     return LabeledTensor(ti.T(), ti.indices(), factor * ti.factor());
-};
+}
 
 class LabeledTensorContraction
 {
@@ -832,7 +832,7 @@ class SlicedTensor
 inline SlicedTensor operator*(double factor, const SlicedTensor &ti)
 {
     return SlicedTensor(ti.T(), ti.range(), factor * ti.factor());
-};
+}
 } // namespace ambit
 
 #endif
