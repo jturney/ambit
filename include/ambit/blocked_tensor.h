@@ -469,7 +469,7 @@ inline LabeledBlockedTensor operator*(double factor,
                                       const LabeledBlockedTensor &ti)
 {
     return LabeledBlockedTensor(ti.BT(), ti.indices(), factor * ti.factor());
-};
+}
 
 class LabeledBlockedTensorProduct
 {
