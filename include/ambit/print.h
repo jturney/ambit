@@ -20,9 +20,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along
- * with ambit; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ambit; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
@@ -36,12 +36,12 @@ namespace ambit
 {
 
 /// Print function. Only the master node is allowed to print to the screen.
-void print(const string &format, ...);
+void print(const string format, ...);
 
 /** Each process will print to their respective output file.
  *  The master process will print to both the screen and its output file.
  */
-void printn(const string &format, ...);
+void printn(const string format, ...);
 
 /** Increases printing column offset by increment.
  * @param increment the amount to increase indentation.
@@ -64,6 +64,6 @@ struct indenter
   private:
     int size;
 };
-}
+} // namespace ambit
 
 #endif // TENSOR_INCLUDE_PRINT_H

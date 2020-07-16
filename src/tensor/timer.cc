@@ -20,9 +20,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along
- * with ambit; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ambit; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * @END LICENSE
  */
@@ -32,12 +32,12 @@
 //
 
 #include <ambit/common_types.h>
+#include <ambit/print.h>
 #include <ambit/settings.h>
 #include <ambit/timer.h>
-#include <ambit/print.h>
 
-#include <chrono>
 #include <cassert>
+#include <chrono>
 #include <cstring>
 
 namespace ambit
@@ -74,7 +74,7 @@ struct TimerDetail
 
 TimerDetail *current_timer = nullptr;
 TimerDetail *root = nullptr;
-}
+} // namespace
 
 void initialize()
 {
@@ -109,12 +109,14 @@ void print_timer_info(TimerDetail *timer)
     char buffer[512];
     if (timer != root)
     {
-        snprintf(buffer, 512, "%lld ms : %lld calls : %lld ms per call : ",
+        snprintf(buffer, 512, "%lld ms : %zu calls : %lld ms per call : ",
                  std::chrono::duration_cast<std::chrono::milliseconds>(
-                     timer->total_time),
+                     timer->total_time)
+                     .count(),
                  timer->total_calls,
                  std::chrono::duration_cast<std::chrono::milliseconds>(
-                     timer->total_time) /
+                     timer->total_time)
+                         .count() /
                      timer->total_calls);
         print("%s%*s%s\n", buffer,
               //              60 - ambit::current_indent() - strlen(buffer),
@@ -136,7 +138,7 @@ void print_timer_info(TimerDetail *timer)
         unindent(2);
     }
 }
-}
+} // namespace
 
 void report()
 {
@@ -171,5 +173,5 @@ void timer_pop()
         current_timer = current_timer->parent;
     }
 }
-}
-}
+} // namespace timer
+} // namespace ambit
