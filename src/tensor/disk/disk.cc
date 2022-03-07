@@ -36,8 +36,6 @@
 #include <cmath>
 #include <unistd.h>
 
-//#include <boost/timer/timer.hpp>
-
 namespace ambit
 {
 

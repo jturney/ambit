@@ -32,6 +32,8 @@ import random
 import math
 import ambit
 
+import numpy as np
+
 class TestBlocks(unittest.TestCase):
 
     def setUp(self):
@@ -44,23 +46,23 @@ class TestBlocks(unittest.TestCase):
         T = ambit.Tensor(ambit.TensorType.CoreTensor, name, dims)
         N = [[0 for x in range(dims[1])] for x in range(dims[0])]
 
-        data = T.tensor.data()
+        data = np.asarray(T)
         for r in range(dims[0]):
             for c in range(dims[1]):
                 value = random.random()
 
-                data[r * dims[1] + c] = value
+                data[r, c] = value
                 N[r][c] = value
 
         return [T, N]
 
     def difference2(self, T, N):
         max_diff = 0.0
-        data = T.tensor.data()
+        data = np.asarray(T)
         dims = T.dims
         for r in range(dims[0]):
             for c in range(dims[1]):
-                Tvalue = data[r*dims[1] + c]
+                Tvalue = data[r, c]
                 Nvalue = N[r][c]
 
                 diff = abs(Tvalue - Nvalue)
@@ -75,13 +77,13 @@ class TestBlocks(unittest.TestCase):
         T = ambit.Tensor(ambit.TensorType.CoreTensor, name, dims)
         N = [[[0 for x in range(dims[2])] for x in range(dims[1])] for x in range(dims[0])]
 
-        data = T.tensor.data()
+        data = np.asarray(T)
         for p in range(dims[0]):
             for q in range(dims[1]):
                 for r in range(dims[2]):
                     value = random.random()
 
-                    data[p*dims[1]*dims[2] + q*dims[2] + r] = value
+                    data[p, q, r] = value
                     N[p][q][r] = value
 
         return [T, N]
@@ -105,27 +107,27 @@ class TestBlocks(unittest.TestCase):
         T = ambit.Tensor(ambit.TensorType.CoreTensor, name, dims)
         N = [[[[0 for x in range(dims[3])] for x in range(dims[2])] for x in range(dims[1])] for x in range(dims[0])]
 
-        data = T.tensor.data()
+        data = np.asarray(T)
         for p in range(dims[0]):
             for q in range(dims[1]):
                 for r in range(dims[2]):
                     for s in range(dims[3]):
                         value = random.random()
 
-                        data[p*dims[1]*dims[2]*dims[3] + q*dims[2]*dims[3] + r*dims[3] + s] = value
+                        data[p, q, r, s] = value
                         N[p][q][r][s] = value
 
         return [T, N]
 
     def difference4(self, T, N):
         max_diff = 0.0
-        data = T.tensor.data()
+        data = np.asarray(T)
         dims = T.dims
         for p in range(dims[0]):
             for q in range(dims[1]):
                 for r in range(dims[2]):
                     for s in range(dims[3]):
-                        Tvalue = data[p*dims[1]*dims[2]*dims[3] + q*dims[2]*dims[3] + r*dims[3] + s]
+                        Tvalue = data[p, q, r, s]
                         Nvalue = N[p][q][r][s]
 
                         diff = abs(Tvalue - Nvalue)

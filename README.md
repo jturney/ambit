@@ -9,7 +9,7 @@ Primary test environments
 Continuous integration builds
 -----------------------------
 
-- Ubuntu 12.04 LTS 64-bit with Python 2.7.3, CMake 3.3.2 and Boost 1.55.0
+- Ubuntu 12.04 LTS 64-bit with Python 2.7.3, CMake 3.3.2
   this is the environment offered by [Travis CI](https://travis-ci.org) pulling
   in various PPA. The following compilers are used, both in release and debug:
 
@@ -22,14 +22,14 @@ Continuous integration builds
   7. Clang 3.7 and GFortran 4.6
   8. Clang 3.8 and GFortran 4.6
 
-- Mac OS X 10.9.5 with Python 2.7.10, CMake 3.2.3 and Boost 1.58.0
+- Mac OS X 10.9.5 with Python 2.7.10, CMake 3.2.3
   this is the environment offered by [Travis CI](https://travis-ci.org)
   The following compilers are used, both in release and debug:
 
   1. XCode 6.4 with Clang and GFortran 5.2
-  2. XCode 6.4 with GCC 5.2 (not tested: need Boost C++11 support)
+  2. XCode 6.4 with GCC 5.2
   3. XCode 7.0 with Clang and GFortran 5.2
-  4. XCode 7.0 with GCC 5.2 (not tested: need Boost C++11 support)
+  4. XCode 7.0 with GCC 5.2
 
 Nightly builds
 --------------

@@ -92,7 +92,7 @@ include_directories(SYSTEM $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTO
 find_package (TargetLAPACK REQUIRED)
 
 # Python Detection
-set(Python_ADDITIONAL_VERSIONS 3.7 3.6 3.5)  # adjust with CMake minimum FindPythonInterp
+set(Python_ADDITIONAL_VERSIONS 3.10 3.9 3.8 3.7)  # adjust with CMake minimum FindPythonInterp
 find_package(PythonLibsNew REQUIRED)
 message(STATUS "Found Python ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}: ${PYTHON_EXECUTABLE} (found version ${PYTHON_VERSION_STRING})")
 
@@ -101,12 +101,6 @@ message(STATUS "Found Python ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}: ${
 #    link_libraries("${PYTHON_LIBRARIES}")
 #    include_directories(SYSTEM "${PYTHON_INCLUDE_DIRS}")
 #endif()
-
-# Boost Detection
-# We need Boost.Python, so this has to come _after_ Python detection
-#include(ConfigBoost)
-#link_directories("${Boost_LIBRARY_DIRS}")
-#include_directories(SYSTEM "${Boost_INCLUDE_DIRS}")
 
 #if (ENABLE_PSI4)
 #    include_directories(SYSTEM ${PSI4_INCLUDE_DIRS})

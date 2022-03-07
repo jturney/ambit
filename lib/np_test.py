@@ -66,7 +66,8 @@ class TestOperatorOverloading(unittest.TestCase):
         T = ambit.Tensor(ttype, name, dims)
 
         # Fill both N and T
-        N = np.asarray(T)
+        N = np.asarray(T.tensor)
+
         if fill:
             N.flat[:] = fill
         else:
@@ -126,7 +127,6 @@ class TestOperatorOverloading(unittest.TestCase):
     #        aC[tmp_inds] *= aA[tmp_inds]
     #        nC *= nA
     #        self.assert_allclose(aC, nC)
-
     def test_tensor_tensor_add(self):
 
         for rank in range(1, max_test_rank):
@@ -153,6 +153,7 @@ class TestOperatorOverloading(unittest.TestCase):
 
             aC[tmp_inds] = aA[tmp_inds] - aB[tmp_inds]
             nC = nA - nB
+
             self.assert_allclose(aC, nC)
 
     def test_2d_dot(self):
@@ -164,6 +165,7 @@ class TestOperatorOverloading(unittest.TestCase):
 
         aC["ik"] = aA["ij"] * aB["jk"]
         nC = np.dot(nA, nB)
+
         self.assert_allclose(aC, nC)
 
     def test_nd_dot_1idx(self):
@@ -256,8 +258,6 @@ class TestOperatorOverloading(unittest.TestCase):
         aA[:5, :] = aB[1:6, :]
         nA[:5, :] = nB[1:6, :]
         self.assert_allclose(aA, nA)
-
-
 
 
 if __name__ == '__main__':
