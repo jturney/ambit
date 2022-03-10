@@ -50,6 +50,7 @@ jobs:
         conda list
     - name: Extract, Build, Install Ambit
       run: |
+        unset LDFLAGS
         cmake \
           -S. \
           -Bbuild \
