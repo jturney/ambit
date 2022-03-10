@@ -10,13 +10,15 @@ jobs:
           - runs-on: macos-latest
     name: "${{ matrix.cfg.runs-on }}"
     runs-on: ${{ matrix.cfg.runs-on }}
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
     - name: Checkout Ambit
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
     - name: Write a Conda Env File
-      shell: bash -l {0}
       run: |
         cat > export.yaml <<EOF
         name: test
@@ -43,12 +45,10 @@ jobs:
         environment-file: export.yaml
         show-channel-urls: true
     - name: Environment Information for Debug
-      shell: bash -l {0}
       run: |
         conda info
         conda list
     - name: Extract, Build, Install Ambit
-      shell: bash -l {0}
       run: |
         cmake \
           -S. \
@@ -59,3 +59,6 @@ jobs:
           -DCMAKE_CXX_COMPILER=${CXX} \
           -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}"
         cmake --build build --target install
+    - name: CTest
+      working-directory: ./build
+      run: ctest --output-on-failure
