@@ -1,0 +1,44 @@
+name: build-and-test
+on: [pull_request, push]
+jobs:
+  build-test-repo:
+    strategy:
+      fail-fast: true
+      matrix:
+        cfg:
+          - runs-on: ubuntu-latest
+          - runs-on: macos-latest
+    name: "${{ matrix.cfg.runs-on }}"
+    runs-on: ${{ matrix.cfg.runs-on }}
+    steps:
+    - name: Checkout Ambit
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Write a Conda Env File
+      shell: bash -l {0}
+      run: |
+        cat > export.yaml <<EOF
+        name: test
+        channels:
+          - conda-forge
+        dependencies:
+          - cmake >=3.16
+          - ninja
+          - cxx-compiler
+          - pybind11 >=2.6.2
+          - hdf5 >=1.10.6
+          - mkl >=2021.4.0
+        EOF
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          sed -i "s/- cxx/#- cxx/g" export.yaml
+        fi
+        cat export.yaml
+    - name: Create Conda Environment
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        mamba-version: "*"
+        activate-environment: test
+        channels: conda-forge
+        environment-file: export.yaml
+        show-channel-urls: true
