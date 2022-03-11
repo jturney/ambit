@@ -27,9 +27,7 @@
 # @END LICENSE
 #
 
-print("I think I can make it this far...")
 import unittest
-print("But not this far...")
 import random
 import ambit
 import numpy as np
@@ -81,6 +79,9 @@ class TestOperatorOverloading(unittest.TestCase):
         ni, nj = 10, 20
         [aA, nA] = self.build("A", [ni, nj])
         [aB, nB] = self.build("B", [nj, ni])
+        [aC, nC] = self.build("C", [ni, ni], fill=0)
+
+        aC["ik"] = aA["ij"] * aB["jk"]
 
 
 if __name__ == '__main__':
