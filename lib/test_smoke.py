@@ -39,6 +39,11 @@ import itertools as it
 tensor_type = ambit.TensorType.CoreTensor
 max_test_rank = 4
 
+# Sizes
+dim_sizes = [9, 6, 3, 3, 3, 3, 3]
+dim_inds  = 'ijklmnop'
+dim_size_dict = {k:v for k, v in zip(dim_inds, dim_sizes)}
+
 class TestOperatorOverloading(unittest.TestCase):
 
     def setUp(self):
@@ -47,10 +52,35 @@ class TestOperatorOverloading(unittest.TestCase):
     def tearDown(self):
         ambit.finalize()
 
+    def build(self, name, dims, ttype=tensor_type, fill=None):
+        # Builds arbitrary Tensors and numpy arrys
+        # Accepts a list of integers or a string for dimensions
+
+        if ttype != ambit.TensorType.CoreTensor:
+            raise ValueError("Only CoreTensor is currently supported")
+
+        if isinstance(dims, str):
+            dims = [dim_size_dict[i] for i in dims]
+
+        T = ambit.Tensor(ttype, name, dims)
+
+        # Fill both N and T
+        N = np.asarray(T.tensor)
+
+        if fill:
+            N.flat[:] = fill
+        else:
+            N.flat[:] = np.arange(np.prod(dims))
+
+        # Copy numpy array so we no longer share memory
+        N = N.copy()
+
+        return [T, N]
 
     def test_2d_dot(self):
-
         ni, nj = 10, 20
+        [aA, nA] = self.build("A", [ni, nj])
+        [aB, nB] = self.build("B", [nj, ni])
 
 
 if __name__ == '__main__':
