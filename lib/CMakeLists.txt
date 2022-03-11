@@ -1,2 +1,2 @@
-install(DIRECTORY ambit DESTINATION ${PYTHON_SITE_PACKAGES} FILES_MATCHING PATTERN "*.py")
-install(FILES np_test.py test_blocks.py test_operators.py DESTINATION ${PYTHON_SITE_PACKAGES}/ambit/tests)
+install(DIRECTORY ambit DESTINATION ${CMAKE_INSTALL_LIBDIR}${PYMOD_INSTALL_LIBDIR} FILES_MATCHING PATTERN "*.py")
+install(FILES np_test.py test_blocks.py test_operators.py DESTINATION ${CMAKE_INSTALL_LIBDIR}${PYMOD_INSTALL_LIBDIR}/ambit/tests)

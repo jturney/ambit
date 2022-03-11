@@ -36,6 +36,6 @@ target_link_libraries(pyambit PUBLIC ambit-lib)
 #set_target_properties(pyambit PROPERTIES PREFIX "")
 #set_target_properties(pyambit PROPERTIES SUFFIX ${PYTHON_MODULE_EXTENSION})
 
-install(TARGETS pyambit DESTINATION ${PYTHON_SITE_PACKAGES}/ambit)
+install(TARGETS pyambit DESTINATION ${CMAKE_INSTALL_LIBDIR}${PYMOD_INSTALL_LIBDIR}/ambit)
 
 endif()

@@ -3,7 +3,7 @@ on: [pull_request, push]
 jobs:
   build-test-repo:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         cfg:
           - runs-on: ubuntu-latest
@@ -31,6 +31,8 @@ jobs:
           - pybind11 >=2.6.2
           - hdf5 >=1.10.6
           - mkl >=2021.4.0
+          - pytest
+          - numpy
         EOF
         if [[ "${{ runner.os }}" == "Windows" ]]; then
           sed -i "s/- cxx/#- cxx/g" export.yaml
@@ -63,3 +65,11 @@ jobs:
     - name: CTest
       working-directory: ./build
       run: ctest --output-on-failure
+    - name: Smoke
+      working-directory: /home/runner/work/ambit/ambit
+      run: |
+        LD_LIBRARY_PATH=installed/lib:$LD_LIBRARY_PATH PYTHONPATH=installed/lib:$PYTHONPATH python -c "import ambit; help(ambit); help(ambit.pyambit)"
+    - name: Pytest
+      working-directory: /home/runner/work/ambit/ambit
+      run: |
+        LD_LIBRARY_PATH=installed/lib:$LD_LIBRARY_PATH PYTHONPATH=installed/lib:$PYTHONPATH pytest -v -rA --cache-clear --continue-on-collection-errors installed/lib/ambit/tests/

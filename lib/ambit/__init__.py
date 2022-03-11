@@ -28,7 +28,7 @@
 #
 
 
-#from . import pyambit
+from . import pyambit
 from .pyambit import TensorType, EigenvalueOrder
 from .pyambit import initialize, finalize
 
