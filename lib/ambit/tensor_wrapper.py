@@ -80,6 +80,7 @@ class LabeledTensorProduct:
             self.tensors.append(right)
 
     def __mul__(self, other):
+        raise Exception("C")
         if isinstance(other, LabeledTensor):
             self.tensors.append(other)
             return self
@@ -164,6 +165,7 @@ class LabeledTensorAddition:
             self.tensors.append(right)
 
     def __mul__(self, other):
+        raise Exception("D")
         if isinstance(other, LabeledTensor):
             return LabeledTensorDistributive(other, self)
         elif isinstance(other, numbers.Number):
@@ -177,6 +179,7 @@ class LabeledTensorAddition:
         return self
 
     def __rmul__(self, other):
+        raise Exception("F")
         if isinstance(other, numbers.Number):
             for tensor in self.tensors:
                 tensor.factor *= other
@@ -224,6 +227,7 @@ class LabeledTensor:
         return self
 
     def __mul__(self, other):
+        raise Exception("E")
         if isinstance(other, numbers.Number):
             self.factor *= other
             return self
@@ -240,6 +244,7 @@ class LabeledTensor:
         return LabeledTensorAddition(self, other)
 
     def __rmul__(self, other):
+        raise Exception("A")
         if isinstance(other, numbers.Number):
             self.factor *= other
 
@@ -442,7 +447,7 @@ class Tensor:
             return SlicedTensor(self, _parse_slices(indices, self.dims))
 
     def __setitem__(self, indices_str, value):
-
+        raise Exception("G")
         if isinstance(value, SlicedTensor):
             if self.tensor == value.tensor:
                 raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
@@ -781,12 +786,14 @@ class SlicedTensor:
 
 
     def __mul__(self, other):
+        raise Exception("A")
         if isinstance(other, numbers.Number):
             return SlicedTensor(self.tensor, self.range, other * self.factor)
         else:
             raise NotImplementedError("SlicedTensor.__mul__(%s) is not implemented" % (type(other)))
 
     def __rmul__(self, other):
+        raise Exception("B")
         if isinstance(other, numbers.Number):
             return SlicedTensor(self.tensor, self.range, other * self.factor)
         else:
