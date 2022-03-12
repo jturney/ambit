@@ -66,7 +66,7 @@ jobs:
       working-directory: ./build
       run: ctest --output-on-failure
     - name: Smoke
-      working-directory: /home/runner/work/ambit/ambit
+      working-directory: .
       run: |
         if [[ "${{ runner.os }}" == "Linux" ]]; then
             export LD_LIBRARY_PATH=installed/lib:$LD_LIBRARY_PATH
@@ -76,10 +76,23 @@ jobs:
         fi
         PYTHONPATH=installed/lib:$PYTHONPATH python -c "import ambit; help(ambit); help(ambit.pyambit)"
     - name: Pytest Smoke
-      working-directory: /home/runner/work/ambit/ambit
+      working-directory: .
       run: |
+        pwd
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+            export LD_LIBRARY_PATH=installed/lib:$LD_LIBRARY_PATH
+        fi
+        if [[ "${{ runner.os }}" == "macOS" ]]; then
+            export DYLD_LIBRARY_PATH=installed/lib:$DYLD_LIBRARY_PATH
+        fi
         PYTHONPATH=installed/lib:$PYTHONPATH pytest -v -rA --cache-clear --continue-on-collection-errors installed/lib/ambit/tests2/
     - name: Pytest
-      working-directory: /home/runner/work/ambit/ambit
+      working-directory: .
       run: |
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+            export LD_LIBRARY_PATH=installed/lib:$LD_LIBRARY_PATH
+        fi
+        if [[ "${{ runner.os }}" == "macOS" ]]; then
+            export DYLD_LIBRARY_PATH=installed/lib:$DYLD_LIBRARY_PATH
+        fi
         PYTHONPATH=installed/lib:$PYTHONPATH pytest -v -rA --cache-clear --continue-on-collection-errors installed/lib/ambit/tests/
