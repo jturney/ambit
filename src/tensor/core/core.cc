@@ -1134,7 +1134,7 @@ void CoreTensorImpl::mock_contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     // => GEMM Indexing <= //
 
     // => GEMM <= //
-
+    return;
     ambit::timer::timer_push("BLAS");
     for (size_t P = 0L; P < ABC_size; P++)
     {
