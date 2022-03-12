@@ -366,9 +366,6 @@ class Tensor
      * Results:
      *  C is the current tensor, whose data is overwritten. e.g., C2
      **/
-    void mock_contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
-                  const Indices &Ainds, const Indices &Binds,
-                  double alpha = 1.0, double beta = 0.0);
     void contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
                   const Indices &Ainds, const Indices &Binds,
                   double alpha = 1.0, double beta = 0.0);

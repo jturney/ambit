@@ -67,7 +67,7 @@ int nprocess = 1;
 
 int rank = 0;
 
-bool debug = true;
+bool debug = false;
 
 size_t memory = 1 * 1024 * 1024 * 1024;
 
@@ -433,13 +433,6 @@ void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
                       B2, C2, alpha, beta);
 
     timer::timer_pop();
-}
-void Tensor::mock_contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
-                      const Indices &Ainds, const Indices &Binds, double alpha,
-                      double beta)
-{
-    tensor_->mock_contract(A.tensor_.get(), B.tensor_.get(), Cinds, Ainds, Binds,
-                      alpha, beta);
 }
 void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
                       const Indices &Ainds, const Indices &Binds, double alpha,

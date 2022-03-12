@@ -7,6 +7,8 @@ jobs:
       matrix:
         cfg:
           - runs-on: ubuntu-latest
+            cmargs: >
+              -DLAPACK_LIBRARIES=${CONDA_PREFIX}/lib/libmkl_rt.so
           - runs-on: macos-latest
     name: "${{ matrix.cfg.runs-on }}"
     runs-on: ${{ matrix.cfg.runs-on }}
@@ -60,7 +62,8 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/installed" \
           -DCMAKE_CXX_COMPILER=${CXX} \
-          -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}"
+          -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}" \
+          ${{ matrix.cfg.cmargs }}
         cmake --build build --target install
     - name: CTest
       working-directory: ./build
