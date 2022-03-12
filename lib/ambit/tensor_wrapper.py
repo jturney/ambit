@@ -80,7 +80,6 @@ class LabeledTensorProduct:
             self.tensors.append(right)
 
     def __mul__(self, other):
-        #raise Exception("C")
         if isinstance(other, LabeledTensor):
             self.tensors.append(other)
             return self
@@ -165,7 +164,6 @@ class LabeledTensorAddition:
             self.tensors.append(right)
 
     def __mul__(self, other):
-        #raise Exception("D")
         if isinstance(other, LabeledTensor):
             return LabeledTensorDistributive(other, self)
         elif isinstance(other, numbers.Number):
@@ -179,7 +177,6 @@ class LabeledTensorAddition:
         return self
 
     def __rmul__(self, other):
-        #raise Exception("F")
         if isinstance(other, numbers.Number):
             for tensor in self.tensors:
                 tensor.factor *= other
@@ -227,7 +224,6 @@ class LabeledTensor:
         return self
 
     def __mul__(self, other):
-        #raise Exception("E")
         if isinstance(other, numbers.Number):
             self.factor *= other
             return self
@@ -244,7 +240,6 @@ class LabeledTensor:
         return LabeledTensorAddition(self, other)
 
     def __rmul__(self, other):
-        #raise Exception("A")
         if isinstance(other, numbers.Number):
             self.factor *= other
 
@@ -447,7 +442,6 @@ class Tensor:
             return SlicedTensor(self, _parse_slices(indices, self.dims))
 
     def __setitem__(self, indices_str, value):
-        #raise Exception("G")
         if isinstance(value, SlicedTensor):
             if self.tensor == value.tensor:
                 raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
@@ -480,7 +474,6 @@ class Tensor:
             # At this point best_perm should be used to perform the contractions in optimal order
             A = value.tensors[best_perm[0]]
             maxn = nterms - 2
-            #raise Exception # Made it this far!!!
             for n in range(maxn):
                 B = value.tensors[best_perm[n + 1]]
 
@@ -503,7 +496,11 @@ class Tensor:
                 tAB.contract(A, B, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
 
                 A.set(LabeledTensor(tAB.tensor, "".join(indices), 1.0))
+
             B = value.tensors[best_perm[nterms - 1]]
+
+            self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor,
+                                 0.0)
 
             # This operator is complete.
             return None
@@ -783,14 +780,12 @@ class SlicedTensor:
 
 
     def __mul__(self, other):
-        #raise Exception("A")
         if isinstance(other, numbers.Number):
             return SlicedTensor(self.tensor, self.range, other * self.factor)
         else:
             raise NotImplementedError("SlicedTensor.__mul__(%s) is not implemented" % (type(other)))
 
     def __rmul__(self, other):
-        #raise Exception("B")
         if isinstance(other, numbers.Number):
             return SlicedTensor(self.tensor, self.range, other * self.factor)
         else:
