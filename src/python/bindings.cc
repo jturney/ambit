@@ -96,7 +96,8 @@ PYBIND11_MODULE(pyambit, m)
     typedef void (Tensor::*contract1)(const Tensor &A, const Tensor &B, const Indices &Cinds,
             const Indices &Ainds, const Indices &Binds, double alpha, double beta);
 
-    py::class_<Tensor>(m, "ITensor", py::buffer_protocol())
+    py::class_<Tensor>(m, "ITensor")
+    //py::class_<Tensor>(m, "ITensor", py::buffer_protocol())
         /*
          * The below buffer code is the direct pybind/NumPy interface.
          * Unfortunately, it doesn't play nicely with Py-side _array_interface_
