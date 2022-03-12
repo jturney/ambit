@@ -480,6 +480,7 @@ class Tensor:
             # At this point best_perm should be used to perform the contractions in optimal order
             A = value.tensors[best_perm[0]]
             maxn = nterms - 2
+            raise Exception
             for n in range(maxn):
                 B = value.tensors[best_perm[n + 1]]
 

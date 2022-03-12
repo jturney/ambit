@@ -81,7 +81,7 @@ class TestOperatorOverloading(unittest.TestCase):
         [aB, nB] = self.build("B", [nj, ni])
         [aC, nC] = self.build("C", [ni, ni], fill=0)
 
-        aA["ij"] * aB["jk"]
+        print(type(aA["ij"] * aB["jk"]))
         aC["ik"] = aA["ij"] * aB["jk"]
 
 
