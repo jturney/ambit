@@ -737,7 +737,6 @@ void CoreTensorImpl::mock_contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
                               std::shared_ptr<TensorImpl> &C2, double alpha,
                               double beta)
 {
-    /*
     ambit::timer::timer_push("pre-BLAS: internal overhead");
 
     TensorImplPtr C = this;
@@ -897,7 +896,6 @@ void CoreTensorImpl::mock_contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         }
         compound_inds2[key] = vals;
     }
-    */
 
     /**
      * Fix permutation order considerations
