@@ -505,7 +505,7 @@ class Tensor:
                 A.set(LabeledTensor(tAB.tensor, "".join(indices), 1.0))
             B = value.tensors[best_perm[nterms - 1]]
 
-            self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor,
+            self.tensor.mock_contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor,
                                  0.0)
 
             # This operator is complete.

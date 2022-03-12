@@ -434,6 +434,11 @@ void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
 
     timer::timer_pop();
 }
+void Tensor::mock_contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
+                      const Indices &Ainds, const Indices &Binds, double alpha,
+                      double beta)
+{
+}
 void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,
                       const Indices &Ainds, const Indices &Binds, double alpha,
                       double beta)
