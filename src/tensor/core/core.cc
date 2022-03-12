@@ -1070,7 +1070,6 @@ void CoreTensorImpl::mock_contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     printf("\n");
     **/
 
-    /*
     ambit::timer::timer_pop();
 
     // => Alias or Allocate A, B, C <= //
@@ -1266,7 +1265,6 @@ void CoreTensorImpl::mock_contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
         C->permute(C2.get(), Cinds, Cinds2);
         ambit::timer::timer_pop();
     }
-    */
 }
 
 void CoreTensorImpl::permute(ConstTensorImplPtr A, const Indices &CindsS,
