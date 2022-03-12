@@ -438,7 +438,7 @@ void Tensor::mock_contract(const Tensor &A, const Tensor &B, const Indices &Cind
                       const Indices &Ainds, const Indices &Binds, double alpha,
                       double beta)
 {
-    tensor_->contract(A.tensor_.get(), B.tensor_.get(), Cinds, Ainds, Binds,
+    tensor_->mock_contract(A.tensor_.get(), B.tensor_.get(), Cinds, Ainds, Binds,
                       alpha, beta);
 }
 void Tensor::contract(const Tensor &A, const Tensor &B, const Indices &Cinds,

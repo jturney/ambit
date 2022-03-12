@@ -97,6 +97,17 @@ class CoreTensorImpl : public TensorImpl
                   std::shared_ptr<TensorImpl> &C2, double alpha = 1.0,
                   double beta = 0.0);
 
+    void mock_contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
+                  const Indices &Cinds, const Indices &Ainds,
+                  const Indices &Binds, double alpha = 1.0, double beta = 0.0);
+
+    void mock_contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
+                  const Indices &Cinds, const Indices &Ainds,
+                  const Indices &Binds, std::shared_ptr<TensorImpl> &A2,
+                  std::shared_ptr<TensorImpl> &B2,
+                  std::shared_ptr<TensorImpl> &C2, double alpha = 1.0,
+                  double beta = 0.0);
+
     void gemm(ConstTensorImplPtr A, ConstTensorImplPtr B, bool transA,
               bool transB, size_t nrow, size_t ncol, size_t nzip, size_t ldaA,
               size_t ldaB, size_t ldaC, size_t offA = 0L, size_t offB = 0L,
