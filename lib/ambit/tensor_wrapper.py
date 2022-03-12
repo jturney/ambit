@@ -480,7 +480,7 @@ class Tensor:
             # At this point best_perm should be used to perform the contractions in optimal order
             A = value.tensors[best_perm[0]]
             maxn = nterms - 2
-            raise Exception
+            #raise Exception # Made it this far!!!
             for n in range(maxn):
                 B = value.tensors[best_perm[n + 1]]
 
@@ -503,7 +503,7 @@ class Tensor:
                 tAB.contract(A, B, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
 
                 A.set(LabeledTensor(tAB.tensor, "".join(indices), 1.0))
-
+            raise Exception
             B = value.tensors[best_perm[nterms - 1]]
 
             self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor,
