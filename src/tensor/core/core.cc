@@ -912,7 +912,7 @@ void CoreTensorImpl::mock_contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
      * permuted to C's P order, with no present considerations of better
      *pathways
      **/
-    /*
+
     if (!indices::equivalent(compound_inds2["iC"], compound_inds2["iA"]))
     {
         if (permC)
@@ -1034,7 +1034,6 @@ void CoreTensorImpl::mock_contract(ConstTensorImplPtr A, ConstTensorImplPtr B,
     {
         Binds2 = Binds;
     }
-    */
 
     // So what exactly happened?
     /**
