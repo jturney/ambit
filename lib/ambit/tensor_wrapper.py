@@ -503,13 +503,14 @@ class Tensor:
                 tAB.contract(A, B, indices, A.indices, B.indices, A.factor * B.factor, 0.0)
 
                 A.set(LabeledTensor(tAB.tensor, "".join(indices), 1.0))
-            raise Exception
+            #raise Exception   # Also made it this far????
             B = value.tensors[best_perm[nterms - 1]]
 
             self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor,
                                  0.0)
 
             # This operator is complete.
+            raise Exception
             return None
 
 
