@@ -240,8 +240,6 @@ class TestOperatorOverloading(unittest.TestCase):
         nl = 4
 
         [aA, nA] = self.build_and_fill("A", [nk, ni, nj, nl])
-        print(np.asarray(aA.tensor))
-        print(nA)
         [aC, nC] = self.build_and_fill("C", [ni, nj, nk, nl])
 
         aC["ijkl"] = aA["kijl"]
