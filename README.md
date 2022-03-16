@@ -13,6 +13,6 @@ Continuous integration builds
 - Latest Ubuntu LTS (currently 20.04.4) 64-bit with Python 3.9, CMake 3.22.3,
   and other dependencies obtained from conda. We compile with GNU 10.3.0.
 
-- Latest macOS (currently 11.64.6) 64-bit with Python 3.10, CMake 3.22.3,
+- Latest macOS (currently 11.64.6) 64-bit with Python 3.9, CMake 3.22.3,
   and other dependencies obtained from conda. We compile with Clang 12.0.1.
 

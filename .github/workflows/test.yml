@@ -11,10 +11,13 @@ jobs:
       matrix:
         cfg:
           - runs-on: ubuntu-latest
+            python-version: "3.10"
             cmargs: >
-              -DLAPACK_LIBRARIES=${CONDA_PREFIX}/lib/libmkl_rt.so
+              -D LAPACK_LIBRARIES=${CONDA_PREFIX}/lib/libmkl_rt.so
           - runs-on: macos-latest
-    name: "${{ matrix.cfg.runs-on }}"
+            python-version: 3.9
+            cmargs: ""
+    name: "🐍 ${{ matrix.cfg.python-version }} • ${{ matrix.cfg.runs-on }}"
     runs-on: ${{ matrix.cfg.runs-on }}
     defaults:
       run:
@@ -34,6 +37,7 @@ jobs:
           - cmake >=3.16
           - ninja
           - cxx-compiler
+          - python
           - pybind11 >=2.6.2
           - hdf5 >=1.10.6
           - mkl >=2021.4.0
@@ -52,6 +56,7 @@ jobs:
         channels: conda-forge
         environment-file: export.yaml
         show-channel-urls: true
+        python-version: ${{ matrix.cfg.python-version }}
     - name: Environment Information for Debug
       run: |
         conda info
@@ -60,16 +65,16 @@ jobs:
       run: |
         unset LDFLAGS
         cmake \
-          -S. \
-          -Bbuild \
-          -G"Ninja" \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/installed" \
-          -DCMAKE_CXX_COMPILER=${CXX} \
-          -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}" \
+          -S . \
+          -B build \
+          -G "Ninja" \
+          -D CMAKE_BUILD_TYPE=Release \
+          -D CMAKE_INSTALL_PREFIX="${{github.workspace}}/installed" \
+          -D CMAKE_CXX_COMPILER=${CXX} \
+          -D CMAKE_PREFIX_PATH="${CONDA_PREFIX}" \
           ${{ matrix.cfg.cmargs }}
         cmake --build build --target install
-    - name: CTest
+    - name: Test Ambit library with CTest
       working-directory: ./build
       run: ctest --output-on-failure
     - name: Smoke
@@ -82,7 +87,7 @@ jobs:
             export DYLD_LIBRARY_PATH=installed/lib:$DYLD_LIBRARY_PATH
         fi
         PYTHONPATH=installed/lib:$PYTHONPATH python -c "import ambit; help(ambit); help(ambit.pyambit)"
-    - name: Pytest
+    - name: Test Ambit Module with Pytest
       working-directory: .
       run: |
         if [[ "${{ runner.os }}" == "Linux" ]]; then
