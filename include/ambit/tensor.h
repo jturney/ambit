@@ -812,6 +812,7 @@ class SlicedTensor
     double factor() const { return factor_; }
     const IndexRange &range() const { return range_; }
     const Tensor &T() const { return T_; }
+    size_t rank() const { return T_.rank(); }
 
     void operator=(const SlicedTensor &rhs);
     void operator+=(const SlicedTensor &rhs);

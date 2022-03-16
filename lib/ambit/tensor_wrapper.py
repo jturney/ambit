@@ -439,19 +439,19 @@ class Tensor:
         if isinstance(indices, str):
             return LabeledTensor(self.tensor, indices)
         else:
-            return SlicedTensor(self, _parse_slices(indices, self.dims))
+            return pyambit.SlicedTensor(self.tensor, _parse_slices(indices, self.dims))
 
     def __setitem__(self, indices_str, value):
-        if isinstance(value, SlicedTensor):
+        if isinstance(value, pyambit.SlicedTensor):
             if self.tensor == value.tensor:
                 raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
             if self.tensor.rank != value.tensor.rank:
-                raise RuntimeError("SlicedTensor::__setitem__: Sliced tensors do not have same rank")
+                raise RuntimeError(f"SlicedTensor::__setitem__: Sliced tensors do not have same rank, {self.tensor.rank} vs. {value.tensor.rank}")
             if isinstance(indices_str, str):
                 raise TypeError("SlicedTensor::__setitem__: Slice cannot be a string")
 
             indices = _parse_slices(indices_str, self.dims)
-            self.tensor.slice(value.tensor.tensor, indices, value.range, value.factor, 0.0)
+            self.tensor.slice(value.tensor, indices, value.range, value.factor, 0.0)
 
             return None
 
@@ -728,69 +728,4 @@ class Tensor:
     def power(self, p, condition=1.0e-12):
         aResult = self.tensor.power(p, condition)
         return Tensor(existing=aResult)
-
-
-class SlicedTensor:
-    def __init__(self, tensor, range, factor=1.0):
-        self.tensor = tensor
-        self.range = range
-        self.factor = factor
-
-        # Check the data given to us
-        if not isinstance(tensor, Tensor):
-            raise RuntimeError("SlicedTensor: Expected tensor to be Tensor")
-
-        if len(range) != tensor.rank:
-            raise RuntimeError(
-                "SlicedTensor: Sliced tensor does not have correct number of indices for underlying tensor's rank")
-
-        for idx, value in enumerate(range):
-            if len(value) != 2:
-                raise RuntimeError(
-                    "SlicedTensor: Each index of an IndexRange should have two elements {start,end+1} in it.")
-            if value[0] > value[1]:
-                raise RuntimeError("SlicedTensor: Each index of an IndexRange should end+1>=start in it.")
-            if value[1] > tensor.dims[idx]:
-                raise RuntimeError("SlicedTensor: IndexRange exceeds size of tensor.")
-
-    def _check_other(self, value):
-        if self.tensor == value.tensor:
-            raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
-        if self.tensor.rank != value.tensor.rank:
-            raise RuntimeError("SlicedTensor::__setitem__: Sliced tensors do not have same rank")
-
-    def __iadd__(self, value):
-        if isinstance(value, SlicedTensor):
-            self._check_other(value)
-            self.tensor.slice(value.tensor, self.range, value.range, value.factor, 1.0)
-
-            return None
-        else:
-            raise NotImplementedError("SlicedTensor.__iadd__(%s) is not implemented" % (type(other)))
-
-
-    def __isub__(self, value):
-        if isinstance(value, SlicedTensor):
-            self._check_other(value)
-            self.tensor.slice(value.tensor, self.range, value.range, -value.factor, 1.0)
-
-            return None
-        else:
-            raise NotImplementedError("SlicedTensor.__isub__(%s) is not implemented" % (type(other)))
-
-
-    def __mul__(self, other):
-        if isinstance(other, numbers.Number):
-            return SlicedTensor(self.tensor, self.range, other * self.factor)
-        else:
-            raise NotImplementedError("SlicedTensor.__mul__(%s) is not implemented" % (type(other)))
-
-    def __rmul__(self, other):
-        if isinstance(other, numbers.Number):
-            return SlicedTensor(self.tensor, self.range, other * self.factor)
-        else:
-            raise NotImplementedError("SlicedTensor.__rmul__(%s) is not implemented" % (type(other)))
-
-    def __neg__(self):
-        return SlicedTensor(self.tensor, self.range, -self.factor)
 
