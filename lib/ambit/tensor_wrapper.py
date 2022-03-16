@@ -31,7 +31,7 @@ from __future__ import division
 from . import pyambit
 import numbers
 import itertools
-
+import numpy as np
 
 def _parse_slices(indices, dims):
     # Multiarray slices
@@ -98,7 +98,7 @@ class LabeledTensorProduct:
         C = Tensor(pyambit.TensorType.CoreTensor, "C", [])
         C.slice(R, [], [])
 
-        return C.data()[0]
+        return np.asarray(C).flat[0]
 
     def compute_contraction_cost(self, perm):
         indices_to_size = {}
@@ -201,14 +201,14 @@ class LabeledTensorDistributive:
         C = Tensor(pyambit.TensorType.CoreTensor, "C", [])
         C.slice(R, [], [])
 
-        return C.data()[0]
+        return np.asarray(C).flat[0]
 
 
 class LabeledTensor:
     def __init__(self, t, indices, factor=1.0):
         self.factor = factor
         self.tensor = t
-        if isinstance(indices, pyambit.Indices):
+        if isinstance(indices, list):
             self.indices = indices
         else:
             self.indices = pyambit.Indices.split(indices)
@@ -429,10 +429,10 @@ class Tensor:
 
     @property
     def __array_interface__(self):
-       if self.dtype == pyambit.TensorType.CoreTensor:
-           return self.tensor.__array_interface__()
-       else:
-           raise TypeError('Only CoreTensor tensors can be converted to ndarrays.')
+        if self.dtype == pyambit.TensorType.CoreTensor:
+            return self.tensor.__array_interface__
+        else:
+            raise TypeError('Only CoreTensor tensors can be converted to ndarrays.')
 
     def __getitem__(self, indices):
 
@@ -442,7 +442,6 @@ class Tensor:
             return SlicedTensor(self, _parse_slices(indices, self.dims))
 
     def __setitem__(self, indices_str, value):
-
         if isinstance(value, SlicedTensor):
             if self.tensor == value.tensor:
                 raise RuntimeError("SlicedTensor::__setitem__: Self assignment is not allowed.")
@@ -547,32 +546,11 @@ class Tensor:
     def printf(self):
         self.tensor.printf()
 
-    def data(self):
+    def set(self, alpha):
         """
-        Returns the raw data vector underlying the tensor object if the
-        underlying tensor object supports a raw data vector. This is only the
-        case if the underlying tensor is of type CoreTensor.
-
-        This routine is intended to facilitate rapid filling of data into a
-        CoreTensor buffer tensor, following which the user may stripe the buffer
-        tensor into a DiskTensor or DistributedTensor tensor via slice operations.
-
-        If a vector is successfully returned, it points to the unrolled data o
-        the tensor, with the right-most dimensions running fastest and left-mo
-        dimensions running slowest.
-
-        Example successful use case:
-         Tensor A = Tensor::build(CoreTensor, "A3", {4,5,6});
-         std::vector<double>& Av = A.data();
-         double* Ap = Av.data(); // In case the raw pointer is needed
-         In this case, Av[0] = A(0,0,0), Av[1] = A(0,0,1), etc.
-
-         Tensor B = Tensor::build(DiskTensor, "B3", {4,5,6});
-         std::vector<double>& Bv = B.data(); // throws
-
-        :return: data pointer, if tensor object supports it
+        Set all elements of the tensor to alpha.
         """
-        return self.tensor.data()
+        self.tensor.set(alpha)
 
     def norm(self, type):
         """

@@ -28,9 +28,9 @@
 #
 
 
-#from . import pyambit
+from . import pyambit
 from .pyambit import TensorType, EigenvalueOrder
-from .pyambit import TensorVector, TensorMap, initialize, finalize
+from .pyambit import initialize, finalize
 
 from . import tensor_wrapper
 from .tensor_wrapper import Tensor, LabeledTensor

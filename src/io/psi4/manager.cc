@@ -27,8 +27,7 @@
  * @END LICENSE
  */
 
-#include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
+#include <filesystem>
 
 #include <ambit/io/psi4/io.h>
 
@@ -48,11 +47,11 @@ namespace {
 
 void create_directory(const std::string& directory)
 {
-    if (boost::filesystem::exists(directory) == false) {
+    if (std::filesystem::exists(directory) == false) {
         // create directory
-        boost::filesystem::create_directory(directory);
+        std::filesystem::create_directory(directory);
     }
-    else if (boost::filesystem::is_directory(directory) == false) {
+    else if (std::filesystem::is_directory(directory) == false) {
         // it exists and is not a directory
         throw std::runtime_error("base directory name given already exists and "
                                          "is not a directory: " +
@@ -74,7 +73,7 @@ Manager::Manager(const std::string& base_directory)
     {
         mpi_base_directory_ =
             base_directory_ + "/" +
-            boost::lexical_cast<std::string>(MPI::COMM_WORLD.Get_rank());
+            std::to_string(MPI::COMM_WORLD.Get_rank());
         create_directory(mpi_base_directory_);
     }
     else

@@ -112,14 +112,12 @@ endif ()
 #    target_link_libraries(ambit-shared
 #        ${LAPACK_LIBRARIES}
 #        ${BLAS_LIBRARIES}
-#        ${Boost_LIBRARIES}
 #        ${HDF5_LIBRARIES}
 #        )
 #endif()
 #target_link_libraries(ambit-static
 #        ${LAPACK_LIBRARIES}
 #        ${BLAS_LIBRARIES}
-#        #${Boost_LIBRARIES}
 #        ${HDF5_LIBRARIES}
 #        )
 
@@ -130,9 +128,7 @@ else()
     add_library(ambit-lib ALIAS ambit-shared)
 endif()
 
-if (ENABLE_PYTHON)
-    add_subdirectory(python)
-endif ()
+add_subdirectory(python)
 
 # <<<  Install  >>>
 

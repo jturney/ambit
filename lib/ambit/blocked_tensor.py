@@ -35,7 +35,6 @@ import copy
 import numbers
 import sys, traceback
 
-
 class SpinType:
     AlphaSpin = 1
     BetaSpin = 2
@@ -644,9 +643,7 @@ class BlockedTensor:
 
     def set(self, gamma):
         for key in self.blocks:
-            data = self.blocks[key].data()
-            for i, p in enumerate(data):
-                data[i] = gamma
+            self.blocks[key].set(gamma)
 
     def __getitem__(self, indices):
         return LabeledBlockedTensor(self, indices)

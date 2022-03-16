@@ -41,8 +41,6 @@
 #include <stdexcept>
 #include <string.h>
 
-//#include <boost/timer/timer.hpp>
-
 namespace ambit
 {
 

@@ -18,7 +18,7 @@
 
 cmake_policy(SET CMP0048 NEW)  # project_VERSION* variables populated from project(... VERSION x.x.x) string
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.16)
 
 project(ambit
         VERSION 0.5.1
@@ -65,6 +65,7 @@ option_with_flags(ENABLE_XHOST "Enables processor-specific optimization" ON
 option_with_default(FC_SYMBOL "The type of Fortran name mangling" 2)
 option_with_default(BUILD_FPIC "Compile static libraries with position independent code" ON)
 option_with_default(CMAKE_INSTALL_LIBDIR "Directory to which libraries installed" lib)
+option_with_default(PYMOD_INSTALL_LIBDIR "Location within CMAKE_INSTALL_LIBDIR to which python modules are installed" /)
 option_with_default(ENABLE_GENERIC "Enables mostly static linking of system and math libraries for shared library" OFF)
 
 ########################  Process & Validate Options  ##########################
@@ -75,6 +76,11 @@ include(autocmake_safeguards)
 include(autocmake_omp)
 include(custom_cxxstandard)
 include(custom_static_library)
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "/usr/local/ambit" CACHE PATH "Install path" FORCE)
+endif()
+message(STATUS "Ambit install path: ${CMAKE_INSTALL_PREFIX}")
 
 if (STATIC_ONLY AND SHARED_ONLY)
     message (FATAL_ERROR "The options STATIC_ONLY=ON and SHARED_ONLY=ON are conflicting." )
@@ -92,21 +98,15 @@ include_directories(SYSTEM $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTO
 find_package (TargetLAPACK REQUIRED)
 
 # Python Detection
-set(Python_ADDITIONAL_VERSIONS 3.7 3.6 3.5)  # adjust with CMake minimum FindPythonInterp
-find_package(PythonLibsNew REQUIRED)
-message(STATUS "Found Python ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}: ${PYTHON_EXECUTABLE} (found version ${PYTHON_VERSION_STRING})")
+set(Python_ADDITIONAL_VERSIONS 3.10 3.9 3.8 3.7)  # adjust with CMake minimum FindPythonInterp
+find_package(Python 3.7 COMPONENTS Interpreter Development NumPy REQUIRED)
+message(STATUS "Found Python ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}: ${Python_EXECUTABLE} (found version ${Python_VERSION})")
 
 #if (NOT ENABLE_STATIC AND NOT ENABLE_PSI4)
 #    include(ConfigPython)
 #    link_libraries("${PYTHON_LIBRARIES}")
 #    include_directories(SYSTEM "${PYTHON_INCLUDE_DIRS}")
 #endif()
-
-# Boost Detection
-# We need Boost.Python, so this has to come _after_ Python detection
-#include(ConfigBoost)
-#link_directories("${Boost_LIBRARY_DIRS}")
-#include_directories(SYSTEM "${Boost_INCLUDE_DIRS}")
 
 #if (ENABLE_PSI4)
 #    include_directories(SYSTEM ${PSI4_INCLUDE_DIRS})
