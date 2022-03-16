@@ -77,6 +77,11 @@ include(autocmake_omp)
 include(custom_cxxstandard)
 include(custom_static_library)
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "/usr/local/ambit" CACHE PATH "Install path" FORCE)
+endif()
+message(STATUS "Ambit install path: ${CMAKE_INSTALL_PREFIX}")
+
 if (STATIC_ONLY AND SHARED_ONLY)
     message (FATAL_ERROR "The options STATIC_ONLY=ON and SHARED_ONLY=ON are conflicting." )
 endif()
