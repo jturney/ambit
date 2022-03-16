@@ -3,6 +3,17 @@ if (NOT STATIC_ONLY)
 find_package(pybind11 CONFIG REQUIRED)
 find_package(Python 3.7 COMPONENTS Interpreter Development NumPy REQUIRED)
 
+if (APPLE)
+    set(base "@loader_path")
+else()
+    set(base "$ORIGIN")
+endif()
+file(RELATIVE_PATH relDir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}${PYMOD_INSTALL_LIBDIR}/ambit
+                          ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_INSTALL_RPATH ${base} ${base}/../)
+
+message(STATUS "ambit rpath: ${CMAKE_INSTALL_RPATH}")
+
 # build static libray
 add_library(pyambit SHARED bindings.cc)
 add_dependencies(pyambit ambit-lib)
@@ -12,6 +23,8 @@ if(ENABLE_CYCLOPS)
     set_target_properties(pyambit PROPERTIES COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
     set_target_properties(pyambit PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
+
+set_target_properties(pyambit PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_RPATH}")
 
 target_link_libraries(pyambit PUBLIC tgt::lapack)
 
