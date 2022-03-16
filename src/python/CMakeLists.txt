@@ -1,7 +1,7 @@
 if (NOT STATIC_ONLY)
 
 find_package(pybind11 CONFIG REQUIRED)
-find_package(Python 3.7 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python 3.7 COMPONENTS Interpreter Development NumPy REQUIRED)
 
 # build static libray
 add_library(pyambit SHARED bindings.cc)
