@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - NumPyBind
   pull_request:
 jobs:
   build-test-repo:

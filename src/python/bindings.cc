@@ -29,6 +29,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
+#include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
 #include <ambit/tensor.h>
@@ -92,6 +93,15 @@ PYBIND11_MODULE(pyambit, m)
         .def_property_readonly("factor", &LabeledTensor::factor, "docstring")
         .def_property_readonly("indices", idx(&LabeledTensor::indices), py::return_value_policy::copy)
         .def("dim_by_index", &LabeledTensor::dim_by_index);
+
+    py::class_<SlicedTensor>(m, "SlicedTensor")
+        .def(py::init<Tensor, const IndexRange &, double>(), "T"_a, "range"_a, "factor"_a=1)
+        .def(py::self += py::self)
+        .def(py::self -= py::self)
+        .def_property_readonly("tensor", &SlicedTensor::T)
+        .def_property_readonly("range", &SlicedTensor::range)
+        .def_property_readonly("rank", &SlicedTensor::rank)
+        .def_property_readonly("factor", &SlicedTensor::factor);
 
     typedef void (Tensor::*contract1)(const Tensor &A, const Tensor &B, const Indices &Cinds,
             const Indices &Ainds, const Indices &Binds, double alpha, double beta);
