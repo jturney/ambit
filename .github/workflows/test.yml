@@ -80,9 +80,7 @@ jobs:
       run: ctest --output-on-failure
     - name: Smoke
       working-directory: .
-      run: |
-        PYTHONPATH=installed/lib:$PYTHONPATH python -c "import ambit; help(ambit); help(ambit.pyambit)"
+      run: PYTHONPATH=installed/lib:$PYTHONPATH python -c "import ambit; help(ambit); help(ambit.pyambit)"
     - name: Test Ambit Module with Pytest
       working-directory: .
-      run: |
-        PYTHONPATH=installed/lib:$PYTHONPATH pytest -v -rA --cache-clear --continue-on-collection-errors installed/lib/ambit/tests/
+      run: PYTHONPATH=installed/lib:$PYTHONPATH pytest -v -rA --cache-clear --continue-on-collection-errors installed/lib/ambit/tests/

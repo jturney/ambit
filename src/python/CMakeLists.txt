@@ -10,7 +10,7 @@ else()
 endif()
 file(RELATIVE_PATH relDir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}${PYMOD_INSTALL_LIBDIR}/ambit
                           ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-set(CMAKE_INSTALL_RPATH ${base} ${base}/../)
+set(CMAKE_INSTALL_RPATH ${base} ${base}/${relDir})
 
 message(STATUS "ambit rpath: ${CMAKE_INSTALL_RPATH}")
 
