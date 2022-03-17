@@ -92,7 +92,18 @@ PYBIND11_MODULE(pyambit, m)
         .def(py::init<Tensor, const std::vector<std::string> &, double>())
         .def_property_readonly("factor", &LabeledTensor::factor, "docstring")
         .def_property_readonly("indices", idx(&LabeledTensor::indices), py::return_value_policy::copy)
+        .def_property_readonly("tensor", &LabeledTensor::T)
         .def("dim_by_index", &LabeledTensor::dim_by_index);
+
+    py::class_<LabeledTensorAddition>(m, "LabeledTensorAddition")
+        .def(py::init<const LabeledTensor&, const LabeledTensor&>())
+        .def("__iter__", [](const LabeledTensorAddition& t) { return py::make_iterator(t.begin(), t.end()); }, py::keep_alive<0, 1>());
+
+    py::class_<LabeledTensorDistribution>(m, "LabeledTensorDistributive")
+        .def(py::init<const LabeledTensor&, const LabeledTensorAddition&>())
+        .def("__float__", [](const LabeledTensorDistribution& t) { return static_cast<double>(t); })
+        .def_property_readonly("A", &LabeledTensorDistribution::A)
+        .def_property_readonly("B", &LabeledTensorDistribution::B);
 
     py::class_<SlicedTensor>(m, "SlicedTensor")
         .def(py::init<Tensor, const IndexRange &, double>(), "T"_a, "range"_a, "factor"_a=1)

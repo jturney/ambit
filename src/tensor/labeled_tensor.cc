@@ -353,11 +353,11 @@ LabeledTensorAddition &LabeledTensorAddition::operator-()
 
 LabeledTensorContraction::operator double() const
 {
-    Tensor R = Tensor::build(tensors_[0].T().type(), "R", {});
+    auto R = Tensor::build(tensors_[0].T().type(), "R", {});
     LabeledTensor lR(R, {}, 1.0);
     lR.contract(*this, true, true);
 
-    Tensor C = Tensor::build(CoreTensor, "C", {});
+    auto C = Tensor::build(CoreTensor, "C", {});
     C.slice(R, {}, {});
 
     return C.data()[0];
@@ -464,7 +464,7 @@ pair<double, double> LabeledTensorContraction::compute_contraction_cost(
 
 LabeledTensorDistribution::operator double() const
 {
-    Tensor R = Tensor::build(A_.T().type(), "R", {});
+    auto R = Tensor::build(A_.T().type(), "R", {});
 
     for (size_t ind = 0L; ind < B_.size(); ind++)
     {
@@ -473,7 +473,7 @@ LabeledTensorDistribution::operator double() const
                    A_.factor() * B_[ind].factor(), 1.0);
     }
 
-    Tensor C = Tensor::build(CoreTensor, "C", {});
+    auto C = Tensor::build(CoreTensor, "C", {});
     C.slice(R, {}, {});
 
     return C.data()[0];

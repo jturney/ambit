@@ -186,9 +186,8 @@ class LabeledBlockedTensorDistributive:
             term_key = ""
             for index in self.A.indices:
                 term_key += uik[index_map[index]]
-
             A = tensor_wrapper.LabeledTensor(self.A.btensor.block(term_key).tensor, self.A.indices, self.A.factor)
-            dist = tensor_wrapper.LabeledTensorDistributive(A, prod)
+            dist = pyambit.LabeledTensorDistributive(A.to_C(), prod.to_C())
             result += float(dist)
 
         return result
