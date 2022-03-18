@@ -163,9 +163,14 @@ class LabeledTensorAddition:
         if right:
             self.tensors.append(right)
 
+    def to_C(self):
+        if len(self.tensors) != 2:
+            raise NotImplementedError
+        return pyambit.LabeledTensorAddition(self.tensors[0].to_C(), self.tensors[1].to_C())
+
     def __mul__(self, other):
         if isinstance(other, LabeledTensor):
-            return LabeledTensorDistributive(other, self)
+            return pyambit.LabeledTensorDistributive(other.to_C(), self.to_C())
         elif isinstance(other, numbers.Number):
             for tensor in self.tensors:
                 tensor.factor *= other
@@ -187,23 +192,6 @@ class LabeledTensorAddition:
         return self
 
 
-class LabeledTensorDistributive:
-    def __init__(self, left, right):
-        self.A = left
-        self.B = right
-
-    def __float__(self):
-        R = Tensor(self.A.tensor.dtype, "R", [])
-
-        for tensor in self.B.tensors:
-            R.contract(self.A, tensor, [], self.A.indices, tensor.indices, self.A.factor * tensor.factor, 1.0)
-
-        C = Tensor(pyambit.TensorType.CoreTensor, "C", [])
-        C.slice(R, [], [])
-
-        return np.asarray(C).flat[0]
-
-
 class LabeledTensor:
     def __init__(self, t, indices, factor=1.0):
         self.factor = factor
@@ -212,6 +200,9 @@ class LabeledTensor:
             self.indices = indices
         else:
             self.indices = pyambit.Indices.split(indices)
+
+    def to_C(self):
+        return pyambit.ILabeledTensor(self.tensor, self.indices, self.factor)
 
     def dim_by_index(self, index):
         positions = [i for i, x in enumerate(self.indices) if x == index]
@@ -228,7 +219,7 @@ class LabeledTensor:
             self.factor *= other
             return self
         elif isinstance(other, LabeledTensorAddition):
-            return LabeledTensorDistributive(self, other)
+            return pyambit.LabeledTensorDistributive(self.to_C(), other.to_C())
         else:
             return LabeledTensorProduct(self, other)
 
@@ -251,7 +242,7 @@ class LabeledTensor:
         if isinstance(other, LabeledTensor):
             self.tensor.permute(other.tensor, self.indices, other.indices, other.factor, self.factor)
             return None
-        elif isinstance(other, LabeledTensorDistributive):
+        elif isinstance(other, pyambit.LabeledTensorDistributive):
             raise NotImplementedError("LabeledTensor.__iadd__(LabeledTensorDistributive) is not implemented")
         elif isinstance(other, LabeledTensorProduct):
             nterms = len(other.tensors)
@@ -310,7 +301,7 @@ class LabeledTensor:
         if isinstance(other, LabeledTensor):
             self.tensor.permute(other.tensor, self.indices, other.indices, -other.factor, self.factor)
             return None
-        elif isinstance(other, LabeledTensorDistributive):
+        elif isinstance(other, pyambit.LabeledTensorDistributive):
             raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
         elif isinstance(other, LabeledTensorProduct):
             nterms = len(other.tensors)
@@ -527,12 +518,12 @@ class Tensor:
 
             self.tensor.permute(value.tensor, indices, value.indices, value.factor, 0.0)
 
-        elif isinstance(value, LabeledTensorDistributive):
+        elif isinstance(value, pyambit.LabeledTensorDistributive):
 
             self.tensor.zero()
 
             A = value.A
-            for B in value.B.tensors:
+            for B in value.B:
                 self.tensor.contract(A.tensor, B.tensor, indices, A.indices, B.indices, A.factor * B.factor, 1.0)
 
     def __eq__(self, other):

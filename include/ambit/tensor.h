@@ -800,8 +800,8 @@ class LabeledTensorDistribution
     operator double() const;
 
   private:
-    const LabeledTensor &A_;
-    const LabeledTensorAddition &B_;
+    const LabeledTensor A_;
+    const LabeledTensorAddition B_;
 };
 
 class SlicedTensor
