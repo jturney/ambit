@@ -155,43 +155,6 @@ class LabeledTensorProduct:
         return [cpu_cost_total, memory_cost_max]
 
 
-class LabeledTensorAddition:
-    def __init__(self, left, right):
-        self.tensors = []
-        if left:
-            self.tensors.append(left)
-        if right:
-            self.tensors.append(right)
-
-    def to_C(self):
-        if len(self.tensors) != 2:
-            raise NotImplementedError
-        return pyambit.LabeledTensorAddition(self.tensors[0].to_C(), self.tensors[1].to_C())
-
-    def __mul__(self, other):
-        if isinstance(other, LabeledTensor):
-            return pyambit.LabeledTensorDistributive(other.to_C(), self.to_C())
-        elif isinstance(other, numbers.Number):
-            for tensor in self.tensors:
-                tensor.factor *= other
-            return self
-
-    def __neg__(self):
-        for tensor in self.tensors:
-            tensor.factor *= -1.0
-        return self
-
-    def __rmul__(self, other):
-        if isinstance(other, numbers.Number):
-            for tensor in self.tensors:
-                tensor.factor *= other
-            return self
-
-    def __add__(self, other):
-        self.tensors.append(other)
-        return self
-
-
 class LabeledTensor:
     def __init__(self, t, indices, factor=1.0):
         self.factor = factor
@@ -218,17 +181,17 @@ class LabeledTensor:
         if isinstance(other, numbers.Number):
             self.factor *= other
             return self
-        elif isinstance(other, LabeledTensorAddition):
-            return pyambit.LabeledTensorDistributive(self.to_C(), other.to_C())
+        elif isinstance(other, pyambit.LabeledTensorAddition):
+            return pyambit.LabeledTensorDistributive(self.to_C(), other)
         else:
             return LabeledTensorProduct(self, other)
 
     def __add__(self, other):
-        return LabeledTensorAddition(self, other)
+        return pyambit.LabeledTensorAddition(self.to_C(), other.to_C())
 
     def __sub__(self, other):
         other.factor *= -1.0
-        return LabeledTensorAddition(self, other)
+        return pyambit.LabeledTensorAddition(self.to_C(), other.to_C())
 
     def __rmul__(self, other):
         if isinstance(other, numbers.Number):
@@ -292,7 +255,7 @@ class LabeledTensor:
             # This operator is complete.
             return None
 
-        elif isinstance(other, LabeledTensorAddition):
+        elif isinstance(other, pyambit.LabeledTensorAddition):
             raise NotImplementedError("LabeledTensor.__iadd__(LabeledTensorAddition) is not implemented")
         else:
             raise NotImplementedError("LabeledTensor.__iadd__(%s) is not implemented" % (type(other)))
@@ -351,7 +314,7 @@ class LabeledTensor:
             # This operator is complete.
             return None
 
-        elif isinstance(other, LabeledTensorAddition):
+        elif isinstance(other, pyambit.LabeledTensorAddition):
             raise NotImplementedError("LabeledTensor.__isub__(%s) is not implemented" % (type(other)))
         else:
             print("LabeledTensor::__isub__ not implemented for this type.")
@@ -497,11 +460,11 @@ class Tensor:
             return None
 
 
-        elif isinstance(value, LabeledTensorAddition):
+        elif isinstance(value, pyambit.LabeledTensorAddition):
             self.tensor.zero()
 
-            for tensor in value.tensors:
-                if isinstance(tensor, LabeledTensor):
+            for tensor in value:
+                if isinstance(tensor, (LabeledTensor, pyambit.ILabeledTensor)):
                     self.tensor.permute(tensor.tensor, indices, tensor.indices, tensor.factor, 1.0)
                 else:
                     # recursively call set item

@@ -97,7 +97,13 @@ PYBIND11_MODULE(pyambit, m)
 
     py::class_<LabeledTensorAddition>(m, "LabeledTensorAddition")
         .def(py::init<const LabeledTensor&, const LabeledTensor&>())
-        .def("__iter__", [](const LabeledTensorAddition& t) { return py::make_iterator(t.begin(), t.end()); }, py::keep_alive<0, 1>());
+        .def(py::init<>())
+        .def("__iter__", [](const LabeledTensorAddition& t) { return py::make_iterator(t.begin(), t.end()); }, py::keep_alive<0, 1>())
+        .def(-py::self)
+        .def("__add__", [](const LabeledTensorAddition& s1, const LabeledTensor& s2) { return s1 + s2; })
+        .def("__iadd__", [](LabeledTensorAddition& s1, const LabeledTensor& s2) { return s1 += s2; })
+        .def("__mul__", [](const LabeledTensorAddition& s1, const LabeledTensor& s2) { return s1 * s2; })
+        .def(float() * py::self);
 
     py::class_<LabeledTensorDistribution>(m, "LabeledTensorDistributive")
         .def(py::init<const LabeledTensor&, const LabeledTensorAddition&>())

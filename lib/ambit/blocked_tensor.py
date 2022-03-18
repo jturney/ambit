@@ -175,19 +175,19 @@ class LabeledBlockedTensorDistributive:
         # Setup and perform contractions
         result = 0.0
         for uik in unique_indices_key:
-            prod = tensor_wrapper.LabeledTensorAddition(None, None)
+            prod = pyambit.LabeledTensorAddition()
             for lbt in self.B.tensors:
                 term_key = ""
                 for index in lbt.indices:
                     term_key += uik[index_map[index]]
                 term = tensor_wrapper.LabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
-                prod.tensors.append(term)
+                prod += term.to_C()
 
             term_key = ""
             for index in self.A.indices:
                 term_key += uik[index_map[index]]
             A = tensor_wrapper.LabeledTensor(self.A.btensor.block(term_key).tensor, self.A.indices, self.A.factor)
-            dist = pyambit.LabeledTensorDistributive(A.to_C(), prod.to_C())
+            dist = pyambit.LabeledTensorDistributive(A.to_C(), prod)
             result += float(dist)
 
         return result

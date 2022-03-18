@@ -733,6 +733,7 @@ batched(const string &batched_indices,
 class LabeledTensorAddition
 {
   public:
+    LabeledTensorAddition() {}
     LabeledTensorAddition(const LabeledTensor &A, const LabeledTensor &B)
     {
         tensors_.push_back(A);
@@ -752,10 +753,17 @@ class LabeledTensorAddition
     vector<LabeledTensor>::iterator end() { return tensors_.end(); }
     vector<LabeledTensor>::const_iterator end() const { return tensors_.end(); }
 
-    LabeledTensorAddition &operator+(const LabeledTensor &other)
+    LabeledTensorAddition& operator+=(const LabeledTensor &other)
     {
         tensors_.push_back(other);
         return *this;
+    }
+
+    LabeledTensorAddition operator+(const LabeledTensor &other) const
+    {
+        LabeledTensorAddition copy(*this);
+        copy.tensors_.push_back(other);
+        return copy;
     }
 
     LabeledTensorAddition &operator-(const LabeledTensor &other)
@@ -764,12 +772,12 @@ class LabeledTensorAddition
         return *this;
     }
 
-    LabeledTensorDistribution operator*(const LabeledTensor &other);
+    LabeledTensorDistribution operator*(const LabeledTensor &other) const;
 
     LabeledTensorAddition &operator*(double scalar);
 
     // negation
-    LabeledTensorAddition &operator-();
+    LabeledTensorAddition operator-() const;
 
   private:
     // This handles cases like T("ijab")
