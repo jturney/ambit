@@ -325,7 +325,7 @@ void LabeledTensor::operator-=(const LabeledTensorDistribution &rhs)
 }
 
 LabeledTensorDistribution LabeledTensorAddition::
-operator*(const LabeledTensor &other)
+operator*(const LabeledTensor &other) const
 {
     return LabeledTensorDistribution(other, *this);
 }
@@ -341,14 +341,15 @@ LabeledTensorAddition &LabeledTensorAddition::operator*(double scalar)
     return *this;
 }
 
-LabeledTensorAddition &LabeledTensorAddition::operator-()
+LabeledTensorAddition LabeledTensorAddition::operator-() const
 {
-    for (LabeledTensor &T : tensors_)
+    LabeledTensorAddition copy(*this);
+    for (LabeledTensor &T : copy)
     {
         T *= -1.0;
     }
 
-    return *this;
+    return copy;
 }
 
 LabeledTensorContraction::operator double() const
