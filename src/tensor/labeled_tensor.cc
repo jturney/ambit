@@ -587,11 +587,11 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
             }
         }
         if (permuted_indices.size() == 0) {
-            rhsp.operator*(A);
+            rhsp *= A;
         } else {
             permuted_indices.insert(permuted_indices.end(),gemm_indices.begin(),gemm_indices.end());
             if (permuted_indices == A_indices) {
-                rhsp.operator*(A);
+                rhsp *= A;
             } else {
                 Dimension dims;
                 for (const string& s : permuted_indices) {
@@ -600,7 +600,7 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
                 Tensor Atp = Tensor::build(A.T().type(), A.T().name() + " permute", dims);
                 Atp.permute(A.T(), permuted_indices, A.indices());
                 LabeledTensor At(Atp, permuted_indices, A.factor());
-                rhsp.operator*(At);
+                rhsp *= At;
             }
         }
     }
@@ -636,10 +636,10 @@ void LabeledTensor::contract_batched(const LabeledTensorBatchedContraction &rhs_
 
             Tensor Atp = Tensor::build(A.T().type(), A.T().name() + " batch", dims);
             LabeledTensor At(Atp, indices, A.factor());
-            rhs_batch.operator*(At);
+            rhs_batch *= At;
             batch_tensors.push_back(Atp);
         } else {
-            rhs_batch.operator*(A);
+            rhs_batch *= A;
             batch_tensors.push_back(A.T());
         }
     }

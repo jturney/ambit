@@ -105,13 +105,13 @@ class LabeledBlockedTensorProduct:
         # Setup and perform contractions
         result = 0.0
         for uik in unique_indices_key:
-            prod = tensor_wrapper.LabeledTensorProduct(None, None)
+            prod = pyambit.LabeledTensorContraction()
             for lbt in self.btensors:
                 term_key = ""
                 for index in lbt.indices:
                     term_key += uik[index_map[index]]
                 term = tensor_wrapper.LabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
-                prod.tensors.append(term)
+                prod *= term.to_C()
 
             result += float(prod)
 
@@ -263,14 +263,14 @@ class LabeledBlockedTensor:
                 result = tensor_wrapper.LabeledTensor(self.btensor.block(result_key).tensor, self.indices, self.factor)
 
                 # print("tensor: %s" % self.btensor.block(result_key).tensor)
-                prod = tensor_wrapper.LabeledTensorProduct(None, None)
+                prod = pyambit.LabeledTensorContraction()
                 for lbt in rhs.btensors:
                     term_key = ""
                     for index in lbt.indices:
                         term_key += uik[index_map[index]]
                     # print("term_key: " + str(term_key))
                     term = tensor_wrapper.LabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
-                    prod.tensors.append(term)
+                    prod *= term.to_C()
 
                 if add == True:
                     result += prod
