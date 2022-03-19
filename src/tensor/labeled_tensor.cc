@@ -92,17 +92,17 @@ void LabeledTensor::operator-=(const LabeledTensor &rhs)
     T_.permute(rhs.T(), indices_, rhs.indices(), -rhs.factor(), 1.0);
 }
 
-LabeledTensorContraction LabeledTensor::operator*(const LabeledTensor &rhs)
+LabeledTensorContraction LabeledTensor::operator*(const LabeledTensor &rhs) const
 {
     return LabeledTensorContraction(*this, rhs);
 }
 
-LabeledTensorAddition LabeledTensor::operator+(const LabeledTensor &rhs)
+LabeledTensorAddition LabeledTensor::operator+(const LabeledTensor &rhs) const
 {
     return LabeledTensorAddition(*this, rhs);
 }
 
-LabeledTensorAddition LabeledTensor::operator-(const LabeledTensor &rhs)
+LabeledTensorAddition LabeledTensor::operator-(const LabeledTensor &rhs) const
 {
     return LabeledTensorAddition(*this, -rhs);
 }
@@ -290,7 +290,7 @@ void LabeledTensor::operator*=(double scale) { T_.scale(scale); }
 void LabeledTensor::operator/=(double scale) { T_.scale(1.0 / scale); }
 
 LabeledTensorDistribution LabeledTensor::
-operator*(const LabeledTensorAddition &rhs)
+operator*(const LabeledTensorAddition &rhs) const
 {
     return LabeledTensorDistribution(*this, rhs);
 }

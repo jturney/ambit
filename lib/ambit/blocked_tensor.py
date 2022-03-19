@@ -110,8 +110,7 @@ class LabeledBlockedTensorProduct:
                 term_key = ""
                 for index in lbt.indices:
                     term_key += uik[index_map[index]]
-                term = tensor_wrapper.LabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
-                prod *= term.to_C()
+                prod *= pyambit.ILabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
 
             result += float(prod)
 
@@ -180,14 +179,13 @@ class LabeledBlockedTensorDistributive:
                 term_key = ""
                 for index in lbt.indices:
                     term_key += uik[index_map[index]]
-                term = tensor_wrapper.LabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
-                prod += term.to_C()
+                prod += pyambit.ILabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
 
             term_key = ""
             for index in self.A.indices:
                 term_key += uik[index_map[index]]
-            A = tensor_wrapper.LabeledTensor(self.A.btensor.block(term_key).tensor, self.A.indices, self.A.factor)
-            dist = pyambit.LabeledTensorDistributive(A.to_C(), prod)
+            A = pyambit.ILabeledTensor(self.A.btensor.block(term_key).tensor, self.A.indices, self.A.factor)
+            dist = pyambit.LabeledTensorDistributive(A, prod)
             result += float(dist)
 
         return result
@@ -260,7 +258,7 @@ class LabeledBlockedTensor:
                 for index in self.indices:
                     result_key += uik[index_map[index]]
                 # print("result_key: " + str(result_key))
-                result = tensor_wrapper.LabeledTensor(self.btensor.block(result_key).tensor, self.indices, self.factor)
+                result = pyambit.ILabeledTensor(self.btensor.block(result_key).tensor, self.indices, self.factor)
 
                 # print("tensor: %s" % self.btensor.block(result_key).tensor)
                 prod = pyambit.LabeledTensorContraction()
@@ -269,8 +267,7 @@ class LabeledBlockedTensor:
                     for index in lbt.indices:
                         term_key += uik[index_map[index]]
                     # print("term_key: " + str(term_key))
-                    term = tensor_wrapper.LabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
-                    prod *= term.to_C()
+                    prod *= pyambit.ILabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
 
                 if add == True:
                     result += prod
