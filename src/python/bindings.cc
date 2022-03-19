@@ -93,7 +93,8 @@ PYBIND11_MODULE(pyambit, m)
         .def_property_readonly("factor", &LabeledTensor::factor, "docstring")
         .def_property_readonly("indices", idx(&LabeledTensor::indices), py::return_value_policy::copy)
         .def_property_readonly("tensor", &LabeledTensor::T)
-        .def("dim_by_index", &LabeledTensor::dim_by_index);
+        .def("dim_by_index", &LabeledTensor::dim_by_index)
+        .def("set", &LabeledTensor::set);
 
     py::class_<LabeledTensorAddition>(m, "LabeledTensorAddition")
         .def(py::init<const LabeledTensor&, const LabeledTensor&>())
@@ -104,6 +105,16 @@ PYBIND11_MODULE(pyambit, m)
         .def("__iadd__", [](LabeledTensorAddition& s1, const LabeledTensor& s2) { return s1 += s2; })
         .def("__mul__", [](const LabeledTensorAddition& s1, const LabeledTensor& s2) { return s1 * s2; })
         .def(float() * py::self);
+
+    py::class_<LabeledTensorContraction>(m, "LabeledTensorContraction")
+        .def(py::init<const LabeledTensor&, const LabeledTensor&>())
+        .def(py::init<>())
+        .def("__float__", [](const LabeledTensorContraction& t) { return static_cast<double>(t); })
+        .def("__len__", &LabeledTensorContraction::size)
+        .def("__imul__", [](LabeledTensorContraction& s1, const LabeledTensor& s2) { return s1 *= s2; })
+        .def(float() * py::self)
+        .def("__getitem__", [](const LabeledTensorContraction& t, size_t i) { return t[i]; })
+        .def("compute_contraction_cost", &LabeledTensorContraction::compute_contraction_cost);
 
     py::class_<LabeledTensorDistribution>(m, "LabeledTensorDistributive")
         .def(py::init<const LabeledTensor&, const LabeledTensorAddition&>())

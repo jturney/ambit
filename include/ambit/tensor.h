@@ -658,8 +658,9 @@ class LabeledTensor
                           bool zero_result, bool add,
                           bool optimize_order = true);
 
+    void set(const LabeledTensor &to); // This function is dangerous!
+
   private:
-    void set(const LabeledTensor &to);
 
     Tensor T_;
     Indices indices_;
@@ -687,13 +688,17 @@ class LabeledTensorContraction
 
     const LabeledTensor &operator[](size_t i) const { return tensors_[i]; }
 
-    LabeledTensorContraction &operator*(const LabeledTensor &other)
+    LabeledTensorContraction &operator*=(const LabeledTensor &other)
     {
         tensors_.push_back(other);
         return *this;
     }
 
-    void operator*=(const LabeledTensor &other) { tensors_.push_back(other); }
+    LabeledTensorContraction operator*(const LabeledTensor &other) const {
+        LabeledTensorContraction copy(*this);
+        copy *= other;
+        return copy;
+    }
 
     // conversion operator
     operator double() const;
