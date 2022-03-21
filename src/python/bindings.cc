@@ -89,7 +89,25 @@ PYBIND11_MODULE(pyambit, m)
     std::vector<double> &(Tensor::*data)() = &Tensor::data;
 
     py::class_<LabeledTensor>(m, "ILabeledTensor")
-        .def(py::init<Tensor, const std::vector<std::string> &, double>())
+        .def(py::init<Tensor, const std::vector<std::string> &, double>(), "tensor"_a, "indices"_a, "factor"_a = 1)
+        .def(py::init([](Tensor T, const std::string& indices, double factor) {
+            std::vector<std::string> index_vector;
+            for (auto& ch : indices) {
+                index_vector.push_back(std::string(1, ch));
+            }
+            return std::make_unique<LabeledTensor>(T, index_vector, factor);
+        }), "tensor"_a, "indices"_a, "factor"_a = 1)
+        .def(py::self + py::self)
+        .def(py::self += py::self)
+        .def(py::self -= py::self)
+        .def("__iadd__", [](LabeledTensor& s1, const LabeledTensorContraction& s2) { return s1 += s2; })
+        .def("__isub__", [](LabeledTensor& s1, const LabeledTensorContraction& s2) { return s1 -= s2; })
+        .def(py::self - py::self)
+        .def(py::self * py::self)
+        .def("__mul__", [](const LabeledTensor& s1, const LabeledTensorAddition& s2) { return s1 * s2; })
+        .def(float() * py::self)
+        .def(py::self *= float())
+        .def(py::self /= float())
         .def_property_readonly("factor", &LabeledTensor::factor, "docstring")
         .def_property_readonly("indices", idx(&LabeledTensor::indices), py::return_value_policy::copy)
         .def_property_readonly("tensor", &LabeledTensor::T)

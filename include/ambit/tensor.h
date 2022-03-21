@@ -610,11 +610,11 @@ class LabeledTensor
     Indices &indices() { return indices_; }
     const Tensor &T() const { return T_; }
 
-    LabeledTensorContraction operator*(const LabeledTensor &rhs);
-    LabeledTensorAddition operator+(const LabeledTensor &rhs);
-    LabeledTensorAddition operator-(const LabeledTensor &rhs);
+    LabeledTensorContraction operator*(const LabeledTensor &rhs) const;
+    LabeledTensorAddition operator+(const LabeledTensor &rhs) const;
+    LabeledTensorAddition operator-(const LabeledTensor &rhs) const;
 
-    LabeledTensorDistribution operator*(const LabeledTensorAddition &rhs);
+    LabeledTensorDistribution operator*(const LabeledTensorAddition &rhs) const;
 
     /** Copies data from rhs to this sorting the data if needed. */
     void operator=(const LabeledTensor &rhs);

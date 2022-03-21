@@ -157,7 +157,7 @@ class TestOperatorOverloading(unittest.TestCase):
         [aA, nA] = self.build_and_fill2("A", [ni, nj])
         [aC, nC] = self.build_and_fill2("C", [ni, nj])
 
-        aC["i,j"] = 2.0*aA["i,j"]
+        aC["ij"] = 2.0*aA["ij"]
 
         for i in range(ni):
             for j in range(nj):
@@ -171,7 +171,7 @@ class TestOperatorOverloading(unittest.TestCase):
         [aA, nA] = self.build_and_fill2("A", [ni, nj])
         [aC, nC] = self.build_and_fill2("C", [ni, nj])
 
-        aC["i,j"] += 2.0*aA["i,j"]
+        aC["ij"] += 2.0*aA["ij"]
 
         for i in range(ni):
             for j in range(nj):
@@ -185,7 +185,7 @@ class TestOperatorOverloading(unittest.TestCase):
         [aA, nA] = self.build_and_fill2("A", [ni, nj])
         [aC, nC] = self.build_and_fill2("C", [ni, nj])
 
-        aC["i,j"] -= 2.0*aA["i,j"]
+        aC["ij"] -= 2.0*aA["ij"]
 
         for i in range(ni):
             for j in range(nj):
@@ -198,7 +198,7 @@ class TestOperatorOverloading(unittest.TestCase):
         nj = 6
         [aC, nC] = self.build_and_fill2("C", [ni, nj])
 
-        aC["i,j"] *= 2.0
+        aC["ij"] *= 2.0
 
         for i in range(ni):
             for j in range(nj):
@@ -211,7 +211,7 @@ class TestOperatorOverloading(unittest.TestCase):
         nj = 6
         [aC, nC] = self.build_and_fill2("C", [ni, nj])
 
-        aC["i,j"] /= 2.0
+        aC["ij"] /= 2.0
 
         for i in range(ni):
             for j in range(nj):
@@ -225,7 +225,7 @@ class TestOperatorOverloading(unittest.TestCase):
         [aA, nA] = self.build_and_fill2("A", [ni, nj])
         [aC, nC] = self.build_and_fill2("C", [ni, nj])
 
-        aC["i,j"] = aA["i,j"]
+        aC["ij"] = aA["ij"]
 
         for i in range(ni):
             for j in range(nj):
@@ -271,7 +271,6 @@ class TestOperatorOverloading(unittest.TestCase):
 
         self.assertAlmostEqual(0.0, self.difference(aC, nC), places=12)
 
-    @unittest.expectedFailure
     def test_Cij_equal_Cij(self):
         ni = 9
         nj = 6
@@ -503,7 +502,7 @@ class TestOperatorOverloading(unittest.TestCase):
         [C, nC] = self.build_and_fill("C", [ni, nj])
         [D, nD] = self.build_and_fill("D", [ni, nj])
 
-        D["ij"] = A["ij"] +  B["ij"] + C["ij"].to_C() # Dirty hack until LabeledTensor becomes C
+        D["ij"] = A["ij"] +  B["ij"] + C["ij"]
 
         for i in range(ni):
             for j in range(nj):
@@ -536,7 +535,7 @@ class TestOperatorOverloading(unittest.TestCase):
         [C, nC] = self.build_and_fill("C", [ni, nj])
         [D, nD] = self.build_and_fill("D", [ni, nj])
 
-        D["ij"] = A["ij"] -  B["ij"] + (2.0*C["ij"]).to_C() # Dirty hack until LabeledTensor becomes C
+        D["ij"] = A["ij"] -  B["ij"] + 2.0*C["ij"]
 
         for i in range(ni):
             for j in range(nj):
@@ -570,7 +569,7 @@ class TestOperatorOverloading(unittest.TestCase):
         [C, nC] = self.build_and_fill("C", [ni, nj])
         [D, nD] = self.build_and_fill("D", [ni, nj])
 
-        D["ij"] = (2.0*B["ij"] - C["ij"]) * A["ij"].to_C() # Dirty hack until LabeledTensor becomes C
+        D["ij"] = (2.0*B["ij"] - C["ij"]) * A["ij"]
 
         for i in range(ni):
             for j in range(nj):
