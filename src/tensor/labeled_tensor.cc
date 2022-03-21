@@ -68,28 +68,30 @@ size_t LabeledTensor::dim_by_index(const string &idx) const
 void LabeledTensor::operator=(const LabeledTensor &rhs)
 {
     if (T() == rhs.T())
-        throw std::runtime_error("Self assignment is not allowed.");
+        return; // Self-assignments means no work to do.
     if (T_.rank() != rhs.T().rank())
         throw std::runtime_error("Permuted tensors do not have same rank");
     T_.permute(rhs.T(), indices_, rhs.indices(), rhs.factor(), 0.0);
 }
 
-void LabeledTensor::operator+=(const LabeledTensor &rhs)
+LabeledTensor& LabeledTensor::operator+=(const LabeledTensor &rhs)
 {
     if (T() == rhs.T())
         throw std::runtime_error("Self assignment is not allowed.");
     if (T_.rank() != rhs.T().rank())
         throw std::runtime_error("Permuted tensors do not have same rank");
     T_.permute(rhs.T(), indices_, rhs.indices(), rhs.factor(), 1.0);
+    return *this;
 }
 
-void LabeledTensor::operator-=(const LabeledTensor &rhs)
+LabeledTensor& LabeledTensor::operator-=(const LabeledTensor &rhs)
 {
     if (T() == rhs.T())
         throw std::runtime_error("Self assignment is not allowed.");
     if (T_.rank() != rhs.T().rank())
         throw std::runtime_error("Permuted tensors do not have same rank");
     T_.permute(rhs.T(), indices_, rhs.indices(), -rhs.factor(), 1.0);
+    return *this;
 }
 
 LabeledTensorContraction LabeledTensor::operator*(const LabeledTensor &rhs) const
@@ -220,14 +222,16 @@ void LabeledTensor::operator=(const LabeledTensorContraction &rhs)
     contract(rhs, true, true);
 }
 
-void LabeledTensor::operator+=(const LabeledTensorContraction &rhs)
+LabeledTensor& LabeledTensor::operator+=(const LabeledTensorContraction &rhs)
 {
     contract(rhs, false, true);
+    return *this;
 }
 
-void LabeledTensor::operator-=(const LabeledTensorContraction &rhs)
+LabeledTensor& LabeledTensor::operator-=(const LabeledTensorContraction &rhs)
 {
     contract(rhs, false, false);
+    return *this;
 }
 
 void LabeledTensor::operator=(const LabeledTensorBatchedContraction &rhs)
@@ -235,14 +239,16 @@ void LabeledTensor::operator=(const LabeledTensorBatchedContraction &rhs)
     contract_batched(rhs, true, true);
 }
 
-void LabeledTensor::operator+=(const LabeledTensorBatchedContraction &rhs)
+LabeledTensor& LabeledTensor::operator+=(const LabeledTensorBatchedContraction &rhs)
 {
     contract_batched(rhs, false, true);
+    return *this;
 }
 
-void LabeledTensor::operator-=(const LabeledTensorBatchedContraction &rhs)
+LabeledTensor& LabeledTensor::operator-=(const LabeledTensorBatchedContraction &rhs)
 {
     contract_batched(rhs, false, false);
+    return *this;
 }
 
 void LabeledTensor::operator=(const LabeledTensorAddition &rhs)
@@ -259,7 +265,7 @@ void LabeledTensor::operator=(const LabeledTensorAddition &rhs)
     }
 }
 
-void LabeledTensor::operator+=(const LabeledTensorAddition &rhs)
+LabeledTensor& LabeledTensor::operator+=(const LabeledTensorAddition &rhs)
 {
     for (size_t ind = 0, end = rhs.size(); ind < end; ++ind)
     {
@@ -270,9 +276,10 @@ void LabeledTensor::operator+=(const LabeledTensorAddition &rhs)
         T_.permute(rhs[ind].T(), indices_, rhs[ind].indices(),
                    rhs[ind].factor(), 1.0);
     }
+    return *this;
 }
 
-void LabeledTensor::operator-=(const LabeledTensorAddition &rhs)
+LabeledTensor& LabeledTensor::operator-=(const LabeledTensorAddition &rhs)
 {
     for (size_t ind = 0, end = rhs.size(); ind < end; ++ind)
     {
@@ -283,11 +290,12 @@ void LabeledTensor::operator-=(const LabeledTensorAddition &rhs)
         T_.permute(rhs[ind].T(), indices_, rhs[ind].indices(),
                    -rhs[ind].factor(), 1.0);
     }
+    return *this;
 }
 
-void LabeledTensor::operator*=(double scale) { T_.scale(scale); }
+LabeledTensor& LabeledTensor::operator*=(double scale) { T_.scale(scale); return *this; }
 
-void LabeledTensor::operator/=(double scale) { T_.scale(1.0 / scale); }
+LabeledTensor& LabeledTensor::operator/=(double scale) { T_.scale(1.0 / scale); return *this; }
 
 LabeledTensorDistribution LabeledTensor::
 operator*(const LabeledTensorAddition &rhs) const
@@ -306,22 +314,24 @@ void LabeledTensor::operator=(const LabeledTensorDistribution &rhs)
     }
 }
 
-void LabeledTensor::operator+=(const LabeledTensorDistribution &rhs)
+LabeledTensor& LabeledTensor::operator+=(const LabeledTensorDistribution &rhs)
 {
     for (const LabeledTensor &B : rhs.B())
     {
         *this += const_cast<LabeledTensor &>(rhs.A()) *
                  const_cast<LabeledTensor &>(B);
     }
+    return *this;
 }
 
-void LabeledTensor::operator-=(const LabeledTensorDistribution &rhs)
+LabeledTensor& LabeledTensor::operator-=(const LabeledTensorDistribution &rhs)
 {
     for (const LabeledTensor &B : rhs.B())
     {
         *this -= const_cast<LabeledTensor &>(rhs.A()) *
                  const_cast<LabeledTensor &>(B);
     }
+    return *this;
 }
 
 LabeledTensorDistribution LabeledTensorAddition::

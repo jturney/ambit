@@ -61,6 +61,70 @@ py::dict tensor_array_interface(Tensor ten)
     return rv;
 }
 
+// TODO: There's a lot of code duplication b/w these two parse_slices calls.
+// When the rest of the code settles down, consolidate.
+IndexRange parse_slices(const py::tuple& tuple, const Dimension& dim)
+{
+    IndexRange idx;
+    if (tuple.size() != dim.size())
+        throw std::exception();
+
+    for (size_t i = 0; i < tuple.size(); ++i) {
+        const auto& items = tuple[i];
+        const auto slice = items.cast<py::slice>();
+        try {
+            slice.attr("step").cast<py::none>();
+        } catch(...) {
+            throw std::invalid_argument("Step syntax not allowed. Try the NumPy interface.");
+        }
+        size_t start, stop;
+        try {
+            start = slice.attr("start").cast<size_t>();
+        } catch(...) {
+            start = 0;
+        }
+        try {
+            stop = slice.attr("stop").cast<size_t>();
+        } catch(...) {
+            stop = dim[i];
+        }
+        idx.push_back(std::vector<size_t> {start, stop});
+    }
+    return idx;
+}
+
+IndexRange parse_slices(const py::slice& slice, const Dimension& dim)
+{
+    IndexRange idx;
+    // The below check should have been done in the Python version but wasn't.
+    // TODO: Uncomment this check after the rest is corrected.
+    /*
+    if (1 != dim.size())
+        throw std::exception();
+    */
+    
+    try {
+        slice.attr("step").cast<py::none>();
+    } catch(...) {
+        throw std::invalid_argument("Step syntax not allowed. Try the NumPy interface.");
+    }
+    size_t start, stop;
+    try {
+        start = slice.attr("start").cast<size_t>();
+    } catch(...) {
+        start = 0;
+    }
+    try {
+        stop = slice.attr("stop").cast<size_t>();
+    } catch(...) {
+        stop = dim[0];
+    }
+    idx.push_back(std::vector<size_t> {start, stop});
+
+    return idx;
+}
+
+
 void initialize_wrapper() { ambit::initialize(0, nullptr); }
 
 PYBIND11_MODULE(pyambit, m)
@@ -152,8 +216,8 @@ PYBIND11_MODULE(pyambit, m)
     typedef void (Tensor::*contract1)(const Tensor &A, const Tensor &B, const Indices &Cinds,
             const Indices &Ainds, const Indices &Binds, double alpha, double beta);
 
-    py::class_<Tensor>(m, "ITensor")
-    //py::class_<Tensor>(m, "ITensor", py::buffer_protocol())
+    py::class_<Tensor>(m, "Tensor")
+    //py::class_<Tensor>(m, "Tensor", py::buffer_protocol())
         /*
          * The below buffer code is the direct pybind/NumPy interface.
          * Unfortunately, it doesn't play nicely with Py-side _array_interface_
@@ -195,6 +259,16 @@ PYBIND11_MODULE(pyambit, m)
                 self.print(stdout, level, string, maxcols); })
         .def("reset", &Tensor::reset)
         .def("set", &Tensor::set)
+        .def("__getitem__", [](const Tensor& t, const std::string& s) { return t(s); })
+        .def("__getitem__", [](const Tensor& t, const IndexRange& indices) { return t(indices); })
+        .def("__getitem__", [](const Tensor& t, const py::tuple& indices) { return t(parse_slices(indices, t.dims())); })
+        .def("__getitem__", [](const Tensor& t, const py::slice& indices) { return t(parse_slices(indices, t.dims())); })
+        .def("__setitem__", [](Tensor& t, const std::string& key, const LabeledTensor& s) { t(key) = s; })
+        .def("__setitem__", [](Tensor& t, const std::string& key, const LabeledTensorAddition& s) { t(key) = s; })
+        .def("__setitem__", [](Tensor& t, const std::string& key, const LabeledTensorContraction& s) { t(key) = s; })
+        .def("__setitem__", [](Tensor& t, const std::string& key, const LabeledTensorDistribution& s) { t(key) = s; })
+        .def("__setitem__", [](Tensor& t, const IndexRange& indices, const SlicedTensor& s) { t(indices) = s; })
+        .def("__setitem__", [](Tensor& t, const py::tuple& indices, const SlicedTensor& s) { t(parse_slices(indices, t.dims())) = s ; })
         .def_property_readonly("__array_interface__", tensor_array_interface);
 
     m.def("initialize", initialize_wrapper);

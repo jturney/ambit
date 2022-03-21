@@ -63,10 +63,10 @@ class TestOperatorOverloading(unittest.TestCase):
         if isinstance(dims, str):
             dims = [dim_size_dict[i] for i in dims]
 
-        T = ambit.Tensor(ttype, name, dims)
+        T = ambit.Tensor.build(ttype, name, dims)
 
         # Fill both N and T
-        N = np.asarray(T.tensor)
+        N = np.asarray(T)
 
         if fill:
             N.flat[:] = fill
@@ -243,11 +243,11 @@ class TestOperatorOverloading(unittest.TestCase):
         nA[:, :] += nB[:, :]
         self.assert_allclose(aA, nA)
 
-        aA[[3,5], [0,10]] -= aB[[2,4], :]
+        aA[[3,5], [0,10]] -= aB[2:4, :]
         nA[3:5, :] -= nB[2:4, :]
         self.assert_allclose(aA, nA)
 
-        aA[5:, [0,10]] -= aB[[0,5], :]
+        aA[5:, 0:10] -= aB[0:5, :]
         nA[5:, :] -= nB[:5, :]
         self.assert_allclose(aA, nA)
 

@@ -29,11 +29,8 @@
 
 
 from . import pyambit
-from .pyambit import TensorType, EigenvalueOrder
+from .pyambit import TensorType, EigenvalueOrder, Tensor
 from .pyambit import initialize, finalize
-
-from . import tensor_wrapper
-from .tensor_wrapper import Tensor
 
 from . import blocked_tensor
 from .blocked_tensor import MOSpace, SpinType, BlockedTensor

@@ -46,7 +46,7 @@ SlicedTensor::SlicedTensor(Tensor T, const IndexRange &range, double factor)
     }
     for (size_t ind = 0; ind < T.rank(); ind++)
     {
-        if (range_[ind].size() != 2L)
+        if (range_[ind].size() != 2)
             throw std::runtime_error("Each index of an IndexRange should have "
                                      "two elements {start,end+1} in it.");
         if (range_[ind][0] > range_[ind][1])
@@ -60,27 +60,33 @@ SlicedTensor::SlicedTensor(Tensor T, const IndexRange &range, double factor)
 void SlicedTensor::operator=(const SlicedTensor &rhs)
 {
     if (T() == rhs.T())
-        throw std::runtime_error("Self assignment is not allowed.");
+        if (range_ == rhs.range_ and factor_ == rhs.factor_) {
+            return; // No work to do.
+        } else {
+            throw std::runtime_error("Non-trivial self-assignment is not allowed.");
+        }
     if (T_.rank() != rhs.T().rank())
         throw std::runtime_error("Sliced tensors do not have same rank");
     T_.slice(rhs.T(), range_, rhs.range_, rhs.factor_, 0.0);
 }
 
-void SlicedTensor::operator+=(const SlicedTensor &rhs)
+SlicedTensor& SlicedTensor::operator+=(const SlicedTensor &rhs)
 {
     if (T() == rhs.T())
         throw std::runtime_error("Self assignment is not allowed.");
     if (T_.rank() != rhs.T().rank())
         throw std::runtime_error("Sliced tensors do not have same rank");
     T_.slice(rhs.T(), range_, rhs.range_, rhs.factor_, 1.0);
+    return *this;
 }
 
-void SlicedTensor::operator-=(const SlicedTensor &rhs)
+SlicedTensor& SlicedTensor::operator-=(const SlicedTensor &rhs)
 {
     if (T() == rhs.T())
         throw std::runtime_error("Self assignment is not allowed.");
     if (T_.rank() != rhs.T().rank())
         throw std::runtime_error("Sliced tensors do not have same rank");
     T_.slice(rhs.T(), range_, rhs.range_, -rhs.factor_, 1.0);
+    return *this;
 }
 }

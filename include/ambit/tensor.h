@@ -618,27 +618,27 @@ class LabeledTensor
 
     /** Copies data from rhs to this sorting the data if needed. */
     void operator=(const LabeledTensor &rhs);
-    void operator+=(const LabeledTensor &rhs);
-    void operator-=(const LabeledTensor &rhs);
+    LabeledTensor& operator+=(const LabeledTensor &rhs);
+    LabeledTensor& operator-=(const LabeledTensor &rhs);
 
     void operator=(const LabeledTensorDistribution &rhs);
-    void operator+=(const LabeledTensorDistribution &rhs);
-    void operator-=(const LabeledTensorDistribution &rhs);
+    LabeledTensor& operator+=(const LabeledTensorDistribution &rhs);
+    LabeledTensor& operator-=(const LabeledTensorDistribution &rhs);
 
     void operator=(const LabeledTensorContraction &rhs);
-    void operator+=(const LabeledTensorContraction &rhs);
-    void operator-=(const LabeledTensorContraction &rhs);
+    LabeledTensor& operator+=(const LabeledTensorContraction &rhs);
+    LabeledTensor& operator-=(const LabeledTensorContraction &rhs);
 
     void operator=(const LabeledTensorBatchedContraction &rhs);
-    void operator+=(const LabeledTensorBatchedContraction &rhs);
-    void operator-=(const LabeledTensorBatchedContraction &rhs);
+    LabeledTensor& operator+=(const LabeledTensorBatchedContraction &rhs);
+    LabeledTensor& operator-=(const LabeledTensorBatchedContraction &rhs);
 
     void operator=(const LabeledTensorAddition &rhs);
-    void operator+=(const LabeledTensorAddition &rhs);
-    void operator-=(const LabeledTensorAddition &rhs);
+    LabeledTensor& operator+=(const LabeledTensorAddition &rhs);
+    LabeledTensor& operator-=(const LabeledTensorAddition &rhs);
 
-    void operator*=(double scale);
-    void operator/=(double scale);
+    LabeledTensor& operator*=(double scale);
+    LabeledTensor& operator/=(double scale);
 
     //    bool operator==(const LabeledTensor& other) const;
     //    bool operator!=(const LabeledTensor& other) const;
@@ -828,8 +828,8 @@ class SlicedTensor
     size_t rank() const { return T_.rank(); }
 
     void operator=(const SlicedTensor &rhs);
-    void operator+=(const SlicedTensor &rhs);
-    void operator-=(const SlicedTensor &rhs);
+    SlicedTensor& operator+=(const SlicedTensor &rhs);
+    SlicedTensor& operator-=(const SlicedTensor &rhs);
 
     // negation
     SlicedTensor operator-() const
