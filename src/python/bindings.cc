@@ -32,6 +32,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
+#include <ambit/blocked_tensor.h>
 #include <ambit/tensor.h>
 #include <../tensor/indices.h>
 
@@ -148,6 +149,17 @@ PYBIND11_MODULE(pyambit, m)
         .def_static("permutation_order", &indices::permutation_order)
         .def_static("determine_contraction_result_from_indices",
              &indices::determine_contraction_result_from_indices);
+
+    py::enum_<SpinType>(m, "SpinType")
+        .value("AlphaSpin", SpinType::AlphaSpin)
+        .value("BetaSpin", SpinType::BetaSpin)
+        .value("NoSpin", SpinType::NoSpin)
+        .export_values();
+
+    py::class_<MOSpace>(m, "MOSpace")
+        .def(py::init<const std::string &, const std::string &, std::vector<size_t>, SpinType>())
+        .def("dim", &MOSpace::dim)
+        .def_property_readonly("name", &MOSpace::name);
 
     typedef const Indices &(LabeledTensor::*idx)() const;
     std::vector<double> &(Tensor::*data)() = &Tensor::data;

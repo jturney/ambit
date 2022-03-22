@@ -31,6 +31,7 @@
 from . import pyambit
 from .pyambit import TensorType, EigenvalueOrder, Tensor
 from .pyambit import initialize, finalize
+from .pyambit import MOSpace, SpinType
 
 from . import blocked_tensor
-from .blocked_tensor import MOSpace, SpinType, BlockedTensor
+from .blocked_tensor import BlockedTensor

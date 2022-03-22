@@ -34,41 +34,6 @@ import copy
 import numbers
 import sys, traceback
 
-class SpinType:
-    AlphaSpin = 1
-    BetaSpin = 2
-    NoSpin = 3
-
-
-class MOSpace:
-    def __init__(self, name, mo_indices, mos, spin):
-        self.name = str(name)
-        self.mo_indices = pyambit.Indices.split(mo_indices)
-        self.mos = mos
-
-        if len(self.name) == 0:
-            raise RuntimeError("MOSpace: No name provided to MO space")
-
-        if len(mo_indices) == 0:
-            raise RuntimeError("MOSpace: No MO indices provided.")
-
-        if len(mos) == 0:
-            raise RuntimeError("MOSpace: No MOs provided.")
-
-        if SpinType.AlphaSpin <= spin <= SpinType.NoSpin:
-            self.spin = spin
-        else:
-            raise TypeError("Value of spin is invalid.")
-
-    def dim(self):
-        return len(self.mos)
-
-    def __str__(self):
-        msg = "\n  Orbital Space \"%s\"\n  MO Indices: {%s}\n  MO List: (%s)\n" % (
-        self.name, ','.join(map(str, self.mo_indices)), ','.join(map(str, self.mos)))
-        return msg
-
-
 class LabeledBlockedTensorProduct:
 
     def __init__(self, left, right):
@@ -368,7 +333,7 @@ class BlockedTensor:
 
         mo_space_idx = len(BlockedTensor.mo_spaces)
 
-        ms = MOSpace(name, mo_indices, mos, spin)
+        ms = pyambit.MOSpace(name, mo_indices, mos, spin)
 
         # Add the MOSpace object
         BlockedTensor.mo_spaces.append(ms)
