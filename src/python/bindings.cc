@@ -283,6 +283,53 @@ PYBIND11_MODULE(pyambit, m)
         .def("__setitem__", [](Tensor& t, const py::tuple& indices, const SlicedTensor& s) { t(parse_slices(indices, t.dims())) = s ; })
         .def_property_readonly("__array_interface__", tensor_array_interface);
 
+    py::class_<BlockedTensor>(m, "BlockedTensor")
+        .def_static("add_mo_space", py::overload_cast<const std::string &, const std::string &, std::vector<size_t>, SpinType>(&BlockedTensor::add_mo_space))
+        .def_static("add_composite_mo_space", &BlockedTensor::add_composite_mo_space)
+        .def_static("build", &BlockedTensor::build)
+        .def_static("reset_mo_space", &BlockedTensor::reset_mo_spaces)
+        .def("__getitem__", [](const BlockedTensor& b, const std::string& s){ return b[s]; })
+        .def("__setitem__", [](BlockedTensor& t, const std::string& key, const LabeledBlockedTensor& s) { t[key] = s; })
+        .def("__setitem__", [](BlockedTensor& t, const std::string& key, const LabeledBlockedTensorAddition& s) { t[key] = s; })
+        .def("__setitem__", [](BlockedTensor& t, const std::string& key, const LabeledBlockedTensorDistributive& s) { t[key] = s; })
+        .def("__setitem__", [](BlockedTensor& t, const std::string& key, const LabeledBlockedTensorProduct& s) { t[key] = s; })
+        .def("block", py::overload_cast<const std::string &>(&BlockedTensor::block))
+        .def("norm", &BlockedTensor::norm)
+        .def("scale", &BlockedTensor::scale)
+        .def("set", &BlockedTensor::set)
+        .def("zero", &BlockedTensor::zero);
+
+    py::class_<LabeledBlockedTensor>(m, "LabeledBlockedTensor")
+        .def(py::self + py::self)
+        .def(py::self - py::self)
+        .def("__iadd__", [](LabeledBlockedTensor& s1, const LabeledBlockedTensor& s2) { return s1 += s2; })
+        .def("__iadd__", [](LabeledBlockedTensor& s1, const LabeledBlockedTensorAddition& s2) { return s1 += s2; })
+        .def("__iadd__", [](LabeledBlockedTensor& s1, const LabeledBlockedTensorDistributive& s2) { return s1 += s2; })
+        .def("__iadd__", [](LabeledBlockedTensor& s1, const LabeledBlockedTensorProduct& s2) { return s1 += s2; })
+        .def("__isub__", [](LabeledBlockedTensor& s1, const LabeledBlockedTensor& s2) { return s1 -= s2; })
+        .def("__isub__", [](LabeledBlockedTensor& s1, const LabeledBlockedTensorAddition& s2) { return s1 -= s2; })
+        .def("__isub__", [](LabeledBlockedTensor& s1, const LabeledBlockedTensorDistributive& s2) { return s1 -= s2; })
+        .def("__isub__", [](LabeledBlockedTensor& s1, const LabeledBlockedTensorProduct& s2) { return s1 -= s2; })
+        .def(py::self * py::self)
+        .def("__mul__", [](const LabeledBlockedTensor& s1, const LabeledBlockedTensorAddition& s2) { return s1 * s2; })
+        .def("__mul__", [](const LabeledBlockedTensor& s1, double f) { return f * s1; })
+        .def(double() * py::self)
+        .def(py::self *= double())
+        .def(py::self /= double());
+
+    py::class_<LabeledBlockedTensorAddition>(m, "LabeledBlockedTensorAddition")
+        .def(-py::self)
+        .def("__mul__", [](const LabeledBlockedTensorAddition& s1, const LabeledBlockedTensor& s2) { return s1 * s2; })
+        .def(float() * py::self);
+
+    py::class_<LabeledBlockedTensorDistributive>(m, "LabeledBlockedTensorDistributive")
+        .def("__float__", [](const LabeledBlockedTensorDistributive& t) { return static_cast<double>(t); });
+
+    py::class_<LabeledBlockedTensorProduct>(m, "LabeledBlockedTensorProduct")
+        .def("__mul__", [](const LabeledBlockedTensorProduct& s1, const LabeledBlockedTensor& s2) { return s1 * s2; })
+        .def("__imul__", [](LabeledBlockedTensorProduct& s1, const LabeledBlockedTensor& s2) { return s1 *= s2; })
+        .def("__float__", [](const LabeledBlockedTensorProduct& t) { return static_cast<double>(t); });
+
     m.def("initialize", initialize_wrapper);
     m.def("finalize", ambit::finalize);
 }
