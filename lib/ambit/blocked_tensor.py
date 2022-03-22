@@ -29,7 +29,6 @@
 
 from __future__ import division
 from . import pyambit
-from . import tensor_wrapper
 import math
 import copy
 import numbers
@@ -110,7 +109,7 @@ class LabeledBlockedTensorProduct:
                 term_key = ""
                 for index in lbt.indices:
                     term_key += uik[index_map[index]]
-                prod *= pyambit.ILabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
+                prod *= pyambit.ILabeledTensor(lbt.btensor.block(term_key), lbt.indices, lbt.factor)
 
             result += float(prod)
 
@@ -179,12 +178,12 @@ class LabeledBlockedTensorDistributive:
                 term_key = ""
                 for index in lbt.indices:
                     term_key += uik[index_map[index]]
-                prod += pyambit.ILabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
+                prod += pyambit.ILabeledTensor(lbt.btensor.block(term_key), lbt.indices, lbt.factor)
 
             term_key = ""
             for index in self.A.indices:
                 term_key += uik[index_map[index]]
-            A = pyambit.ILabeledTensor(self.A.btensor.block(term_key).tensor, self.A.indices, self.A.factor)
+            A = pyambit.ILabeledTensor(self.A.btensor.block(term_key), self.A.indices, self.A.factor)
             dist = pyambit.LabeledTensorDistributive(A, prod)
             result += float(dist)
 
@@ -217,7 +216,7 @@ class LabeledBlockedTensor:
 
             # Need to protect against self assignment
             # Need to protect against different ranks
-            LHS.permute(RHS, self.indices, rhs.indices, alpha=alpha * rhs.factor, beta=beta)
+            LHS.permute(RHS, self.indices, rhs.indices, alpha * rhs.factor, beta)
 
     def contract(self, rhs, zero_result, add):
         if isinstance(rhs, LabeledBlockedTensorProduct):
@@ -258,7 +257,7 @@ class LabeledBlockedTensor:
                 for index in self.indices:
                     result_key += uik[index_map[index]]
                 # print("result_key: " + str(result_key))
-                result = pyambit.ILabeledTensor(self.btensor.block(result_key).tensor, self.indices, self.factor)
+                result = pyambit.ILabeledTensor(self.btensor.block(result_key), self.indices, self.factor)
 
                 # print("tensor: %s" % self.btensor.block(result_key).tensor)
                 prod = pyambit.LabeledTensorContraction()
@@ -267,7 +266,7 @@ class LabeledBlockedTensor:
                     for index in lbt.indices:
                         term_key += uik[index_map[index]]
                     # print("term_key: " + str(term_key))
-                    prod *= pyambit.ILabeledTensor(lbt.btensor.block(term_key).tensor, lbt.indices, lbt.factor)
+                    prod *= pyambit.ILabeledTensor(lbt.btensor.block(term_key), lbt.indices, lbt.factor)
 
                 if add == True:
                     result += prod
@@ -486,8 +485,7 @@ class BlockedTensor:
             for ms in this_block:
                 mo_names += BlockedTensor.mo_spaces[ms].name
 
-            newObject.blocks[mo_names] = tensor_wrapper.Tensor.build(dtype=dtype, name=name + "[" + mo_names + "]",
-                                                                     dims=dims)
+            newObject.blocks[mo_names] = pyambit.Tensor.build(dtype, name + "[" + mo_names + "]", dims)
 
             # Set or check the rank
             if newObject.rank > 0:

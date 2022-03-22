@@ -43,7 +43,7 @@ class TestBlocks(unittest.TestCase):
         ambit.finalize()
 
     def build_and_fill2(self, name, dims):
-        T = ambit.Tensor(ambit.TensorType.CoreTensor, name, dims)
+        T = ambit.Tensor.build(ambit.TensorType.CoreTensor, name, dims)
         N = [[0 for x in range(dims[1])] for x in range(dims[0])]
 
         data = np.asarray(T)
@@ -74,7 +74,7 @@ class TestBlocks(unittest.TestCase):
         return max_diff
 
     def build_and_fill3(self, name, dims):
-        T = ambit.Tensor(ambit.TensorType.CoreTensor, name, dims)
+        T = ambit.Tensor.build(ambit.TensorType.CoreTensor, name, dims)
         N = [[[0 for x in range(dims[2])] for x in range(dims[1])] for x in range(dims[0])]
 
         data = np.asarray(T)
@@ -104,7 +104,7 @@ class TestBlocks(unittest.TestCase):
         return max_diff
 
     def build_and_fill4(self, name, dims):
-        T = ambit.Tensor(ambit.TensorType.CoreTensor, name, dims)
+        T = ambit.Tensor.build(ambit.TensorType.CoreTensor, name, dims)
         N = [[[[0 for x in range(dims[3])] for x in range(dims[2])] for x in range(dims[1])] for x in range(dims[0])]
 
         data = np.asarray(T)
