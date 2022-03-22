@@ -185,6 +185,7 @@ class BlockedTensor
     static void add_mo_space(const std::string &name,
                              const std::string &mo_indices,
                              std::vector<std::pair<size_t, SpinType>> mo_spin);
+    // TODO: Why does subspaces need to be a vector rather than an unordered set?
     static void
     add_composite_mo_space(const std::string &name,
                            const std::string &mo_indices,
@@ -385,8 +386,8 @@ class BlockedTensor
   public:
     // => Operator Overloading API <= //
 
-    LabeledBlockedTensor operator()(const std::string &indices);
-    LabeledBlockedTensor operator[](const std::string &indices);
+    LabeledBlockedTensor operator()(const std::string &indices) const;
+    LabeledBlockedTensor operator[](const std::string &indices) const;
 };
 
 /**
@@ -432,36 +433,36 @@ class LabeledBlockedTensor
     const BlockedTensor &BT() const { return BT_; }
     std::string str() const;
 
-    LabeledBlockedTensorProduct operator*(const LabeledBlockedTensor &rhs);
-    LabeledBlockedTensorAddition operator+(const LabeledBlockedTensor &rhs);
-    LabeledBlockedTensorAddition operator-(const LabeledBlockedTensor &rhs);
+    LabeledBlockedTensorProduct operator*(const LabeledBlockedTensor &rhs) const;
+    LabeledBlockedTensorAddition operator+(const LabeledBlockedTensor &rhs) const;
+    LabeledBlockedTensorAddition operator-(const LabeledBlockedTensor &rhs) const;
 
     LabeledBlockedTensorDistributive
-    operator*(const LabeledBlockedTensorAddition &rhs);
+    operator*(const LabeledBlockedTensorAddition &rhs) const;
 
     /** Copies data from rhs to this sorting the data if needed. */
     void operator=(const LabeledBlockedTensor &rhs);
-    void operator+=(const LabeledBlockedTensor &rhs);
-    void operator-=(const LabeledBlockedTensor &rhs);
+    LabeledBlockedTensor& operator+=(const LabeledBlockedTensor &rhs);
+    LabeledBlockedTensor& operator-=(const LabeledBlockedTensor &rhs);
 
     void operator=(const LabeledBlockedTensorDistributive &rhs);
-    void operator+=(const LabeledBlockedTensorDistributive &rhs);
-    void operator-=(const LabeledBlockedTensorDistributive &rhs);
+    LabeledBlockedTensor& operator+=(const LabeledBlockedTensorDistributive &rhs);
+    LabeledBlockedTensor& operator-=(const LabeledBlockedTensorDistributive &rhs);
 
     void operator=(const LabeledBlockedTensorProduct &rhs);
-    void operator+=(const LabeledBlockedTensorProduct &rhs);
-    void operator-=(const LabeledBlockedTensorProduct &rhs);
+    LabeledBlockedTensor& operator+=(const LabeledBlockedTensorProduct &rhs);
+    LabeledBlockedTensor& operator-=(const LabeledBlockedTensorProduct &rhs);
 
     void operator=(const LabeledBlockedTensorBatchedProduct &rhs);
-    void operator+=(const LabeledBlockedTensorBatchedProduct &rhs);
-    void operator-=(const LabeledBlockedTensorBatchedProduct &rhs);
+    LabeledBlockedTensor& operator+=(const LabeledBlockedTensorBatchedProduct &rhs);
+    LabeledBlockedTensor& operator-=(const LabeledBlockedTensorBatchedProduct &rhs);
 
     void operator=(const LabeledBlockedTensorAddition &rhs);
-    void operator+=(const LabeledBlockedTensorAddition &rhs);
-    void operator-=(const LabeledBlockedTensorAddition &rhs);
+    LabeledBlockedTensor& operator+=(const LabeledBlockedTensorAddition &rhs);
+    LabeledBlockedTensor& operator-=(const LabeledBlockedTensorAddition &rhs);
 
-    void operator*=(double scale);
-    void operator/=(double scale);
+    LabeledBlockedTensor& operator*=(double scale);
+    LabeledBlockedTensor& operator/=(double scale);
 
     size_t numdim() const { return indices_.size(); }
 
@@ -493,13 +494,13 @@ class LabeledBlockedTensor
                           bool zero_result, bool add,
                           bool optimize_order = true);
 
-  private:
-    void set(const LabeledBlockedTensor &to);
-
     std::vector<std::vector<size_t>> label_to_block_keys() const
     {
         return BT_.label_to_block_keys(indices_);
     }
+  private:
+    void set(const LabeledBlockedTensor &to);
+
     void add(const LabeledBlockedTensor &rhs, double alpha, double beta);
 
     BlockedTensor BT_;
@@ -535,10 +536,16 @@ class LabeledBlockedTensorProduct
         return tensors_[i];
     }
 
-    LabeledBlockedTensorProduct &operator*(const LabeledBlockedTensor &other)
+    LabeledBlockedTensorProduct &operator*=(const LabeledBlockedTensor &other)
     {
         tensors_.push_back(other);
         return *this;
+    }
+
+    LabeledBlockedTensorProduct operator*(const LabeledBlockedTensor &other) const {
+        LabeledBlockedTensorProduct copy(*this);
+        copy *= other;
+        return copy;
     }
 
     // conversion operator
@@ -625,12 +632,13 @@ class LabeledBlockedTensorAddition
     }
 
     LabeledBlockedTensorDistributive
-    operator*(const LabeledBlockedTensor &other);
+    operator*(const LabeledBlockedTensor &other) const;
 
-    LabeledBlockedTensorAddition &operator*(double scalar);
+    LabeledBlockedTensorAddition &operator*=(double scalar);
+    LabeledBlockedTensorAddition operator*(double scalar) const;
 
     // negation
-    LabeledBlockedTensorAddition &operator-();
+    LabeledBlockedTensorAddition operator-() const;
 
   private:
     // This handles cases like T("ijab")
@@ -661,8 +669,10 @@ class LabeledBlockedTensorDistributive
     operator double() const;
 
   private:
-    const LabeledBlockedTensor &A_;
-    const LabeledBlockedTensorAddition &B_;
+    // The incoming arguments may be temporary, so we need to copy just-in-case.
+    // TODO: Move to shared_ptr
+    const LabeledBlockedTensor A_;
+    const LabeledBlockedTensorAddition B_;
 };
 
 /// Take a string like "oovv" and generates the strings "oovv","oOvV","OOVV"

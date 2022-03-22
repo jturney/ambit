@@ -841,12 +841,12 @@ BlockedTensor load_blocked_tensor(const std::string &filename)
     return bt;
 }
 
-LabeledBlockedTensor BlockedTensor::operator()(const std::string &indices)
+LabeledBlockedTensor BlockedTensor::operator()(const std::string &indices) const
 {
     return LabeledBlockedTensor(*this, indices::split(indices));
 }
 
-LabeledBlockedTensor BlockedTensor::operator[](const std::string &indices)
+LabeledBlockedTensor BlockedTensor::operator[](const std::string &indices) const
 {
     return LabeledBlockedTensor(*this, indices::split(indices));
 }
@@ -926,6 +926,9 @@ std::string LabeledBlockedTensor::str() const
 
 void LabeledBlockedTensor::operator=(const LabeledBlockedTensor &rhs)
 {
+    if (BT_ == rhs.BT() and factor_ == rhs.factor() and indices_ == rhs.indices()) {
+        return; // Self-assignment means we do nothing.
+    }
     try
     {
         add(rhs, 1.0, 0.0);
@@ -938,7 +941,7 @@ void LabeledBlockedTensor::operator=(const LabeledBlockedTensor &rhs)
     }
 }
 
-void LabeledBlockedTensor::operator+=(const LabeledBlockedTensor &rhs)
+LabeledBlockedTensor& LabeledBlockedTensor::operator+=(const LabeledBlockedTensor &rhs)
 {
     try
     {
@@ -950,9 +953,10 @@ void LabeledBlockedTensor::operator+=(const LabeledBlockedTensor &rhs)
                           std::string(e.what());
         throw std::runtime_error(msg);
     }
+    return *this;
 }
 
-void LabeledBlockedTensor::operator-=(const LabeledBlockedTensor &rhs)
+LabeledBlockedTensor& LabeledBlockedTensor::operator-=(const LabeledBlockedTensor &rhs)
 {
     try
     {
@@ -964,6 +968,7 @@ void LabeledBlockedTensor::operator-=(const LabeledBlockedTensor &rhs)
                           std::string(e.what());
         throw std::runtime_error(msg);
     }
+    return *this;
 }
 
 void LabeledBlockedTensor::add(const LabeledBlockedTensor &rhs, double alpha,
@@ -1011,19 +1016,19 @@ void LabeledBlockedTensor::add(const LabeledBlockedTensor &rhs, double alpha,
 }
 
 LabeledBlockedTensorProduct LabeledBlockedTensor::
-operator*(const LabeledBlockedTensor &rhs)
+operator*(const LabeledBlockedTensor &rhs) const
 {
     return LabeledBlockedTensorProduct(*this, rhs);
 }
 
 LabeledBlockedTensorAddition LabeledBlockedTensor::
-operator+(const LabeledBlockedTensor &rhs)
+operator+(const LabeledBlockedTensor &rhs) const
 {
     return LabeledBlockedTensorAddition(*this, rhs);
 }
 
 LabeledBlockedTensorAddition LabeledBlockedTensor::
-operator-(const LabeledBlockedTensor &rhs)
+operator-(const LabeledBlockedTensor &rhs) const
 {
     return LabeledBlockedTensorAddition(*this, -rhs);
 }
@@ -1042,7 +1047,7 @@ void LabeledBlockedTensor::operator=(const LabeledBlockedTensorProduct &rhs)
     }
 }
 
-void LabeledBlockedTensor::operator+=(const LabeledBlockedTensorProduct &rhs)
+LabeledBlockedTensor& LabeledBlockedTensor::operator+=(const LabeledBlockedTensorProduct &rhs)
 {
     try
     {
@@ -1054,9 +1059,10 @@ void LabeledBlockedTensor::operator+=(const LabeledBlockedTensorProduct &rhs)
                           std::string(e.what());
         throw std::runtime_error(msg);
     }
+    return *this;
 }
 
-void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorProduct &rhs)
+LabeledBlockedTensor& LabeledBlockedTensor::operator-=(const LabeledBlockedTensorProduct &rhs)
 {
     try
     {
@@ -1068,6 +1074,7 @@ void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorProduct &rhs)
                           std::string(e.what());
         throw std::runtime_error(msg);
     }
+    return *this;
 }
 
 void LabeledBlockedTensor::
@@ -1086,7 +1093,7 @@ operator=(const LabeledBlockedTensorBatchedProduct &rhs)
     }
 }
 
-void LabeledBlockedTensor::
+LabeledBlockedTensor& LabeledBlockedTensor::
 operator+=(const LabeledBlockedTensorBatchedProduct &rhs)
 {
     try
@@ -1100,9 +1107,10 @@ operator+=(const LabeledBlockedTensorBatchedProduct &rhs)
                           std::string(e.what());
         throw std::runtime_error(msg);
     }
+    return *this;
 }
 
-void LabeledBlockedTensor::
+LabeledBlockedTensor& LabeledBlockedTensor::
 operator-=(const LabeledBlockedTensorBatchedProduct &rhs)
 {
     try
@@ -1116,6 +1124,7 @@ operator-=(const LabeledBlockedTensorBatchedProduct &rhs)
                           std::string(e.what());
         throw std::runtime_error(msg);
     }
+    return *this;
 }
 
 void LabeledBlockedTensor::contract_pair(
@@ -1672,7 +1681,7 @@ void LabeledBlockedTensor::contract_batched(
         }
         if (permuted_indices.size() == 0)
         {
-            rhsp.operator*(A);
+            rhsp *= A;
         }
         else
         {
@@ -1680,7 +1689,7 @@ void LabeledBlockedTensor::contract_batched(
                                     gemm_indices.begin(), gemm_indices.end());
             if (permuted_indices == A_indices)
             {
-                rhsp.operator*(A);
+                rhsp *= A;
             }
             else
             {
@@ -1693,7 +1702,7 @@ void LabeledBlockedTensor::contract_batched(
                     CoreTensor, A.BT().name() + " permute", A_blocks);
                 LabeledBlockedTensor At(Abtp, permuted_indices);
                 At = A;
-                rhsp.operator*(At);
+                rhsp *= At;
             }
         }
     }
@@ -1749,11 +1758,11 @@ void LabeledBlockedTensor::contract_batched(
             }
             LabeledBlockedTensor At(batch_tensors[i], A_batch_indices,
                                     A.factor());
-            rhs_batch.operator*(At);
+            rhs_batch *= At;
         }
         else
         {
-            rhs_batch.operator*(A);
+            rhs_batch *=A;
         }
     }
 
@@ -1953,25 +1962,27 @@ void LabeledBlockedTensor::operator=(const LabeledBlockedTensorAddition &rhs)
     }
 }
 
-void LabeledBlockedTensor::operator+=(const LabeledBlockedTensorAddition &rhs)
+LabeledBlockedTensor& LabeledBlockedTensor::operator+=(const LabeledBlockedTensorAddition &rhs)
 {
     for (size_t ind = 0, end = rhs.size(); ind < end; ++ind)
     {
         const LabeledBlockedTensor &labeledTensor = rhs[ind];
         add(labeledTensor, 1.0, 1.0);
     }
+    return *this;
 }
 
-void LabeledBlockedTensor::operator-=(const LabeledBlockedTensorAddition &rhs)
+LabeledBlockedTensor& LabeledBlockedTensor::operator-=(const LabeledBlockedTensorAddition &rhs)
 {
     for (size_t ind = 0, end = rhs.size(); ind < end; ++ind)
     {
         const LabeledBlockedTensor &labeledTensor = rhs[ind];
         add(labeledTensor, -1.0, 1.0);
     }
+    return *this;
 }
 
-void LabeledBlockedTensor::operator*=(double scale)
+LabeledBlockedTensor& LabeledBlockedTensor::operator*=(double scale)
 {
     std::vector<std::vector<size_t>> keys = label_to_block_keys();
 
@@ -1980,9 +1991,10 @@ void LabeledBlockedTensor::operator*=(double scale)
     {
         BT_.block(key).scale(scale);
     }
+    return *this;
 }
 
-void LabeledBlockedTensor::operator/=(double scale)
+LabeledBlockedTensor& LabeledBlockedTensor::operator/=(double scale)
 {
     std::vector<std::vector<size_t>> keys = label_to_block_keys();
 
@@ -1991,10 +2003,11 @@ void LabeledBlockedTensor::operator/=(double scale)
     {
         BT_.block(key).scale(1.0 / scale);
     }
+    return *this;
 }
 
 LabeledBlockedTensorDistributive LabeledBlockedTensor::
-operator*(const LabeledBlockedTensorAddition &rhs)
+operator*(const LabeledBlockedTensorAddition &rhs) const
 {
     return LabeledBlockedTensorDistributive(*this, rhs);
 }
@@ -2017,7 +2030,7 @@ operator=(const LabeledBlockedTensorDistributive &rhs)
     }
 }
 
-void LabeledBlockedTensor::
+LabeledBlockedTensor& LabeledBlockedTensor::
 operator+=(const LabeledBlockedTensorDistributive &rhs)
 {
     for (const LabeledBlockedTensor &B : rhs.B())
@@ -2025,9 +2038,10 @@ operator+=(const LabeledBlockedTensorDistributive &rhs)
         *this += const_cast<LabeledBlockedTensor &>(rhs.A()) *
                  const_cast<LabeledBlockedTensor &>(B);
     }
+    return *this;
 }
 
-void LabeledBlockedTensor::
+LabeledBlockedTensor& LabeledBlockedTensor::
 operator-=(const LabeledBlockedTensorDistributive &rhs)
 {
     for (const LabeledBlockedTensor &B : rhs.B())
@@ -2035,34 +2049,35 @@ operator-=(const LabeledBlockedTensorDistributive &rhs)
         *this -= const_cast<LabeledBlockedTensor &>(rhs.A()) *
                  const_cast<LabeledBlockedTensor &>(B);
     }
+    return *this;
 }
 
 LabeledBlockedTensorDistributive LabeledBlockedTensorAddition::
-operator*(const LabeledBlockedTensor &other)
+operator*(const LabeledBlockedTensor &other) const
 {
     return LabeledBlockedTensorDistributive(other, *this);
 }
 
-LabeledBlockedTensorAddition &LabeledBlockedTensorAddition::
-operator*(double scalar)
+LabeledBlockedTensorAddition &LabeledBlockedTensorAddition::operator*=(double scalar)
 {
-    // distribute the scalar to each term
-    for (LabeledBlockedTensor &T : tensors_)
+    for (auto &T: tensors_)
     {
         T *= scalar;
     }
-
     return *this;
 }
 
-LabeledBlockedTensorAddition &LabeledBlockedTensorAddition::operator-()
+LabeledBlockedTensorAddition LabeledBlockedTensorAddition::
+operator*(double scalar) const
 {
-    for (LabeledBlockedTensor &T : tensors_)
-    {
-        T *= -1.0;
-    }
+    LabeledBlockedTensorAddition copy(*this);
+    copy *= scalar;
+    return copy;
+}
 
-    return *this;
+LabeledBlockedTensorAddition LabeledBlockedTensorAddition::operator-() const
+{
+    return *this * -1.0;
 }
 
 std::string LabeledBlockedTensorProduct::str() const
@@ -2305,6 +2320,15 @@ batched(const string &batched_indices,
 {
     return LabeledBlockedTensorBatchedProduct(product,
                                               indices::split(batched_indices));
+}
+
+LabeledBlockedTensorDistributive::operator double() const {
+    double result = 0.0;
+
+    for (const auto& summand: B_){
+        result += A_ * summand;
+    }
+    return result;
 }
 
 } // namespace ambit

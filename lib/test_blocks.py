@@ -164,13 +164,13 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l",[0,1,2,3,4],ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d",[5,6,7,8,9],ambit.SpinType.AlphaSpin)
-        ambit.BlockedTensor.add_composite_mo_space("g","p,q,r,s,t",{"o","v"})
+        ambit.BlockedTensor.add_composite_mo_space("g","p,q,r,s,t",["o","v"])
 
     @unittest.expectedFailure
     def test_add_mo_space_nonexisting_space(self):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l",[0,1,2,3,4],ambit.SpinType.AlphaSpin)
-        ambit.BlockedTensor.add_composite_mo_space("g","p,q,r,s,t",{"o","v"})
+        ambit.BlockedTensor.add_composite_mo_space("g","p,q,r,s,t",["o","v"])
 
     @unittest.expectedFailure
     def test_add_mo_space_repeated_index1(self):
