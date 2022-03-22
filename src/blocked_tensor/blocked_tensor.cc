@@ -54,11 +54,13 @@ std::map<std::string, std::vector<size_t>> BlockedTensor::index_to_mo_spaces_;
 
 bool BlockedTensor::expert_mode_ = false;
 
+
 MOSpace::MOSpace(const std::string &name, const std::string &mo_indices,
                  std::vector<size_t> mos, SpinType spin)
     : name_(name), mo_indices_(indices::split(mo_indices)), mos_(mos),
       spin_(mos.size(), spin)
 {
+    common_init();
 }
 
 MOSpace::MOSpace(const std::string &name, const std::string &mo_indices,
@@ -69,6 +71,24 @@ MOSpace::MOSpace(const std::string &name, const std::string &mo_indices,
     {
         mos_.push_back(p_s.first);
         spin_.push_back(p_s.second);
+    }
+    common_init();
+}
+
+void MOSpace::common_init() const {
+    if (name_.size() == 0)
+    {
+        throw std::runtime_error("Empty name given to orbital space.");
+    }
+    if (mo_indices_.size() == 0)
+    {
+        throw std::runtime_error(
+            "No MO indices were specified for the MO space \"" + name_ + "\"");
+    }
+    if (mos_.size() == 0)
+    {
+        throw std::runtime_error(
+            "No MOs were specified for the MO space \"" + name_ + "\"");
     }
 }
 
@@ -88,15 +108,6 @@ void BlockedTensor::add_mo_space(const std::string &name,
                                  const std::string &mo_indices,
                                  std::vector<size_t> mos, SpinType spin)
 {
-    if (name.size() == 0)
-    {
-        throw std::runtime_error("Empty name given to orbital space.");
-    }
-    if (mo_indices.size() == 0)
-    {
-        throw std::runtime_error(
-            "No MO indices were specified for the MO space \"" + name + "\"");
-    }
     if (name_to_mo_space_.count(name) != 0)
     {
         throw std::runtime_error("The MO space \"" + name +
@@ -134,15 +145,6 @@ void BlockedTensor::add_mo_space(
     const std::string &name, const std::string &mo_indices,
     std::vector<std::pair<size_t, SpinType>> mo_spin)
 {
-    if (name.size() == 0)
-    {
-        throw std::runtime_error("Empty name given to orbital space.");
-    }
-    if (mo_indices.size() == 0)
-    {
-        throw std::runtime_error(
-            "No MO indices were specified for the MO space \"" + name + "\"");
-    }
     if (name_to_mo_space_.count(name) != 0)
     {
         throw std::runtime_error("The MO space \"" + name +

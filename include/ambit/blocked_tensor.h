@@ -91,6 +91,8 @@ class MOSpace
     MOSpace(const std::string &name, const std::string &mo_indices,
             std::vector<std::pair<size_t, SpinType>> mos_spin);
 
+    void common_init() const;
+
     // => Accessors <= //
 
     /// @return The label of this molecular orbital space

@@ -2499,7 +2499,7 @@ int main(int argc, char *argv[])
                         "Testing adding orbital space with no indices (1)"),
         std::make_tuple(kException, test_add_mo_space_no_index2,
                         "Testing adding orbital space with no indices (2)"),
-        std::make_tuple(kPass, test_add_mo_space_no_mos,
+        std::make_tuple(kException, test_add_mo_space_no_mos,
                         "Testing adding orbital space with no orbital list"),
         std::make_tuple(kPass, test_block_creation1,
                         "Testing blocked tensor creation (1)"),
