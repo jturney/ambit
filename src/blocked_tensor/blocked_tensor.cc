@@ -85,11 +85,9 @@ void MOSpace::common_init() const {
         throw std::runtime_error(
             "No MO indices were specified for the MO space \"" + name_ + "\"");
     }
-    if (mos_.size() == 0)
-    {
-        throw std::runtime_error(
-            "No MOs were specified for the MO space \"" + name_ + "\"");
-    }
+    // No MOs specified for an MO space is permitted.
+    // Use Case: Frozen orbitals. These shouldn't show up in a tensor, but it's nice
+    //    to have explicitly accounted for them.
 }
 
 void MOSpace::print()

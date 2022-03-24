@@ -215,7 +215,6 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_composite_mo_space("g", "", ["o", "v"])
 
-    @unittest.expectedFailure
     def test_add_mo_space_no_mos(self):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [], ambit.SpinType.AlphaSpin)
