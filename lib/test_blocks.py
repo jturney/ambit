@@ -1123,8 +1123,6 @@ class TestBlocks(unittest.TestCase):
         ambit.BlockedTensor.reset_mo_space()
         ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
         ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9,10,11], ambit.SpinType.AlphaSpin)
-
-        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
         B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
 
         no = 5
@@ -1184,6 +1182,64 @@ class TestBlocks(unittest.TestCase):
         C = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "C", ["ov", "vo", "vv"])
 
         C['ij'] = A['ia'] * B['aj']
+
+    def test_vector_dot(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8], ambit.SpinType.AlphaSpin)
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        no = 5
+
+        [Aoo_t, a2] = self.build_and_fill("Aoo", [no, no])
+        [Boo_t, b2] = self.build_and_fill("Boo", [no, no])
+        A.block('oo')['pq'] = Aoo_t['pq']
+        B.block('oo')['pq'] = Boo_t['pq']
+
+        dot1 = A.vector_dot(B)
+        dot2 = np.einsum("ij,ij->", np.array(a2), np.array(b2))
+
+        self.assertAlmostEqual(dot1, dot2, places=12)
+
+    def test_axpy(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8], ambit.SpinType.AlphaSpin)
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        B = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "B", ["oo", "ov", "vo", "vv"])
+        no = 5
+
+        [Aoo_t, a2] = self.build_and_fill("Aoo", [no, no])
+        [Boo_t, b2] = self.build_and_fill("Boo", [no, no])
+        A.block('oo')['pq'] = Aoo_t['pq']
+        B.block('oo')['pq'] = Boo_t['pq']
+
+        A.axpy(7, B)
+        foo = np.array(a2)
+        bar = np.array(b2)
+        foo += 7 * bar
+
+        residual = foo - np.array(A.block('oo'))
+        self.assertAlmostEqual(0.0, np.linalg.norm(residual), places=12)
+
+    def test_copy(self):
+        ambit.BlockedTensor.reset_mo_space()
+        ambit.BlockedTensor.add_mo_space("o", "i,j,k,l", [0,1,2,3,4], ambit.SpinType.AlphaSpin)
+        ambit.BlockedTensor.add_mo_space("v", "a,b,c,d", [5,6,7,8,9], ambit.SpinType.AlphaSpin)
+
+        A = ambit.BlockedTensor.build(ambit.TensorType.CoreTensor, "A", ["oo", "ov", "vo", "vv"])
+        no = 5
+
+        [Aoo_t, a2] = self.build_and_fill("Aoo", [no, no])
+        A.block('oo')['pq'] = Aoo_t['pq']
+
+        B = A.clone()
+        B.scale(2)
+
+        residual = 2 * np.array(A.block('oo')) - np.array(B.block('oo'))
+
 
 if __name__ == '__main__':
     unittest.main()

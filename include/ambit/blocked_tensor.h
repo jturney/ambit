@@ -329,6 +329,43 @@ class BlockedTensor
     static std::vector<std::vector<size_t>>
     label_to_block_keys(const std::vector<std::string> &indices);
 
+    // => Simple Arithmetic <= //
+
+    void axpy(double alpha, const BlockedTensor& other);
+    double vector_dot(const BlockedTensor& other);
+
+    // Clone the BlockedTensor
+    BlockedTensor clone();
+
+    /**
+     * This function saves the blocked tensor to a binary file on disk
+     *
+     * @param filename the name of the binary file
+     * @param overwrite overwrite an existing file?
+     *
+     */
+    void save(const std::string &filename, bool overwrite = true);
+
+    /**
+     * This function loads a blocked tensor from a binary file on disk and copies
+     * the data to an existing tensor. If the tensor passed in is empty, it will be
+     * resized
+     *
+     * @param t a tensor
+     * @param filename the name of the binary file
+     *
+     */
+    void load(const std::string &filename);
+
+    /**
+     * This function loads a blocked tensor from a binary file and returns it
+     *
+     * @param t a tensor
+     * @return a blocked tensor
+     *
+     */
+    static BlockedTensor load_and_build(const std::string &filename);
+
   private:
     std::string name_;
     std::size_t rank_;
@@ -390,35 +427,6 @@ class BlockedTensor
     LabeledBlockedTensor operator[](const std::string &indices) const;
 };
 
-/**
- * This function saves a blocked tensor to a binary file on disk
- *
- * @param t a tensor
- * @param filename the name of the binary file
- * @param overwrite overwrite an existing file?
- *
- */
-void save(BlockedTensor bt, const std::string &filename, bool overwrite = true);
-
-/**
- * This function loads a blocked tensor from a binary file on disk and copies
- * the data to an existing tensor. If the tensor passed in is empty, it will be
- * resized
- *
- * @param t a tensor
- * @param filename the name of the binary file
- *
- */
-void load(BlockedTensor &bt, const std::string &filename);
-
-/**
- * This function loads a blocked tensor from a binary file and returns it
- *
- * @param t a tensor
- * @return a blocked tensor
- *
- */
-BlockedTensor load_blocked_tensor(const std::string &filename);
 
 class LabeledBlockedTensor
 {

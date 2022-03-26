@@ -38,6 +38,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 
 #include <ambit/blocked_tensor.h>
 #include <tensor/indices.h>
@@ -246,6 +247,15 @@ void BlockedTensor::reset_mo_spaces()
 }
 
 BlockedTensor::BlockedTensor() : rank_(0) {}
+
+BlockedTensor BlockedTensor::clone() {
+    auto bt = BlockedTensor();
+    bt.set_name(name_);
+    for (const auto& [label, tensor]: blocks_) {
+        bt.set_block(label, tensor.clone());
+    }
+    return bt;
+}
 
 std::vector<std::string> BlockedTensor::block_labels() const
 {
@@ -723,6 +733,60 @@ void BlockedTensor::citerate(
     }
 }
 
+void BlockedTensor::axpy(double alpha, const BlockedTensor& other)
+{
+    // => Validate the rank and get a label for each block. <=
+    std::string all_indices = "pqrstuvwxyzabcdefghijklmno";
+    auto rank1 = rank();
+    auto rank2 = other.rank();
+    if (rank1 != rank2) {
+        throw std::invalid_argument("Can only axpy two blocked tensors with the same rank.");
+    }
+    auto label = all_indices.substr(0, rank1);
+
+    // => Validate blocks. <=
+    auto self_label_vec = block_labels();
+    std::unordered_set<string> self_labels(self_label_vec.begin(), self_label_vec.end());
+    auto other_label_vec = other.block_labels();
+    std::unordered_set<string> other_labels(other_label_vec.begin(), other_label_vec.end());
+    if (self_labels != other_labels) {
+        throw std::invalid_argument("Can only axpy two blocked tensors with identical labels.");
+    }
+
+    // => axpy each block. <=
+    for (const auto& [block_label, tensor]: blocks_) {
+        tensor(label) += alpha * other.block(block_label)(label);
+    }
+}
+
+double BlockedTensor::vector_dot(const BlockedTensor& other)
+{
+    // => Validate the rank and get a label for each block. <=
+    std::string all_indices = "pqrstuvwxyzabcdefghijklmno";
+    auto rank1 = rank();
+    auto rank2 = other.rank();
+    if (rank1 != rank2) {
+        throw std::invalid_argument("Can only axpy two blocked tensors with the same rank.");
+    }
+    auto label = all_indices.substr(0, rank1);
+
+    // => Validate blocks. <=
+    auto self_label_vec = block_labels();
+    std::unordered_set<string> self_labels(self_label_vec.begin(), self_label_vec.end());
+    auto other_label_vec = other.block_labels();
+    std::unordered_set<string> other_labels(other_label_vec.begin(), other_label_vec.end());
+    if (self_labels != other_labels) {
+        throw std::invalid_argument("Can only axpy two blocked tensors with identical labels.");
+    }
+
+    // => axpy each block. <=
+    double result = 0.0;
+    for (const auto& [block_label, tensor]: blocks_) {
+        result += static_cast<double>(tensor(label) * other.block(block_label)(label));
+    }
+    return result;
+}
+
 void BlockedTensor::print(FILE *fh, bool level, std::string const &format,
                           int maxcols) const
 {
@@ -735,7 +799,7 @@ void BlockedTensor::print(FILE *fh, bool level, std::string const &format,
     }
 }
 
-void save(BlockedTensor bt, const std::string &filename, bool overwrite)
+void BlockedTensor::save(const std::string &filename, bool overwrite)
 {
     // check if file exists or not
     struct stat buf;
@@ -759,35 +823,35 @@ void save(BlockedTensor bt, const std::string &filename, bool overwrite)
     // create the file
     std::ofstream out(filename.c_str(), std::ios_base::binary);
 
-    auto block_labels = bt.block_labels();
+    auto tensor_block_labels = block_labels();
 
     // write the name
-    auto name = bt.name();
+    auto name = name_;
     size_t size = name.size();
     out.write(reinterpret_cast<char *>(&size), sizeof(size_t));
     out.write(&name[0], size);
 
     // write the number of blocks
-    size_t num_blocks = block_labels.size();
+    size_t num_blocks = tensor_block_labels.size();
     out.write(reinterpret_cast<char *>(&num_blocks), sizeof(size_t));
 
     // write the block labels
-    for (const std::string &block : block_labels)
+    for (const std::string &tensor_block : tensor_block_labels)
     {
-        size_t block_label_size = block.size();
+        size_t block_label_size = tensor_block.size();
         out.write(reinterpret_cast<char *>(&block_label_size), sizeof(size_t));
-        out.write(&block[0], block_label_size);
+        out.write(&tensor_block[0], block_label_size);
     }
 
     // write the blocks
-    for (const std::string &block : block_labels)
+    for (const std::string &tensor_block : tensor_block_labels)
     {
-        auto t = bt.block(block);
+        auto t = block(tensor_block);
         write_tensor_to_file(t, out);
     }
 }
 
-void load(BlockedTensor &bt, const std::string &filename)
+void BlockedTensor::load(const std::string &filename)
 {
     // check if file exists or not
     std::ifstream in(filename.c_str(), std::ios_base::binary);
@@ -809,33 +873,33 @@ void load(BlockedTensor &bt, const std::string &filename)
     in.read(reinterpret_cast<char *>(&num_blocks), sizeof(size_t));
 
     // read the block labels
-    std::vector<std::string> block_labels;
+    std::vector<std::string> tensor_block_labels;
     for (size_t b = 0; b < num_blocks; b++)
     {
-        std::string block;
+        std::string tensor_block;
         size_t block_label_size = 0;
         in.read(reinterpret_cast<char *>(&block_label_size), sizeof(size_t));
-        block.resize(block_label_size);
-        in.read(&block[0], block_label_size);
-        block_labels.push_back(block);
+        tensor_block.resize(block_label_size);
+        in.read(&tensor_block[0], block_label_size);
+        tensor_block_labels.push_back(tensor_block);
     }
 
     // read tensor from file
-    for (const std::string &block : block_labels)
+    for (const auto &tensor_block : tensor_block_labels)
     {
         Tensor t;
         read_tensor_from_file(t, in);
-        bt.set_block(block, t);
+        set_block(tensor_block, t);
     }
 
     // 4. close the file
     in.close();
 }
 
-BlockedTensor load_blocked_tensor(const std::string &filename)
+BlockedTensor BlockedTensor::load_and_build(const std::string &filename)
 {
     BlockedTensor bt;
-    load(bt, filename);
+    bt.load(filename);
     return bt;
 }
 
