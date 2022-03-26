@@ -851,7 +851,7 @@ void BlockedTensor::save(const std::string &filename, bool overwrite)
     }
 }
 
-void load(BlockedTensor &bt, const std::string &filename)
+void BlockedTensor::load(const std::string &filename)
 {
     // check if file exists or not
     std::ifstream in(filename.c_str(), std::ios_base::binary);
@@ -873,33 +873,33 @@ void load(BlockedTensor &bt, const std::string &filename)
     in.read(reinterpret_cast<char *>(&num_blocks), sizeof(size_t));
 
     // read the block labels
-    std::vector<std::string> block_labels;
+    std::vector<std::string> tensor_block_labels;
     for (size_t b = 0; b < num_blocks; b++)
     {
-        std::string block;
+        std::string tensor_block;
         size_t block_label_size = 0;
         in.read(reinterpret_cast<char *>(&block_label_size), sizeof(size_t));
-        block.resize(block_label_size);
-        in.read(&block[0], block_label_size);
-        block_labels.push_back(block);
+        tensor_block.resize(block_label_size);
+        in.read(&tensor_block[0], block_label_size);
+        tensor_block_labels.push_back(tensor_block);
     }
 
     // read tensor from file
-    for (const std::string &block : block_labels)
+    for (const auto &tensor_block : tensor_block_labels)
     {
         Tensor t;
         read_tensor_from_file(t, in);
-        bt.set_block(block, t);
+        set_block(tensor_block, t);
     }
 
     // 4. close the file
     in.close();
 }
 
-BlockedTensor load_blocked_tensor(const std::string &filename)
+BlockedTensor BlockedTensor::load_and_build(const std::string &filename)
 {
     BlockedTensor bt;
-    load(bt, filename);
+    bt.load(filename);
     return bt;
 }
 

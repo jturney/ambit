@@ -161,7 +161,7 @@ bool test_tensor_io_blocked_1()
     // load the data from disk
     BlockedTensor testTensor2 =
         BlockedTensor::build(CoreTensor, "T", {"OOO", "OOV"});
-    load(testTensor2, "block.ten");
+    testTensor2.load("block.ten");
 
     // compare the data to the original tensors
     testTensor2("ijk") += -testTensor("ijk");
@@ -194,7 +194,7 @@ bool test_tensor_io_blocked_2()
 
     // load the data from disk
     BlockedTensor testTensor2;
-    load(testTensor2, "block.ten");
+    testTensor2.load("block.ten");
 
     // compare the data to the original tensors
     testTensor2("ijk") += -testTensor("ijk");
@@ -226,7 +226,7 @@ bool test_tensor_io_blocked_3()
     testTensor.save("block.ten");
 
     // load the data from disk
-    BlockedTensor testTensor2 = load_blocked_tensor("block.ten");
+    BlockedTensor testTensor2 = BlockedTensor::load_and_build("block.ten");
 
     // compare the data to the original tensors
     testTensor2("ijk") += -testTensor("ijk");
