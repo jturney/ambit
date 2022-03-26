@@ -156,7 +156,7 @@ bool test_tensor_io_blocked_1()
     testTensor.set_block("OOV", t_oov);
 
     // save the tensor
-    save(testTensor, "block.ten");
+    testTensor.save("block.ten");
 
     // load the data from disk
     BlockedTensor testTensor2 =
@@ -190,7 +190,7 @@ bool test_tensor_io_blocked_2()
     testTensor.set_block("OOV", t_oov);
 
     // save the tensor
-    save(testTensor, "block.ten");
+    testTensor.save("block.ten");
 
     // load the data from disk
     BlockedTensor testTensor2;
@@ -223,7 +223,7 @@ bool test_tensor_io_blocked_3()
     testTensor.set_block("OOV", t_oov);
 
     // save the tensor
-    save(testTensor, "block.ten");
+    testTensor.save("block.ten");
 
     // load the data from disk
     BlockedTensor testTensor2 = load_blocked_tensor("block.ten");
