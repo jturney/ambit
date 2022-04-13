@@ -21,7 +21,7 @@ cmake_policy(SET CMP0048 NEW)  # project_VERSION* variables populated from proje
 cmake_minimum_required(VERSION 3.16)
 
 project(ambit
-        VERSION 0.5.1
+        VERSION 0.6.0
         LANGUAGES C CXX)
 set(ambit_AUTHORS      "Justin M. Turney")
 set(ambit_DESCRIPTION  "C++ library for the implementation of tensor product calculations")
