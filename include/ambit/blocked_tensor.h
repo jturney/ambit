@@ -254,6 +254,9 @@ class BlockedTensor
     const Tensor block(const std::vector<size_t> &key) const;
     /// Return a Tensor object that corresponds to a given block key
     Tensor block(const std::string &indices);
+    /// Return a constant Tensor object that corresponds to a given block
+    /// key
+    const Tensor block(const std::string &indices) const;
 
     void set_block(const std::vector<size_t> &key, Tensor t);
     void set_block(const std::string &indices, Tensor t);
