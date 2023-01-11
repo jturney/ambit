@@ -505,6 +505,25 @@ Tensor BlockedTensor::block(const std::string &indices)
     return block(key);
 }
 
+const Tensor BlockedTensor::block(const std::string &indices) const
+{
+    std::vector<size_t> key;
+    for (const std::string &index : indices::split(indices))
+    {
+        if (name_to_mo_space_.count(index) != 0)
+        {
+            key.push_back(name_to_mo_space_[index]);
+        }
+        else
+        {
+            throw std::runtime_error(
+                "Cannot retrieve block " + indices + " of tensor " + name() +
+                ". The index " + index + " does not indentify a unique space");
+        }
+    }
+    return block(key);
+}
+
 void BlockedTensor::set_block(const std::string &indices, Tensor t)
 {
     std::vector<size_t> key;
