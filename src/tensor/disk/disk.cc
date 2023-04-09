@@ -34,7 +34,14 @@
 #include <sstream>
 #include <string.h>
 #include <cmath>
+#ifdef _MSC_VER
+#include <io.h>
+#define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
+#define PATH_SEPARATOR "\\"
+#else
 #include <unistd.h>
+#define PATH_SEPARATOR "/"
+#endif
 
 namespace ambit
 {

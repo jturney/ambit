@@ -30,10 +30,17 @@
 #include <ambit/io/psi4/file.h>
 
 #include <fcntl.h>
-#include <unistd.h>
 #include <cstdlib>
 #include <cerrno>
 #include <cstring>
+#ifdef _MSC_VER
+#include <io.h>
+#define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
+#define PATH_SEPARATOR "\\"
+#else
+#include <unistd.h>
+#define PATH_SEPARATOR "/"
+#endif
 
 //#include <util/print.h>
 
