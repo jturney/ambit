@@ -5,12 +5,12 @@
 # This module sets the following variables in your project::
 #
 #   ambit_FOUND - true if ambit and all required components found on the system
-#   ambit_VERSION - ambit version in format Major.Minor.Release
-#   ambit_INCLUDE_DIRS - Directory where ambit/tensor.h header is located.
-#   ambit_INCLUDE_DIR - same as DIRS
-#   ambit_DEFINITIONS: Definitions necessary to use ambit, namely USING_ambit.
-#   ambit_LIBRARIES - ambit library to link against.
-#   ambit_LIBRARY - same as LIBRARIES
+#   ambit_VERSION - ambit version in format Major.Minor.Release. Prefer target variable.
+#   ambit_INCLUDE_DIRS - Directory where ambit/tensor.h header is located and dependent headers. Prefer targets.
+#   ambit_INCLUDE_DIR - same as DIRS. Prefer targets.
+#   ambit_DEFINITIONS: Definitions necessary to use ambit, namely USING_ambit. Prefer targets.
+#   ambit_LIBRARIES - ambit library to link against plus any dependent libraries. Prefer targets.
+#   ambit_LIBRARY - ambit library to link against. Prefer targets
 #
 #
 # Available components: shared static exe ::
@@ -30,7 +30,7 @@
 # Suggested usage::
 #
 #   find_package(ambit)
-#   find_package(ambit 1.8 CONFIG REQUIRED COMPONENTS shared)
+#   find_package(ambit 0.6 CONFIG REQUIRED COMPONENTS shared)
 #
 #
 # The following variables can be set to guide the search for this package::
@@ -43,88 +43,51 @@
 
 @PACKAGE_INIT@
 
-set(PN ambit)
-set (_valid_components
-    static
-    shared
-)
+set(amb ambit)  # NameSpace
 
-# find includes
-unset(_temp_h CACHE)
-find_path(_temp_h
-          NAMES ambit/tensor.h
-          PATHS ${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@
-          NO_DEFAULT_PATH)
-if(_temp_h)
-    set(${PN}_INCLUDE_DIR "${_temp_h}")
-    set(${PN}_INCLUDE_DIRS ${${PN}_INCLUDE_DIR})
-else()
-    set(${PN}_FOUND 0)
-    if(NOT CMAKE_REQUIRED_QUIET)
-        message(STATUS "${PN}Config missing component: header (${PN}: ${_temp_h})")
-    endif()
+# check library style component
+# * using EXISTS Targets-shared instead of SHARED_ONLY so packages can
+#   truncate their builds (e.g., build static for tests but only ship shared)
+if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-shared.cmake")
+    set(${amb}_shared_FOUND 1)
 endif()
-
-# find library: shared, static, or whichever
-set(_hold_library_suffixes ${CMAKE_FIND_LIBRARY_SUFFIXES})
-list(FIND ${PN}_FIND_COMPONENTS "shared" _seek_shared)
-list(FIND ${PN}_FIND_COMPONENTS "static" _seek_static)
-if(_seek_shared GREATER -1)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_SHARED_LIBRARY_SUFFIX})
-elseif(_seek_static GREATER -1)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
+if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-static.cmake")
+    set(${amb}_static_FOUND 1)
 endif()
-unset(_temp CACHE)
-find_library(_temp
-             NAMES ambit
-             PATHS ${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@
-             NO_DEFAULT_PATH)
-if(_temp)
-    set(${PN}_LIBRARY "${_temp}")
-    if(_seek_shared GREATER -1)
-        set(${PN}_shared_FOUND 1)
-    elseif(_seek_static GREATER -1)
-        set(${PN}_static_FOUND 1)
-    endif()
-else()
-    if(_seek_shared GREATER -1)
-        if(NOT CMAKE_REQUIRED_QUIET)
-            message(STATUS "${PN}Config missing component: shared library (${PN}: ${_temp})")
-        endif()
-    elseif(_seek_static GREATER -1)
-        if(NOT CMAKE_REQUIRED_QUIET)
-            message(STATUS "${PN}Config missing component: static library (${PN}: ${_temp})")
-        endif()
-    else()
-        set(${PN}_FOUND 0)
-        if(NOT CMAKE_REQUIRED_QUIET)
-            message(STATUS "${PN}Config missing component: library (${PN}: ${_temp})")
-        endif()
-    endif()
-endif()
-set(CMAKE_FIND_LIBRARY_SUFFIXES ${_hold_library_suffixes})
-set(${PN}_LIBRARIES ${${PN}_LIBRARY})
-set(${PN}_DEFINITIONS USING_${PN})
-
-check_required_components(${PN})
+list(FIND ${amb}_FIND_COMPONENTS "shared" _seek_shared)
+list(FIND ${amb}_FIND_COMPONENTS "static" _seek_static)
 
 # make detectable the FindTarget*.cmake modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
+
+# check library dependency available
+include(CMakeFindDependencyMacro)
+if(NOT TARGET tgt::hdf5)
+    find_dependency(TargetHDF5 @TargetHDF5_VERSION@ EXACT)
+endif()
+if(NOT TARGET tgt::lapack)
+    find_dependency(TargetLAPACK)
+endif()
+
+# Check all required components are available before trying to load any
+check_required_components(${amb})
 
 #-----------------------------------------------------------------------------
 # Don't include targets if this file is being picked up by another
 # project which has already built this as a subproject
 #-----------------------------------------------------------------------------
-if(NOT TARGET ${PN}::ambit)
-    get_filename_component(_fext ${${PN}_LIBRARY} EXT)
-    if(${_fext} STREQUAL ${CMAKE_SHARED_LIBRARY_SUFFIX})
-        include("${CMAKE_CURRENT_LIST_DIR}/${PN}Targets-shared.cmake")
-    else()
-        include("${CMAKE_CURRENT_LIST_DIR}/${PN}Targets-static.cmake")
+if(NOT TARGET ${amb}::ambit)
+    if(_seek_static GREATER -1)
+        include("${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-static.cmake")
+    elseif(_seek_shared GREATER -1)
+        include("${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-shared.cmake")
+    elseif(NOT @STATIC_ONLY@)  # STATIC_ONLY
+        include("${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-shared.cmake")
+    elseif(NOT @SHARED_ONLY@)  # SHARED_ONLY
+        include("${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-static.cmake")
     endif()
 
-    include(CMakeFindDependencyMacro)
-    if(NOT TARGET tgt::hdf5)
-        find_dependency(TargetHDF5 @TargetHDF5_VERSION@ EXACT)
+    if (CMAKE_VERSION VERSION_GREATER 3.15)
+        message(VERBOSE "ambit::ambit")
     endif()
 endif()

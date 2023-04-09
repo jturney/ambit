@@ -67,6 +67,7 @@ option_with_default(BUILD_FPIC "Compile static libraries with position independe
 option_with_default(CMAKE_INSTALL_LIBDIR "Directory to which libraries installed" lib)
 option_with_default(PYMOD_INSTALL_LIBDIR "Location within CMAKE_INSTALL_LIBDIR to which python modules are installed" /)
 option_with_default(ENABLE_GENERIC "Enables mostly static linking of system and math libraries for shared library" OFF)
+option_with_default(ambit_INSTALL_CMAKEDIR "Directory to which ambit CMake config files installed." share/cmake/ambit)
 
 ########################  Process & Validate Options  ##########################
 include(GNUInstallDirs)
@@ -98,7 +99,7 @@ include_directories(SYSTEM $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTO
 find_package (TargetLAPACK REQUIRED)
 
 # Python Detection
-set(Python_ADDITIONAL_VERSIONS 3.10 3.9 3.8 3.7)  # adjust with CMake minimum FindPythonInterp
+set(Python_ADDITIONAL_VERSIONS 3.11 3.10 3.9 3.8 3.7)  # adjust with CMake minimum FindPythonInterp
 find_package(Python 3.7 COMPONENTS Interpreter Development NumPy REQUIRED)
 message(STATUS "Found Python ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}: ${Python_EXECUTABLE} (found version ${Python_VERSION})")
 

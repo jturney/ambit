@@ -133,15 +133,37 @@ add_subdirectory(python)
 # <<<  Install  >>>
 
 if (NOT STATIC_ONLY)
-    install (TARGETS ambit-shared
-                     EXPORT "ambitTargets-shared"
-                     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(
+      TARGETS
+        ambit-shared
+      EXPORT
+        shared_interface
+      RUNTIME DESTINATION
+        ${CMAKE_INSTALL_BINDIR}
+      ARCHIVE DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
+      PUBLIC_HEADER DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR}
+      )
 endif()
 
 if (NOT SHARED_ONLY)
-    install (TARGETS ambit-static
-                     EXPORT "ambitTargets-static"
-                     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(
+      TARGETS
+        ambit-static
+      EXPORT
+        static_interface
+      RUNTIME DESTINATION
+        ${CMAKE_INSTALL_BINDIR}
+      ARCHIVE DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
+      PUBLIC_HEADER DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR}
+      )
 endif()
 
 # <<<  Export interface  >>>
@@ -163,16 +185,30 @@ endif()
 
 # <<<  Export Config  >>>
 
-set(CMAKECONFIG_INSTALL_DIR "share/cmake/${PROJECT_NAME}")
+set(CMAKECONFIG_INSTALL_DIR "${ambit_INSTALL_CMAKEDIR}")
 if (NOT STATIC_ONLY)
-    install (EXPORT "${PROJECT_NAME}Targets-shared"
-                    NAMESPACE "${PROJECT_NAME}::"
-                    DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+    install(
+      EXPORT
+        shared_interface
+      FILE
+        "${PROJECT_NAME}Targets-shared.cmake"
+      NAMESPACE
+        "${PROJECT_NAME}::"
+      DESTINATION
+        ${CMAKECONFIG_INSTALL_DIR}
+      )
 endif()
 
 if (NOT SHARED_ONLY)
-    install (EXPORT "${PROJECT_NAME}Targets-static"
-                    NAMESPACE "${PROJECT_NAME}::"
-                    DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+    install(
+      EXPORT
+        static_interface
+      FILE
+        "${PROJECT_NAME}Targets-static.cmake"
+      NAMESPACE
+        "${PROJECT_NAME}::"
+      DESTINATION
+        ${CMAKECONFIG_INSTALL_DIR}
+      )
 endif()
 
