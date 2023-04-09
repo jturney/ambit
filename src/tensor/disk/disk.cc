@@ -38,9 +38,12 @@
 #include <io.h>
 #define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
 #define PATH_SEPARATOR "\\"
+#include <process.h>
+#define GETPID _getpid
 #else
 #include <unistd.h>
 #define PATH_SEPARATOR "/"
+#define GETPID getpid
 #endif
 
 namespace ambit
@@ -56,7 +59,7 @@ DiskTensorImpl::DiskTensorImpl(const string &name, const Dimension &dims)
     ss << Tensor::scratch_path();
     ss << "/";
     ss << "DiskTensor.";
-    ss << getpid();
+    ss << GETPID();
     ss << ".";
     ss << disk_next_id();
     ss << ".dat";
