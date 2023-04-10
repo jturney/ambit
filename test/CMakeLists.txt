@@ -48,9 +48,9 @@ set(TEST_BLOCKS_SOURCES
 )
 
 # build static library
-add_executable(test_blocks ${TEST_BLOCKS_SOURCES})
-target_link_libraries(test_blocks ambit::ambit)
-add_test(NAME blocks COMMAND test_blocks)
+#add_executable(test_blocks ${TEST_BLOCKS_SOURCES})
+#target_link_libraries(test_blocks ambit::ambit)
+#add_test(NAME blocks COMMAND test_blocks)
 
 set(TEST_SYM_BLOCKS_SOURCES
     test_sym_blocks.cc

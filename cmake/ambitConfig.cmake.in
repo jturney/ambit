@@ -11,6 +11,19 @@
 #   ambit_DEFINITIONS: Definitions necessary to use ambit, namely USING_ambit. Prefer targets.
 #   ambit_LIBRARIES - ambit library to link against plus any dependent libraries. Prefer targets.
 #   ambit_LIBRARY - ambit library to link against. Prefer targets
+#   ambit_PYMOD - path to pyambit python module (suitable for appending PYTHONPATH). Prefer target variable.
+#
+#
+# Target variables:
+#
+# It is preferred to use properties set on the base target rather than using the above variables.
+#
+# ::
+#
+#   ambit_VERSION - ambit version in format Major.Minor.Release
+#   ambit_PYMOD - path to ambit python module (suitable for appending PYTHONPATH)
+#
+#   get_property(_ver TARGET ambit::ambit PROPERTY ambit_VERSION)
 #
 #
 # Available components: shared static exe ::
