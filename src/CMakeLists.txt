@@ -121,7 +121,6 @@ endif ()
 #        ${HDF5_LIBRARIES}
 #        )
 
-message("ambitambit a/so ${STATIC_ONLY} ${SHARED_ONLY}")
 if (STATIC_ONLY)
     add_library(ambit-lib ALIAS ambit-static)
 else()
