@@ -123,8 +123,10 @@ endif ()
 
 if (STATIC_ONLY)
     add_library(ambit-lib ALIAS ambit-static)
+    add_library(ambit::ambit ALIAS ambit-static)
 else()
     add_library(ambit-lib ALIAS ambit-shared)
+    add_library(ambit::ambit ALIAS ambit-shared)
 endif()
 
 add_subdirectory(python)

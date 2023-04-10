@@ -16,7 +16,7 @@ message(STATUS "ambit rpath: ${CMAKE_INSTALL_RPATH}")
 
 # build static libray
 add_library(pyambit SHARED bindings.cc)
-add_dependencies(pyambit ambit-lib)
+target_link_libraries(pyambit PUBLIC ambit::ambit)
 
 if(ENABLE_CYCLOPS)
     target_link_libraries(pyambit PUBLIC ${CYCLOPS}/lib/libctf.a ${ELEMENTAL}/libEl.a ${ELEMENTAL}/external/pmrrr/libpmrrr.a ${MPI_LIBRARIES})
@@ -43,12 +43,28 @@ if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
     pybind11_strip(pyambit)
 endif()
 set_target_properties(pyambit PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN 1)
-target_link_libraries(pyambit PUBLIC ambit-lib)
 
 # Ensure the Python module is appropriately named
 #set_target_properties(pyambit PROPERTIES PREFIX "")
 #set_target_properties(pyambit PROPERTIES SUFFIX ${PYTHON_MODULE_EXTENSION})
 
-install(TARGETS pyambit DESTINATION ${CMAKE_INSTALL_LIBDIR}${PYMOD_INSTALL_LIBDIR}/ambit)
+install(
+  TARGETS
+    pyambit
+  EXPORT
+    python_interface
+  LIBRARY DESTINATION
+    ${CMAKE_INSTALL_LIBDIR}${PYMOD_INSTALL_LIBDIR}/ambit
+  )
+install(
+  EXPORT
+    python_interface
+  FILE
+    "ambitTargets-python.cmake"
+  NAMESPACE
+    "ambit::"
+  DESTINATION
+    ${CMAKECONFIG_INSTALL_DIR}
+  )
 
 endif()
