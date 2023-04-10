@@ -39,6 +39,7 @@
 #include <ambit/io/psi4/io.h>
 #include <ambit/helpers/psi4/io.h>
 #include <ambit/timer.h>
+#include <ambit/settings.h>
 
 using namespace ambit;
 

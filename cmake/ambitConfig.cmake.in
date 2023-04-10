@@ -87,7 +87,35 @@ if(NOT TARGET ${amb}::ambit)
         include("${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-static.cmake")
     endif()
 
+    get_property(_loc TARGET ${amb}::ambit PROPERTY LOCATION)
+    get_property(_ill TARGET ${amb}::ambit PROPERTY INTERFACE_LINK_LIBRARIES)
+    get_property(_iid TARGET ${amb}::ambit PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+    get_property(_icd TARGET ${amb}::ambit PROPERTY INTERFACE_COMPILE_DEFINITIONS)
+    set(${amb}_LIBRARY ${_loc})
+    set(${amb}_LIBRARIES ${_loc};${_ill})
+    set(${amb}_INCLUDE_DIR ${_iid})
+    set(${amb}_INCLUDE_DIRS ${_iid})
+    set(${amb}_DEFINITIONS ${_icd})
+
+    set(${amb}_PYMOD ${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@@PYMOD_INSTALL_LIBDIR@)  # CMAKE_INSTALL_LIBDIR, PYMOD_INSTALL_LIBDIR
+
     if (CMAKE_VERSION VERSION_GREATER 3.15)
         message(VERBOSE "ambit::ambit")
+
+        get_property(_ver TARGET ${amb}::ambit PROPERTY ambit_VERSION)
+        get_property(_pym TARGET ${amb}::ambit PROPERTY ambit_PYMOD)
+        message(VERBOSE "${amb}::ambit.${amb}_VERSION ${_ver}")
+        message(VERBOSE "${amb}::ambit.${amb}_PYMOD   ${_pym}")
+
+        message(VERBOSE "${amb}_FOUND                  ${${amb}_FOUND}")
+        message(VERBOSE "${amb}_VERSION                ${${amb}_VERSION}")
+        message(VERBOSE "${amb}_DEFINITIONS            ${${amb}_DEFINITIONS}")
+        message(VERBOSE "${amb}_PYMOD                  ${${amb}_PYMOD}")
+
+        message(VERBOSE "${amb}_LIBRARY                ${${amb}_LIBRARY}")
+        message(VERBOSE "${amb}_LIBRARIES              ${${amb}_LIBRARIES}")
+        message(VERBOSE "${amb}_INCLUDE_DIR            ${${amb}_INCLUDE_DIR}")
+        message(VERBOSE "${amb}_INCLUDE_DIRS           ${${amb}_INCLUDE_DIRS}")
     endif()
+
 endif()

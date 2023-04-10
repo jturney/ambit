@@ -38,6 +38,7 @@
 #include <ambit/tensor.h>
 #include <ambit/timer.h>
 #include <ambit/blocked_tensor.h>
+#include <ambit/settings.h>
 
 #include <ostream>
 #include <iostream>

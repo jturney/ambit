@@ -96,21 +96,39 @@ if(MSVC)
 endif()
 
 # build library
+set(export_properties
+  "ambit_VERSION"
+  "ambit_PYMOD"
+  )
+
 if (NOT STATIC_ONLY)
     add_library(ambit-shared SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
     target_link_libraries (ambit-shared PUBLIC tgt::lapack
                                                 tgt::hdf5)
-    set_target_properties (ambit-shared PROPERTIES OUTPUT_NAME "ambit"
-                                                   EXPORT_NAME "ambit")
+    set_target_properties (
+      ambit-shared
+      PROPERTIES
+        OUTPUT_NAME "ambit"
+        EXPORT_NAME "ambit"
+        ambit_VERSION ${ambit_VERSION}
+        ambit_PYMOD "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}${PYMOD_INSTALL_LIBDIR}"
+      )
+    set_property(TARGET ambit-shared APPEND PROPERTY EXPORT_PROPERTIES "${export_properties}")
 endif()
 
 if (NOT SHARED_ONLY)
     add_library(ambit-static STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
     target_link_libraries (ambit-static PUBLIC tgt::lapack
                                                 tgt::hdf5)
-    set_target_properties (ambit-static PROPERTIES OUTPUT_NAME "ambit"
-                                                   EXPORT_NAME "ambit"
-                                                   POSITION_INDEPENDENT_CODE ${BUILD_FPIC})
+    set_target_properties (
+      ambit-static
+      PROPERTIES
+        OUTPUT_NAME "ambit"
+        EXPORT_NAME "ambit"
+        POSITION_INDEPENDENT_CODE ${BUILD_FPIC}
+        ambit_VERSION ${ambit_VERSION}
+      )
+    set_property(TARGET ambit-static APPEND PROPERTY EXPORT_PROPERTIES "${export_properties}")
 endif()
 
 # LAB: not addressed
