@@ -91,7 +91,7 @@ if(MSVC)
       _CRT_NONSTDC_NO_WARNINGS
       _CRT_SECURE_NO_WARNINGS
       )
-    # Set the exception handling model (allows "throw")
+    # Set the exception handling model (allows "throw") (this isn't working; still need it in `-D CMAKE_CXX_FLAGS`)
     add_compile_options("/EHsc")
 endif()
 

@@ -1,4 +1,4 @@
-if (NOT STATIC_ONLY)
+#if (NOT STATIC_ONLY)
 
 find_package(pybind11 CONFIG REQUIRED)
 find_package(Python 3.7 COMPONENTS Interpreter Development NumPy REQUIRED)
@@ -67,4 +67,4 @@ install(
     ${CMAKECONFIG_INSTALL_DIR}
   )
 
-endif()
+#endif()
