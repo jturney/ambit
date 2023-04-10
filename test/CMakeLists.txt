@@ -22,7 +22,7 @@ if(ENABLE_CYCLOPS)
     )
 
     add_executable(test_cyclops ${TEST_CYCLOPS_SOURCES})
-    target_link_libraries(test_cyclops ambit-lib)
+    target_link_libraries(test_cyclops ambit::ambit)
     add_test(NAME cyclops COMMAND test_cyclops)
 
     set(TEST_DISTRIBUTED_SOURCES
@@ -30,7 +30,7 @@ if(ENABLE_CYCLOPS)
     )
 
     add_executable(test_distributed ${TEST_DISTRIBUTED_SOURCES})
-    target_link_libraries(test_distributed ambit-lib)
+    target_link_libraries(test_distributed ambit::ambit)
     add_test(NAME distributed COMMAND test_distributed)
 endif()
 
@@ -40,7 +40,7 @@ endif()
 
 # build static library
 #add_executable(test_hf ${TEST_HF_SOURCES})
-#target_link_libraries(test_hf ambit-lib)
+#target_link_libraries(test_hf ambit::ambit)
 #add_test(NAME hf COMMAND test_hf)
 
 set(TEST_BLOCKS_SOURCES
@@ -48,9 +48,9 @@ set(TEST_BLOCKS_SOURCES
 )
 
 # build static library
-#add_executable(test_blocks ${TEST_BLOCKS_SOURCES})
-#target_link_libraries(test_blocks ambit::ambit)
-#add_test(NAME blocks COMMAND test_blocks)
+add_executable(test_blocks ${TEST_BLOCKS_SOURCES})
+target_link_libraries(test_blocks ambit::ambit)
+add_test(NAME blocks COMMAND test_blocks)
 
 set(TEST_SYM_BLOCKS_SOURCES
     test_sym_blocks.cc
