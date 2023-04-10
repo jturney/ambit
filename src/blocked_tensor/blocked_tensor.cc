@@ -1261,7 +1261,7 @@ void LabeledBlockedTensor::contract_pair(
             {
                 result_key.push_back(uik[index_map[index]]);
             }
-            if (BlockedTensor::expert_mode_)
+            if (BlockedTensor::expert_mode())
             {
                 if (BT_.is_block(result_key))
                 {
@@ -1286,7 +1286,7 @@ void LabeledBlockedTensor::contract_pair(
 
         bool do_contract = true;
         // In expert mode if a contraction cannot be performed
-        if (BlockedTensor::expert_mode_)
+        if (BlockedTensor::expert_mode())
         {
             if (not BT().is_block(result_key))
                 do_contract = false;
@@ -1377,7 +1377,7 @@ void LabeledBlockedTensor::contract(
         std::vector<std::vector<size_t>> unique_indices_keys;
         std::map<std::string, size_t> index_map;
         bool full_contraction = true;
-        if (BlockedTensor::expert_mode_)
+        if (BlockedTensor::expert_mode())
         {
             // Find the unique indices in the contraction
             std::vector<std::string> unique_indices;
@@ -1560,7 +1560,7 @@ void LabeledBlockedTensor::contract_batched(
     std::map<std::string, size_t> index_map;
     // In expert mode if a contraction cannot be performed
     bool full_contraction = true;
-    if (BlockedTensor::expert_mode_)
+    if (BlockedTensor::expert_mode())
     {
         // Find the unique indices in the contraction
         std::vector<std::string> unique_indices;

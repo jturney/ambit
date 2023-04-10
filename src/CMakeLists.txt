@@ -82,6 +82,19 @@ endif ()
 
 list(SORT TENSOR_SOURCES)
 
+if(MSVC)
+    # MSVC does not include <cmath> constants, unless _USE_MATH_DEFINES is defined.
+    # _CRT_* to squash some getenv, strdup, strncpy, ctime, fopen warnings
+    add_compile_definitions(
+      _USE_MATH_DEFINES
+      _CRT_NONSTDC_NO_DEPRECATE
+      _CRT_NONSTDC_NO_WARNINGS
+      _CRT_SECURE_NO_WARNINGS
+      )
+    # Set the exception handling model (allows "throw")
+    add_compile_options("/EHsc")
+endif()
+
 # build library
 if (NOT STATIC_ONLY)
     add_library(ambit-shared SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
