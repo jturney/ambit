@@ -149,6 +149,8 @@ endif()
 #    )
 #endif()
 
+set(CMAKECONFIG_INSTALL_DIR "${ambit_INSTALL_CMAKEDIR}")
+
 # library directory
 add_subdirectory(lib)
 
@@ -173,8 +175,6 @@ endif()
 # <<<  Export Config  >>>
 
 include(CMakePackageConfigHelpers)
-# GNUInstallDirs "DATADIR" wrong here; CMake search path wants "share".
-set(CMAKECONFIG_INSTALL_DIR "share/cmake/${PROJECT_NAME}")
 configure_package_config_file(cmake/${PROJECT_NAME}Config.cmake.in
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR})

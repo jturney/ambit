@@ -184,7 +184,6 @@ endif()
 
 # <<<  Export Config  >>>
 
-set(CMAKECONFIG_INSTALL_DIR "${ambit_INSTALL_CMAKEDIR}")
 if (NOT STATIC_ONLY)
     install(
       EXPORT
