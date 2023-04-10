@@ -43,7 +43,14 @@ install(TARGETS pyambit
 
 set_target_properties(pyambit PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_RPATH}")
 
-target_link_libraries(pyambit PUBLIC tgt::lapack)
+#target_link_libraries(pyambit PUBLIC tgt::lapack)
+
+# target_link_libraries(pyambit PRIVATE ambit::ambit)
+# target_link_libraries(pyambit PUBLIC tgt::lapack)
+#  ERROR (pyambit,Lib/site-packages/ambit/pyambit.cp39-win_amd64.pyd): Needed DSO Library/bin/libblas.dll found in ['libblas']
+#  ERROR (pyambit,Lib/site-packages/ambit/pyambit.cp39-win_amd64.pyd): .. but ['libblas'] not in reqs/run, (i.e. it is overlinking) (likely) or a missing dependency (less likely)
+#  ERROR (pyambit,Lib/site-packages/ambit/pyambit.cp39-win_amd64.pyd): Needed DSO Library/bin/liblapack.dll found in ['liblapack']
+#  ERROR (pyambit,Lib/site-packages/ambit/pyambit.cp39-win_amd64.pyd): .. but ['liblapack'] not in reqs/run, (i.e. it is overlinking) (likely) or a missing dependency (less likely)
 
 #target_link_libraries(
 #  pyambit
