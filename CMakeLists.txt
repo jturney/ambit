@@ -181,10 +181,15 @@ configure_package_config_file(cmake/${PROJECT_NAME}Config.cmake.in
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
         VERSION ${${PROJECT_NAME}_VERSION}
         COMPATIBILITY AnyNewerVersion)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-              ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-        cmake/FindTargetHDF5.cmake
-        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    cmake/FindTargetLAPACK.cmake
+    cmake/FindTargetHDF5.cmake
+  DESTINATION
+    ${CMAKECONFIG_INSTALL_DIR}
+  )
 
 # this has to be the very last CMake module to be included
 #include(ConfigInfo)

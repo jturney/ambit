@@ -1072,7 +1072,7 @@ void LabeledBlockedTensor::add(const LabeledBlockedTensor &rhs, double alpha,
 
         bool do_add = true;
         // In expert mode if a contraction cannot be performed
-        if (BlockedTensor::expert_mode())
+        if (BlockedTensor::expert_mode_)
         {
             if (not BT().is_block(lhs_key))
                 do_add = false;
@@ -2209,7 +2209,7 @@ LabeledBlockedTensorProduct::operator double() const
 
         bool do_contract = true;
         // In expert mode if a contraction cannot be performed
-        if (BlockedTensor::expert_mode_)
+        if (BlockedTensor::expert_mode())
         {
             for (size_t n = 0; n < nterms; ++n)
             {
