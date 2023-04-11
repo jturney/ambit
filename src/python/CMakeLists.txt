@@ -15,7 +15,13 @@ set(CMAKE_INSTALL_RPATH ${base} ${base}/${relDir})
 message(STATUS "ambit rpath: ${CMAKE_INSTALL_RPATH}")
 
 pybind11_add_module(pyambit MODULE bindings.cc)
-target_link_libraries(pyambit PRIVATE ambit::ambit)
+target_compile_features(pyambit PRIVATE "cxx_std_17")
+#if (pybind11_VERSION VERSION_GREATER_EQUAL 2.7.0)
+    # suppress error in L2
+    # * https://github.com/pybind/pybind11/pull/2919
+    target_compile_definitions(pyambit PRIVATE NDEBUG=1)
+#endif()
+#target_link_libraries(pyambit PRIVATE ambit::ambit)
 
 install(TARGETS pyambit
         EXPORT "ambitTargets"
@@ -40,6 +46,28 @@ install(TARGETS pyambit
 #    set_target_properties(pyambit PROPERTIES COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
 #    set_target_properties(pyambit PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
 #endif()
+
+
+
+    if(MSVC)
+        target_compile_definitions(pyambit PUBLIC _USE_MATH_DEFINES)
+        target_compile_options(pyambit PUBLIC "/EHsc")
+        set_target_properties(
+          pyambit
+          PROPERTIES
+            WINDOWS_EXPORT_ALL_SYMBOLS ON
+          )
+    endif()
+
+    target_link_libraries(
+      pyambit
+      PRIVATE
+        ambit::ambit
+      )
+
+
+
+################
 
 set_target_properties(pyambit PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_RPATH}")
 
