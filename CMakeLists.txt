@@ -17,6 +17,10 @@
 #
 
 cmake_policy(SET CMP0048 NEW)  # project_VERSION* variables populated from project(... VERSION x.x.x) string
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+    # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
+    cmake_policy(SET CMP0135 NEW)
+endif()
 
 cmake_minimum_required(VERSION 3.16)
 
@@ -60,8 +64,7 @@ option (BUILD_FPIC           "Static library in STATIC_ONLY will be compiled wit
 option (CYCLOPS              "Location of the Cyclops build directory" "")
 option (ELEMENTAL            "Location of the Elemental build directory" "")
 option_with_print(ENABLE_OPENMP "Enable OpenMP parallelization" ON)
-option_with_flags(ENABLE_XHOST "Enables processor-specific optimization" ON
-                  "-xHost" "-march=native")
+include(xhost)  # defines: option(ENABLE_XHOST "Enable processor-specific optimization" ON)
 option_with_default(FC_SYMBOL "The type of Fortran name mangling" 2)
 option_with_default(BUILD_FPIC "Compile static libraries with position independent code" ON)
 option_with_default(CMAKE_INSTALL_LIBDIR "Directory to which libraries installed" lib)
@@ -87,8 +90,9 @@ if (STATIC_ONLY AND SHARED_ONLY)
     message (FATAL_ERROR "The options STATIC_ONLY=ON and SHARED_ONLY=ON are conflicting." )
 endif()
 
+set (THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-link_libraries("${CMAKE_THREAD_LIBS_INIT}")
+link_libraries(Threads::Threads)
 
 # HDF5 detection
 
