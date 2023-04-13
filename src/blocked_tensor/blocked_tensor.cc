@@ -1072,7 +1072,7 @@ void LabeledBlockedTensor::add(const LabeledBlockedTensor &rhs, double alpha,
 
         bool do_add = true;
         // In expert mode if a contraction cannot be performed
-        if (BlockedTensor::expert_mode_)
+        if (BlockedTensor::expert_mode())
         {
             if (not BT().is_block(lhs_key))
                 do_add = false;
@@ -1261,7 +1261,7 @@ void LabeledBlockedTensor::contract_pair(
             {
                 result_key.push_back(uik[index_map[index]]);
             }
-            if (BlockedTensor::expert_mode())
+            if (BlockedTensor::expert_mode_)
             {
                 if (BT_.is_block(result_key))
                 {

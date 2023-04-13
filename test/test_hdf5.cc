@@ -36,7 +36,6 @@
 
 #include <ambit/print.h>
 #include <ambit/tensor.h>
-#include <ambit/settings.h>
 #include <ambit/io/hdf5/file.h>
 #include <ambit/io/hdf5/group.h>
 #include <ambit/io/hdf5/dataspace.h>

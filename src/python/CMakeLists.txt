@@ -47,8 +47,6 @@ install(TARGETS pyambit
 #    set_target_properties(pyambit PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
 #endif()
 
-
-
     if(MSVC)
         target_compile_definitions(pyambit PUBLIC _USE_MATH_DEFINES)
         target_compile_options(pyambit PUBLIC "/EHsc")

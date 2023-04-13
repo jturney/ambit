@@ -17,12 +17,17 @@
 #
 
 cmake_policy(SET CMP0048 NEW)  # project_VERSION* variables populated from project(... VERSION x.x.x) string
+cmake_policy(SET CMP0079 NEW)
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
     # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
     cmake_policy(SET CMP0135 NEW)
 endif()
 
-cmake_minimum_required(VERSION 3.16)
+if (CMAKE_HOST_WIN32)
+    cmake_minimum_required(VERSION 3.21)
+else()
+    cmake_minimum_required(VERSION 3.16)
+endif()
 
 project(ambit
         VERSION 0.6.0
@@ -109,8 +114,8 @@ message(STATUS "Found Python ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}: ${
 
 #if (NOT ENABLE_STATIC AND NOT ENABLE_PSI4)
 #    include(ConfigPython)
-#    link_libraries("${PYTHON_LIBRARIES}")
-#    include_directories(SYSTEM "${PYTHON_INCLUDE_DIRS}")
+#    link_libraries("${Python_LIBRARIES}")
+#    include_directories(SYSTEM "${Python_INCLUDE_DIRS}")
 #endif()
 
 #if (ENABLE_PSI4)
