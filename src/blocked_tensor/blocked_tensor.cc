@@ -41,7 +41,7 @@
 #include <unordered_set>
 
 #include <ambit/blocked_tensor.h>
-#include <tensor/indices.h>
+#include <ambit/tensor/indices.h>
 
 namespace ambit
 {

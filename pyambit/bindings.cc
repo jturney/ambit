@@ -40,7 +40,7 @@ typedef SSIZE_T ssize_t;
 
 #include <ambit/blocked_tensor.h>
 #include <ambit/tensor.h>
-#include <../tensor/indices.h>
+#include <ambit/tensor/indices.h>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

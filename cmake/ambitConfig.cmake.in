@@ -11,33 +11,34 @@
 #   ambit_DEFINITIONS: Definitions necessary to use ambit, namely USING_ambit. Prefer targets.
 #   ambit_LIBRARIES - ambit library to link against plus any dependent libraries. Prefer targets.
 #   ambit_LIBRARY - ambit library to link against. Prefer targets
-#   ambit_PYMOD - path to pyambit python module (suitable for appending PYTHONPATH). Prefer target variable.
+#   ambit_PYMOD - path to pyambit python module (suitable for appending PYTHONPATH). Only present
+#                 with Python component. Prefer pyambit target variable.
 #
 #
-# Target variables:
+# Target variables::
 #
-# It is preferred to use properties set on the base target rather than using the above variables.
-#
-# ::
+# It is preferred to use properties set on the base target rather than using the above variables. ::
 #
 #   ambit_VERSION - ambit version in format Major.Minor.Release
-#   ambit_PYMOD - path to ambit python module (suitable for appending PYTHONPATH)
+#   ambit_PYMOD - path to ambit python module (suitable for appending PYTHONPATH). Only on pyambit target.
 #
 #   get_property(_ver TARGET ambit::ambit PROPERTY ambit_VERSION)
 #
 #
-# Available components: shared static exe ::
+# Available components: shared static Python ::
 #
 #   shared - search for only shared library
 #   static - search for only static library
+#   Python - search for Python bindings library
 #
 #
 # Exported targets::
 #
-# If ambit is found, this module defines the following :prop_tgt:`IMPORTED`
-# target. ::
+# If ambit is found, this module defines at least the first following
+# :prop_tgt:`IMPORTED` target. Depending on components available, it may define::
 #
 #   ambit::ambit - the main ambit library with header & defs attached.
+#   ambit::pyambit - the Python pybind11 library.
 #
 #
 # Suggested usage::
@@ -69,6 +70,12 @@ if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-static.cmake")
 endif()
 list(FIND ${amb}_FIND_COMPONENTS "shared" _seek_shared)
 list(FIND ${amb}_FIND_COMPONENTS "static" _seek_static)
+
+# check Python interface component
+if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-Python.cmake")
+    set(${amb}_Python_FOUND 1)
+endif()
+list(FIND ${amb}_FIND_COMPONENTS "Python" _seek_Python)
 
 # make detectable the FindTarget*.cmake modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
@@ -110,25 +117,37 @@ if(NOT TARGET ${amb}::ambit)
     set(${amb}_INCLUDE_DIRS ${_iid})
     set(${amb}_DEFINITIONS ${_icd})
 
-    set(${amb}_PYMOD ${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@@PYMOD_INSTALL_LIBDIR@)  # CMAKE_INSTALL_LIBDIR, PYMOD_INSTALL_LIBDIR
+    if(${amb}_Python_FOUND)
+        include("${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-Python.cmake")
+        get_property(${amb}_PYMOD TARGET ${amb}::pyambit PROPERTY ambit_PYMOD)
+    endif()
 
     if (CMAKE_VERSION VERSION_GREATER 3.15)
         message(VERBOSE "ambit::ambit")
 
         get_property(_ver TARGET ${amb}::ambit PROPERTY ambit_VERSION)
-        get_property(_pym TARGET ${amb}::ambit PROPERTY ambit_PYMOD)
-        message(VERBOSE "${amb}::ambit.${amb}_VERSION ${_ver}")
-        message(VERBOSE "${amb}::ambit.${amb}_PYMOD   ${_pym}")
+        message(VERBOSE "${amb}::ambit.${amb}_VERSION   ${_ver}")
 
         message(VERBOSE "${amb}_FOUND                  ${${amb}_FOUND}")
         message(VERBOSE "${amb}_VERSION                ${${amb}_VERSION}")
         message(VERBOSE "${amb}_DEFINITIONS            ${${amb}_DEFINITIONS}")
-        message(VERBOSE "${amb}_PYMOD                  ${${amb}_PYMOD}")
 
         message(VERBOSE "${amb}_LIBRARY                ${${amb}_LIBRARY}")
         message(VERBOSE "${amb}_LIBRARIES              ${${amb}_LIBRARIES}")
         message(VERBOSE "${amb}_INCLUDE_DIR            ${${amb}_INCLUDE_DIR}")
         message(VERBOSE "${amb}_INCLUDE_DIRS           ${${amb}_INCLUDE_DIRS}")
+
+        if (TARGET ${amb}::pyambit)
+            message(VERBOSE "ambit::pyambit")
+
+            get_property(_ver TARGET ${amb}::pyambit PROPERTY ambit_VERSION)
+            get_property(_pym TARGET ${amb}::pyambit PROPERTY ambit_PYMOD)
+            message(VERBOSE "${amb}::pyambit.${amb}_VERSION ${_ver}")
+            message(VERBOSE "${amb}::pyambit.${amb}_PYMOD   ${_pym}")
+
+            message(VERBOSE "${amb}_VERSION                ${${amb}_VERSION}")
+            message(VERBOSE "${amb}_PYMOD                  ${${amb}_PYMOD}")
+        endif()
     endif()
 
 endif()

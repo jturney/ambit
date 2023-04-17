@@ -28,8 +28,8 @@
  */
 
 #include <ambit/common_types.h>
+#include <ambit/tensor/indices.h>
 
-#include "indices.h"
 #include <algorithm>
 #include <stdexcept>
 

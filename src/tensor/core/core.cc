@@ -32,7 +32,7 @@
 
 #include "core.h"
 #include "math/math.h"
-#include "tensor/indices.h"
+#include "ambit/tensor/indices.h"
 #include <algorithm>
 #include <ambit/print.h>
 #include <ambit/timer.h>

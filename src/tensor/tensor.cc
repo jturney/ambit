@@ -36,7 +36,7 @@
 
 #include "core/core.h"
 #include "disk/disk.h"
-#include "indices.h"
+#include <ambit/tensor/indices.h>
 #include "tensorimpl.h"
 
 #include <ambit/print.h>

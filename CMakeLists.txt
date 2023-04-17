@@ -23,14 +23,10 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
     cmake_policy(SET CMP0135 NEW)
 endif()
 
-if (CMAKE_HOST_WIN32)
-    cmake_minimum_required(VERSION 3.21)
-else()
-    cmake_minimum_required(VERSION 3.16)
-endif()
+cmake_minimum_required(VERSION 3.16)
 
 project(ambit
-        VERSION 0.6.0
+        VERSION 0.6.0  # SYNC WITH `project(pyambit VERSION <>)` in pyambit/CMakeLists.txt
         LANGUAGES C CXX)
 set(ambit_AUTHORS      "Justin M. Turney")
 set(ambit_DESCRIPTION  "C++ library for the implementation of tensor product calculations")
@@ -73,9 +69,10 @@ include(xhost)  # defines: option(ENABLE_XHOST "Enable processor-specific optimi
 option_with_default(FC_SYMBOL "The type of Fortran name mangling" 2)
 option_with_default(BUILD_FPIC "Compile static libraries with position independent code" ON)
 option_with_default(CMAKE_INSTALL_LIBDIR "Directory to which libraries installed" lib)
-option_with_default(PYMOD_INSTALL_LIBDIR "Location within CMAKE_INSTALL_LIBDIR to which python modules are installed" /)
+option_with_default(PYMOD_INSTALL_LIBDIR "If ambit_ENABLE_PYTHON, location within CMAKE_INSTALL_LIBDIR to which python modules are installed" /)
 option_with_default(ENABLE_GENERIC "Enables mostly static linking of system and math libraries for shared library" OFF)
 option_with_default(ambit_INSTALL_CMAKEDIR "Directory to which ambit CMake config files installed." share/cmake/ambit)
+option_with_print(ambit_ENABLE_PYTHON "Build Python bindings (requires Python and Pybind11)" ON)
 
 ########################  Process & Validate Options  ##########################
 include(GNUInstallDirs)
@@ -160,9 +157,6 @@ endif()
 
 set(CMAKECONFIG_INSTALL_DIR "${ambit_INSTALL_CMAKEDIR}")
 
-# library directory
-add_subdirectory(lib)
-
 # include directory (for installation)
 add_subdirectory(include)
 
@@ -176,8 +170,13 @@ if (ENABLE_TESTS)
     add_subdirectory(test)
 endif()
 
-    # sample suite
-    add_subdirectory(samples)
+# sample suite
+add_subdirectory(samples)
+
+# Python directory
+if (ambit_ENABLE_PYTHON)
+    add_subdirectory(pyambit)
+endif()
 
 # Add all targets to the build-tree export set
 

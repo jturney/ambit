@@ -32,7 +32,7 @@
 #include <string>
 #include <algorithm>
 #include <ambit/sym_blocked_tensor.h>
-#include <tensor/indices.h>
+#include <ambit/tensor/indices.h>
 
 namespace ambit
 {

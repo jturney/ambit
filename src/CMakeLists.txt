@@ -25,7 +25,7 @@ set(TENSOR_HEADERS
 
         tensor/core/core.h
         tensor/disk/disk.h
-        tensor/indices.h
+        #tensor/indices.h
         tensor/globals.h
         tensor/macros.h
         tensor/tensorimpl.h
@@ -98,11 +98,10 @@ endif()
 # build library
 set(export_properties
   "ambit_VERSION"
-  "ambit_PYMOD"
   )
 
 if (NOT STATIC_ONLY)
-    add_library(ambit-shared SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
+    add_library(ambit-shared SHARED ${TENSOR_SOURCES})
     target_link_libraries (ambit-shared PUBLIC tgt::lapack
                                                 tgt::hdf5)
     set_target_properties (
@@ -111,13 +110,12 @@ if (NOT STATIC_ONLY)
         OUTPUT_NAME "ambit"
         EXPORT_NAME "ambit"
         ambit_VERSION ${ambit_VERSION}
-        ambit_PYMOD "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}${PYMOD_INSTALL_LIBDIR}"
       )
     set_property(TARGET ambit-shared APPEND PROPERTY EXPORT_PROPERTIES "${export_properties}")
 endif()
 
 if (NOT SHARED_ONLY)
-    add_library(ambit-static STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
+    add_library(ambit-static STATIC ${TENSOR_SOURCES})
     target_link_libraries (ambit-static PUBLIC tgt::lapack
                                                 tgt::hdf5)
     set_target_properties (
@@ -159,8 +157,6 @@ else()
     add_library(ambit-lib ALIAS ambit-shared)
     add_library(ambit::ambit ALIAS ambit-shared)
 endif()
-
-add_subdirectory(python)
 
 # <<<  Install  >>>
 
