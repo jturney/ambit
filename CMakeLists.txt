@@ -94,7 +94,8 @@ endif()
 
 set (THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-link_libraries(Threads::Threads)
+link_libraries("${CMAKE_THREAD_LIBS_INIT}")
+#link_libraries(Threads::Threads)
 
 # HDF5 detection
 
