@@ -104,10 +104,6 @@ include_directories(SYSTEM $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTO
 # BLAS and LAPACK
 find_package (TargetLAPACK REQUIRED)
 
-# Python Detection
-set(Python_ADDITIONAL_VERSIONS 3.11 3.10 3.9 3.8 3.7)  # adjust with CMake minimum FindPythonInterp
-find_package(Python 3.7 COMPONENTS Interpreter Development NumPy REQUIRED)
-message(STATUS "Found Python ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}: ${Python_EXECUTABLE} (found version ${Python_VERSION})")
 
 #if (NOT ENABLE_STATIC AND NOT ENABLE_PSI4)
 #    include(ConfigPython)

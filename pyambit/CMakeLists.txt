@@ -25,7 +25,9 @@ if (NOT TARGET pybind11::pybind11)
 endif()
 
 if (NOT TARGET Python::Module)
+    set(Python_ADDITIONAL_VERSIONS 3.11 3.10 3.9 3.8 3.7)  # adjust with CMake minimum FindPythonInterp
     find_package(Python 3.7 COMPONENTS Interpreter Development NumPy REQUIRED)
+    message(STATUS "Found Python ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}: ${Python_EXECUTABLE} (found version ${Python_VERSION})")
 endif()
 
 if (APPLE)
