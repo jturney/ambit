@@ -20,11 +20,11 @@ option_with_default(ambit_INSTALL_CMAKEDIR "Directory to which ambit CMake confi
 include(autocmake_safeguards)
 set(CMAKECONFIG_INSTALL_DIR "${ambit_INSTALL_CMAKEDIR}")
 
-if (NOT TARGET Python::Module)
+#if (NOT TARGET Python::Module)
     set(Python_ADDITIONAL_VERSIONS 3.11 3.10 3.9 3.8 3.7)  # adjust with CMake minimum FindPythonInterp
     find_package(Python 3.7 COMPONENTS Interpreter Development NumPy REQUIRED)
     message(STATUS "Found Python ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}: ${Python_EXECUTABLE} (found version ${Python_VERSION})")
-endif()
+#endif()
 
 if (NOT TARGET pybind11::pybind11)
     find_package(pybind11 CONFIG REQUIRED)
