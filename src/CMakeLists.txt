@@ -102,8 +102,13 @@ set(export_properties
 
 if (NOT STATIC_ONLY)
     add_library(ambit-shared SHARED ${TENSOR_SOURCES})
-    target_link_libraries (ambit-shared PUBLIC tgt::lapack
-                                                tgt::hdf5)
+    target_link_libraries (
+      ambit-shared
+      PUBLIC
+        tgt::hdf5
+      PRIVATE
+        tgt::lapack
+      )
     set_target_properties (
       ambit-shared
       PROPERTIES
@@ -116,8 +121,13 @@ endif()
 
 if (NOT SHARED_ONLY)
     add_library(ambit-static STATIC ${TENSOR_SOURCES})
-    target_link_libraries (ambit-static PUBLIC tgt::lapack
-                                                tgt::hdf5)
+    target_link_libraries (
+      ambit-static
+      PUBLIC
+        tgt::hdf5
+      PRIVATE
+        tgt::lapack
+      )
     set_target_properties (
       ambit-static
       PROPERTIES
@@ -201,14 +211,12 @@ if (NOT STATIC_ONLY)
         set_target_properties (ambit-shared PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
     endif()
     target_compile_definitions (ambit-shared INTERFACE USING_${PROJECT_NAME})
-    target_include_directories (ambit-shared INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                                                       $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_include_directories (ambit-shared INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 endif()
 
 if (NOT SHARED_ONLY)
     target_compile_definitions (ambit-static INTERFACE USING_${PROJECT_NAME})
-    target_include_directories (ambit-static INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                                                       $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_include_directories (ambit-static INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 endif()
 
 # <<<  Export Config  >>>
