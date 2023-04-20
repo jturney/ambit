@@ -114,6 +114,7 @@ if (NOT STATIC_ONLY)
       PROPERTIES
         OUTPUT_NAME "ambit"
         EXPORT_NAME "ambit"
+        IMPORTED_LINK_DEPENDENT_LIBRARIES tgt::lapack
         ambit_VERSION ${ambit_VERSION}
       )
     set_property(TARGET ambit-shared APPEND PROPERTY EXPORT_PROPERTIES "${export_properties}")
