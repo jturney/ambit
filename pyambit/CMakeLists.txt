@@ -17,6 +17,7 @@ option_with_default(CMAKE_BUILD_TYPE "Build type (Release or Debug)" Release)
 option_with_default(PYMOD_INSTALL_LIBDIR "Location within CMAKE_INSTALL_LIBDIR to which python modules are installed" /)
 option_with_default(ambit_INSTALL_CMAKEDIR "Directory to which ambit CMake config files installed." share/cmake/ambit)
 
+include(GNUInstallDirs)
 include(autocmake_safeguards)
 set(CMAKECONFIG_INSTALL_DIR "${ambit_INSTALL_CMAKEDIR}")
 
@@ -117,13 +118,14 @@ install(
     ${CMAKECONFIG_INSTALL_DIR}
   )
 
+# install(DIRECTORY ambit FILES_MATCHING PATTERN "*.py") not working right for Windows conda
 install(
-  DIRECTORY ambit
+  FILES
+    __init__.py
   DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}${PYMOD_INSTALL_LIBDIR}
-  FILES_MATCHING
-    PATTERN "*.py"
+    ${CMAKE_INSTALL_LIBDIR}${PYMOD_INSTALL_LIBDIR}/ambit/
   )
+
 install(
   FILES
     np_test.py
