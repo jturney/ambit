@@ -101,8 +101,10 @@ if(NOT TARGET ${amb}::ambit)
         include("${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-static.cmake")
     elseif(_seek_shared GREATER -1)
         include("${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-shared.cmake")
+        set_target_properties(${amb}::ambit PROPERTIES IMPORTED_LINK_DEPENDENT_LIBRARIES tgt::lapack)
     elseif(NOT @STATIC_ONLY@)  # STATIC_ONLY
         include("${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-shared.cmake")
+        set_target_properties(${amb}::ambit PROPERTIES IMPORTED_LINK_DEPENDENT_LIBRARIES tgt::lapack)
     elseif(NOT @SHARED_ONLY@)  # SHARED_ONLY
         include("${CMAKE_CURRENT_LIST_DIR}/${amb}Targets-static.cmake")
     endif()
