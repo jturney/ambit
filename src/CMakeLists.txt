@@ -106,7 +106,6 @@ if (NOT STATIC_ONLY)
       ambit-shared
       PUBLIC
         tgt::hdf5
-      PRIVATE
         tgt::lapack
       )
     set_target_properties (
@@ -125,7 +124,6 @@ if (NOT SHARED_ONLY)
       ambit-static
       PUBLIC
         tgt::hdf5
-      PRIVATE
         tgt::lapack
       )
     set_target_properties (
