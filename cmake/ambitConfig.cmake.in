@@ -8,7 +8,7 @@
 #   ambit_VERSION - ambit version in format Major.Minor.Release. Prefer target variable.
 #   ambit_INCLUDE_DIRS - Directory where ambit/tensor.h header is located and dependent headers. Prefer targets.
 #   ambit_INCLUDE_DIR - same as DIRS. Prefer targets.
-#   ambit_DEFINITIONS: Definitions necessary to use ambit, namely USING_ambit. Prefer targets.
+#   ambit_DEFINITIONS - Definitions necessary to use ambit, namely USING_ambit. Prefer targets.
 #   ambit_LIBRARIES - ambit library to link against plus any dependent libraries. Prefer targets.
 #   ambit_LIBRARY - ambit library to link against. Prefer targets
 #   ambit_PYMOD - path to pyambit python module (suitable for appending PYTHONPATH). Only present

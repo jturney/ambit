@@ -100,6 +100,18 @@ set(export_properties
   "ambit_VERSION"
   )
 
+# LAB note: I've gone back and forth over the years on whether tgt::hdf5 and tgt::lapack should be PUBLIC or PRIVATE links of libambit.
+# * My present conclusion is that hdf5 is PUBLIC (appears in ambit headers) and lapack is PRIVATE (not in headers; ambit consumer is indifferent).
+# * This conclusion is supported by overlinking errors in the conda-build when both are PUBLIC.
+# * But, when lapack is PRIVATE-ized, the ambit GHA CI check for Linux fails.
+# * The failure cause is the unsetting of LDFLAGS (set upon conda activate in an env including conda compilers).
+#   This removes -rpath-link that correctly handled using lapack as a secondary dependency when linking pyambit.
+# * Best explanation I've found is at: http://www.kaizou.org/2015/01/linux-libraries.html
+# * So, I understand what's happening Linux-wise, but I've failed at getting CMake to set this up right w/o the external LDFLAGS.
+#   I strongly suspect IMPORTED_LINK_DEPENDENT_LIBRARIES is part of the answer.
+# * Final state is that I'm leaving both PUBLIC on the grounds that a robust build is most important, and most ppl don't
+#   care about overlinking. The conda package has a little patch that turns lapack PRIVATE.
+
 if (NOT STATIC_ONLY)
     add_library(ambit-shared SHARED ${TENSOR_SOURCES})
     target_link_libraries (
