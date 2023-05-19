@@ -32,7 +32,7 @@
 #include <numeric>
 #include <ambit/tensor.h>
 #include "tensorimpl.h"
-#include "indices.h"
+#include <ambit/tensor/indices.h>
 #include <cstring>
 
 namespace ambit

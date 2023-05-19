@@ -25,7 +25,7 @@ set(TENSOR_HEADERS
 
         tensor/core/core.h
         tensor/disk/disk.h
-        tensor/indices.h
+        #tensor/indices.h
         tensor/globals.h
         tensor/macros.h
         tensor/tensorimpl.h
@@ -82,22 +82,71 @@ endif ()
 
 list(SORT TENSOR_SOURCES)
 
+if(MSVC)
+    # MSVC does not include <cmath> constants, unless _USE_MATH_DEFINES is defined.
+    # _CRT_* to squash some getenv, strdup, strncpy, ctime, fopen warnings
+    add_compile_definitions(
+      _USE_MATH_DEFINES
+      _CRT_NONSTDC_NO_DEPRECATE
+      _CRT_NONSTDC_NO_WARNINGS
+      _CRT_SECURE_NO_WARNINGS
+      )
+    # Set the exception handling model (allows "throw") (this isn't working; still need it in `-D CMAKE_CXX_FLAGS`)
+    add_compile_options("/EHsc")
+endif()
+
 # build library
+set(export_properties
+  "ambit_VERSION"
+  )
+
+# LAB note: I've gone back and forth over the years on whether tgt::hdf5 and tgt::lapack should be PUBLIC or PRIVATE links of libambit.
+# * My present conclusion is that hdf5 is PUBLIC (appears in ambit headers) and lapack is PRIVATE (not in headers; ambit consumer is indifferent).
+# * This conclusion is supported by overlinking errors in the conda-build when both are PUBLIC.
+# * But, when lapack is PRIVATE-ized, the ambit GHA CI check for Linux fails.
+# * The failure cause is the unsetting of LDFLAGS (set upon conda activate in an env including conda compilers).
+#   This removes -rpath-link that correctly handled using lapack as a secondary dependency when linking pyambit.
+# * Best explanation I've found is at: http://www.kaizou.org/2015/01/linux-libraries.html
+# * So, I understand what's happening Linux-wise, but I've failed at getting CMake to set this up right w/o the external LDFLAGS.
+#   I strongly suspect IMPORTED_LINK_DEPENDENT_LIBRARIES is part of the answer.
+# * Final state is that I'm leaving both PUBLIC on the grounds that a robust build is most important, and most ppl don't
+#   care about overlinking. The conda package has a little patch that turns lapack PRIVATE.
+
 if (NOT STATIC_ONLY)
-    add_library(ambit-shared SHARED ${TENSOR_SOURCES} ${TENSOR_HEADERS})
-    target_link_libraries (ambit-shared PUBLIC tgt::lapack
-                                                tgt::hdf5)
-    set_target_properties (ambit-shared PROPERTIES OUTPUT_NAME "ambit"
-                                                   EXPORT_NAME "ambit")
+    add_library(ambit-shared SHARED ${TENSOR_SOURCES})
+    target_link_libraries (
+      ambit-shared
+      PUBLIC
+        tgt::hdf5
+        tgt::lapack
+      )
+    set_target_properties (
+      ambit-shared
+      PROPERTIES
+        OUTPUT_NAME "ambit"
+        EXPORT_NAME "ambit"
+        ambit_VERSION ${ambit_VERSION}
+      )
+    set_property(TARGET ambit-shared APPEND PROPERTY EXPORT_PROPERTIES "${export_properties}")
 endif()
 
 if (NOT SHARED_ONLY)
-    add_library(ambit-static STATIC ${TENSOR_SOURCES} ${TENSOR_HEADERS})
-    target_link_libraries (ambit-static PUBLIC tgt::lapack
-                                                tgt::hdf5)
-    set_target_properties (ambit-static PROPERTIES OUTPUT_NAME "ambit"
-                                                   EXPORT_NAME "ambit"
-                                                   POSITION_INDEPENDENT_CODE ${BUILD_FPIC})
+    add_library(ambit-static STATIC ${TENSOR_SOURCES})
+    target_link_libraries (
+      ambit-static
+      PUBLIC
+        tgt::hdf5
+        tgt::lapack
+      )
+    set_target_properties (
+      ambit-static
+      PROPERTIES
+        OUTPUT_NAME "ambit"
+        EXPORT_NAME "ambit"
+        POSITION_INDEPENDENT_CODE ${BUILD_FPIC}
+        ambit_VERSION ${ambit_VERSION}
+      )
+    set_property(TARGET ambit-static APPEND PROPERTY EXPORT_PROPERTIES "${export_properties}")
 endif()
 
 # LAB: not addressed
@@ -121,27 +170,48 @@ endif ()
 #        ${HDF5_LIBRARIES}
 #        )
 
-message("ambitambit a/so ${STATIC_ONLY} ${SHARED_ONLY}")
 if (STATIC_ONLY)
     add_library(ambit-lib ALIAS ambit-static)
+    add_library(ambit::ambit ALIAS ambit-static)
 else()
     add_library(ambit-lib ALIAS ambit-shared)
+    add_library(ambit::ambit ALIAS ambit-shared)
 endif()
-
-add_subdirectory(python)
 
 # <<<  Install  >>>
 
 if (NOT STATIC_ONLY)
-    install (TARGETS ambit-shared
-                     EXPORT "ambitTargets-shared"
-                     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(
+      TARGETS
+        ambit-shared
+      EXPORT
+        shared_interface
+      RUNTIME DESTINATION
+        ${CMAKE_INSTALL_BINDIR}
+      ARCHIVE DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
+      PUBLIC_HEADER DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR}
+      )
 endif()
 
 if (NOT SHARED_ONLY)
-    install (TARGETS ambit-static
-                     EXPORT "ambitTargets-static"
-                     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(
+      TARGETS
+        ambit-static
+      EXPORT
+        static_interface
+      RUNTIME DESTINATION
+        ${CMAKE_INSTALL_BINDIR}
+      ARCHIVE DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
+      PUBLIC_HEADER DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR}
+      )
 endif()
 
 # <<<  Export interface  >>>
@@ -151,28 +221,39 @@ if (NOT STATIC_ONLY)
         set_target_properties (ambit-shared PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
     endif()
     target_compile_definitions (ambit-shared INTERFACE USING_${PROJECT_NAME})
-    target_include_directories (ambit-shared INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                                                       $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_include_directories (ambit-shared INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 endif()
 
 if (NOT SHARED_ONLY)
     target_compile_definitions (ambit-static INTERFACE USING_${PROJECT_NAME})
-    target_include_directories (ambit-static INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                                                       $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_include_directories (ambit-static INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 endif()
 
 # <<<  Export Config  >>>
 
-set(CMAKECONFIG_INSTALL_DIR "share/cmake/${PROJECT_NAME}")
 if (NOT STATIC_ONLY)
-    install (EXPORT "${PROJECT_NAME}Targets-shared"
-                    NAMESPACE "${PROJECT_NAME}::"
-                    DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+    install(
+      EXPORT
+        shared_interface
+      FILE
+        "${PROJECT_NAME}Targets-shared.cmake"
+      NAMESPACE
+        "${PROJECT_NAME}::"
+      DESTINATION
+        ${CMAKECONFIG_INSTALL_DIR}
+      )
 endif()
 
 if (NOT SHARED_ONLY)
-    install (EXPORT "${PROJECT_NAME}Targets-static"
-                    NAMESPACE "${PROJECT_NAME}::"
-                    DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+    install(
+      EXPORT
+        static_interface
+      FILE
+        "${PROJECT_NAME}Targets-static.cmake"
+      NAMESPACE
+        "${PROJECT_NAME}::"
+      DESTINATION
+        ${CMAKECONFIG_INSTALL_DIR}
+      )
 endif()
 

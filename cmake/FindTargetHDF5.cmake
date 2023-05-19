@@ -20,30 +20,26 @@
 #   HDF5_INCLUDE_DIRS
 #   HDF5_LIBRARIES
 #
-# Exported targets:
-#
-# ::
+# Exported targets::
 #
 # If HDF5 is found, this module defines the following :prop_tgt:`IMPORTED`
 # target. ::
 #
 #   tgt::hdf5 - the HDF5 libraries with headers attached.
 #
-#
-# Suggested usage:
-#
-# ::
+# Suggested usage::
 #
 #   find_package(TargetHDF5)
 #   find_package(TargetHDF5 1.8.16 REQUIRED)
 #
 #
-# The following variables can be set to guide the search for this package:
-#
-# ::
+# The following variables can be set to guide the search for this package::
 #
 #   TargetHDF5_DIR - CMake variable, set to directory containing this Config file
 #   CMAKE_PREFIX_PATH - CMake variable, set to root directory of this package
+#
+# ambit specialization
+# * None
 
 set(PN TargetHDF5)
 
@@ -74,7 +70,7 @@ else()
         if (NOT ${PN}_FIND_QUIETLY)
             message (STATUS "HDF5 detected.")
         endif()
-    
+
         add_library (tgt::hdf5 INTERFACE IMPORTED)
         set_property (TARGET tgt::hdf5 PROPERTY INTERFACE_LINK_LIBRARIES ${HDF5_LIBRARIES})
         set_property (TARGET tgt::hdf5 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${HDF5_INCLUDE_DIRS})
@@ -85,7 +81,7 @@ else()
         unset (HDF5_LIBRARIES)
         unset (HDF5_INCLUDE_DIRS)
     endif()
-endif()    
+endif()
 
 get_property(_ill TARGET tgt::hdf5 PROPERTY INTERFACE_LINK_LIBRARIES)
 get_property(_iid TARGET tgt::hdf5 PROPERTY INTERFACE_INCLUDE_DIRECTORIES)

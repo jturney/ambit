@@ -30,11 +30,21 @@
 #include "disk.h"
 #include "memory.h"
 #include "math/math.h"
-#include "tensor/indices.h"
+#include "ambit/tensor/indices.h"
 #include <sstream>
 #include <string.h>
 #include <cmath>
+#ifdef _MSC_VER
+#include <io.h>
+#define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
+#define PATH_SEPARATOR "\\"
+#include <process.h>
+#define GETPID _getpid
+#else
 #include <unistd.h>
+#define PATH_SEPARATOR "/"
+#define GETPID getpid
+#endif
 
 namespace ambit
 {
@@ -49,7 +59,7 @@ DiskTensorImpl::DiskTensorImpl(const string &name, const Dimension &dims)
     ss << Tensor::scratch_path();
     ss << "/";
     ss << "DiskTensor.";
-    ss << getpid();
+    ss << GETPID();
     ss << ".";
     ss << disk_next_id();
     ss << ".dat";

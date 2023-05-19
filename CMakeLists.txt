@@ -17,11 +17,16 @@
 #
 
 cmake_policy(SET CMP0048 NEW)  # project_VERSION* variables populated from project(... VERSION x.x.x) string
+cmake_policy(SET CMP0079 NEW)
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+    # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
+    cmake_policy(SET CMP0135 NEW)
+endif()
 
 cmake_minimum_required(VERSION 3.16)
 
 project(ambit
-        VERSION 0.6.0
+        VERSION 0.6.0  # SYNC WITH `project(pyambit VERSION <>)` in pyambit/CMakeLists.txt
         LANGUAGES C CXX)
 set(ambit_AUTHORS      "Justin M. Turney")
 set(ambit_DESCRIPTION  "C++ library for the implementation of tensor product calculations")
@@ -60,13 +65,14 @@ option (BUILD_FPIC           "Static library in STATIC_ONLY will be compiled wit
 option (CYCLOPS              "Location of the Cyclops build directory" "")
 option (ELEMENTAL            "Location of the Elemental build directory" "")
 option_with_print(ENABLE_OPENMP "Enable OpenMP parallelization" ON)
-option_with_flags(ENABLE_XHOST "Enables processor-specific optimization" ON
-                  "-xHost" "-march=native")
+include(xhost)  # defines: option(ENABLE_XHOST "Enable processor-specific optimization" ON)
 option_with_default(FC_SYMBOL "The type of Fortran name mangling" 2)
 option_with_default(BUILD_FPIC "Compile static libraries with position independent code" ON)
 option_with_default(CMAKE_INSTALL_LIBDIR "Directory to which libraries installed" lib)
-option_with_default(PYMOD_INSTALL_LIBDIR "Location within CMAKE_INSTALL_LIBDIR to which python modules are installed" /)
+option_with_default(PYMOD_INSTALL_LIBDIR "If ambit_ENABLE_PYTHON, location within CMAKE_INSTALL_LIBDIR to which python modules are installed" /)
 option_with_default(ENABLE_GENERIC "Enables mostly static linking of system and math libraries for shared library" OFF)
+option_with_default(ambit_INSTALL_CMAKEDIR "Directory to which ambit CMake config files installed." share/cmake/ambit)
+option_with_print(ambit_ENABLE_PYTHON "Build Python bindings (requires Python and Pybind11)" ON)
 
 ########################  Process & Validate Options  ##########################
 include(GNUInstallDirs)
@@ -86,8 +92,10 @@ if (STATIC_ONLY AND SHARED_ONLY)
     message (FATAL_ERROR "The options STATIC_ONLY=ON and SHARED_ONLY=ON are conflicting." )
 endif()
 
+set (THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 link_libraries("${CMAKE_THREAD_LIBS_INIT}")
+#link_libraries(Threads::Threads)
 
 # HDF5 detection
 
@@ -97,15 +105,11 @@ include_directories(SYSTEM $<TARGET_PROPERTY:tgt::hdf5,INTERFACE_INCLUDE_DIRECTO
 # BLAS and LAPACK
 find_package (TargetLAPACK REQUIRED)
 
-# Python Detection
-set(Python_ADDITIONAL_VERSIONS 3.10 3.9 3.8 3.7)  # adjust with CMake minimum FindPythonInterp
-find_package(Python 3.7 COMPONENTS Interpreter Development NumPy REQUIRED)
-message(STATUS "Found Python ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}: ${Python_EXECUTABLE} (found version ${Python_VERSION})")
 
 #if (NOT ENABLE_STATIC AND NOT ENABLE_PSI4)
 #    include(ConfigPython)
-#    link_libraries("${PYTHON_LIBRARIES}")
-#    include_directories(SYSTEM "${PYTHON_INCLUDE_DIRS}")
+#    link_libraries("${Python_LIBRARIES}")
+#    include_directories(SYSTEM "${Python_INCLUDE_DIRS}")
 #endif()
 
 #if (ENABLE_PSI4)
@@ -148,8 +152,7 @@ endif()
 #    )
 #endif()
 
-# library directory
-add_subdirectory(lib)
+set(CMAKECONFIG_INSTALL_DIR "${ambit_INSTALL_CMAKEDIR}")
 
 # include directory (for installation)
 add_subdirectory(include)
@@ -157,33 +160,41 @@ add_subdirectory(include)
 # recursively add source directories
 add_subdirectory(src)
 
-#if (NOT ENABLE_PSI4)
+if (ENABLE_TESTS)
     # test suite
     enable_testing()
     include(CTest)
     add_subdirectory(test)
+endif()
 
-    # sample suite
-    add_subdirectory(samples)
-#endif()
+# sample suite
+add_subdirectory(samples)
+
+# Python directory
+if (ambit_ENABLE_PYTHON)
+    add_subdirectory(pyambit)
+endif()
 
 # Add all targets to the build-tree export set
 
 # <<<  Export Config  >>>
 
 include(CMakePackageConfigHelpers)
-# GNUInstallDirs "DATADIR" wrong here; CMake search path wants "share".
-set(CMAKECONFIG_INSTALL_DIR "share/cmake/${PROJECT_NAME}")
 configure_package_config_file(cmake/${PROJECT_NAME}Config.cmake.in
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
         VERSION ${${PROJECT_NAME}_VERSION}
-        COMPATIBILITY AnyNewerVersion)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-              ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-        cmake/FindTargetHDF5.cmake
-        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+        COMPATIBILITY SameMajorVersion)
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    cmake/FindTargetLAPACK.cmake
+    cmake/FindTargetHDF5.cmake
+  DESTINATION
+    ${CMAKECONFIG_INSTALL_DIR}
+  )
 
 # this has to be the very last CMake module to be included
 #include(ConfigInfo)

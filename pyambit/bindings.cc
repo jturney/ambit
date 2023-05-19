@@ -27,6 +27,12 @@
  * @END LICENSE
  */
 
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+// handles ssize_t in pybind11/numpy.h
+typedef SSIZE_T ssize_t;
+#endif
+
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/operators.h>
@@ -34,7 +40,7 @@
 
 #include <ambit/blocked_tensor.h>
 #include <ambit/tensor.h>
-#include <../tensor/indices.h>
+#include <ambit/tensor/indices.h>
 
 namespace py = pybind11;
 using namespace pybind11::literals;

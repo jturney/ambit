@@ -1,3 +1,6 @@
+cmake_policy(PUSH)
+cmake_policy(SET CMP0057 NEW)  # support IN_LISTS
+
 # We require C++11 support from the compiler and standard library.
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
@@ -10,7 +13,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES Intel)
         message(FATAL_ERROR "ICPC version must be at least 2016.0.2!")
     endif()
 
-    set(_testfl ${CMAKE_BINARY_DIR}/test_gcc_version.cc)
+    set(_testfl ${PROJECT_BINARY_DIR}/test_gcc_version.cc)
     file(WRITE  ${_testfl} "
     #include <stdio.h>
 
@@ -25,7 +28,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES Intel)
     ")
     try_run(GCCV_COMPILES
             GCCV_RUNS
-            ${CMAKE_BINARY_DIR} ${_testfl}
+            ${PROJECT_BINARY_DIR} ${_testfl}
             RUN_OUTPUT_VARIABLE GCC_VERSION)
     message(STATUS "Found base compiler version ${GCC_VERSION}")
     file(REMOVE ${_testfl})
@@ -56,3 +59,4 @@ else()
     message(WARNING "Please add a check in CheckCompilerVersion.cmake for ${CMAKE_CXX_COMPILER_ID}.")
 endif()
 
+cmake_policy(POP)
