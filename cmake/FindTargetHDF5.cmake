@@ -83,6 +83,11 @@ else()
     endif()
 endif()
 
+if (${PN}_VERSION MATCHES "^([0-9]+).([0-9]+).*$")
+    set(${PN}_VERSION_Mm "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
+endif()
+
+
 get_property(_ill TARGET tgt::hdf5 PROPERTY INTERFACE_LINK_LIBRARIES)
 get_property(_iid TARGET tgt::hdf5 PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
 set(${PN}_MESSAGE "Found HDF5: ${_ill} (found version ${${PN}_VERSION})")

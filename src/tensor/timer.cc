@@ -109,13 +109,11 @@ void print_timer_info(TimerDetail *timer)
     char buffer[512];
     if (timer != root)
     {
+        auto time = std::chrono::duration_cast<std::chrono::milliseconds>(timer->total_time).count();
         snprintf(buffer, 512, "%lld ms : %lld calls : %lld ms per call : ",
-                 std::chrono::duration_cast<std::chrono::milliseconds>(
-                     timer->total_time),
-                 timer->total_calls,
-                 std::chrono::duration_cast<std::chrono::milliseconds>(
-                     timer->total_time) /
-                     timer->total_calls);
+                 time,
+                 static_cast<long long>(timer->total_calls),
+                 time / timer->total_calls);
         print("%s%*s%s\n", buffer,
               //              60 - ambit::current_indent() - strlen(buffer),
               60 - strlen(buffer), "", timer->name.c_str());

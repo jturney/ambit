@@ -55,7 +55,7 @@ void unindent(int decrement)
         indent_size = 0;
 }
 
-void print(const string &format, ...)
+void print(const string format, ...)
 {
     if (ambit::settings::rank == 0)
     {
@@ -67,7 +67,7 @@ void print(const string &format, ...)
     }
 }
 
-void printn(const string &format, ...)
+void printn(const string format, ...)
 {
     for (int proc = 0; proc < settings::nprocess; proc++)
     {

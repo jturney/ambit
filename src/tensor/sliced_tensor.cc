@@ -59,12 +59,13 @@ SlicedTensor::SlicedTensor(Tensor T, const IndexRange &range, double factor)
 
 void SlicedTensor::operator=(const SlicedTensor &rhs)
 {
-    if (T() == rhs.T())
+    if (T() == rhs.T()) {
         if (range_ == rhs.range_ and factor_ == rhs.factor_) {
             return; // No work to do.
         } else {
             throw std::runtime_error("Non-trivial self-assignment is not allowed.");
         }
+    }
     if (T_.rank() != rhs.T().rank())
         throw std::runtime_error("Sliced tensors do not have same rank");
     T_.slice(rhs.T(), range_, rhs.range_, rhs.factor_, 0.0);
