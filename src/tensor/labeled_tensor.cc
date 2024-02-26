@@ -433,7 +433,7 @@ pair<double, double> LabeledTensorContraction::compute_contraction_cost(
         double second_unique_size = 1.0;
         for (const string &s : second_unique)
             second_unique_size *= indices_to_size[s];
-        double result_size = first_unique_size + second_unique_size;
+        double result_size = first_unique_size * second_unique_size;
 
         Indices stored_indices(first_unique);
         stored_indices.insert(stored_indices.end(), second_unique.begin(),
